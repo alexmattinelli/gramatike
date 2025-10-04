@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Novo Post • Gramátike</title>
+<link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --font-base: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-brand: 'Mansalva', cursive;
+  --primary: #9B5DE5; /* unificado */
+  --primary-dark: #9B5DE5; /* unificado */
+  --bg: #f7f8ff;
+  --card: #ffffff;
+  --border: #e5e7eb;
+}
+body { margin:0; font-family:var(--font-base); background:var(--bg); color:#222; }
+header { background:#9B5DE5; padding:1.3rem 1.8rem 2.2rem; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; }
+header .logo { font-family:var(--font-brand); font-size:2.5rem; color:#fff; margin:0; letter-spacing:.5px; }
+main { max-width:780px; margin:2.2rem auto 3.2rem; background:var(--card); padding:2.2rem 2.4rem 2.6rem; border-radius:28px; box-shadow:0 10px 28px -6px rgba(0,0,0,.12); position:relative; }
+main h1 { margin:0 0 1.8rem; font-size:1.9rem; font-weight:800; letter-spacing:.5px; color:#9B5DE5; }
+.form-group { margin-bottom:1.2rem; }
+.form-group label { display:block; font-weight:700; font-size:.85rem; text-transform:uppercase; letter-spacing:.6px; margin-bottom:.55rem; color:#9B5DE5; }
+textarea { width:100%; min-height:180px; resize:vertical; padding:1rem 1.1rem 2.2rem; font-family:var(--font-base); font-size:1rem; line-height:1.5; border:1px solid var(--border); border-radius:18px; background:#fafafa; position:relative; }
+textarea:focus { outline:2px solid #9B5DE5; outline-offset:2px; background:#fff; }
+.actions { display:flex; gap:.9rem; justify-content:flex-end; margin-top:1.4rem; }
+button, a.btn { border:none; cursor:pointer; font-family:var(--font-base); font-weight:700; font-size:.9rem; letter-spacing:.5px; padding:.85rem 1.6rem; border-radius:50px; text-decoration:none; display:inline-flex; align-items:center; gap:.4rem; }
+button.primary { background:#9B5DE5; color:#fff; box-shadow:0 8px 24px rgba(155,93,229,.4); }
+button.primary:hover { filter:brightness(1.08); }
+.btn-secondary { background:#ede7ff; color:#9B5DE5; }
+.btn-secondary:hover { background:#dcd2ff; }
+.notice { font-size:.7rem; color:#555; margin-top:.55rem; line-height:1.35; letter-spacing:.3px; }
+.char-counter { position:absolute; bottom:.65rem; right:1rem; font-size:.6rem; font-weight:700; color:#8a7fb8; letter-spacing:.5px; pointer-events:none; }
+.drop-zone { margin-top:.55rem; border:2px dashed #c7b8f3; border-radius:20px; padding:1.2rem .9rem; text-align:center; background:#fcfbff; position:relative; transition:.25s; cursor:pointer; }
+.drop-zone.dragover { background:#f3edff; border-color:#9B5DE5; }
+.drop-zone p { margin:0; font-size:.7rem; font-weight:600; color:#7056a8; letter-spacing:.4px; }
+.grid-previews { margin-top:.9rem; display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); }
+.grid-previews .img-slot { position:relative; border:1px solid #e2ddf5; border-radius:18px; background:#fff; padding:4px; box-shadow:0 3px 8px rgba(0,0,0,.04); }
+.grid-previews .img-slot img { width:100%; height:110px; object-fit:cover; border-radius:14px; filter:blur(6px); transition:filter .5s; }
+.grid-previews .remove-btn { position:absolute; top:6px; right:6px; background:#ff5f56; color:#fff; border:none; width:28px; height:28px; border-radius:10px; font-size:.9rem; font-weight:700; cursor:pointer; box-shadow:0 4px 12px -4px rgba(255,95,86,.6); }
+.grid-previews .remove-btn:hover { filter:brightness(1.08); }
+.grid-previews .meta { font-size:.55rem; font-weight:600; margin:.45rem .2rem 0; line-height:1.25; color:#5a4c7d; letter-spacing:.35px; word-break:break-word; }
+.tool-row { display:flex; justify-content:space-between; align-items:center; gap:.6rem; margin-top:.65rem; }
+.tool-row button.clear-all { background:#ffe6a8; color:#7a5000; border:none; padding:.55rem 1rem; border-radius:30px; font-size:.65rem; font-weight:700; cursor:pointer; letter-spacing:.5px; }
+.tool-row button.clear-all:hover { background:#ffd776; }
+.progress-wrap { margin-top:1.3rem; display:none; }
+.progress-bar-outer { height:10px; background:#ede7ff; border-radius:30px; overflow:hidden; box-shadow:inset 0 0 0 1px #e0d9fa; }
+.progress-bar-inner { height:10px; width:0; background:linear-gradient(90deg,#9B5DE5,#6233B5); transition:width .3s; }
+.progress-label { margin-top:.4rem; font-size:.6rem; font-weight:700; letter-spacing:.4px; color:#6233B5; }
+.disabled { opacity:.6; pointer-events:none; }
+ .img-meta { font-size:.65rem; font-weight:600; color:#555; margin-top:.4rem; letter-spacing:.4px; }
+ .remove-img-btn { margin-top:.6rem; background:#ffdad6; color:#b42318; border:none; padding:.55rem 1rem; border-radius:30px; font-size:.7rem; font-weight:700; cursor:pointer; letter-spacing:.5px; }
+ .remove-img-btn:hover { background:#ffc7c1; }
+footer { text-align:center; font-size:.75rem; padding:2rem 1rem 2.4rem; color:#666; }
+@media (max-width:640px){ main { margin:-60px 1rem 2.5rem; padding:1.8rem 1.5rem 2.2rem; } header .logo { font-size:2.2rem; } }
+</style>
+</head>
+<body>
+<header>
+  <h1 class="logo">Gramátike</h1>
+</header>
+<main>
+  <div style="display:flex; align-items:center; gap:.9rem; margin:0 0 1.4rem;">
+  <a href="{{ url_for('main.index') }}" aria-label="Voltar ao feed" style="display:inline-flex; width:42px; height:42px; border-radius:16px; background:#f1edff; align-items:center; justify-content:center; color:#9B5DE5; text-decoration:none; box-shadow:0 4px 14px rgba(155,93,229,.25);">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+    </a>
+    <h1 style="flex:1; margin:0; font-size:1.95rem; font-weight:800; letter-spacing:.6px; color:#9B5DE5;">Novo Post</h1>
+  </div>
+  <form id="create-post-form" enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="conteudo">Conteúdo</label>
+      <div style="position:relative;">
+        <textarea id="conteudo" name="conteudo" placeholder="Escreva sua ideia, reflexão, pergunta..." maxlength="1000" required aria-describedby="conteudo-help"></textarea>
+        <span id="char-counter" class="char-counter" aria-live="polite">0 / 1000</span>
+      </div>
+      <div id="conteudo-help" class="notice">Use @ para mencionar usuáries e # para hashtags. Até 1000 caracteres.</div>
+    </div>
+    <div class="form-group">
+      <label for="imagens">Imagens (opcional)</label>
+      <input type="file" id="imagens" name="imagens" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" multiple style="display:none;" />
+      <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="Selecione ou arraste imagens">
+        <p><strong>Arraste</strong> ou <u>clique</u> para enviar (até 4 imagens)</p>
+      </div>
+      <div class="notice">Formatos: png, jpg, jpeg, webp, gif • Máx 3MB cada • Até 4 imagens</div>
+      <div id="preview-multi" class="grid-previews" aria-live="polite"></div>
+      <div class="tool-row" id="multi-tools" style="display:none;">
+        <button type="button" id="clear-all" class="clear-all">Limpar todas</button>
+        <div style="font-size:.6rem; font-weight:700; color:#7a6aa3; letter-spacing:.4px;" id="count-images"></div>
+      </div>
+    </div>
+    <div class="actions">
+  <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
+      <button type="submit" id="btn-submit" class="primary">Publicar</button>
+    </div>
+    <div class="progress-wrap" id="progress-wrap" aria-live="polite">
+      <div class="progress-bar-outer"><div id="upload-progress" class="progress-bar-inner"></div></div>
+      <div id="progress-label" class="progress-label">Preparando…</div>
+    </div>
+  </form>
+</main>
+<footer style="background:#333333; color:#ffffff; text-align:center; padding:1.2rem 0 1.2rem; font-size:1.05rem; border-top-left-radius:32px; border-top-right-radius:32px; margin-top:60px; letter-spacing:.5px;">
+  © 2025 Gramátike • Inclusão e Gênero Neutro
+</footer>
+<script>
+const form = document.getElementById('create-post-form');
+const progressBar = document.getElementById('upload-progress');
+const progressWrapEl = document.getElementById('progress-wrap');
+function setProgress(val,label){ progressWrapEl.style.display='block'; progressBar.style.width = val+'%'; const pl=document.getElementById('progress-label'); if(pl) pl.textContent=label; }
+const btnSubmit = document.getElementById('btn-submit');
+const textarea = document.getElementById('conteudo');
+const charCounter = document.getElementById('char-counter');
+textarea.addEventListener('input', ()=>{ charCounter.textContent = textarea.value.length + ' / 1000'; });
+charCounter.textContent = '0 / 1000';
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  const conteudo = textarea.value.trim();
+  if(!conteudo){ alert('Conteúdo vazio.'); return; }
+  btnSubmit.classList.add('disabled'); btnSubmit.textContent='Publicando…';
+  const fd = new FormData(); fd.append('conteudo', conteudo);
+  const files = Array.from(imagensInput.files||[]).slice(0,4);
+  const total = files.length || 1;
+  let processed = 0;
+  for(const f of files){
+    let blob = f;
+    try { blob = await compressImage(f,{maxW:1280,maxH:1280,quality:0.82}); } catch(e){ console.warn('Compressão falhou', e); }
+    fd.append('imagens', blob, f.name.replace(/\.(\w+)$/i,(m,ext)=>`_opt.${ext}`));
+    processed++;
+    setProgress(Math.round((processed/total)*55), 'Processando imagens…');
+  }
+  if(!files.length) setProgress(10,'Iniciando…');
+  setProgress(65,'Enviando…');
+  fetch('/api/posts_multi', { method:'POST', body: fd })
+    .then(r=> r.json().then(j=>({ok:r.ok,data:j})))
+    .then(resp=>{
+      setProgress(100,'Concluído');
+  if(resp.ok && resp.data.success){ window.location.href = "{{ url_for('main.index') }}"; }
+      else { alert('Erro: '+(resp.data && resp.data.error || 'desconhecido')); btnSubmit.classList.remove('disabled'); btnSubmit.textContent='Publicar'; }
+    }).catch(()=> { alert('Falha de rede.'); btnSubmit.classList.remove('disabled'); btnSubmit.textContent='Publicar'; });
+});
+
+const imagensInput = document.getElementById('imagens');
+const previewMulti = document.getElementById('preview-multi');
+const multiTools = document.getElementById('multi-tools');
+const countImages = document.getElementById('count-images');
+const dropZone = document.getElementById('drop-zone');
+document.getElementById('clear-all').addEventListener('click', ()=>{ imagensInput.value=''; previewMulti.innerHTML=''; multiTools.style.display='none'; countImages.textContent=''; });
+
+function refreshPreviews(){
+  previewMulti.innerHTML='';
+  const files = Array.from(imagensInput.files||[]).slice(0,4);
+  if(!files.length){ multiTools.style.display='none'; countImages.textContent=''; return; }
+  multiTools.style.display='flex';
+  countImages.textContent = files.length + ' imagem' + (files.length>1?'s':'');
+  files.forEach((f,idx)=>{
+    if(!/^image\//.test(f.type)) return;
+    const url = URL.createObjectURL(f);
+    const slot = document.createElement('div');
+    slot.className='img-slot';
+    slot.innerHTML = `
+      <img src="${url}" alt="Pré-visualização" />
+      <button type="button" aria-label="Remover imagem" data-remove="${idx}" class="remove-btn">×</button>
+      <div class="meta"></div>`;
+    const img = slot.querySelector('img');
+    img.addEventListener('load', ()=>{ img.style.filter='blur(0)'; });
+    const metaDiv = slot.querySelector('.meta');
+    const probe = new Image(); probe.onload = ()=>{ metaDiv.textContent = `${probe.naturalWidth}x${probe.naturalHeight} • ${(f.size/1024).toFixed(1)}KB`; }; probe.src = url;
+    previewMulti.appendChild(slot);
+  });
+}
+
+previewMulti.addEventListener('click', e=>{
+  const btn = e.target.closest('button[data-remove]');
+  if(!btn) return;
+  const idx = parseInt(btn.getAttribute('data-remove'),10);
+  const cur = Array.from(imagensInput.files||[]);
+  cur.splice(idx,1);
+  const dt = new DataTransfer(); cur.forEach(f=> dt.items.add(f));
+  imagensInput.files = dt.files;
+  refreshPreviews();
+});
+
+imagensInput.addEventListener('change', refreshPreviews);
+
+function openFileDialog(){ imagensInput.click(); }
+dropZone.addEventListener('click', openFileDialog);
+dropZone.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); openFileDialog(); } });
+['dragenter','dragover'].forEach(evt=> dropZone.addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); dropZone.classList.add('dragover'); }));
+['dragleave','drop'].forEach(evt=> dropZone.addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('dragover'); }));
+dropZone.addEventListener('drop', e=>{
+  const transfer = e.dataTransfer;
+  if(!transfer || !transfer.files) return;
+  const incoming = Array.from(transfer.files).filter(f=> /^image\//.test(f.type));
+  const current = Array.from(imagensInput.files||[]);
+  const merged = current.concat(incoming).slice(0,4);
+  const dt = new DataTransfer(); merged.forEach(f=> dt.items.add(f));
+  imagensInput.files = dt.files;
+  refreshPreviews();
+});
+
+async function compressImage(file, {maxW=1280, maxH=1280, quality=0.85}={}){
+  if(!/^image\//.test(file.type)) return file;
+  const bitmap = await createImageBitmap(file);
+  let {width, height} = bitmap;
+  const ratio = Math.min(1, maxW/width, maxH/height);
+  if(ratio < 1){ width = Math.round(width*ratio); height = Math.round(height*ratio); }
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  let mime = file.type;
+  if(!/image\/(png|jpeg|webp)/.test(mime)) mime = 'image/jpeg';
+  const blob = await new Promise(res=> canvas.toBlob(res, mime, quality));
+  return blob || file;
+}
+// Inicialização
+refreshPreviews();
+</script>
+</body>
+</html>

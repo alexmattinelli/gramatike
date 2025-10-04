@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gramátike Edu</title>
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <meta name="theme-color" content="#9B5DE5">
+  <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --primary:#9B5DE5; --primary-dark:#7d3dc9; --bg:#f7f8ff; --card:#ffffff; --border:#e5e7eb; --text:#222; --text-dim:#666; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.55; display:flex; flex-direction:column; min-height:100vh; }
+    h1,h2,h3 { font-weight:800; margin:0 0 .9rem; line-height:1.12; }
+    header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; }
+    .logo { font-family:'Mansalva', cursive; font-size:2.6rem; color:#fff; letter-spacing:1px; font-weight:400; margin:0; }
+    .edu-nav { margin-top:1.1rem; display:flex; flex-wrap:wrap; gap:.65rem; justify-content:center; }
+  .edu-nav a { text-decoration:none; font-weight:700; font-size:.7rem; letter-spacing:.55px; padding:.65rem 1.05rem .62rem; background:#ffffff18; color:#fff; border:1px solid #ffffff30; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); border-radius:22px; display:inline-flex; align-items:center; gap:.35rem; box-shadow:0 4px 12px rgba(0,0,0,.18); transition:.25s; font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; }
+    .edu-nav a:hover, .edu-nav a.active { background:#fff; color:#7d3dc9; }
+  main { width:100%; max-width:1380px; margin:2rem auto 4.2rem; padding:0 clamp(14px,3vw,44px); flex:1; }
+  .layout { display:grid; grid-template-columns: minmax(0,1fr) 330px; gap:2.2rem; align-items:start; }
+  @media (max-width:1080px){ .layout { grid-template-columns:1fr; } }
+  .page-title { text-align:center; font-size:2.1rem; color:#9B5DE5; margin:0 0 1.8rem; letter-spacing:.5px; }
+  .search-box form { display:flex; max-width:880px; margin:0 auto 2.1rem; }
+  .search-box .search-wrap { flex:1; display:flex; gap:.55rem; }
+  .search-box input { flex:1; height:48px; border:1px solid var(--border); border-radius:16px; padding:0 1rem; font-size:.9rem; background:var(--card); font-weight:500; }
+  .search-btn { height:48px; border:none; background:var(--primary); color:#fff; padding:0 1.15rem; border-radius:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:.4rem; box-shadow:0 4px 12px rgba(130,87,229,.45); }
+  .search-btn.icon-btn { width:48px; justify-content:center; padding:0; }
+  .search-btn:hover { background:var(--primary-dark); }
+  .feed-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1.3rem; }
+  .feed-item { background:var(--card); border:1px solid var(--border); border-radius:28px; padding:1.1rem 1.3rem 1rem; position:relative; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); transition:.28s; overflow:hidden; }
+  /* gradiente removido dos itens do feed */
+  .feed-item::before { content:""; display:none; }
+  .feed-item:hover { box-shadow:0 18px 42px -12px rgba(0,0,0,.26); transform:translateY(-3px); }
+  /* NOVIDADE: não mover nem animar no hover */
+  .feed-item.is-novidade { transition:none; }
+  .feed-item.is-novidade:hover { transform:none; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); }
+  .fi-title { font-size:.95rem; font-weight:800; letter-spacing:.45px; color:#6233B5; margin:0 0 .4rem; }
+  .fi-meta { font-size:.58rem; letter-spacing:.55px; font-weight:800; text-transform:uppercase; color:#7d3dc9; margin:0 0 .35rem; }
+  .fi-body { font-size:.7rem; line-height:1.4; color:var(--text-dim); font-weight:500; margin:0; }
+  .fi-tags { margin:.55rem 0 0; display:flex; flex-wrap:wrap; gap:.4rem; }
+  .fi-tags span { font-size:.55rem; letter-spacing:.55px; font-weight:800; padding:.4rem .65rem .35rem; background:#f1edff; color:#6233B5; border:1px solid #e1d4fb; border-radius:18px; }
+  .side-col { display:flex; flex-direction:column; gap:1.4rem; position:sticky; top:12px; }
+  .side-card { background:var(--card); border:1px solid var(--border); border-radius:28px; padding:1.1rem 1.15rem .95rem; box-shadow:0 6px 18px -8px rgba(0,0,0,.08); position:relative; overflow:hidden; }
+  /* gradiente removido */
+  .side-card::before { display:none; }
+  .side-card h3 { margin:.15rem 0 .55rem; font-size:.85rem; letter-spacing:.5px; font-weight:800; color:#6233B5; }
+  .side-card p { margin:.3rem 0 .55rem; font-size:.65rem; line-height:1.35; color:var(--text-dim); font-weight:500; }
+  /* atalhos acima do card de informações */
+  .quick-nav { display:flex; gap:.5rem; margin:0 0 .6rem; }
+  .quick-nav a { text-decoration:none; font-weight:800; font-size:.62rem; letter-spacing:.4px; padding:.45rem .75rem .4rem; border-radius:16px; border:1px solid var(--border); background:#fff; color:#6233B5; box-shadow:0 4px 10px rgba(0,0,0,.06); }
+  .quick-nav a:hover { background:#f7f2ff; border-color:#e1d4fb; }
+  
+  .placeholder { font-size:.6rem; font-weight:700; letter-spacing:.5px; color:#999; padding:.65rem .85rem; border:1px dashed #d2c5ef; border-radius:18px; background:#faf7ff; }
+  .empty { font-size:.7rem; font-weight:600; color:#666; text-align:center; padding:2rem 0; }
+  @media (max-width:720px){ .feed-item{ padding:1rem 1.05rem .9rem; } .side-col { position:static; } }
+    footer { margin-top:4rem; background:#333; color:#fff; text-align:center; padding:1.4rem 1rem 1.6rem; font-size:.75rem; letter-spacing:.5px; font-weight:700; border-top-left-radius:38px; border-top-right-radius:38px; }
+    @media (max-width:720px){ header.site-head { padding:24px 18px 38px; } .logo { font-size:2.2rem; } .modules-grid { grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); } }
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <h1 class="logo">Gramátike Edu</h1>
+    {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+      <a href="{{ url_for('admin.dashboard') }}" style="position:absolute; top:14px; right:16px; background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; text-decoration:none; letter-spacing:.5px;">🛠️ Painel</a>
+    {% endif %}
+    <nav class="edu-nav" aria-label="Seções educacionais">
+  <a href="{{ url_for('main.educacao') }}" class="active">🏠 Início</a>
+      <a href="{{ url_for('main.apostilas') }}">📚 Apostilas</a>
+      <a href="{{ url_for('main.exercicios') }}">🧠 Exercícios</a>
+  {# Temporariamente desabilitados: Podcasts, Redação e Vídeos
+  <a href="{{ url_for('main.podcasts') }}">🎧 Podcasts</a>
+  <a href="{{ url_for('main.redacao') }}">✍️ Redação</a>
+  <a href="{{ url_for('main.videos') }}">🎬 Vídeos</a>
+  #}
+      <a href="{{ url_for('main.artigos') }}">📑 Artigos</a>
+    </nav>
+  </header>
+  <main>
+  <!-- Título duplicado removido para evitar repetição -->
+    <div class="search-box">
+      <form method="get" action="" onsubmit="return false;" id="gk_search_form" aria-label="Buscar posts do @gramatike">
+        <div class="search-wrap">
+          <input type="text" id="gk_search_input" placeholder="Buscar posts do @gramatike..." autocomplete="off" aria-label="Campo de busca" />
+          <button type="button" class="search-btn icon-btn" id="gk_search_btn" aria-label="Buscar" title="Buscar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+    <div class="layout">
+      <div>
+        <ul class="feed-list" id="gk_feed_list">
+          <li class="feed-item" style="display:none" id="gk_feed_template">
+            <div class="fi-meta"></div>
+            <div class="fi-title"></div>
+            <p class="fi-body"></p>
+            <div class="fi-tags"></div>
+          </li>
+          <li class="empty" id="gk_empty_state">Nada encontrado.</li>
+        </ul>
+      </div>
+      <aside class="side-col">
+  <div id="quick-nav" style="display:flex; gap:.7rem; margin:0;" aria-label="Atalhos">
+          <a href="{{ url_for('main.dinamicas_home') }}" style="flex:1; text-decoration:none; background:var(--card); border:1px solid var(--border); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.8rem; font-weight:700; color:var(--primary); letter-spacing:.3px; transition:.18s;">
+            <span style="display:inline-flex; width:30px; height:30px; border-radius:12px; background:#f1edff; align-items:center; justify-content:center; color:var(--primary);">
+              <!-- SVG estilo Gramátike para Dinâmicas (ícone de peças) -->
+              <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true" role="img">
+                <defs>
+                  <linearGradient id="dynGrad" x1="8" y1="8" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#9B5DE5"/>
+                    <stop offset="100%" stop-color="#6233B5"/>
+                  </linearGradient>
+                </defs>
+                <path d="M16 14h8v-2a4 4 0 1 1 8 0v2h6a2 2 0 0 1 2 2v6h-2a4 4 0 1 0 0 8h2v6a2 2 0 0 1-2 2h-6v-2a4 4 0 1 0-8 0v2h-6a2 2 0 0 1-2-2v-6h2a4 4 0 1 0 0-8h-2v-6a2 2 0 0 1 2-2Z" stroke="url(#dynGrad)" stroke-width="2.2" stroke-linejoin="round" fill="rgba(155,93,229,0.08)"/>
+              </svg>
+            </span>
+            Dinâmicas
+          </a>
+          <a href="{{ url_for('main.index') }}" aria-label="Ir para Gramátike" style="flex:1; text-decoration:none; background:var(--card); border:1px solid var(--border); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.8rem; font-weight:700; color:var(--primary); letter-spacing:.3px; transition:.18s;">
+            <span style="display:inline-flex; width:30px; height:30px; border-radius:12px; background:#f1edff; align-items:center; justify-content:center; color:var(--primary);">
+              <!-- SVG Chat (Gramatike) -->
+              <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true" role="img">
+                <defs>
+                  <linearGradient id="gkChatGrad" x1="8" y1="8" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#9B5DE5"/>
+                    <stop offset="100%" stop-color="#6233B5"/>
+                  </linearGradient>
+                </defs>
+                <path d="M10 10h28a2 2 0 0 1 2 2v18a2 2 0 0 1-2 2H22l-8 6v-6h-4a2 2 0 0 1-2-2V12a2 2 0 0 1 2-2Z" stroke="url(#gkChatGrad)" stroke-width="2.4" stroke-linejoin="round" fill="rgba(155,93,229,0.08)"/>
+                <circle cx="18" cy="21" r="2" fill="#6233B5"/>
+                <circle cx="24" cy="21" r="2" fill="#6233B5"/>
+                <circle cx="30" cy="21" r="2" fill="#6233B5"/>
+              </svg>
+            </span>
+            Gramatike
+          </a>
+        </div>
+        <div class="side-card">
+          <h3>ℹ️ Informações</h3>
+          <p>Use a busca para filtrar apenas postagens do perfil <strong>@gramatike</strong>.</p>
+          <p style="font-size:.58rem; font-weight:700; letter-spacing:.55px; color:#6233B5;">Atualizado em {{ generated_at.strftime('%d/%m/%Y %H:%M') if generated_at else '' }}</p>
+          <!-- novidades removidas do card de Informações -->
+        </div>
+        <div class="side-card">
+          <h3>📣 Divulgação</h3>
+          {% set tem_conteudo = (divulgacoes and divulgacoes|length>0) %}
+          {% if tem_conteudo %}
+            <div style="display:flex; flex-direction:column; gap:.9rem;">
+              {# Divulgações EDU (inclui Aviso Rápido com "imagem" gerada) #}
+              {% for d in (divulgacoes or []) %}
+              <div class="promo-card" style="background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
+                <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#6233B5; margin:0 0 .35rem;">{{ d.titulo }}</strong>
+                {% if d.imagem %}
+                  {% set imgsrc = d.imagem if d.imagem.startswith('http') else url_for('static', filename=d.imagem) %}
+                  <img src="{{ imgsrc }}" alt="{{ d.titulo }}" style="width:100%; border-radius:14px; margin:0 0 .5rem; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />
+                {% endif %}
+                {% if d.texto %}<p style="margin:0 0 .5rem; font-size:.6rem; line-height:1.32; color:#555; font-weight:600;">{{ d.texto }}</p>{% endif %}
+                {% if d.link %}<a href="{{ d.link }}" target="_blank" rel="noopener" style="display:inline-block; font-size:.55rem; font-weight:700; background:#9B5DE5; color:#fff; padding:.45rem .8rem .4rem; border-radius:14px; text-decoration:none; letter-spacing:.5px;">Abrir →</a>{% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="placeholder">Nenhuma divulgação ativa.</div>
+          {% endif %}
+        </div>
+      </aside>
+    </div>
+  </main>
+  <script>
+  (function(){
+  const input = document.getElementById('gk_search_input');
+  const btn = document.getElementById('gk_search_btn');
+    const list = document.getElementById('gk_feed_list');
+    const tpl = document.getElementById('gk_feed_template');
+    const empty = document.getElementById('gk_empty_state');
+    let timer=null;
+    async function search(q){
+      try {
+  const resp = await fetch(`/api/gramatike/search?q=${encodeURIComponent(q||'')}&include_edu=0`);
+        if(!resp.ok) throw new Error('fail');
+        const data = await resp.json();
+        render(data.items||[]);
+      } catch(e){ render([]); }
+    }
+    function render(items){
+      [...list.querySelectorAll('.feed-item')].forEach(el=>{ if(el!==tpl) el.remove(); });
+      if(!items.length){ empty.style.display='block'; return; } else empty.style.display='none';
+      items.forEach(it=>{
+        const node = tpl.cloneNode(true); node.id=''; node.style.display='block';
+  if ((it.source||'').toLowerCase() === 'novidade') { node.classList.add('is-novidade'); }
+        node.querySelector('.fi-meta').textContent = (it.source||'').toUpperCase();
+        node.querySelector('.fi-title').textContent = it.title || '(Sem título)';
+        node.querySelector('.fi-body').textContent = it.snippet || (it.resumo||'');
+        const tags = node.querySelector('.fi-tags');
+        (it.tags||[]).forEach(t=>{ const s=document.createElement('span'); s.textContent=t; tags.appendChild(s); });
+        if(it.url){ node.addEventListener('click', ()=>{ window.location = it.url; }); node.style.cursor='pointer'; }
+        list.insertBefore(node, empty);
+      });
+    }
+  input.addEventListener('input', ()=>{ clearTimeout(timer); timer=setTimeout(()=>search(input.value.trim()), 320); });
+  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); search(input.value.trim()); }});
+  if(btn){ btn.addEventListener('click', ()=> search(input.value.trim())); }
+    // carga inicial
+    search('');
+  })();
+  </script>
+  <footer>© 2025 Gramátike • Inclusão e Gênero Neutro</footer>
+</body>
+</html>

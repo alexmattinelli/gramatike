@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ d.titulo }} — Dinâmica</title>
+  <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --primary:#9B5DE5; --border:#e5e7eb; --card:#fff; --bg:#f7f8ff; --text:#222; }
+    body { margin:0; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
+    header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; }
+    .logo { font-family:'Mansalva', cursive; font-size:2.2rem; color:#fff; font-weight:400; margin:0; text-align:center; }
+    main { width:100%; max-width:860px; margin:2rem auto 4rem; padding:0 clamp(16px,4vw,40px); }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1rem 1.2rem; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); }
+    .muted { color:#666; font-weight:600; }
+    .options { display:grid; gap:.5rem; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito'; font-weight:800; letter-spacing:.3px; background:#fff; color:#6233B5; }
+    .btn.primary { background:#9B5DE5; color:#fff; border:none; }
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <h1 class="logo">{{ d.titulo }}</h1>
+  </header>
+  <main>
+    <div class="card" style="margin-bottom:1rem;">
+      {% if d.descricao %}<p class="muted" style="margin-top:0;">{{ d.descricao }}</p>{% endif %}
+      {% if d.tipo == 'oneword' %}
+        <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}">
+          <label>Digite uma palavra</label>
+          <input type="text" name="word" required />
+          <button type="submit" class="btn primary">Enviar</button>
+        </form>
+        {% if agg.counts %}
+          <h3 style="margin-top:1rem;">Palavras mais frequentes</h3>
+          <ul>
+            {% for w,c in agg.counts.most_common(10) %}
+              <li><strong>{{ w }}</strong>: {{ c }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% elif d.tipo == 'poll' %}
+        <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="options">
+          {% for opt in cfg.options %}
+            <label style="display:flex; align-items:center; gap:.5rem;">
+              <input type="radio" name="option" value="{{ loop.index0 }}" required /> {{ opt }}
+            </label>
+          {% endfor %}
+          <button type="submit" class="btn primary" style="margin-top:.6rem;">Votar</button>
+        </form>
+        {% if agg.counts %}
+          <h3 style="margin-top:1rem;">Parciais</h3>
+          <ul>
+            {% for opt in cfg.options %}
+              <li><strong>{{ opt }}</strong>: {{ agg.counts[loop.index0] }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% elif d.tipo == 'form' %}
+        <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="dinamica-form" style="display:flex;flex-direction:column;gap:12px;">
+          {% set fields = cfg.get('fields', []) %}
+          {% for q in fields %}
+            <div class="q-card" style="padding:10px;border:1px solid #e3e3e3;border-radius:8px;">
+              <label style="font-weight:600;display:block;margin-bottom:6px;">
+                {{ q.label or ('Pergunta ' ~ loop.index) }}
+                {% if q.required %}<span style="color:#d00">*</span>{% endif %}
+              </label>
+              {% if q.type == 'short' %}
+                <input type="text" name="q_{{ q.id }}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" {% if q.required %}required{% endif %} />
+              {% elif q.type == 'paragraph' %}
+                <textarea name="q_{{ q.id }}" rows="4" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" {% if q.required %}required{% endif %}></textarea>
+              {% elif q.type == 'multiple_choice' %}
+                {% for opt in q.options %}
+                  <label style="display:flex;align-items:center;gap:8px;margin:4px 0;">
+                    <input type="radio" name="q_{{ q.id }}" value="{{ opt }}" {% if q.required and loop.first %}required{% endif %} />
+                    <span>{{ opt }}</span>
+                  </label>
+                {% endfor %}
+              {% else %}
+                <input type="text" name="q_{{ q.id }}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" {% if q.required %}required{% endif %} />
+              {% endif %}
+            </div>
+          {% else %}
+            <p>Formulário sem perguntas configuradas.</p>
+          {% endfor %}
+          <button type="submit" class="btn primary" style="align-self:flex-start;padding:10px 16px;border:none;border-radius:8px;cursor:pointer;">Enviar</button>
+        </form>
+      {% endif %}
+    </div>
+  </main>
+</body>
+</html>

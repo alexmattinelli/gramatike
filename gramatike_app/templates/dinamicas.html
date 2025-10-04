@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dinâmicas — Gramátike Edu</title>
+  <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --primary:#9B5DE5; --border:#e5e7eb; --card:#fff; --bg:#f7f8ff; --text:#222; }
+    body { margin:0; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
+    header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; }
+    .logo { font-family:'Mansalva', cursive; font-size:2.4rem; color:#fff; font-weight:400; margin:0; }
+    main { width:100%; max-width:980px; margin:2rem auto 4rem; padding:0 clamp(16px,4vw,40px); }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1rem 1.2rem; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); }
+    .muted { color:#666; font-weight:600; }
+    .grid { display:grid; gap:1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-weight:800; letter-spacing:.3px; background:#fff; color:#6233B5; }
+    .btn.primary { background:#9B5DE5; color:#fff; border:none; }
+    .row { display:grid; grid-template-columns: 1fr; gap:.4rem; }
+    .builder-card { background:#fff; border:1px solid var(--border); border-radius:16px; padding:.8rem; margin:.4rem 0; }
+    .builder-actions { display:flex; gap:.4rem; }
+    .muted-sm { font-size:.8rem; color:#666; }
+    .opt-row { display:flex; gap:.4rem; align-items:center; margin:.25rem 0; }
+    .chip { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .55rem; border-radius:14px; border:1px solid var(--border); background:#fafafa; font-size:.75rem; font-weight:800; color:#6233B5; }
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <h1 class="logo">Dinâmicas</h1>
+  </header>
+  <main>
+    {% if not is_admin %}
+      <div class="card">
+        <p class="muted">Recurso em beta — disponível apenas para administradores no momento.</p>
+      </div>
+    {% else %}
+      <div class="card" style="margin-bottom:1rem;">
+        <h2 style="margin:0 0 .6rem; font-size:1.2rem; color:#6233B5;">Criar dinâmica</h2>
+        <form id="dynCreateForm" method="POST" action="{{ url_for('main.dinamicas_create') }}" style="display:grid; gap:.6rem; grid-template-columns:1fr; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
+          <label style="font-weight:800; color:#6233B5;">Tipo</label>
+          <select name="tipo" id="tipo" required>
+            <option value="poll">Enquete</option>
+            <option value="oneword">Palavra única</option>
+            <option value="form">Formulário (simples)</option>
+          </select>
+          <label style="font-weight:800; color:#6233B5;">Título</label>
+          <input type="text" name="titulo" required />
+          <label style="font-weight:800; color:#6233B5;">Descrição (opcional)</label>
+          <textarea name="descricao" rows="2"></textarea>
+          <div id="poll_opts">
+            <label style="font-weight:800; color:#6233B5;">Opções (1 por linha)</label>
+            <textarea name="opcoes" rows="3" placeholder="Opção A&#10;Opção B"></textarea>
+          </div>
+          <div id="form_builder" style="display:none;">
+            <div class="muted-sm">Adicione perguntas como no Google Forms. Tipos: resposta curta, parágrafo, múltipla escolha.</div>
+            <div id="q_list"></div>
+            <div class="builder-actions">
+              <button type="button" class="btn" id="add_q">+ Pergunta</button>
+            </div>
+            <input type="hidden" name="config_json" id="config_json" />
+          </div>
+          <button type="submit" class="btn primary">Criar</button>
+        </form>
+        <p class="muted" style="margin:.8rem 0 0; font-size:.85rem;">As respostas serão exibidas no Feed do Gramátike Edu.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin:.2rem 0 .6rem; color:#6233B5;">Minhas dinâmicas</h3>
+        {% if (my_dynamics or [])|length == 0 %}
+          <p class="muted">Nenhuma dinâmica criada ainda.</p>
+        {% else %}
+          <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+            {% for d in my_dynamics %}
+              <div class="builder-card" style="display:flex; flex-direction:column; gap:.4rem;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:.5rem;">
+                  <div style="font-weight:800; color:#222;">{{ d.titulo }}</div>
+                  <span class="chip">{{ d.tipo }}</span>
+                </div>
+                {% if d.descricao %}<div class="muted-sm">{{ d.descricao }}</div>{% endif %}
+                <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.25rem;">
+                  <a class="btn" href="{{ url_for('main.dinamica_admin', dyn_id=d.id) }}">Ver respostas</a>
+                  <a class="btn" href="{{ url_for('main.dinamica_view', dyn_id=d.id) }}">Abrir</a>
+                  <a class="btn" href="{{ url_for('main.dinamica_export_csv', dyn_id=d.id) }}">Baixar CSV</a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+  </main>
+  <script>
+  (function(){
+    const tipo = document.getElementById('tipo');
+    const poll = document.getElementById('poll_opts');
+    const builder = document.getElementById('form_builder');
+    const qList = document.getElementById('q_list');
+    const addBtn = document.getElementById('add_q');
+    const cfgEl = document.getElementById('config_json');
+    const form = document.getElementById('dynCreateForm');
+
+    let seq = 1;
+    const fields = [];
+
+    function render(){
+      qList.innerHTML='';
+      fields.forEach((f, idx)=>{
+        const card = document.createElement('div');
+        card.className = 'builder-card';
+        card.innerHTML = `
+          <div class="row">
+            <div style="display:flex; gap:.5rem; align-items:center;">
+              <span class="chip">Q${idx+1}</span>
+              <input type="text" placeholder="Pergunta" value="${f.label||''}" data-k="label" style="flex:1;"/>
+              <select data-k="type">
+                <option value="short" ${f.type==='short'?'selected':''}>Resposta curta</option>
+                <option value="paragraph" ${f.type==='paragraph'?'selected':''}>Parágrafo</option>
+                <option value="multiple_choice" ${f.type==='multiple_choice'?'selected':''}>Múltipla escolha</option>
+              </select>
+              <label class="muted-sm" style="display:flex; align-items:center; gap:.3rem;">
+                <input type="checkbox" data-k="required" ${f.required?'checked':''}/> Obrigatória
+              </label>
+              <button type="button" class="btn" data-act="del">Remover</button>
+            </div>
+            <div data-role="options" style="${f.type==='multiple_choice'?'':'display:none;'}">
+              <div class="muted-sm">Opções:</div>
+              <div class="opt-list"></div>
+              <button type="button" class="btn" data-act="addopt">+ opção</button>
+            </div>
+          </div>`;
+        // bind
+        card.querySelectorAll('input,select,textarea').forEach(el=>{
+          el.addEventListener('change', (e)=>{
+            const k = el.getAttribute('data-k');
+            if(!k) return;
+            if(k==='required'){ f.required = !!el.checked; }
+            else if(k==='label'){ f.label = el.value; }
+            else if(k==='type'){ f.type = el.value; card.querySelector('[data-role="options"]').style.display = (f.type==='multiple_choice')?'block':'none'; }
+          });
+        });
+        card.querySelector('[data-act="del"]').addEventListener('click', ()=>{ fields.splice(idx,1); render(); });
+        const optWrap = card.querySelector('.opt-list');
+        function renderOpts(){
+          optWrap.innerHTML = '';
+          (f.options||[]).forEach((o, i)=>{
+            const row = document.createElement('div');
+            row.className = 'opt-row';
+            row.innerHTML = `<span class="muted-sm">${String.fromCharCode(65+i)})</span> <input type="text" value="${o}" style="flex:1;"/> <button type="button" class="btn" data-i="${i}">remover</button>`;
+            row.querySelector('input').addEventListener('input', (e)=>{ f.options[i] = e.target.value; });
+            row.querySelector('button').addEventListener('click', ()=>{ f.options.splice(i,1); renderOpts(); });
+            optWrap.appendChild(row);
+          });
+        }
+        renderOpts();
+        card.querySelector('[data-act="addopt"]').addEventListener('click', ()=>{ f.options = f.options||[]; f.options.push(''); renderOpts(); });
+        qList.appendChild(card);
+      });
+    }
+    function addQuestion(){
+      fields.push({ id: seq++, type: 'short', label: '', required: false, options: [] });
+      render();
+    }
+    addBtn && addBtn.addEventListener('click', addQuestion);
+    tipo.addEventListener('change', ()=>{
+      const v = tipo.value;
+      poll.style.display = (v==='poll')?'block':'none';
+      builder.style.display = (v==='form')?'block':'none';
+    });
+    // on submit serialize
+    form.addEventListener('submit', ()=>{
+      if(tipo.value==='form'){
+        const cfg = { fields: fields.map(f=>({ id: f.id, type: f.type, label: f.label, required: !!f.required, options: (f.type==='multiple_choice'?(f.options||[]):undefined) })) };
+        cfgEl.value = JSON.stringify(cfg);
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

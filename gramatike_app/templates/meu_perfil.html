@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<style>
+:root { --font-base: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; --font-brand: 'Mansalva', cursive; }
+body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 { font-family: var(--font-base) !important; }
+</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gramátike — Perfil</title>
+  <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:none; cursor:pointer; font-family:'Nunito'; font-weight:700; letter-spacing:.3px; transition:filter .15s ease, transform .05s ease; }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background:#9B5DE5; color:#fff; }
+  .btn-primary:hover { filter:brightness(1.08); }
+    body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 {
+      font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+    }
+    :root {
+      --primary: #9b5de5;
+      --secondary: #f0f4f8;
+      --success: #a5d6a7;
+      --danger: #9b5de5;
+      --text: #333;
+      --text-secondary: #666;
+    }
+
+    html, body { height:100%; }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--secondary);
+      color: var(--text);
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
+    }
+
+  header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:35px; border-bottom-right-radius:35px; position:relative; display:flex; flex-direction:column; align-items:center; }
+    .logo { font-family: var(--font-brand) !important; font-size:2.2rem; color:#fff; letter-spacing:1px; font-weight:400; }
+    .head-actions { position:absolute; right:16px; top:50%; transform:translateY(-50%); display:flex; gap:.5rem; }
+    .icon-btn { width:40px; height:40px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; background:#ffffff22; border:1px solid #ffffff44; color:#fff; text-decoration:none; font-size:18px; font-weight:700; box-shadow:0 4px 14px rgba(0,0,0,.25); }
+    .icon-btn:hover { background:#ffffff33; }
+
+    .logo {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing:1px;
+      line-height:1.1;
+    }
+
+    nav a {
+      margin-left: 1rem;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    nav a:hover {
+      color: var(--primary);
+    }
+
+    main {
+      max-width: none;
+      margin: 2rem 0;
+      padding: 0 24px;
+      flex:1 0 auto;
+    }
+
+    .profile-header {
+      background: white;
+      border-radius: 8px;
+      padding: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      width: 50%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: var(--secondary);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 3rem;
+      color: var(--primary);
+    }
+
+    .profile-info h2 {
+      margin: 0;
+  font-family: 'Nunito';
+      font-weight:600;
+      letter-spacing:.5px;
+      font-size:1.4rem;
+      color:#333;
+    }
+
+    .profile-info p {
+      margin: 0.3rem 0;
+      color: var(--text-secondary);
+    }
+
+    .edit-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+
+    .edit-btn:hover {
+      background: #3b5a85;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      border-bottom: 2px solid #ddd;
+      width: 50%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .tab {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .tab.active {
+      color: var(--primary);
+      border-bottom: 3px solid var(--primary);
+    }
+
+    .tab-content {
+      background: white;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      width: 50%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @media (max-width: 900px) {
+      .profile-header, .tabs, .tab-content { width: 100%; }
+    }
+
+    .post {
+      border-bottom: 1px solid #eee;
+      padding: 1rem 0;
+    }
+
+    .post:last-child {
+      border-bottom: none;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      margin-top: auto;
+      color: var(--text-secondary);
+    }
+
+    /* Estilos para o modal de edição */
+    #modal-editar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+  overflow-y:auto; /* permite rolar quando o conteúdo exceder a altura */
+  padding: 1.5rem 1rem; /* espaço para não colar nas bordas em mobile */
+    }
+
+    #form-editar-perfil {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 500px;
+  max-height: 90vh; /* limita altura para caber na viewport */
+  overflow-y:auto;  /* rolagem interna se necessário */
+    }
+
+    #form-editar-perfil label {
+      display: block;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+
+    #form-editar-perfil input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    #form-editar-perfil button {
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <h1 class="logo">Gramátike</h1>
+    <div class="head-actions">
+      <a href="javascript:history.back()" class="icon-btn" title="Voltar" aria-label="Voltar">⬅️</a>
+      <a href="{{ url_for('main.configuracoes') }}" class="icon-btn" title="Configurações" aria-label="Configurações">⚙️</a>
+    </div>
+  </header>
+
+
+  <main>
+    
+    <section class="profile-header">
+      <div class="avatar">
+        {% if current_user.foto_perfil %}
+          <img src="{{ url_for('static', filename=current_user.foto_perfil) }}" alt="Foto de perfil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+        {% else %}
+          <span>👤</span>
+        {% endif %}
+      </div>
+      <div class="profile-info">
+  <h2 style="font-family: var(--font-brand); font-weight:400; letter-spacing:1px;">@{{ current_user.username }}</h2>
+        <div style="display:flex;gap:1.5rem;margin-bottom:0.7rem;">
+          <span id="cnt-seguidores"><b>0</b> seguidories</span>
+          <span id="cnt-seguindo"><b>0</b> seguindo</span>
+        </div>
+        <p><strong></strong> <span style="color:#666">{{ current_user.nome or '' }}</span></p>
+        <p><strong></strong> <span style="color:#666">{{ current_user.genero or '' }}{% if current_user.genero and current_user.pronome %} / {% endif %}{{ current_user.pronome or '' }}</span></p>
+  {% if current_user.bio and not (current_user.genero == 'Outro' and current_user.pronome == 'Outro') %}
+  <p style="margin-top:0.5rem;color:#444;font-style:italic;white-space:pre-line;">{{ current_user.bio }}</p>
+  {% endif %}
+        <button class="edit-btn" onclick="abrirEdicaoPerfil()">Editar Perfil</button>
+      </div>
+    </section>
+
+    <div class="tabs">
+      <div class="tab active" onclick="mostrarAba('postagens')">Postagens</div>
+  <div class="tab" onclick="mostrarAba('seguidores')">Seguidories</div>
+      <div class="tab" onclick="mostrarAba('seguindo')">Seguindo</div>
+    </div>
+
+    <div id="tab-content" class="tab-content">
+      <div id="postagens">
+        <p>Carregando postagens...</p>
+      </div>
+    </div>
+
+    <!-- Modal para edição de perfil -->
+    <div id="modal-editar" style="display:none;">
+      <form id="form-editar-perfil" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+        <div style="display: flex; flex-direction: column; gap: 0.7rem;">
+          <label style="margin-bottom:0.3rem;">Usuárie:
+            <input type="text" name="username" value="{{ current_user.username }}" readonly style="width:100%;">
+          </label>
+          <label style="margin-bottom:0.3rem;">Nome:
+            <input type="text" name="nome" value="{{ current_user.nome or '' }}" style="width:100%;">
+          </label>
+          <label style="margin-bottom:0.3rem;">Email:
+            <input type="email" name="email" value="{{ current_user.email }}" style="width:100%;">
+          </label>
+          <label id="bio-field" style="margin-bottom:0.3rem;">Bio:
+            <textarea name="bio" style="width:100%;resize:vertical;min-height:40px;">{{ current_user.bio or '' }}</textarea>
+          </label>
+          <label style="margin-bottom:0.3rem;">Data de nascimento:
+            <input type="date" name="data_nascimento" value="{{ current_user.data_nascimento or '' }}" style="width:100%;">
+          </label>
+          <label style="margin-bottom:0.3rem;">Gênero:
+            <select name="genero" required style="width:100%;" id="genero-select">
+              <option value="">Selecione</option>
+              <option value="Não-binárie" {% if current_user.genero == 'Não-binárie' %}selected{% endif %}>Não-binárie</option>
+              <option value="Mulher" {% if current_user.genero == 'Mulher' %}selected{% endif %}>Mulher</option>
+              <option value="Homem" {% if current_user.genero == 'Homem' %}selected{% endif %}>Homem</option>
+              <option value="Outro" {% if current_user.genero == 'Outro' %}selected{% endif %}>Outro</option>
+            </select>
+          </label>
+          <label style="margin-bottom:0.3rem;">Pronome:
+            <select name="pronome" required style="width:100%;" id="pronome-select">
+              <option value="">Selecione</option>
+              <option value="elu/delu" {% if current_user.pronome == 'elu/delu' %}selected{% endif %}>elu/delu</option>
+              <option value="ela/dela" {% if current_user.pronome == 'ela/dela' %}selected{% endif %}>ela/dela</option>
+              <option value="ele/dele" {% if current_user.pronome == 'ele/dele' %}selected{% endif %}>ele/dele</option>
+              <option value="Outro" {% if current_user.pronome == 'Outro' %}selected{% endif %}>Outro</option>
+            </select>
+          </label>
+          <label style="margin-bottom:0.3rem;">Foto de perfil:
+            <input type="file" name="foto_perfil" accept="image/*" style="width:100%;">
+          </label>
+          <div style="display:flex;gap:0.5rem;">
+            <button type="submit" class="btn btn-primary" style="flex:1;">Salvar</button>
+            <button type="button" class="btn btn-primary" onclick="fecharEdicaoPerfil()" style="flex:1;">Cancelar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+  © 2025 Gramátike • Inclusão e Gênero Neutro
+  </footer>
+
+  <script>
+    window.USER_ID = "{{ current_user.id|tojson|safe }}";
+  </script>
+  <script>
+    function mostrarAba(aba) {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+
+      if (aba === 'postagens') {
+        carregarPostagensUsuario();
+      } else if (aba === 'seguidores') {
+        fetch(`/api/seguidores/${window.USER_ID}`)
+          .then(res => res.json())
+          .then(lista => {
+            let html = '<b>Seguidories</b><div style="margin-top:0.7rem;display:flex;flex-direction:column;gap:.35rem;">';
+            if (lista.length === 0) html += '<div style="color:#666;font-size:.85rem;">Nenhume seguidore ainda.</div>';
+            else html += lista.map(u => `
+              <div class="seg-item" data-username="${u.username}" style="display:flex;align-items:center;gap:.55rem;cursor:pointer;padding:.35rem .5rem;border:1px solid #eee;border-radius:6px;background:#fafafa;">
+                <div style="width:32px;height:32px;border-radius:50%;background:#4a6fa522;display:flex;align-items:center;justify-content:center;font-weight:600;color:#4a6fa5;">${u.username.charAt(0).toUpperCase()}</div>
+                <div style="display:flex;flex-direction:column;line-height:1.1;">
+                  <span style="font-weight:600;color:#333;">@${u.username}</span>
+                  ${u.nome ? `<span style='font-size:.65rem;color:#777;'>${u.nome}</span>` : ''}
+                </div>
+              </div>`).join('');
+            html += '</div>';
+            document.getElementById('tab-content').innerHTML = html;
+          });
+      } else if (aba === 'seguindo') {
+        fetch(`/api/seguindo/${window.USER_ID}`)
+          .then(res => res.json())
+          .then(lista => {
+            let html = '<b>Seguindo</b><div style="margin-top:0.7rem;display:flex;flex-direction:column;gap:.35rem;">';
+            if (lista.length === 0) html += '<div style="color:#666;font-size:.85rem;">Você não está seguindo ninguém ainda.</div>';
+            else html += lista.map(u => `
+              <div class="seg-item" data-username="${u.username}" style="display:flex;align-items:center;gap:.55rem;cursor:pointer;padding:.35rem .5rem;border:1px solid #eee;border-radius:6px;background:#fafafa;">
+                <div style="width:32px;height:32px;border-radius:50%;background:#4a6fa522;display:flex;align-items:center;justify-content:center;font-weight:600;color:#4a6fa5;">${u.username.charAt(0).toUpperCase()}</div>
+                <div style="display:flex;flex-direction:column;line-height:1.1;">
+                  <span style="font-weight:600;color:#333;">@${u.username}</span>
+                  ${u.nome ? `<span style='font-size:.65rem;color:#777;'>${u.nome}</span>` : ''}
+                </div>
+              </div>`).join('');
+            html += '</div>';
+            document.getElementById('tab-content').innerHTML = html;
+          });
+      }
+    }
+
+  // Atualiza contadores de seguidories/seguindo (escopo global)
+    function atualizarContadores() {
+      fetch(`/api/seguidores/${window.USER_ID}`)
+        .then(res => res.json())
+        .then(lista => {
+          const el = document.getElementById('cnt-seguidores');
+          if(el) el.innerHTML = `<b>${lista.length}</b> seguidories`;
+        });
+      fetch(`/api/seguindo/${window.USER_ID}`)
+        .then(res => res.json())
+        .then(lista => {
+          const el = document.getElementById('cnt-seguindo');
+          if(el) el.innerHTML = `<b>${lista.length}</b> seguindo`;
+        });
+    }
+
+    function carregarPostagensUsuario() {
+      fetch('/api/posts/me')
+        .then(response => response.json())
+        .then(posts => {
+          let conteudo = '';
+          if (posts.length === 0) {
+            conteudo = '<p>Nenhuma postagem encontrada.</p>';
+          } else {
+            conteudo = posts.map(post => `
+              <div class="post" data-post-id="${post.id}" style="position:relative;">
+                <div style="display:flex;align-items:center;gap:0.7rem;justify-content:space-between;">
+                  <div style="display:flex;align-items:center;gap:0.7rem;">
+                    <img src="/static/${post.foto_perfil || 'img/perfil.png'}" alt="Foto" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+                    <strong>@${post.usuario}</strong>
+                  </div>
+                  <button class="post-menu-btn" aria-label="Ações" style="background:none;border:none;cursor:pointer;font-size:1.3rem;line-height:1;color:#555;">⋯</button>
+                  <div class="post-menu" style="display:none; position:absolute; top:32px; right:4px; background:#fff; border:1px solid #ddd; border-radius:8px; padding:.35rem 0; box-shadow:0 4px 12px rgba(0,0,0,.15); z-index:30; min-width:140px;">
+                    <button class="pm-excluir" style="display:block;width:100%;background:none;border:none;text-align:left;padding:.5rem .9rem;font-size:.7rem;cursor:pointer;">Excluir</button>
+                    <button class="pm-compartilhar" style="display:block;width:100%;background:none;border:none;text-align:left;padding:.5rem .9rem;font-size:.7rem;cursor:pointer;">Compartilhar</button>
+                  </div>
+                </div>
+                <p style="white-space:pre-line;">${post.conteudo}</p>
+                <span style="color:#888;font-size:0.7rem;">${post.data}</span>
+              </div>
+            `).join('');
+          }
+          document.getElementById('tab-content').innerHTML = `<div id="postagens">${conteudo}</div>`;
+          inicializarMenusPosts();
+          atualizarContadores();
+        })
+        .catch(() => {
+          document.getElementById('tab-content').innerHTML = '<p>Erro ao carregar postagens.</p>';
+        });
+    }
+
+    function inicializarMenusPosts(){
+      // Abrir/fechar menus
+      document.querySelectorAll('.post-menu-btn').forEach(btn=>{
+        btn.addEventListener('click', e=>{
+          e.stopPropagation();
+          const menu = btn.parentElement.querySelector('.post-menu');
+            const open = menu.style.display==='block';
+            document.querySelectorAll('.post-menu').forEach(m=>m.style.display='none');
+            menu.style.display = open ? 'none':'block';
+        });
+      });
+      document.addEventListener('click', ()=>{
+        document.querySelectorAll('.post-menu').forEach(m=>m.style.display='none');
+      });
+      // Excluir
+      document.querySelectorAll('.pm-excluir').forEach(btn=>{
+        btn.addEventListener('click', e=>{
+          e.stopPropagation();
+          const postDiv = btn.closest('.post');
+          const id = postDiv.getAttribute('data-post-id');
+          if(confirm('Excluir este post?')){
+            fetch(`/api/posts/${id}`, { method:'DELETE' }).then(r=>{
+              if(r.ok){ postDiv.remove(); }
+            });
+          }
+        });
+      });
+      // Compartilhar
+      document.querySelectorAll('.pm-compartilhar').forEach(btn=>{
+        btn.addEventListener('click', e=>{
+          e.stopPropagation();
+          const postDiv = btn.closest('.post');
+          const id = postDiv.getAttribute('data-post-id');
+          const shareUrl = window.location.origin + '/perfil#post-' + id;
+          navigator.clipboard.writeText(shareUrl).then(()=>{
+            alert('Link copiado.');
+          });
+        });
+      });
+    }
+
+    function abrirEdicaoPerfil() {
+      document.getElementById('modal-editar').style.display = 'flex';
+      toggleBioField();
+    }
+
+    function fecharEdicaoPerfil() {
+      document.getElementById('modal-editar').style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+    function toggleBioField(){
+      const g = document.getElementById('genero-select');
+      const p = document.getElementById('pronome-select');
+      const bio = document.getElementById('bio-field');
+      if(!g || !p || !bio) return;
+      const hide = (g.value === 'Outro' && p.value === 'Outro');
+      bio.style.display = hide ? 'none' : '';
+    }
+    const gSel = document.getElementById('genero-select');
+    const pSel = document.getElementById('pronome-select');
+    if(gSel) gSel.addEventListener('change', toggleBioField);
+    if(pSel) pSel.addEventListener('change', toggleBioField);
+    toggleBioField();
+    // Passar o id do usuário para o JS de forma segura
+    window.USER_ID = "{{ current_user.id|tojson|safe }}";
+    document.getElementById('form-editar-perfil').onsubmit = function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      fetch('/api/editar-perfil', {
+        method: 'POST',
+        body: formData
+      }).then(async response => {
+        if (response.ok) {
+          alert('Perfil atualizado com sucesso!');
+          location.reload();
+        } else {
+          let msg = 'Erro ao atualizar perfil.';
+          try {
+            const data = await response.json();
+            if (data && (data.erro || data.error)) {
+              msg = 'Erro ao atualizar perfil: ' + (data.erro || data.error);
+            }
+          } catch (e) {}
+          alert(msg);
+        }
+      });
+    };
+  carregarPostagensUsuario(); // Carrega as postagens ao abrir a página
+  atualizarContadores(); // Atualiza contadores ao abrir a página
+    });
+
+    // Delegação para clique em itens de seguidores/seguindo
+    document.addEventListener('click', function(e){
+      const seg = e.target.closest('.seg-item');
+      if(seg){
+        const uname = seg.getAttribute('data-username');
+        if(uname === '{{ current_user.username }}'){
+          window.location.href = '/perfil';
+        } else {
+          fetch(`/api/usuarios/username/${uname}`).then(r=>r.json()).then(u=>{ if(u.id) window.location.href = '/perfil/'+u.id; });
+        }
+      }
+    });
+
+    function seguirOuDeixar(usuarioId, seguir) {
+      fetch(`/api/seguir/${usuarioId}`, {
+        method: seguir ? 'POST' : 'DELETE'
+      }).then(() => location.reload());
+    }
+  </script>
+</body>
+</html>

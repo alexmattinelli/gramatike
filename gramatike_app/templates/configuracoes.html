@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<style>
+body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+}
+</style>
+<style>
+body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+}
+</style>
+    <meta charset="UTF-8">
+    <title>Configurações</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+    :root {
+        --bg: #f7f7f7;
+        --card: #ffffff;
+        --text: #222;
+        --muted: #666;
+        --border: #e5e7eb;
+        --primary: #2563eb;
+        --primary-hover: #1e40af;
+    }
+    body.dark {
+        --bg: #0b0f1a;
+        --card: #0f172a;
+        --text: #e5e7eb;
+        --muted: #a1a1aa;
+        --border: #1f2937;
+        --primary: #60a5fa;
+        --primary-hover: #93c5fd;
+    }
+    body { font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); }
+    .container { max-width: 900px; margin: 24px auto; background: var(--card); padding: 0; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.12); overflow: hidden; }
+    .header { display:flex; justify-content: space-between; align-items:center; padding: 16px 20px; border-bottom:1px solid var(--border); }
+    .header h1 { margin:0; font-size: 20px; font-weight:600; }
+    .tabs { display:flex; gap:8px; padding: 10px 12px; border-bottom:1px solid var(--border); overflow:auto; }
+    .tab-btn { background: transparent; color: var(--text); border:1px solid var(--border); padding:8px 12px; border-radius: 999px; cursor:pointer; font-size:14px; }
+    .tab-btn.active { background: var(--primary); color:#fff; border-color: var(--primary); }
+    .content { display:flex; gap: 24px; padding: 20px; }
+    .section { flex:1; display:none; }
+    .section.active { display:block; }
+    .field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+    label { font-size: 13px; color: var(--muted); }
+    input[type="text"], input[type="email"], input[type="password"], input[type="date"], select, textarea {
+        padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text);
+    }
+    textarea { min-height:100px; resize: vertical; }
+    .actions { display:flex; gap: 12px; justify-content:flex-end; padding-top: 8px; border-top:1px solid var(--border); margin-top: 8px; }
+    .btn { background: var(--primary); color:#fff; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; }
+    .btn:hover { background: var(--primary-hover); }
+    .muted { color: var(--muted); font-size:13px; }
+    .row { display:flex; gap:12px; }
+    .row .col { flex:1; }
+    .avatar { width:80px; height:80px; border-radius:50%; object-fit:cover; border:1px solid var(--border); }
+    .inline-eye { position:relative; }
+    .inline-eye input { padding-right:40px; }
+    .inline-eye button { position:absolute; right:8px; top:50%; transform:translateY(-50%); background:transparent; border:none; cursor:pointer; font-size:16px; color: var(--muted); }
+    .alert { display:none; padding:10px 12px; border-radius:8px; margin: 12px 20px 0; }
+    .alert.show { display:block; }
+    .alert.ok { background: #10b98122; color:#047857; border:1px solid #10b98155; }
+    .alert.err { background: #ef444422; color:#991b1b; border:1px solid #ef444466; }
+    </style>
+    <script>
+    // Aplica tema salvo antes de pintar
+    (function(){
+        try {
+            const saved = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if ((saved === 'dark') || (!saved && prefersDark)) {
+                document.documentElement.classList.add('dark');
+                document.body && document.body.classList.add('dark');
+            }
+        } catch(e) {}
+    })();
+    </script>
+    
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Configurações</h1>
+            <div class="muted">@{{ user.username }}</div>
+        </div>
+
+        <div id="banner" class="alert"></div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="conta">Conta</button>
+            <button class="tab-btn" data-tab="seguranca">Segurança</button>
+            <button class="tab-btn" data-tab="aparencia">Aparência</button>
+        </div>
+
+        <form id="form-config" method="post" action="{{ url_for('main.editar_perfil_api') }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+            <div class="content">
+                <!-- Conta -->
+                <section id="sec-conta" class="section active">
+                    <div class="field">
+                        <label for="username">Nome de usuário</label>
+                        <input type="text" id="username" name="username" value="{{ user.username }}" required placeholder="@seuuser">
+                        <div class="muted">Dica: não use símbolos além de ponto e sublinhado.</div>
+                    </div>
+                    <div class="field">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" name="email" value="{{ user.email }}" required placeholder="voce@exemplo.com">
+                        {% if not user.email_confirmed %}
+                        <div class="muted" style="margin-top:6px; display:flex; align-items:center; gap:8px;">
+                            <span style="color:#b45309; background:#fef3c7; border:1px solid #fde68a; padding:4px 8px; border-radius:999px; font-weight:600;">E-mail não confirmado</span>
+                            <button type="button" id="btn-resend-verify" class="btn" style="background:#9B5DE5;">Reenviar verificação</button>
+                        </div>
+                        {% else %}
+                        <div class="muted" style="margin-top:6px;">E-mail confirmado ✅</div>
+                        {% endif %}
+                    </div>
+                    <div class="actions">
+                        <button class="btn" type="submit">Salvar</button>
+                    </div>
+                </section>
+
+                <!-- Segurança -->
+                <section id="sec-seguranca" class="section">
+                    <div class="field">
+                        <label for="current_password">Senha atual</label>
+                        <div class="inline-eye">
+                            <input type="password" id="current_password" name="current_password" placeholder="Obrigatória para alterar a senha" autocomplete="current-password">
+                            <button type="button" class="toggle-eye" data-target="current_password" aria-label="Mostrar/ocultar">👁</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="field">
+                                <label for="password">Nova senha</label>
+                                <div class="inline-eye">
+                                    <input type="password" id="password" name="password" placeholder="Deixe em branco para não alterar" autocomplete="new-password">
+                                    <button type="button" class="toggle-eye" data-target="password" aria-label="Mostrar/ocultar">👁</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="field">
+                                <label for="password_confirm">Repita a nova senha</label>
+                                <div class="inline-eye">
+                                    <input type="password" id="password_confirm" name="password_confirm" placeholder="Repita a nova senha" autocomplete="new-password">
+                                    <button type="button" class="toggle-eye" data-target="password_confirm" aria-label="Mostrar/ocultar">👁</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn" type="submit">Alterar senha</button>
+                    </div>
+                </section>
+
+                <!-- Aparência -->
+                <section id="sec-aparencia" class="section">
+                    <div class="field">
+                        <label for="theme">Tema</label>
+                        <select id="theme" name="theme">
+                            <option value="auto">Automático (sistema)</option>
+                            <option value="light">Claro</option>
+                            <option value="dark">Escuro</option>
+                        </select>
+                        <div class="muted">Sua preferência fica salva neste dispositivo.</div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn" type="button" id="apply-theme">Aplicar</button>
+                    </div>
+                </section>
+            </div>
+        </form>
+    </div>
+    <script>
+    (function(){
+        // Tabs
+        const tabs = document.querySelectorAll('.tab-btn');
+        const sections = {
+            conta: document.getElementById('sec-conta'),
+            seguranca: document.getElementById('sec-seguranca'),
+            aparencia: document.getElementById('sec-aparencia')
+        };
+        tabs.forEach(btn => btn.addEventListener('click', () => {
+            tabs.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            Object.values(sections).forEach(s => s.classList.remove('active'));
+            const key = btn.dataset.tab;
+            sections[key].classList.add('active');
+        }));
+
+        // Username normalização (remove @ inicial)
+        const username = document.getElementById('username');
+        if (username){
+            username.addEventListener('input', () => {
+                if (username.value.startsWith('@')) username.value = username.value.replace(/^@+/, '');
+            });
+        }
+
+        // Validar senha
+        const current = document.getElementById('current_password');
+        const pwd = document.getElementById('password');
+        const pwd2 = document.getElementById('password_confirm');
+        function validateMatch(){
+            if (!pwd || !pwd2) return;
+            if ((pwd.value || pwd2.value) && pwd.value !== pwd2.value) {
+                pwd2.setCustomValidity('As senhas não coincidem.');
+            } else {
+                pwd2.setCustomValidity('');
+            }
+            if ((pwd.value || pwd2.value) && current) {
+                current.required = true;
+            } else if (current) {
+                current.required = false;
+                current.setCustomValidity('');
+            }
+        }
+        if (pwd) pwd.addEventListener('input', validateMatch);
+        if (pwd2) pwd2.addEventListener('input', validateMatch);
+
+        // Toggle olho
+        document.querySelectorAll('.toggle-eye').forEach(btn => {
+            btn.addEventListener('click', function(){
+                const targetId = this.getAttribute('data-target');
+                const input = document.getElementById(targetId);
+                if (!input) return;
+                input.type = input.type === 'password' ? 'text' : 'password';
+            });
+        });
+
+        // Submissão via fetch
+        const form = document.getElementById('form-config');
+        const banner = document.getElementById('banner');
+        form.addEventListener('submit', async function(ev){
+            ev.preventDefault();
+            const data = new FormData(form);
+            try {
+                const resp = await fetch(form.action, { method: 'POST', body: data });
+                if (!resp.ok) {
+                    const t = await resp.text();
+                    let msg = 'Falha ao salvar.';
+                    try { const j = JSON.parse(t); if (j && j.erro) msg = j.erro; } catch(e) {}
+                    showBanner(msg, false);
+                    return;
+                }
+                showBanner('Alterações salvas.', true);
+            } catch(err){
+                showBanner('Erro de rede. Tente novamente.', false);
+            }
+        });
+
+        function showBanner(msg, ok){
+            banner.className = 'alert show ' + (ok ? 'ok' : 'err');
+            banner.textContent = msg;
+            clearTimeout(showBanner._t);
+            showBanner._t = setTimeout(()=>{ banner.className='alert'; }, 3000);
+        }
+
+        // Reenviar verificação de e-mail (aba Conta)
+        const btnResend = document.getElementById('btn-resend-verify');
+        if (btnResend){
+            btnResend.addEventListener('click', async function(){
+                const old = btnResend.textContent;
+                btnResend.disabled = true;
+                btnResend.textContent = 'Enviando...';
+                try {
+                    const resp = await fetch("{{ url_for('main.resend_verification_email') }}", { method: 'POST' });
+                    if (resp.ok) {
+                        showBanner('E-mail de verificação reenviado. Confira sua caixa de entrada/spam.', true);
+                        btnResend.textContent = 'Enviado!';
+                    } else {
+                        showBanner('Falha ao reenviar. Tente novamente mais tarde.', false);
+                        btnResend.textContent = old;
+                        btnResend.disabled = false;
+                    }
+                } catch(e){
+                    showBanner('Erro de rede. Tente novamente.', false);
+                    btnResend.textContent = old;
+                    btnResend.disabled = false;
+                }
+                setTimeout(()=>{ try{ btnResend.textContent = old; btnResend.disabled = false; }catch(_){} }, 2500);
+            });
+        }
+
+        // Tema
+        const themeSel = document.getElementById('theme');
+        const applyBtn = document.getElementById('apply-theme');
+        // Carregar preferência
+        try {
+            const saved = localStorage.getItem('theme') || 'auto';
+            themeSel.value = saved;
+            applyTheme(saved);
+        } catch(e) {}
+        applyBtn.addEventListener('click', () => {
+            const val = themeSel.value;
+            try { localStorage.setItem('theme', val); } catch(e) {}
+            applyTheme(val);
+            showBanner('Tema aplicado.', true);
+        });
+        function applyTheme(val){
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = val === 'dark' || (val === 'auto' && prefersDark);
+            document.body.classList.toggle('dark', isDark);
+            document.documentElement.classList.toggle('dark', isDark);
+        }
+    })();
+    </script>
+</body>
+</html>

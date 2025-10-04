@@ -1,0 +1,247 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gramátike Edu — Artigos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#9B5DE5; --primary-dark:#7d3dc9; --bg:#f7f8ff; --card:#ffffff; --border:#e5e7eb; --text:#222; --text-dim:#666; }
+        * { box-sizing:border-box; }
+        body { margin:0; font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.55; display:flex; flex-direction:column; min-height:100vh; }
+        h1,h2,h3 { font-weight:800; margin:0 0 .9rem; line-height:1.12; }
+        header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; }
+        .logo { font-family:'Mansalva', cursive; font-size:2.6rem; color:#fff; letter-spacing:1px; font-weight:400; margin:0; }
+        .edu-nav { margin-top:1.1rem; display:flex; flex-wrap:wrap; gap:.65rem; justify-content:center; }
+    .edu-nav a { text-decoration:none; font-weight:700; font-size:.7rem; letter-spacing:.55px; padding:.65rem 1.05rem .62rem; background:#ffffff18; color:#fff; border:1px solid #ffffff30; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); border-radius:22px; display:inline-flex; align-items:center; gap:.35rem; box-shadow:0 4px 12px rgba(0,0,0,.18); transition:.25s; font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; }
+        .edu-nav a:hover, .edu-nav a.active { background:#fff; color:#7d3dc9; }
+        main { width:100%; max-width:1280px; margin:2rem auto 4rem; padding:0 clamp(12px,3vw,40px); flex:1; }
+        .page-title { text-align:center; font-size:2.1rem; color:#9B5DE5; margin:0 0 1.6rem; }
+    /* Barra de tópicos unificada */
+    .topics-bar { display:flex; flex-wrap:wrap; gap:.55rem; justify-content:center; margin:0 0 2rem; }
+    .topics-bar a { text-decoration:none; font-size:.6rem; font-weight:800; letter-spacing:.6px; padding:.55rem .85rem .5rem; background:#f1edff; color:#6233B5; border:1px solid #e3daf9; border-radius:18px; box-shadow:0 2px 6px rgba(155,93,229,.18); transition:.25s; }
+    .topics-bar a:hover { background:#9B5DE5; color:#fff; border-color:#9B5DE5; }
+    .search-box form { display:flex; gap:.55rem; max-width:860px; margin:0 auto 2.0rem; }
+    .search-box input { flex:1; height:50px; border:1px solid var(--border); border-radius:20px; padding:0 1.15rem; font-size:.85rem; background:var(--card); font-weight:600; }
+    .search-box button { height:50px; border:none; background:#9B5DE5; color:#fff; font-weight:700; font-size:.78rem; padding:0 1.4rem; border-radius:20px; cursor:pointer; letter-spacing:.45px; box-shadow:0 6px 20px rgba(155,93,229,.4); display:inline-flex; align-items:center; gap:.45rem; }
+    .search-box button.icon-btn { width:50px; padding:0; justify-content:center; }
+    .search-box button:hover { filter:brightness(1.07); }
+        .artigos-ul { list-style:none; margin:0; padding:0; display:grid; gap:1.35rem; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); }
+    .artigo { background:var(--card); border:1px solid var(--border); border-radius:26px; padding:1.1rem 1.2rem 1rem; position:relative; box-shadow:0 10px 24px -6px rgba(0,0,0,.10); transition:.3s; z-index:0; }
+    /* Quando menu aberto eleva o card acima dos vizinhos evitando que o dropdown fique coberto */
+    .artigo.menu-open { z-index:999; }
+    /* Gradiente removido a pedido (antes existia pseudo-elemento ::before) */
+    /* .artigo::before { content:""; position:absolute; inset:0; pointer-events:none; background:none; } */
+        .artigo:hover { box-shadow:0 18px 46px -10px rgba(0,0,0,.28); transform:translateY(-3px); }
+        .artigo a { text-decoration:none; font-weight:800; letter-spacing:.4px; color:#6233B5; font-size:.9rem; }
+        .artigo a:hover { text-decoration:underline; }
+        .artigo .meta { margin:.45rem 0 0; font-size:.7rem; line-height:1.3; color:var(--text-dim); font-weight:600; }
+        .item-menu-trigger { position:absolute; top:10px; right:10px; background:#f1edff; border:1px solid #d6c9f2; border-radius:18px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 10px rgba(155,93,229,.25); }
+        .item-menu { position:absolute; top:46px; right:10px; background:#fff; border:1px solid var(--border); border-radius:14px; box-shadow:0 14px 40px -8px rgba(0,0,0,.25); padding:.35rem 0; min-width:170px; display:none; z-index:30; }
+        .item-menu.show { display:block; }
+        .item-menu button { all:unset; display:block; width:100%; font-size:.7rem; font-weight:700; letter-spacing:.4px; padding:.55rem .85rem .5rem; cursor:pointer; color:#444; }
+        .item-menu button:hover { background:#f1edff; color:#6233B5; }
+        .item-menu form button.danger { color:#b42318; }
+        .item-menu form button.danger:hover { background:#ffe4e1; }
+        footer { margin-top:4rem; background:#333; color:#fff; text-align:center; padding:1.4rem 1rem 1.6rem; font-size:.75rem; letter-spacing:.5px; font-weight:700; border-top-left-radius:38px; border-top-right-radius:38px; }
+    .pag-btn { padding:.55rem .9rem; border-radius:18px; background:#9B5DE5; color:#fff; text-decoration:none; display:inline-block; }
+    .pag-btn.disabled { pointer-events:none; opacity:.45; }
+        @media (max-width:720px){ header.site-head { padding:24px 18px 38px; } .logo { font-size:2.2rem; } .artigos-ul { grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); } }
+    </style>
+</head>
+<body>
+    <header class="site-head">
+        <h1 class="logo">Gramátike Edu</h1>
+        {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+            <a href="{{ url_for('admin.dashboard') }}" style="position:absolute; top:14px; right:16px; background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; text-decoration:none; letter-spacing:.5px;">🛠️ Painel</a>
+        {% endif %}
+        <nav class="edu-nav" aria-label="Seções educacionais">
+            <a href="{{ url_for('main.educacao') }}">🏠 Início</a>
+            <a href="{{ url_for('main.apostilas') }}">📚 Apostilas</a>
+            <a href="{{ url_for('main.exercicios') }}">🧠 Exercícios</a>
+            {# Temporariamente desabilitados: Podcasts, Redação e Vídeos
+            <a href="{{ url_for('main.podcasts') }}">🎧 Podcasts</a>
+            <a href="{{ url_for('main.redacao') }}">✍️ Redação</a>
+            <a href="{{ url_for('main.videos') }}">🎬 Vídeos</a>
+            #}
+            <a href="{{ url_for('main.artigos') }}" class="active">📑 Artigos</a>
+        </nav>
+    </header>
+    <main>
+    <!-- Título removido a pedido -->
+                {% if topics %}
+                <div class="topics-bar">
+                        {% for topico in topics %}
+                            <a href="#topico-{{ topico.id }}">{{ topico.nome }}</a>
+                        {% endfor %}
+                </div>
+                {% endif %}
+                <div class="search-box">
+                    <form method="get" action="">
+                        <input type="text" name="q" value="{{ q }}" placeholder="Pesquisar título ou resumo..." />
+                        <button type="submit" class="icon-btn" aria-label="Buscar" title="Buscar">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="11" cy="11" r="7"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+        <!-- Formulário para admin adicionar novos artigos -->
+        <!-- Lista de artigos disponíveis -->
+    <div class="artigos-lista">
+                                    {% if conteudos %}
+                        <ul class="artigos-ul" style="list-style:none; padding-left:0;">
+                                    {% for c in conteudos %}
+                                            {% set extra = (c.extra | fromjson) if c.extra else None %}
+                                            <li class="artigo" id="topico-{{ c.id }}">
+                                                    {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+                                                    <button class="item-menu-trigger" aria-label="Menu"><span aria-hidden="true" style="font-size:18px; line-height:0; color:#334155;">⋮</span></button>
+                                                    <div class="item-menu" role="menu">
+                                                        <button type="button" data-edit="{{ c.id }}">Editar</button>
+                                                        <form method="POST" action="/admin/edu/content/{{ c.id }}/delete" onsubmit="return confirm('Excluir este artigo?');">
+                                                            <input type="hidden" name="next" value="{{ request.url }}" />
+                                                            <button type="submit" class="danger">Excluir</button>
+                                                        </form>
+                                                    </div>
+                                                    {% endif %}
+                                                    {% if c.url %}
+                                                        <a href="{{ c.url }}" target="_blank" rel="noopener">{{ c.titulo }}</a>
+                                                    {% else %}
+                                                        {{ c.titulo }}
+                                                    {% endif %}
+                                                    {% if extra and extra.author %}
+                                                          <div style="font-size:.7rem; color:#5b6a7c;">Autore/Canal: {{ extra.author }}</div>
+                                                    {% endif %}
+                                                    {% if c.resumo %}
+                                                        <div style="font-size:.7rem; color:#666; margin-top:2px;">{{ c.resumo }}</div>
+                                                    {% endif %}
+                                        </li>
+                                    {% endfor %}
+                        </ul>
+                {% else %}
+                        <p style="text-align:center; color:#888;">Nenhum artigo disponível no momento.</p>
+                {% endif %}
+        </div>
+        {% if last_page and last_page > 1 %}
+        <div class="pagination" style="margin:2.2rem 0 0; display:flex; gap:.6rem; justify-content:center; align-items:center; flex-wrap:wrap; font-size:.7rem; font-weight:700; letter-spacing:.4px;">
+            {% set base_q = '&q=' + q if q else '' %}
+            <a href="?page=1{{ base_q }}" class="pag-btn {% if page==1 %}disabled{% endif %}">« Primeiro</a>
+            <a href="?page={{ page-1 }}{{ base_q }}" class="pag-btn {% if page==1 %}disabled{% endif %}">‹ Anterior</a>
+            <span style="color:#6233B5;">Página {{ page }} de {{ last_page }}</span>
+            <a href="?page={{ page+1 }}{{ base_q }}" class="pag-btn {% if page==last_page %}disabled{% endif %}">Próxima ›</a>
+            <a href="?page={{ last_page }}{{ base_q }}" class="pag-btn {% if page==last_page %}disabled{% endif %}">Última »</a>
+        </div>
+        {% endif %}
+    </main>
+    <footer>© 2025 Gramátike • Inclusão e Gênero Neutro</footer>
+    {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+    <dialog id="editArtigoDialog">
+        <form id="editArtigoForm" method="post">
+            <h3>Editar Artigo</h3>
+            <input type="hidden" name="content_id" id="ea_id" />
+            <label style="display:block; font-size:.8rem; margin:.4rem 0 .2rem;">Título</label>
+            <input name="titulo" id="ea_titulo" required />
+            <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">Autore/Canal</label>
+            <input name="autor" id="ea_autor" />
+            <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">Resumo</label>
+            <textarea name="resumo" id="ea_resumo" rows="3"></textarea>
+            <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">URL</label>
+            <input name="url" id="ea_url" />
+            <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">Tópico</label>
+            <select name="topic_id" id="ea_topic">
+                <option value="">(Tópico)</option>
+                {% for t in topics %}<option value="{{ t.id }}">{{ t.nome }}</option>{% endfor %}
+            </select>
+            <menu style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+                <button type="button" id="ea_cancel">Cancelar</button>
+                <button type="submit" class="nav-button" style="padding:.5rem 1rem; border-radius:8px;">Salvar</button>
+            </menu>
+        </form>
+    </dialog>
+    <style>
+        #editArtigoDialog{ width:min(94vw, 820px); border:0; border-radius:14px; padding:0; box-shadow:0 24px 44px rgba(16,24,40,.22), 0 0 0 1px rgba(16,24,40,.06); }
+        #editArtigoDialog::backdrop{ background:rgba(13,20,33,.45); backdrop-filter: blur(2px); }
+        #editArtigoForm{ padding:1rem 1rem 1.1rem; display:grid; gap:.9rem; grid-template-columns:1fr; }
+        #editArtigoForm h3{ margin:.2rem 0 .4rem; font-size:1.08rem; letter-spacing:.2px; }
+        #editArtigoForm label{ display:block; font-size:.78rem; font-weight:700; color:#3f4f63; }
+        #editArtigoForm input, #editArtigoForm textarea, #editArtigoForm select{ width:100%; padding:.65rem .75rem; border:1px solid #cfd7e2; border-radius:10px; background:#f9fbfd; font-size:.85rem; }
+        #editArtigoForm textarea{ min-height:110px; }
+        #editArtigoForm menu{ padding-top:.2rem; }
+        @media (min-width: 860px){
+            #editArtigoForm{ grid-template-columns:1fr 1fr; }
+            #editArtigoForm h3, #editArtigoForm menu{ grid-column:1 / -1; }
+        }
+    </style>
+    <script>
+    (function(){
+        const list = document.querySelector('.artigos-ul');
+        if(!list) return;
+        // Toggle menu ⋯
+        list.addEventListener('click', (e)=>{
+            const trigger = e.target.closest('.item-menu-trigger');
+            if(trigger){
+                e.preventDefault();
+                const item = trigger.closest('.artigo');
+                const menu = item.querySelector('.item-menu');
+                const open = menu.classList.contains('show');
+                document.querySelectorAll('.item-menu.show').forEach(m=>m.classList.remove('show'));
+                document.querySelectorAll('.artigo.menu-open').forEach(a=>a.classList.remove('menu-open'));
+                if(!open){
+                    menu.classList.add('show');
+                    item.classList.add('menu-open');
+                }
+                return;
+            }
+            if(!e.target.closest('.item-menu')){
+                document.querySelectorAll('.item-menu.show').forEach(m=>m.classList.remove('show'));
+                document.querySelectorAll('.artigo.menu-open').forEach(a=>a.classList.remove('menu-open'));
+            }
+        });
+        // Editar via modal
+        const dlg = document.getElementById('editArtigoDialog');
+        const form = document.getElementById('editArtigoForm');
+        const ea_id = document.getElementById('ea_id');
+        const ea_titulo = document.getElementById('ea_titulo');
+        const ea_resumo = document.getElementById('ea_resumo');
+        const ea_url = document.getElementById('ea_url');
+        const ea_topic = document.getElementById('ea_topic');
+        const ea_cancel = document.getElementById('ea_cancel');
+        const ea_autor = document.getElementById('ea_autor');
+        list.addEventListener('click', async (e)=>{
+            const btn = e.target.closest('[data-edit]');
+            if(!btn) return;
+            const id = btn.getAttribute('data-edit');
+            try{
+                const data = await fetch(`/admin/edu/content/${id}.json`).then(r=>r.json());
+                ea_id.value = data.id;
+                ea_titulo.value = data.titulo||'';
+                ea_resumo.value = data.resumo||'';
+                ea_autor.value = (data.extra && data.extra.author) ? data.extra.author : '';
+                ea_url.value = data.url||'';
+                [...ea_topic.options].forEach(o=>{ o.selected = String(o.value)===String(data.topic_id||''); });
+                dlg.showModal();
+            }catch(err){ alert('Falha ao carregar'); }
+        });
+        ea_cancel.addEventListener('click', ()=> dlg.close());
+        form.addEventListener('submit', async (e)=>{
+            e.preventDefault();
+            const id = ea_id.value;
+            const fd = new FormData(form);
+            try{
+                const res = await fetch(`/admin/edu/content/${id}/update`, { method:'POST', body: fd });
+                if(res.ok){ dlg.close(); location.reload(); } else { alert('Falha ao salvar'); }
+            }catch(err){ alert('Erro de rede'); }
+        });
+        // Fecha menus ao clicar fora
+        document.addEventListener('click', (e)=>{
+            if(!e.target.closest('.artigo')){
+                document.querySelectorAll('.item-menu.show').forEach(m=>m.classList.remove('show'));
+            }
+        });
+    })();
+    </script>
+    {% endif %}
+</body>
+</html>

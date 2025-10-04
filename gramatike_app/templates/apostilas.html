@@ -1,0 +1,310 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gramátike Edu — Apostilas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#9B5DE5; --primary-dark:#7d3dc9; --bg:#f7f8ff; --card:#ffffff; --border:#e5e7eb; --text:#222; --text-dim:#666; }
+        * { box-sizing:border-box; }
+        body { margin:0; font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.55; display:flex; flex-direction:column; min-height:100vh; }
+        h1,h2,h3 { font-weight:800; margin:0 0 .9rem; line-height:1.12; }
+        header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; }
+        .logo { font-family:'Mansalva', cursive; font-size:2.6rem; color:#fff; letter-spacing:1px; font-weight:400; margin:0; }
+        .edu-nav { margin-top:1.1rem; display:flex; flex-wrap:wrap; gap:.65rem; justify-content:center; }
+    .edu-nav a { text-decoration:none; font-weight:700; font-size:.7rem; letter-spacing:.55px; padding:.65rem 1.05rem .62rem; background:#ffffff18; color:#fff; border:1px solid #ffffff30; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); border-radius:22px; display:inline-flex; align-items:center; gap:.35rem; box-shadow:0 4px 12px rgba(0,0,0,.18); transition:.25s; font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; }
+        .edu-nav a:hover, .edu-nav a.active { background:#fff; color:#7d3dc9; }
+    main { width:100%; max-width:1400px; margin:2rem auto 4rem; padding:0 clamp(28px,5vw,90px); flex:1; }
+        .page-title { text-align:center; font-size:2.1rem; color:#9B5DE5; margin:0 0 1.8rem; }
+        .search-box form { display:flex; gap:.55rem; flex-wrap:nowrap; align-items:stretch; width:100%; max-width:860px; margin:0 auto 2rem; }
+        .search-box input { flex:1; height:50px; border:1px solid var(--border); border-radius:20px; padding:0 1.15rem; font-size:.85rem; background:var(--card); font-weight:600; }
+    .search-box button { height:50px; border:none; background:#9B5DE5; color:#fff; font-weight:700; font-size:.78rem; padding:0 1.4rem; border-radius:20px; cursor:pointer; letter-spacing:.4px; box-shadow:0 6px 20px rgba(155,93,229,.4); display:inline-flex; align-items:center; gap:.45rem; }
+    .search-box button.icon-btn { width:50px; padding:0; justify-content:center; }
+        .search-box button:hover { filter:brightness(1.07); }
+        .pdf-list { list-style:none; margin:0 auto; padding:0; max-width:1400px; }
+    .pdf-list li { position:relative; padding:1rem .9rem; margin:0; }
+        .pdf-item { display:flex; gap:14px; align-items:flex-start; background:var(--card); border:1px solid var(--border); border-radius:26px; padding:1rem 1.15rem; box-shadow:0 10px 24px -6px rgba(0,0,0,.10); transition:.3s; }
+        .pdf-item:hover { box-shadow:0 18px 46px -10px rgba(0,0,0,.28); transform:translateY(-3px); }
+        .pdf-thumb { width:auto; height:150px; border:1px solid #d6dee8; border-radius:10px; background:#fff; box-shadow:0 4px 10px rgba(0,0,0,.08); }
+        .pdf-thumb-wrap { position:relative; }
+        .thumb-view-btn { position:absolute; right:8px; bottom:8px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:50%; border:1px solid #cfd7e2; background:#ffffffdd; color:#334155; font-size:18px; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.18); opacity:0; transition:.2s; }
+        .pdf-thumb-wrap:hover .thumb-view-btn { opacity:1; }
+        @media (hover:none){ .thumb-view-btn{ opacity:1; } }
+        .pdf-list a { color:#6233B5; font-weight:700; text-decoration:none; }
+        .pdf-list a:hover { text-decoration:underline; }
+    .item-menu-trigger { position:absolute; top:12px; right:18px; background:#9B5DE5; border:1px solid #7d3dc9; border-radius:18px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 10px -2px rgba(155,93,229,.45); transition:.25s; z-index:40; }
+    .item-menu-trigger:hover { background:#7d3dc9; box-shadow:0 6px 16px -3px rgba(125,61,201,.55); }
+    .item-menu-trigger:focus-visible { outline:2px solid #caa9f6; outline-offset:2px; }
+    .item-menu { position:absolute; top:50px; right:18px; background:#fff; border:1px solid var(--border); border-radius:14px; box-shadow:0 14px 40px -8px rgba(0,0,0,.25); padding:.35rem 0; min-width:170px; display:none; z-index:9999; }
+        .item-menu.show { display:block; }
+        .item-menu button { all:unset; display:block; width:100%; font-size:.7rem; font-weight:700; letter-spacing:.4px; padding:.55rem .85rem .5rem; cursor:pointer; color:#444; }
+        .item-menu button:hover { background:#f1edff; color:#6233B5; }
+        .item-menu form button.danger { color:#b42318; }
+        .item-menu form button.danger:hover { background:#ffe4e1; }
+        footer { margin-top:4rem; background:#333; color:#fff; text-align:center; padding:1.4rem 1rem 1.6rem; font-size:.75rem; letter-spacing:.5px; font-weight:700; border-top-left-radius:38px; border-top-right-radius:38px; }
+    .pag-btn { padding:.55rem .9rem; border-radius:18px; background:#9B5DE5; color:#fff; text-decoration:none; display:inline-block; }
+    .pag-btn.disabled { pointer-events:none; opacity:.45; }
+        /* Modal */
+        #pdfPreviewDialog{ width:min(98vw,1400px); border:0; border-radius:26px; padding:0; box-shadow:0 30px 70px -10px rgba(0,0,0,.45); background:linear-gradient(140deg,#fff,#f5efff); }
+        #pdfPreviewDialog::backdrop{ background:rgba(13,20,33,.55); backdrop-filter: blur(4px); }
+        .pdf-modal-head{ background:#faf7ff; }
+        .pdf-modal-head h3{ font-weight:800; letter-spacing:.4px; color:#6233B5; }
+        #pdf_iframe{ background:#fff; }
+        @media (max-width:720px){ header.site-head { padding:24px 18px 38px; } .logo { font-size:2.2rem; } .pdf-item { flex-direction:column; align-items:flex-start; } .pdf-thumb{ height:120px; } }
+    /* Evitar que o card "suba" quando o menu está aberto */
+    li.menu-open .pdf-item:hover { transform:none; box-shadow:0 10px 24px -6px rgba(0,0,0,.10); }
+    /* Chamada para usuáries */
+    .callout-usuaries { background:linear-gradient(135deg,#9B5DE5,#7d3dc9 55%, #b88bf2); color:#fff; padding:1.15rem 1.4rem 1.2rem; border-radius:30px; box-shadow:0 14px 34px -10px rgba(123,60,200,.45); position:relative; overflow:hidden; margin:0 auto 2.2rem; max-width:1180px; }
+    .callout-usuaries:before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 78% 24%,rgba(255,255,255,.22),transparent 60%); pointer-events:none; }
+    .callout-usuaries h2 { margin:0 0 .55rem; font-size:1.55rem; letter-spacing:.5px; line-height:1.05; }
+    .callout-usuaries p { margin:.2rem 0 0; font-size:.9rem; font-weight:600; letter-spacing:.35px; max-width:900px; }
+    .callout-tags { margin-top:.85rem; display:flex; flex-wrap:wrap; gap:.45rem; }
+    .callout-tags span { background:#ffffff18; border:1px solid #ffffff30; padding:.35rem .7rem .33rem; font-size:.6rem; font-weight:800; letter-spacing:.6px; border-radius:18px; text-transform:uppercase; }
+    @media (max-width:780px){ .callout-usuaries { padding:1.05rem 1.1rem 1.15rem; border-radius:26px; } .callout-usuaries h2 { font-size:1.32rem; } .callout-usuaries p { font-size:.82rem; } }
+    </style>
+</head>
+<body>
+    <header class="site-head">
+        <h1 class="logo">Gramátike Edu</h1>
+        {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+            <a href="{{ url_for('admin.dashboard') }}" style="position:absolute; top:14px; right:16px; background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; text-decoration:none; letter-spacing:.5px;">🛠️ Painel</a>
+        {% endif %}
+        <nav class="edu-nav" aria-label="Seções educacionais">
+            <a href="{{ url_for('main.educacao') }}">🏠 Início</a>
+            <a href="{{ url_for('main.apostilas') }}" class="active">📚 Apostilas</a>
+            <a href="{{ url_for('main.exercicios') }}">🧠 Exercícios</a>
+            {# Temporariamente desabilitados: Podcasts, Redação e Vídeos
+            <a href="{{ url_for('main.podcasts') }}">🎧 Podcasts</a>
+            <a href="{{ url_for('main.redacao') }}">✍️ Redação</a>
+            <a href="{{ url_for('main.videos') }}">🎬 Vídeos</a>
+            #}
+            <a href="{{ url_for('main.artigos') }}">📑 Artigos</a>
+        </nav>
+    </header>
+    <main>
+    <!-- Seção de chamada removida a pedido -->
+    <!-- Título removido a pedido -->
+        <div class="search-box">
+            <form method="get" action="">
+                <input type="text" name="q" placeholder="Pesquisar título ou descrição..." value="{{ q }}" />
+                <button type="submit" class="icon-btn" aria-label="Buscar" title="Buscar">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </form>
+        </div>
+
+    {# Removido agrupamento por tópicos para visualizar por mais recentes #}
+
+    <!-- Barra de pesquisa duplicada removida -->
+
+        <!-- Lista plana por mais recentes -->
+                        {% if conteudos %}
+            <ul class="pdf-list" style="max-width:1400px; margin:0 auto;">
+                {% for c in conteudos %}
+                    {% set extra = (c.extra | fromjson) if c.extra else None %}
+                    <li style="position:relative; padding:.65rem .25rem;">
+                        {% set _pdf_src = None %}
+                        {% if c.file_path %}
+                            {% set _pdf_src = url_for('static', filename=c.file_path) %}
+                        {% elif c.url and c.url.lower().endswith('.pdf') %}
+                            {% set _pdf_src = c.url %}
+                        {% endif %}
+                        {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+                        <button class="item-menu-trigger" aria-label="Menu"><span aria-hidden="true" style="font-size:18px; line-height:0; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.35);">⋮</span></button>
+                        <div class="item-menu" role="menu">
+                            <button type="button" data-edit="{{ c.id }}">Editar</button>
+                            <form method="POST" action="/admin/edu/content/{{ c.id }}/delete" onsubmit="return confirm('Excluir esta apostila?');">
+                                <input type="hidden" name="next" value="{{ request.url }}" />
+                                <button type="submit" class="danger">Excluir</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                        <div class="pdf-item">
+                            {% if extra and extra.thumb %}
+                                <div class="pdf-thumb-wrap">
+                                    <img class="pdf-thumb" src="{{ url_for('static', filename=extra.thumb) }}" alt="Miniatura da apostila {{ c.titulo }}" loading="lazy" />
+                                    {% if _pdf_src %}<button type="button" class="thumb-view-btn thumb-visualizar" data-src="{{ _pdf_src }}" title="Visualizar PDF">👁️</button>{% endif %}
+                                </div>
+                            {% endif %}
+                            <div class="pdf-meta">
+                                {% if c.file_path %}
+                                    {% set pdf_src = url_for('static', filename=c.file_path) %}
+                                    <a href="{{ pdf_src }}" target="_blank" rel="noopener">{{ c.titulo }}</a>
+                                {% elif c.url %}
+                                    <a href="{{ c.url }}" target="_blank" rel="noopener">{{ c.titulo }}</a>
+                                {% else %}
+                                    {{ c.titulo }}
+                                {% endif %}
+                                {% if extra and extra.author %}
+                                    <div style="font-size:.7rem; color:#5b6a7c;">Autore/Canal: {{ extra.author }}</div>
+                                {% endif %}
+                                {% if c.resumo %}<div style="font-size:.65rem; color:#555; margin-top:2px;">{{ c.resumo }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p style="text-align:center; color:#888;">Nenhuma apostila encontrada{% if q %} para a busca '{{ q }}'{% endif %}.</p>
+        {% endif %}
+        {% if last_page and last_page > 1 %}
+        <div class="pagination" style="margin:2rem 0 0; display:flex; gap:.6rem; justify-content:center; align-items:center; flex-wrap:wrap; font-size:.7rem; font-weight:700; letter-spacing:.4px;">
+            {% set base_q = '&q=' + q if q else '' %}
+            <a href="?page=1{{ base_q }}" class="pag-btn {% if page == 1 %}disabled{% endif %}">« Primeiro</a>
+            <a href="?page={{ page-1 }}{{ base_q }}" class="pag-btn {% if page == 1 %}disabled{% endif %}">‹ Anterior</a>
+            <span style="color:#6233B5;">Página {{ page }} de {{ last_page }}</span>
+            <a href="?page={{ page+1 }}{{ base_q }}" class="pag-btn {% if page == last_page %}disabled{% endif %}">Próxima ›</a>
+            <a href="?page={{ last_page }}{{ base_q }}" class="pag-btn {% if page == last_page %}disabled{% endif %}">Última »</a>
+        </div>
+        {% endif %}
+  </main>
+    <footer>© 2025 Gramátike • Inclusão e Gênero Neutro</footer>
+    <!-- Modal de Visualização de PDF -->
+    <dialog id="pdfPreviewDialog">
+        <div class="pdf-modal-wrap">
+            <div class="pdf-modal-head">
+                <h3>Visualização da Apostila</h3>
+                <div class="actions">
+                    <a id="pdf_open_new" href="#" target="_blank" rel="noopener" class="nav-button" style="padding:.35rem .7rem; border-radius:10px; text-decoration:none;">Abrir em nova aba</a>
+                    <button type="button" id="pdf_close" class="nav-button" style="padding:.35rem .7rem; border-radius:10px; background:#6b7aa8; border:1px solid #4b5a88;">Fechar</button>
+                </div>
+            </div>
+            <div class="pdf-modal-body">
+                <iframe id="pdf_iframe" src="about:blank" title="Visualização do PDF"></iframe>
+            </div>
+        </div>
+    </dialog>
+    {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+    <dialog id="editApostilaDialog">
+        <form id="editApostilaForm" method="post">
+            <h3>Editar Apostila</h3>
+            <input type="hidden" name="content_id" id="ap_id" />
+            <label style="display:block; font-size:.8rem; margin:.4rem 0 .2rem;">Título</label>
+            <input name="titulo" id="ap_titulo" required />
+        <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">Autore/Canal</label>
+        <input name="autor" id="ap_autor" />
+            <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">Resumo</label>
+            <textarea name="resumo" id="ap_resumo" rows="3"></textarea>
+            <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">URL (opcional)</label>
+            <input name="url" id="ap_url" />
+            <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">Tópico</label>
+            <select name="topic_id" id="ap_topic">
+                <option value="">(Tópico)</option>
+                {% for t in topics %}<option value="{{ t.id }}">{{ t.nome }}</option>{% endfor %}
+            </select>
+            <p style="font-size:.75rem; color:#5d6a7c; margin:.4rem 0 0;">Obs.: Troca de arquivo PDF não é suportada aqui; use o painel admin para reenviar se necessário.</p>
+            <menu style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+                <button type="button" id="ap_cancel">Cancelar</button>
+                <button type="submit" class="nav-button" style="padding:.5rem 1rem; border-radius:8px;">Salvar</button>
+            </menu>
+        </form>
+    </dialog>
+    <style>
+        #editApostilaDialog{ width:min(94vw, 820px); border:0; border-radius:14px; padding:0; box-shadow:0 24px 44px rgba(16,24,40,.22), 0 0 0 1px rgba(16,24,40,.06); }
+        #editApostilaDialog::backdrop{ background:rgba(13,20,33,.45); backdrop-filter: blur(2px); }
+        #editApostilaForm{ padding:1rem 1rem 1.1rem; display:grid; gap:.9rem; grid-template-columns:1fr; }
+        #editApostilaForm h3{ margin:.2rem 0 .4rem; font-size:1.08rem; letter-spacing:.2px; }
+        #editApostilaForm label{ display:block; font-size:.78rem; font-weight:700; color:#3f4f63; }
+        #editApostilaForm input, #editApostilaForm textarea, #editApostilaForm select{ width:100%; padding:.65rem .75rem; border:1px solid #cfd7e2; border-radius:10px; background:#f9fbfd; font-size:.85rem; }
+        #editApostilaForm textarea{ min-height:110px; }
+        #editApostilaForm menu{ padding-top:.2rem; }
+        @media (min-width: 860px){
+            #editApostilaForm{ grid-template-columns:1fr 1fr; }
+            #editApostilaForm h3, #editApostilaForm menu{ grid-column:1 / -1; }
+        }
+    </style>
+    <script>
+    (function(){
+            // Preview de PDF
+            const pdfDlg = document.getElementById('pdfPreviewDialog');
+            const pdfFrame = document.getElementById('pdf_iframe');
+            const pdfClose = document.getElementById('pdf_close');
+            const pdfOpenNew = document.getElementById('pdf_open_new');
+            document.addEventListener('click', (e)=>{
+                const btn = e.target.closest('.btn-visualizar, .thumb-visualizar');
+                if(!btn) return;
+                e.preventDefault();
+                const src = btn.getAttribute('data-src');
+                if(src){
+                    pdfFrame.src = src;
+                    pdfOpenNew.href = src;
+                    try{ pdfDlg.showModal(); }catch(err){ window.open(src,'_blank'); }
+                }
+            });
+            function closePdf(){ pdfFrame.src='about:blank'; pdfDlg.close(); }
+            if(pdfClose){ pdfClose.addEventListener('click', closePdf); }
+            if(pdfDlg){ pdfDlg.addEventListener('close', ()=>{ pdfFrame.src='about:blank'; }); }
+
+        // Toggle menus (delegação no main)
+        document.addEventListener('click', (e)=>{
+            const trigger = e.target.closest('.item-menu-trigger');
+            if(trigger){
+                e.preventDefault();
+                const item = trigger.closest('li');
+                const menu = item.querySelector('.item-menu');
+                const open = menu.classList.contains('show');
+                // fechar todos
+                document.querySelectorAll('.item-menu.show').forEach(m=>{
+                    m.classList.remove('show');
+                    const li = m.closest('li');
+                    if(li) li.classList.remove('menu-open');
+                });
+                if(!open){
+                    menu.classList.add('show');
+                    item.classList.add('menu-open');
+                }
+                return;
+            }
+            if(!e.target.closest('.item-menu')){
+                document.querySelectorAll('.item-menu.show').forEach(m=>{
+                    m.classList.remove('show');
+                    const li = m.closest('li');
+                    if(li) li.classList.remove('menu-open');
+                });
+            }
+        });
+        // Edit modal
+        const dlg = document.getElementById('editApostilaDialog');
+        const form = document.getElementById('editApostilaForm');
+        const ap_id = document.getElementById('ap_id');
+        const ap_titulo = document.getElementById('ap_titulo');
+        const ap_resumo = document.getElementById('ap_resumo');
+        const ap_url = document.getElementById('ap_url');
+        const ap_topic = document.getElementById('ap_topic');
+        const ap_cancel = document.getElementById('ap_cancel');
+        const ap_autor = document.getElementById('ap_autor');
+        document.addEventListener('click', async (e)=>{
+            const btn = e.target.closest('[data-edit]');
+            if(!btn) return;
+            const id = btn.getAttribute('data-edit');
+            try{
+                const data = await fetch(`/admin/edu/content/${id}.json`).then(r=>r.json());
+                ap_id.value = data.id;
+                ap_titulo.value = data.titulo||'';
+                ap_resumo.value = data.resumo||'';
+                ap_url.value = data.url||'';
+            ap_autor.value = (data.extra && data.extra.author) ? data.extra.author : '';
+                [...ap_topic.options].forEach(o=>{ o.selected = String(o.value)===String(data.topic_id||''); });
+                dlg.showModal();
+            }catch(err){ alert('Falha ao carregar'); }
+        });
+        ap_cancel.addEventListener('click', ()=> dlg.close());
+        form.addEventListener('submit', async (e)=>{
+            e.preventDefault();
+            const id = ap_id.value;
+            const fd = new FormData(form);
+            try{
+                const res = await fetch(`/admin/edu/content/${id}/update`, { method:'POST', body: fd });
+                if(res.ok){ dlg.close(); location.reload(); } else { alert('Falha ao salvar'); }
+            }catch(err){ alert('Erro de rede'); }
+        });
+    })();
+    </script>
+    {% endif %}
+</body>
+</html>
