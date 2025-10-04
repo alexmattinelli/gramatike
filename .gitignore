@@ -1,0 +1,55 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment files
+.env
+.env.*
+.env.local
+
+# Editors/OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Build/test artefacts
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Databases and local instance data
+app.db
+*.sqlite
+*.sqlite3
+instance/*.db
+instance/app.db
+
+# Logs
+*.log
+logs/
+
+# Node (if present)
+node_modules/
+
+# Static uploads (keep folder only)
+gramatike_app/static/uploads/*
+!gramatike_app/static/uploads/.gitkeep
+
+# Ignore accidental nested repo dir
+gramatike/
+# Ignorar banco de dados local
+instance/app.db
