@@ -1,3 +1,12 @@
+import sys, os
+# Ensure project root on sys.path
+try:
+    _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+    if _ROOT not in sys.path:
+        sys.path.insert(0, _ROOT)
+except Exception:
+    pass
+
 from gramatike_app import create_app
 from gramatike_app.models import db, User
 import argparse
