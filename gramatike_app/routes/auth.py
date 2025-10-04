@@ -11,19 +11,22 @@ auth = Blueprint('auth', __name__)
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        user = User.query.filter_by(email=request.form['email']).first()
+        identifier = request.form.get('email') or ''
+        # Permite login por e-mail OU username
+        user = (User.query.filter_by(email=identifier).first() or
+                User.query.filter_by(username=identifier).first())
         from datetime import datetime
-        if not user or not check_password_hash(user.password, request.form['password']):
+        if not user or not check_password_hash(user.password, request.form.get('password', '')):
             flash('Login inválido.')
             return render_template('login.html')
         if getattr(user, 'is_banned', False):
-            flash(f'Conta banida: {user.ban_reason or "motivo não especificado"}')
+            flash(f"Conta banida: {user.ban_reason or 'motivo não especificado'}")
             return render_template('login.html')
         if getattr(user, 'suspended_until', None) and user.suspended_until and datetime.utcnow() < user.suspended_until:
-            flash(f'Conta suspensa até {user.suspended_until.strftime('%d/%m %H:%M')}')
+            flash(f"Conta suspensa até {user.suspended_until.strftime('%d/%m %H:%M')}")
             return render_template('login.html')
         login_user(user)
         return redirect(url_for('main.dashboard'))
-    
+
     # GET
     return render_template('login.html')
