@@ -1,0 +1,18 @@
+[2025-09-11T18:54:08.264249] Iniciando reparo de schema
+[2025-09-11T18:54:08.266678] Tabelas encontradas: ['alembic_version', 'comentario', 'curtida', 'divulgacao', 'edu_content', 'edu_novidade', 'edu_topic', 'estudo', 'exercise_question', 'exercise_section', 'exercise_topic', 'lune_feedback', 'lune_knowledge', 'lune_memory', 'lune_message', 'outro_recurso', 'post', 'post_image', 'post_likes', 'promotion', 'report', 'seguidores', 'support_ticket', 'user']
+[2025-09-11T18:54:08.271758] Versão Alembic atual: b7c9d10e11f2
+[2025-09-11T18:54:08.272346] > Revision alvo c1d2e3f4g5h6 não existe; mantendo atual.
+[2025-09-11T18:54:08.275026] Reparo concluído.
+[2025-09-11T18:54:08.277669] Fim do script.
+[2025-09-12T00:12:16.753126] Iniciando reparo de schema
+[2025-09-12T00:12:16.756820] Tabelas encontradas: ['comentario', 'curtida', 'divulgacao', 'edu_content', 'edu_novidade', 'edu_topic', 'estudo', 'exercise_question', 'exercise_section', 'exercise_topic', 'lune_feedback', 'lune_knowledge', 'lune_memory', 'lune_message', 'outro_recurso', 'post', 'post_image', 'post_likes', 'promotion', 'report', 'seguidores', 'support_ticket', 'user']
+[2025-09-12T00:12:16.762530] Tabela alembic_version inexistente.
+[2025-09-12T00:12:16.762945] > Criando tabela alembic_version e setando para head existente f6a7b8c9d0e1
+[2025-09-12T00:12:16.783914] Reparo concluído.
+[2025-09-12T00:12:16.784878] Fim do script.
+[2025-09-12T00:12:50.843196] Iniciando reparo de schema
+[2025-09-12T00:12:51.014026] Tabelas encontradas: ['alembic_version', 'comentario', 'curtida', 'divulgacao', 'edu_content', 'edu_novidade', 'edu_topic', 'estudo', 'exercise_question', 'exercise_section', 'exercise_topic', 'lune_feedback', 'lune_knowledge', 'lune_memory', 'lune_message', 'outro_recurso', 'post', 'post_image', 'post_likes', 'promotion', 'report', 'seguidores', 'support_ticket', 'user']
+[2025-09-12T00:12:51.073998] Versão Alembic atual: f6a7b8c9d0e1
+[2025-09-12T00:12:51.075676] > Revision alvo c1d2e3f4g5h6 não existe; mantendo atual.
+[2025-09-12T00:12:51.076523] Reparo concluído.
+[2025-09-12T00:12:51.079509] Fim do script.
