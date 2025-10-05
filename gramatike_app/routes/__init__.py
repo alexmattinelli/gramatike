@@ -11,6 +11,24 @@ from gramatike_app.utils.tokens import generate_token, verify_token
 from gramatike_app.utils.moderation import check_text, check_image_hint, refusal_message_pt
 from gramatike_app.models import EduNovidade
 
+# Helper: converter datas para horário de Brasília (America/Sao_Paulo)
+def _to_brasilia(dt: datetime) -> datetime:
+    try:
+        if dt is None:
+            return dt
+        try:
+            from zoneinfo import ZoneInfo  # Python 3.9+
+        except Exception:
+            return dt
+        tz = ZoneInfo("America/Sao_Paulo")
+        # Considera que valores sem tz vêm em UTC na base
+        if dt.tzinfo is None:
+            from datetime import timezone as _tz
+            dt = dt.replace(tzinfo=_tz.utc)
+        return dt.astimezone(tz)
+    except Exception:
+        return dt
+
 def _ensure_edunovidade_table(seed=False):
     """Garante que a tabela edu_novidade exista (SQLite fallback) e opcionalmente faz seed do guia básico."""
     try:
@@ -396,16 +414,33 @@ def editar_perfil():
             existente = User.query.filter(User.email == novo_email, User.id != user.id).first()
             if existente:
                 return jsonify({'erro': 'Este e-mail já está em uso.'}), 400
-            # Em vez de alterar imediatamente, enviamos confirmação para o novo e-mail
-            try:
-                token = generate_token({'uid': user.id, 'scope': 'change_email', 'new_email': novo_email})
-                confirm_url = url_for('main.confirm_change_email', token=token, _external=True)
-                html_c = render_change_email_email(user.username or user.email, confirm_url, novo_email)
-                # Tenta enviar para o novo e-mail; se falhar, não altera nada
-                if not send_email(novo_email, 'Confirmar novo e-mail', html_c):
-                    return jsonify({'erro': 'Não foi possível enviar verificação para o novo e-mail.'}), 400
-            except Exception:
-                return jsonify({'erro': 'Falha ao preparar confirmação de e-mail.'}), 400
+            # Admins/superadmins podem alterar diretamente sem confirmação
+            if getattr(user, 'is_superadmin', False) or getattr(user, 'is_admin', False):
+                try:
+                    user.email = novo_email
+                    try:
+                        user.email_confirmed = False
+                    except Exception:
+                        pass
+                except Exception as _e_dir:
+                    return jsonify({'erro': f'Falha ao atualizar e-mail: {_e_dir}'}), 400
+            else:
+                # Para usuáries comuns: envia confirmação para o novo e-mail
+                try:
+                    token = generate_token({'uid': user.id, 'scope': 'change_email', 'new_email': novo_email})
+                    confirm_url = url_for('main.confirm_change_email', token=token, _external=True)
+                    html_c = render_change_email_email(user.username or user.email, confirm_url, novo_email)
+                    # Tenta enviar para o novo e-mail; se falhar, apenas registra e segue com outras alterações
+                    if not send_email(novo_email, 'Confirmar novo e-mail', html_c):
+                        try:
+                            current_app.logger.warning('Não foi possível enviar verificação para o novo e-mail; mantendo e-mail atual.')
+                        except Exception:
+                            pass
+                except Exception as _e_email:
+                    try:
+                        current_app.logger.warning(f'Falha ao preparar/enviar confirmação de e-mail: {_e_email}')
+                    except Exception:
+                        pass
     if genero:
         user.genero = genero
     if pronome:
@@ -422,13 +457,23 @@ def editar_perfil():
         except Exception:
             user.data_nascimento = None
     if foto and foto.filename:
-        filename = secure_filename(foto.filename)
-        pasta = os.path.join('gramatike_app', 'static', 'img', 'perfil')
-        if not os.path.exists(pasta):
-            os.makedirs(pasta)
-        caminho = os.path.join(pasta, filename)
-        foto.save(caminho)
-        user.foto_perfil = f'img/perfil/{filename}'
+        # Tenta salvar a foto de perfil; em ambientes serverless (ex.: Vercel) o FS pode ser somente leitura.
+        try:
+            filename = secure_filename(foto.filename)
+            # Usa a pasta estática configurada no app para evitar caminhos hardcoded
+            base_static = getattr(current_app, 'static_folder', None) or os.path.join('gramatike_app', 'static')
+            pasta = os.path.join(base_static, 'img', 'perfil')
+            os.makedirs(pasta, exist_ok=True)
+            caminho = os.path.join(pasta, filename)
+            foto.save(caminho)
+            # Caminho relativo ao /static
+            user.foto_perfil = f'img/perfil/{filename}'
+        except Exception as _e_save:
+            # Não interrompe a atualização de outros campos caso não seja possível salvar a imagem
+            try:
+                current_app.logger.warning(f'Falha ao salvar foto de perfil: {_e_save}')
+            except Exception:
+                pass
     # Atualização de senha (opcional): só processa se usuário enviou nova senha
     if (new_password or password_confirm):
         if (new_password or '').strip() == '' or (password_confirm or '').strip() == '':
@@ -1303,7 +1348,11 @@ def dinamica_responder(dyn_id: int):
             writer = csv.writer(f)
             if not exists:
                 writer.writerow(['timestamp','dynamic_id','usuario_id','tipo','content'])
-            stamp = _dt.datetime.utcnow().isoformat()
+            try:
+                from zoneinfo import ZoneInfo
+                stamp = _to_brasilia(_dt.datetime.utcnow()).isoformat()
+            except Exception:
+                stamp = _dt.datetime.utcnow().isoformat()
             # Montar conteúdo human-readable
             content = ''
             if d.tipo == 'oneword':
@@ -1620,7 +1669,8 @@ def get_posts():
     result = []
     for p in posts:
         try:
-            data_str = p.data.strftime('%d/%m/%Y %H:%M') if p.data else ''
+            dt_local = _to_brasilia(p.data) if p.data else None
+            data_str = dt_local.strftime('%d/%m/%Y %H:%M') if dt_local else ''
         except Exception as e:
             print(f'[ERRO DATA POST] id={p.id} data={p.data} erro={e}')
             data_str = ''

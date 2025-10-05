@@ -5,20 +5,23 @@ param(
 )
 
 Write-Host "=== Envio de teste via Brevo (smtp-relay.brevo.com) ===" -ForegroundColor Cyan
-# Usa variável de ambiente se disponível; senão, solicita
-$API = $env:BREVO_API_KEY
-if (-not $API -or $API -eq "") {
-  $apiSecure = Read-Host -Prompt "Brevo API Key (será mantida somente em memória)" -AsSecureString
-  $BSTR = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($apiSecure)
-  $API  = [Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+# Preferencialmente use a SMTP Key (xsmtpsib-...). Caso não exista, faz fallback para a API Key (xkeysib-...)
+$SMTP = $env:BREVO_SMTP_KEY
+if (-not $SMTP -or $SMTP -eq "") {
+  $SMTP = $env:BREVO_API_KEY
+}
+if (-not $SMTP -or $SMTP -eq "") {
+  $smtpSecure = Read-Host -Prompt "Brevo SMTP Key ou API Key (será mantida somente em memória)" -AsSecureString
+  $BSTR = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($smtpSecure)
+  $SMTP  = [Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
 }
 
 # Configura variáveis de ambiente esperadas pelo app
 Set-Item -Path Env:MAIL_SERVER -Value "smtp-relay.brevo.com"
 Set-Item -Path Env:MAIL_PORT -Value "587"
 Set-Item -Path Env:MAIL_USE_TLS -Value "true"
-Set-Item -Path Env:MAIL_USERNAME -Value $API
-Set-Item -Path Env:MAIL_PASSWORD -Value $API
+Set-Item -Path Env:MAIL_USERNAME -Value $SMTP
+Set-Item -Path Env:MAIL_PASSWORD -Value $SMTP
 Set-Item -Path Env:MAIL_DEFAULT_SENDER -Value $FromEmail
 Set-Item -Path Env:MAIL_SENDER_NAME -Value $FromName
 
@@ -32,8 +35,8 @@ python scripts/send_test_email.py $To `
   --server smtp-relay.brevo.com `
   --port 587 `
   --tls `
-  --user $API `
-  --password $API `
+  --user $SMTP `
+  --password $SMTP `
   --from-email $FromEmail `
   --from-name $FromName
 

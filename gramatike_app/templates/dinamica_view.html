@@ -27,6 +27,7 @@
       {% if d.descricao %}<p class="muted" style="margin-top:0;">{{ d.descricao }}</p>{% endif %}
       {% if d.tipo == 'oneword' %}
         <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
           <label>Digite uma palavra</label>
           <input type="text" name="word" required />
           <button type="submit" class="btn primary">Enviar</button>
@@ -41,6 +42,7 @@
         {% endif %}
       {% elif d.tipo == 'poll' %}
         <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="options">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
           {% for opt in cfg.options %}
             <label style="display:flex; align-items:center; gap:.5rem;">
               <input type="radio" name="option" value="{{ loop.index0 }}" required /> {{ opt }}
@@ -58,6 +60,7 @@
         {% endif %}
       {% elif d.tipo == 'form' %}
         <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="dinamica-form" style="display:flex;flex-direction:column;gap:12px;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
           {% set fields = cfg.get('fields', []) %}
           {% for q in fields %}
             <div class="q-card" style="padding:10px;border:1px solid #e3e3e3;border-radius:8px;">

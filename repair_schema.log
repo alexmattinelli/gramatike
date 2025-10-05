@@ -16,3 +16,9 @@
 [2025-09-12T00:12:51.075676] > Revision alvo c1d2e3f4g5h6 não existe; mantendo atual.
 [2025-09-12T00:12:51.076523] Reparo concluído.
 [2025-09-12T00:12:51.079509] Fim do script.
+[2025-10-04T15:17:28.385494] Iniciando reparo de schema
+[2025-10-04T15:17:29.266517] Tabelas encontradas: ['estudo', 'outro_recurso', 'user', 'edu_content', 'edu_topic', 'exercise_topic', 'exercise_section', 'post', 'seguidores', 'support_ticket', 'promotion', 'edu_novidade', 'dynamic', 'blocked_word', 'exercise_question', 'post_likes', 'comentario', 'curtida', 'report', 'divulgacao', 'post_image', 'dynamic_response']
+[2025-10-04T15:17:33.701137] Tabela alembic_version inexistente.
+[2025-10-04T15:17:33.702807] > Criando tabela alembic_version e setando para head existente f6a7b8c9d0e1
+[2025-10-04T15:17:34.656931] Reparo concluído.
+[2025-10-04T15:17:34.658656] Fim do script.
