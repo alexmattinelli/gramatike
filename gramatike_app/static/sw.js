@@ -6,7 +6,7 @@ self.addEventListener('activate', (e) => {
   clients.claim();
 });
 
-const CACHE = 'gk-static-v1';
+const CACHE = 'gk-static-v2';
 const ASSETS = [
   '/',
   '/static/manifest.webmanifest',
