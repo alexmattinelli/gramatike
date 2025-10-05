@@ -9,7 +9,8 @@
     :root { --primary:#9B5DE5; --border:#e5e7eb; --card:#fff; --bg:#f7f8ff; --text:#222; }
     body { margin:0; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
     header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; }
-    .logo { font-family:'Mansalva', cursive; font-size:2.2rem; color:#fff; font-weight:400; margin:0; text-align:center; }
+  .logo { font-family:'Mansalva', cursive; font-size:2.2rem; color:#fff; font-weight:400; margin:0; text-align:center; }
+  @media (max-width:640px){ .logo { font-size:2rem; } }
     main { width:100%; max-width:860px; margin:2rem auto 4rem; padding:0 clamp(16px,4vw,40px); }
     .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1rem 1.2rem; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); }
     .muted { color:#666; font-weight:600; }
@@ -91,5 +92,6 @@
       {% endif %}
     </div>
   </main>
+  <footer style="background:#9B5DE5; color:#fff; text-align:center; padding:1rem 0 1.1rem; font-size:.8rem; border-top-left-radius:28px; border-top-right-radius:28px; margin-top:40px;">© 2025 Gramátike • Inclusão e Gênero Neutro</footer>
 </body>
 </html>

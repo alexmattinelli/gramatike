@@ -382,12 +382,27 @@ def create_app():
         resp.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
         resp.headers.setdefault('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
         # CSP brando para não quebrar inline scripts atuais; ajuste futuramente para remover 'unsafe-inline'
-        csp = "default-src 'self'; img-src 'self' data: blob:; media-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https:; frame-ancestors 'none'; report-uri /api/csp-report;"
+        # Permitir Google Fonts e imagens externas (ex.: Supabase Storage)
+        csp = (
+            "default-src 'self'; "
+            "img-src 'self' https: data: blob:; "
+            "media-src 'self' https: data:; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' data: https://fonts.gstatic.com; "
+            "script-src 'self' 'unsafe-inline'; "
+            "connect-src 'self' https:; "
+            "frame-ancestors 'none'; "
+            "report-uri /api/csp-report;"
+        )
         resp.headers.setdefault('Content-Security-Policy', csp)
         # Report-Only mais estrito para avaliar remoção de inline no futuro (não bloqueia, apenas reporta)
         ro_csp = (
-            "default-src 'self'; img-src 'self' data: blob:; media-src 'self' https: data:; "
-            "style-src 'self'; script-src 'self'; connect-src 'self' https:; font-src 'self' data:; "
+            "default-src 'self'; "
+            "img-src 'self' https: data: blob:; "
+            "media-src 'self' https: data:; "
+            "style-src 'self' https://fonts.googleapis.com; "
+            "font-src 'self' data: https://fonts.gstatic.com; "
+            "script-src 'self'; connect-src 'self' https:; "
             "frame-ancestors 'none'; report-uri /api/csp-report;"
         )
         resp.headers.setdefault('Content-Security-Policy-Report-Only', ro_csp)

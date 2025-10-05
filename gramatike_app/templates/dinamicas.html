@@ -37,6 +37,7 @@
       <div class="card" style="margin-bottom:1rem;">
         <h2 style="margin:0 0 .6rem; font-size:1.2rem; color:#6233B5;">Criar dinâmica</h2>
         <form id="dynCreateForm" method="POST" action="{{ url_for('main.dinamicas_create') }}" style="display:grid; gap:.6rem; grid-template-columns:1fr; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
           <label style="font-weight:800; color:#6233B5;">Tipo</label>
           <select name="tipo" id="tipo" required>
             <option value="poll">Enquete</option>
