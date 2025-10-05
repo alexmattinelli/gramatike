@@ -27,8 +27,10 @@
   <main>
     <article class="card">
       <div class="post-header">
-  {% set avatar = 'img/perfil.png' %}
-  <img class="post-avatar" src="{{ url_for('static', filename=avatar) }}" alt="avatar" />
+  {% set autor_avatar = post.usuario_id and (post.usuario_obj.foto_perfil if post.usuario_obj is defined else None) or None %}
+  {% set avatar = autor_avatar or 'img/perfil.png' %}
+  {% set is_abs = avatar.startswith('http://') or avatar.startswith('https://') %}
+  <img class="post-avatar" src="{{ avatar if is_abs else url_for('static', filename=avatar) }}" alt="avatar" />
         <div class="post-username">@{{ post.usuario or 'usuárie' }}</div>
         <div class="post-date">{{ post.data.strftime('%d/%m/%Y %H:%M') if post.data else '' }}</div>
       </div>

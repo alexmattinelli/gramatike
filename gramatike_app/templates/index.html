@@ -461,13 +461,14 @@ function loadPosts(params={}) {
           btnSeguir = `<button class="seguir-btn" data-usuario="${post.usuario}" onclick="seguirOuDeixarUsuario(this)">Seguir</button>`;
         }
         // Adiciona a foto de perfil do autor do post
-        const fotoPerfil = post.foto_perfil ? post.foto_perfil : 'img/perfil.png';
+  const fotoPerfil = (post.foto_perfil && String(post.foto_perfil).trim()) ? String(post.foto_perfil).trim() : 'img/perfil.png';
+  const avatarSrc = /^https?:\/\//i.test(fotoPerfil) ? fotoPerfil : (`/static/${fotoPerfil}`);
   const likeLabel = post.liked ? '❤️ Curtido' : '❤️ Curtir';
     const likeClass = post.liked ? 'like-btn liked' : 'like-btn';
   article.innerHTML = `
           <div class="post-header" style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:0.7rem;">
-              <img src="/static/${fotoPerfil}" alt="Foto de perfil" class="post-avatar" data-username="${post.usuario}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #eee;cursor:pointer;">
+              <img src="${avatarSrc}" alt="Foto de perfil" class="post-avatar" data-username="${post.usuario}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #eee;cursor:pointer;">
               <span style="cursor:pointer;" class="post-username" data-username="${post.usuario}"><strong>@${post.usuario}</strong> <span style="color:#888;">${post.data}</span></span>
             </div>
             <div style="display:flex;align-items:center;gap:0.5rem;">
@@ -844,15 +845,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
       return;
     }
     empty.style.display='none';
-    wrap.innerHTML = list.slice(0,12).map(u=>`
+    wrap.innerHTML = list.slice(0,12).map(u=>{
+      const fp = (u.foto_perfil||'').trim() || 'img/perfil.png';
+      const src = /^https?:\/\//i.test(fp) ? fp : (`/static/${fp}`);
+      return `
       <a href="/perfil/${u.id}" style="display:flex;align-items:center;gap:.6rem;text-decoration:none;padding:.35rem .4rem;border-radius:14px;transition:background .18s;">
-        <img src="/static/${u.foto_perfil}" alt="${u.username}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.15);background:#eee;">
+        <img src="${src}" alt="${u.username}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.15);background:#eee;">
         <span style="display:flex;flex-direction:column;">
           <strong style="font-size:.75rem;letter-spacing:.4px;color:var(--text);">@${u.username}</strong>
           <span style="font-size:.6rem;opacity:.65;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(u.nome||'').replace(/</g,'&lt;')}</span>
         </span>
-      </a>
-    `).join('');
+      </a>`;
+    }).join('');
     // Se mais que 12, mostrar contador
     if(list.length>12){
       const more = document.createElement('div');
