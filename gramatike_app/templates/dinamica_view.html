@@ -18,9 +18,16 @@
     .options { display:grid; gap:.5rem; }
     .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito'; font-weight:800; letter-spacing:.3px; background:#fff; color:#6233B5; }
     .btn.primary { background:#9B5DE5; color:#fff; border:none; }
-    /* Word cloud */
-    .cloud { display:flex; flex-wrap:wrap; gap:.5rem .7rem; align-items:flex-end; margin:.6rem 0 0; }
-    .cloud .w { display:inline-block; padding:.15rem .35rem; border-radius:12px; color:#6233B5; background:#f1edff; border:1px solid #e1d4fb; font-weight:800; letter-spacing:.3px; line-height:1; }
+  /* Word cloud - texto puro, sem pills */
+  .cloud { display:flex; flex-wrap:wrap; gap:.3rem .6rem; align-items:flex-end; margin:.6rem 0 0; }
+  .cloud .w { display:inline-block; font-weight:900; letter-spacing:.3px; line-height:1; will-change:transform; }
+  /* Poll bars */
+  .poll-bars { display:flex; flex-direction:column; gap:.45rem; margin-top:.5rem; }
+  .poll-row { display:flex; align-items:center; gap:.6rem; }
+  .poll-label { min-width:120px; font-weight:800; color:#6233B5; font-size:.8rem; }
+  .poll-bar { flex:1; height:14px; background:#f1edf9; border:1px solid #e1d4fb; border-radius:999px; overflow:hidden; }
+  .poll-fill { height:100%; background:#9B5DE5; border-radius:999px; }
+  .poll-pct { width:46px; text-align:right; font-size:.75rem; font-weight:800; color:#555; }
   </style>
 </head>
 <body>
@@ -60,20 +67,29 @@
                 var max = entries[0][1];
                 var min = entries[entries.length-1][1];
                 var clamp = function(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); };
+                function seed(word){
+                  var s=0; for(var i=0;i<word.length;i++){ s = (s*31 + word.charCodeAt(i)) >>> 0; } return s;
+                }
                 var wrap = document.getElementById('word-cloud');
                 wrap.innerHTML='';
                 entries.forEach(function(pair){
                   var word = pair[0];
                   var cnt = pair[1];
                   var ratio = max===min ? 1 : (cnt - min) / (max - min);
-                  var size = Math.round(14 + ratio * 28); // 14px..42px
+                  var size = Math.round(14 + ratio * 34); // 14px..48px
                   var span = document.createElement('span');
                   span.className = 'w';
                   span.style.fontSize = size + 'px';
-                  var h = 265 + ((word && word.charCodeAt(0)) ? (word.charCodeAt(0) % 20) : 0) - 10; // roxos
-                  span.style.backgroundColor = 'hsl(' + h + ', 100%, ' + clamp(96 - ratio*10, 88, 97) + '%)';
-                  span.style.borderColor = 'hsl(' + h + ', 60%, ' + clamp(86 - ratio*10, 70, 90) + '%)';
-                  span.style.color = '#6233B5';
+                  // cor em tons roxos/rosas variando com a palavra e frequência
+                  var baseH = 275; // roxo base
+                  var hue = baseH + (seed(word) % 40) - 20; // +-20 deg
+                  var sat = Math.round(50 + ratio*40); // 50..90
+                  var light = Math.round(35 + (1-ratio)*20); // 35..55
+                  span.style.color = 'hsl(' + hue + ', ' + sat + '%, ' + light + '%)';
+                  // leve rotação para lembrar um mosaico
+                  var ang = ((seed(word) % 7) - 3) * 4; // -12..+12
+                  span.style.transform = 'rotate(' + ang + 'deg)';
+                  span.style.transformOrigin = 'center bottom';
                   span.title = cnt + (cnt===1 ? ' ocorrência' : ' ocorrências');
                   span.textContent = word;
                   wrap.appendChild(span);
@@ -93,12 +109,22 @@
           <button type="submit" class="btn primary" style="margin-top:.6rem;">Votar</button>
         </form>
         {% if agg.counts %}
+          {% set total = (agg.counts | sum) if agg.counts else 0 %}
           <h3 style="margin-top:1rem;">Parciais</h3>
-          <ul>
+          <div class="poll-bars" role="list" aria-label="Resultados parciais da enquete">
             {% for opt in cfg.options %}
-              <li><strong>{{ opt }}</strong>: {{ agg.counts[loop.index0] }}</li>
+              {% set c = agg.counts[loop.index0] if agg.counts else 0 %}
+              {% set pct = ( (c * 100.0) / (total if total else 1) ) | round(0, 'floor') %}
+              <div class="poll-row" role="listitem">
+                <div class="poll-label">{{ opt }}</div>
+                <div class="poll-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ pct }}" aria-label="{{ opt }}: {{ pct }}%">
+                  <div class="poll-fill" data-pct="{{ '%d' % pct }}"></div>
+                </div>
+                <div class="poll-pct">{{ '%d' % pct }}%</div>
+              </div>
             {% endfor %}
-          </ul>
+          </div>
+          <div class="muted" style="margin-top:.4rem; font-size:.75rem;">Total de votos: {{ total }}</div>
         {% endif %}
       {% elif d.tipo == 'form' %}
         <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="dinamica-form" style="display:flex;flex-direction:column;gap:12px;">
@@ -130,6 +156,17 @@
           {% endfor %}
           <button type="submit" class="btn primary" style="align-self:flex-start;padding:10px 16px;border:none;border-radius:8px;cursor:pointer;">Enviar</button>
         </form>
+        <script>
+          (function(){
+            try{
+              document.querySelectorAll('.poll-fill[data-pct]').forEach(function(el){
+                var pct = parseInt(el.getAttribute('data-pct'), 10) || 0;
+                pct = Math.max(0, Math.min(100, pct));
+                el.style.width = pct + '%';
+              });
+            }catch(e){}
+          })();
+        </script>
       {% endif %}
     </div>
   </main>

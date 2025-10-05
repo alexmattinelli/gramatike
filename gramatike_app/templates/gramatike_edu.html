@@ -168,17 +168,6 @@
             <div class="placeholder">Nenhuma divulgação ativa.</div>
           {% endif %}
         </div>
-        <div class="side-card" aria-label="Jogo da Velha contra Robo">
-          <h3># Jogo da Velha</h3>
-          <p style="margin:.2rem 0 .7rem; font-size:.62rem; color:#555; font-weight:600;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
-          <div id="ttt_status" style="font-size:.66rem; font-weight:800; color:#6233B5; letter-spacing:.4px; margin:0 0 .6rem;">Sua vez: você é X</div>
-          <div id="ttt_board" role="grid" aria-label="Tabuleiro do Jogo da Velha" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:.5rem;">
-            {% for i in range(9) %}
-            <button type="button" data-i="{{ i }}" role="gridcell" aria-label="casa {{ i+1 }} vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#6233B5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
-            {% endfor %}
-          </div>
-          <button id="ttt_reset" type="button" style="margin-top:.8rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; padding:.5rem .9rem; font-size:.66rem; font-weight:800; letter-spacing:.4px; cursor:pointer;">Reiniciar</button>
-        </div>
       </aside>
     </div>
   </main>
@@ -218,109 +207,6 @@
   if(btn){ btn.addEventListener('click', ()=> search(input.value.trim())); }
     // carga inicial
     search('');
-  })();
-  </script>
-  <script>
-  (function(){
-    // Jogo da Velha (vs Robo)
-    var boardEl = document.getElementById('ttt_board');
-    var statusEl = document.getElementById('ttt_status');
-    var resetEl = document.getElementById('ttt_reset');
-    if(!boardEl || !statusEl || !resetEl) return;
-    var board = new Array(9).fill('');
-    var HUMAN = 'X', AI = 'O';
-    var gameOver = false;
-
-    function setStatus(msg){ if(statusEl) statusEl.textContent = msg; }
-    function render(){
-      var cells = boardEl.querySelectorAll('button[data-i]');
-      cells.forEach(function(btn){
-        var i = +btn.getAttribute('data-i');
-        var v = board[i];
-        btn.textContent = v || '';
-        var label = 'casa ' + (i+1) + (v ? (' com ' + v) : ' vazia');
-        btn.setAttribute('aria-label', label);
-        btn.disabled = !!v || gameOver; // não permitir sobrescrever jogada
-      });
-    }
-    var wins = [
-      [0,1,2],[3,4,5],[6,7,8],
-      [0,3,6],[1,4,7],[2,5,8],
-      [0,4,8],[2,4,6]
-    ];
-    function winner(b){
-      for(var k=0;k<wins.length;k++){
-        var a=wins[k][0], c=wins[k][1], d=wins[k][2];
-        if(b[a] && b[a]===b[c] && b[c]===b[d]) return b[a];
-      }
-      return null;
-    }
-    function empties(b){ var r=[]; for(var i=0;i<9;i++){ if(!b[i]) r.push(i);} return r; }
-    function isDraw(b){ return empties(b).length===0 && !winner(b); }
-
-    function tryWinMove(b, p){
-      var e = empties(b);
-      for(var i=0;i<e.length;i++){
-        var idx = e[i];
-        b[idx] = p;
-        var w = winner(b);
-        b[idx] = '';
-        if(w===p) return idx;
-      }
-      return -1;
-    }
-    function aiPick(){
-      // 1) Ganhar se possível
-      var idx = tryWinMove(board, AI); if(idx!==-1) return idx;
-      // 2) Bloquear humano
-      idx = tryWinMove(board, HUMAN); if(idx!==-1) return idx;
-      // 3) Centro
-      if(!board[4]) return 4;
-      // 4) Cantos
-      var corners = [0,2,6,8];
-      for(var i=0;i<corners.length;i++){ if(!board[corners[i]]) return corners[i]; }
-      // 5) Laterais
-      var sides = [1,3,5,7];
-      for(var j=0;j<sides.length;j++){ if(!board[sides[j]]) return sides[j]; }
-      return -1;
-    }
-    function endIfNeeded(){
-      var w = winner(board);
-      if(w){ gameOver=true; setStatus(w===HUMAN ? 'Você venceu! 🎉' : 'Robo venceu! 🤖'); render(); return true; }
-      if(isDraw(board)){ gameOver=true; setStatus('Empate.'); render(); return true; }
-      return false;
-    }
-    function humanMove(i){
-      if(gameOver || board[i]) return;
-      board[i] = HUMAN;
-      render();
-      if(endIfNeeded()) return;
-      setStatus('Robo pensando...');
-      setTimeout(function(){
-        var m = aiPick();
-        if(m>=0){ board[m] = AI; }
-        render();
-        if(!endIfNeeded()) setStatus('Sua vez: você é X');
-      }, 220);
-    }
-
-    // Eventos
-    boardEl.addEventListener('click', function(ev){
-      var t = ev.target;
-      if(!(t && t.matches('button[data-i]'))) return;
-      var i = +t.getAttribute('data-i');
-      humanMove(i);
-    });
-    resetEl.addEventListener('click', function(){
-      board = new Array(9).fill('');
-      gameOver=false;
-      setStatus('Sua vez: você é X');
-      render();
-    });
-
-    // Inicializar UI (se o HTML já existir)
-    setStatus('Sua vez: você é X');
-    render();
   })();
   </script>
   <footer>© 2025 Gramátike • Inclusão e Gênero Neutro</footer>
