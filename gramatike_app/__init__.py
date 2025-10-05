@@ -1,4 +1,14 @@
 from flask import Flask
+# Carrega variáveis de .env o mais cedo possível (antes de importar Config)
+try:
+    import os as _os_dv
+    from dotenv import load_dotenv  # type: ignore
+    # raiz do projeto: um nível acima de gramatike_app/
+    _ROOT_DV = _os_dv.path.dirname(_os_dv.path.dirname(_os_dv.path.abspath(__file__)))
+    load_dotenv(_os_dv.path.join(_ROOT_DV, '.env'))
+except Exception:
+    pass
+
 try:
     from config import Config
 except Exception:
@@ -36,7 +46,13 @@ login_manager.login_message = None  # remove 'Please log in to access this page.
 login_manager.login_message_category = 'info'
 
 def create_app():
-    app = Flask(__name__)
+    import os as _os_paths
+    _pkg_dir = _os_paths.path.dirname(_os_paths.path.abspath(__file__))
+    app = Flask(
+        __name__,
+        template_folder=_os_paths.path.join(_pkg_dir, 'templates'),
+        static_folder=_os_paths.path.join(_pkg_dir, 'static')
+    )
     app.config.from_object(Config)
     # Não sobrescrever valores vindos de Config/ambiente; apenas definir padrão se ausente
     app.config.setdefault('SECRET_KEY', os.getenv('SECRET_KEY', 'change-me'))
@@ -49,6 +65,33 @@ def create_app():
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     # Se estiver atrás de HTTPS, ative abaixo
     app.config['SESSION_COOKIE_SECURE'] = False
+
+    # Carrega configurações opcionais de e-mail a partir de variáveis de ambiente
+    try:
+        _mail_env_map = {
+            'MAIL_SERVER': os.getenv('MAIL_SERVER'),
+            'MAIL_PORT': os.getenv('MAIL_PORT'),
+            'MAIL_USE_TLS': os.getenv('MAIL_USE_TLS'),
+            'MAIL_USERNAME': os.getenv('MAIL_USERNAME'),
+            'MAIL_PASSWORD': os.getenv('MAIL_PASSWORD'),
+            'MAIL_DEFAULT_SENDER': os.getenv('MAIL_DEFAULT_SENDER'),
+            'MAIL_SENDER_NAME': os.getenv('MAIL_SENDER_NAME'),
+        }
+        if _mail_env_map['MAIL_PORT'] is not None:
+            try:
+                _mail_env_map['MAIL_PORT'] = int(_mail_env_map['MAIL_PORT'])
+            except Exception:
+                pass
+        if _mail_env_map['MAIL_USE_TLS'] is not None:
+            _mail_env_map['MAIL_USE_TLS'] = str(_mail_env_map['MAIL_USE_TLS']).lower() in ('1', 'true', 'yes', 'on')
+        for _k, _v in _mail_env_map.items():
+            if _v is not None:
+                app.config[_k] = _v
+    except Exception as _e:
+        try:
+            app.logger.debug(f'Ignorando erro ao carregar MAIL_* do ambiente: {_e}')
+        except Exception:
+            pass
 
     db.init_app(app)
     # Garante diretório do SQLite (quando for sqlite:///path)
@@ -71,7 +114,13 @@ def create_app():
     login_manager.init_app(app)
     migrate = Migrate(app, db)
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception as _e:
+            try:
+                app.logger.error(f'Falha ao criar/checar tabelas: {_e}')
+            except Exception:
+                pass
         # Filtro Jinja: fromjson (carrega JSON serializado em dict)
         def _fromjson_filter(value):
             try:
@@ -343,6 +392,15 @@ def create_app():
         )
         resp.headers.setdefault('Content-Security-Policy-Report-Only', ro_csp)
         return resp
+
+    # Simples tratador 500 para evitar página em branco
+    @app.errorhandler(500)
+    def _handle_500(e):
+        try:
+            app.logger.error(f"Erro 500: {e}")
+        except Exception:
+            pass
+        return ("Erro interno no servidor.", 500, {'Content-Type': 'text/plain; charset=utf-8'})
 
     # --- Rate limiting simples por endpoint/IP ---
     # Formato: endpoint -> (limite, janela_em_segundos)
