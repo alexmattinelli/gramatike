@@ -1,6 +1,5 @@
 {
   "routes": [
-    { "src": "/static/(.*)", "dest": "/gramatike_app/static/$1" },
     { "src": "/(.*)", "dest": "/api/index.py" }
   ]
 }
