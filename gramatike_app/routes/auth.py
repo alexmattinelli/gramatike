@@ -25,8 +25,8 @@ def login():
         if getattr(user, 'suspended_until', None) and user.suspended_until and datetime.utcnow() < user.suspended_until:
             flash(f"Conta suspensa até {user.suspended_until.strftime('%d/%m %H:%M')}")
             return render_template('login.html')
-        login_user(user)
-        return redirect(url_for('main.dashboard'))
+    login_user(user)
+    return redirect(url_for('main.index'))
 
     # GET
     return render_template('login.html')
