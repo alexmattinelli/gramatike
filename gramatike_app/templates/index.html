@@ -215,7 +215,8 @@ button { font-family: var(--font-base); font-weight:600; }
   {% if current_user.is_authenticated %}
     <a href="{{ url_for('main.meu_perfil') }}" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
       {% if current_user.foto_perfil %}
-        <img src="{{ url_for('static', filename=current_user.foto_perfil) }}" alt="Avatar de {{ current_user.username }}" loading="lazy">
+        {% set is_abs = current_user.foto_perfil.startswith('http://') or current_user.foto_perfil.startswith('https://') %}
+        <img src="{{ current_user.foto_perfil if is_abs else url_for('static', filename=current_user.foto_perfil) }}" alt="Avatar de {{ current_user.username }}" loading="lazy">
       {% else %}
         <span class="initial">{{ (current_user.username or '?')[:1].upper() }}</span>
       {% endif %}

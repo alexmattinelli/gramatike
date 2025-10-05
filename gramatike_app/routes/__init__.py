@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import os
 import re
 from werkzeug.utils import secure_filename
+from mimetypes import guess_type
+from gramatike_app.utils.storage import upload_bytes_to_supabase, build_avatar_path
 from gramatike_app.models import User, db, Post, Curtida, Comentario, Report, EduContent, EduTopic, ExerciseTopic, ExerciseQuestion, ExerciseSection, SupportTicket, Divulgacao, post_likes, PostImage, Dynamic, DynamicResponse
 from gramatike_app.utils.emailer import send_email, render_welcome_email, render_verify_email, render_reset_email, render_change_email_email
 from gramatike_app.utils.tokens import generate_token, verify_token
@@ -457,21 +459,29 @@ def editar_perfil():
         except Exception:
             user.data_nascimento = None
     if foto and foto.filename:
-        # Tenta salvar a foto de perfil; em ambientes serverless (ex.: Vercel) o FS pode ser somente leitura.
+        # Upload de avatar: tentaSupabase primeiro; se falhar, tenta salvar localmente.
         try:
             filename = secure_filename(foto.filename)
-            # Usa a pasta estática configurada no app para evitar caminhos hardcoded
-            base_static = getattr(current_app, 'static_folder', None) or os.path.join('gramatike_app', 'static')
-            pasta = os.path.join(base_static, 'img', 'perfil')
-            os.makedirs(pasta, exist_ok=True)
-            caminho = os.path.join(pasta, filename)
-            foto.save(caminho)
-            # Caminho relativo ao /static
-            user.foto_perfil = f'img/perfil/{filename}'
+            # Tenta enviar para Supabase Storage
+            foto_bytes = foto.read()
+            foto.seek(0)  # reposiciona para fallback local
+            ctype, _ = guess_type(filename)
+            remote_path = build_avatar_path(user.id, filename)
+            public_url = upload_bytes_to_supabase(remote_path, foto_bytes, content_type=ctype or 'application/octet-stream')
+            if public_url:
+                # Guarda URL absoluta; os templates precisam aceitar URL externas
+                user.foto_perfil = public_url
+            else:
+                # Fallback: salvar localmente (pode falhar em FS somente leitura)
+                base_static = getattr(current_app, 'static_folder', None) or os.path.join('gramatike_app', 'static')
+                pasta = os.path.join(base_static, 'img', 'perfil')
+                os.makedirs(pasta, exist_ok=True)
+                caminho = os.path.join(pasta, filename)
+                foto.save(caminho)
+                user.foto_perfil = f'img/perfil/{filename}'
         except Exception as _e_save:
-            # Não interrompe a atualização de outros campos caso não seja possível salvar a imagem
             try:
-                current_app.logger.warning(f'Falha ao salvar foto de perfil: {_e_save}')
+                current_app.logger.warning(f'Falha no upload/salvamento de avatar: {_e_save}')
             except Exception:
                 pass
     # Atualização de senha (opcional): só processa se usuário enviou nova senha

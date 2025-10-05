@@ -236,7 +236,8 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
     <section class="profile-header">
       <div class="avatar">
         {% if current_user.foto_perfil %}
-          <img src="{{ url_for('static', filename=current_user.foto_perfil) }}" alt="Foto de perfil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+          {% set is_abs = current_user.foto_perfil.startswith('http://') or current_user.foto_perfil.startswith('https://') %}
+          <img src="{{ current_user.foto_perfil if is_abs else url_for('static', filename=current_user.foto_perfil) }}" alt="Foto de perfil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
         {% else %}
           <span>👤</span>
         {% endif %}
@@ -403,7 +404,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
               <div class="post" data-post-id="${post.id}" style="position:relative;">
                 <div style="display:flex;align-items:center;gap:0.7rem;justify-content:space-between;">
                   <div style="display:flex;align-items:center;gap:0.7rem;">
-                    <img src="/static/${post.foto_perfil || 'img/perfil.png'}" alt="Foto" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+                    <img src="${(post.foto_perfil && (post.foto_perfil.startsWith('http://') || post.foto_perfil.startsWith('https://'))) ? post.foto_perfil : ('/static/' + (post.foto_perfil || 'img/perfil.png'))}" alt="Foto" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
                     <strong>@${post.usuario}</strong>
                   </div>
                   <button class="post-menu-btn" aria-label="Ações" style="background:none;border:none;cursor:pointer;font-size:1.3rem;line-height:1;color:#555;">⋯</button>
