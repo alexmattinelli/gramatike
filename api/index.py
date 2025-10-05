@@ -11,5 +11,4 @@ app = create_app()
 def _health():
 	return {"status": "ok"}
 
-# Optional alias used by some runtimes
-handler = app
+# Do not export a 'handler' symbol; Vercel detects WSGI via module-level 'app'
