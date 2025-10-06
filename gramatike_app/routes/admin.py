@@ -295,10 +295,14 @@ def edu_publicar():
     if extra_dict:
         import json as _json
         extra = _json.dumps(extra_dict)
-    content = EduContent(tipo=tipo, titulo=titulo, resumo=resumo, corpo=corpo, url=url_field, file_path=file_path, extra=extra, author_id=current_user.id, topic_id=topic_id)
-    db.session.add(content)
-    db.session.commit()
-    flash('Conteúdo publicado!')
+    try:
+        content = EduContent(tipo=tipo, titulo=titulo, resumo=resumo, corpo=corpo, url=url_field, file_path=file_path, extra=extra, author_id=current_user.id, topic_id=topic_id)
+        db.session.add(content)
+        db.session.commit()
+        flash('Conteúdo publicado!')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao publicar conteúdo: {str(e)}')
     return redirect(url_for('admin.dashboard', _anchor='edu'))
 
 @admin_bp.route('/promover_admin', methods=['POST'])
