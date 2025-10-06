@@ -52,3 +52,30 @@ def build_avatar_path(user_id: int, filename: str) -> str:
     ts = int(time.time())
     safe_name = filename.replace(' ', '_')
     return f"avatars/{user_id}/{ts}_{safe_name}"
+
+
+def build_post_image_path(user_id: int, filename: str) -> str:
+    """
+    Gera um caminho de upload para imagens de posts: posts/<user_id>/<timestamp>_<filename>
+    """
+    ts = int(time.time())
+    safe_name = filename.replace(' ', '_')
+    return f"posts/{user_id}/{ts}_{safe_name}"
+
+
+def build_apostila_path(filename: str) -> str:
+    """
+    Gera um caminho de upload para apostilas (PDFs): apostilas/<timestamp>_<filename>
+    """
+    ts = int(time.time())
+    safe_name = filename.replace(' ', '_')
+    return f"apostilas/{ts}_{safe_name}"
+
+
+def build_divulgacao_path(filename: str) -> str:
+    """
+    Gera um caminho de upload para divulgação: divulgacao/<timestamp>_<filename>
+    """
+    ts = int(time.time())
+    safe_name = filename.replace(' ', '_')
+    return f"divulgacao/{ts}_{safe_name}"

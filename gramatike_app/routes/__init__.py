@@ -6,7 +6,7 @@ import os
 import re
 from werkzeug.utils import secure_filename
 from mimetypes import guess_type
-from gramatike_app.utils.storage import upload_bytes_to_supabase, build_avatar_path
+from gramatike_app.utils.storage import upload_bytes_to_supabase, build_avatar_path, build_post_image_path, build_apostila_path, build_divulgacao_path
 from gramatike_app.models import User, db, Post, Curtida, Comentario, Report, EduContent, EduTopic, ExerciseTopic, ExerciseQuestion, ExerciseSection, SupportTicket, Divulgacao, post_likes, PostImage, Dynamic, DynamicResponse
 from gramatike_app.utils.emailer import send_email, render_welcome_email, render_verify_email, render_reset_email, render_change_email_email
 from gramatike_app.utils.tokens import generate_token, verify_token
@@ -868,13 +868,28 @@ def admin_divulgacao_upload():
         flash('Arquivo muito grande (máx 2MB).')
         return redirect(url_for('admin.dashboard') + '#publi')
     fname = f"div_{uuid.uuid4().hex[:10]}.{ext}"
-    target_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'divulgacao')
-    os.makedirs(target_dir, exist_ok=True)
-    f.save(os.path.join(target_dir, fname))
-    flash('Upload concluído.')
-    # Devolve caminho relativo para uso rápido
-    session['last_divulgacao_image'] = f"uploads/divulgacao/{fname}"
-    return redirect(url_for('admin.dashboard') + '#publi')
+    
+    # Tenta upload para Supabase primeiro
+    foto_bytes = f.read()
+    f.seek(0)
+    ctype, _ = guess_type(fname)
+    remote_path = build_divulgacao_path(fname)
+    public_url = upload_bytes_to_supabase(remote_path, foto_bytes, content_type=ctype or 'image/jpeg')
+    
+    if public_url:
+        # Sucesso no Supabase - usa URL pública
+        flash('Upload concluído.')
+        session['last_divulgacao_image'] = public_url
+        return redirect(url_for('admin.dashboard') + '#publi')
+    else:
+        # Fallback: salvar localmente (pode não funcionar em serverless)
+        target_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'divulgacao')
+        os.makedirs(target_dir, exist_ok=True)
+        f.save(os.path.join(target_dir, fname))
+        flash('Upload concluído.')
+        # Devolve caminho relativo para uso rápido
+        session['last_divulgacao_image'] = f"uploads/divulgacao/{fname}"
+        return redirect(url_for('admin.dashboard') + '#publi')
 
 @bp.route('/admin/divulgacao/aviso_rapido', methods=['POST'])
 @login_required
@@ -1557,6 +1572,7 @@ def post_detail(post_id: int):
 def api_posts_multi_create():
     import os, uuid
     from PIL import Image
+    from io import BytesIO
     conteudo = (request.form.get('conteudo') or '').strip()
     if not conteudo:
         return jsonify({'success': False, 'error': 'conteudo_vazio'}), 400
@@ -1570,18 +1586,38 @@ def api_posts_multi_create():
         f.seek(0, os.SEEK_END); size = f.tell(); f.seek(0)
         if size > 3 * 1024 * 1024: continue
         fname = f"post_{uuid.uuid4().hex[:10]}.{ext}"
-        target_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'posts')
-        os.makedirs(target_dir, exist_ok=True)
-        full_path = os.path.join(target_dir, fname)
-        f.save(full_path)
-        try:
-            with Image.open(full_path) as im:
-                w, h = im.size
-        except Exception:
-            w = h = None
-        rel = f"uploads/posts/{fname}"
-        paths.append(rel)
-        meta.append({'path': rel, 'w': w, 'h': h})
+        
+        # Tenta upload para Supabase primeiro
+        foto_bytes = f.read()
+        f.seek(0)
+        ctype, _ = guess_type(fname)
+        remote_path = build_post_image_path(current_user.id, fname)
+        public_url = upload_bytes_to_supabase(remote_path, foto_bytes, content_type=ctype or 'image/jpeg')
+        
+        if public_url:
+            # Sucesso no Supabase - usa URL pública
+            # Tenta extrair dimensões da imagem
+            try:
+                with Image.open(BytesIO(foto_bytes)) as im:
+                    w, h = im.size
+            except Exception:
+                w = h = None
+            paths.append(public_url)
+            meta.append({'path': public_url, 'w': w, 'h': h})
+        else:
+            # Fallback: salvar localmente (pode não funcionar em serverless)
+            target_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'posts')
+            os.makedirs(target_dir, exist_ok=True)
+            full_path = os.path.join(target_dir, fname)
+            f.save(full_path)
+            try:
+                with Image.open(full_path) as im:
+                    w, h = im.size
+            except Exception:
+                w = h = None
+            rel = f"uploads/posts/{fname}"
+            paths.append(rel)
+            meta.append({'path': rel, 'w': w, 'h': h})
     post = Post(
         usuario=current_user.username,
         usuario_id=current_user.id,

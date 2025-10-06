@@ -7,6 +7,8 @@ from gramatike_app.models import BlockedWord
 from gramatike_app import db
 # Lune admin/config removido
 from gramatike_app.utils.moderation import refresh_custom_terms_cache
+from gramatike_app.utils.storage import upload_bytes_to_supabase, build_apostila_path
+from mimetypes import guess_type
 import os
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -219,35 +221,50 @@ def edu_publicar():
     if tipo == 'apostila':
         pdf_file = request.files.get('pdf')
         if pdf_file and pdf_file.filename.lower().endswith('.pdf'):
-            import os, uuid
-            upload_dir = os.path.join(os.path.dirname(__file__), '..', 'static', 'uploads', 'apostilas')
-            upload_dir = os.path.normpath(upload_dir)
-            os.makedirs(upload_dir, exist_ok=True)
+            import uuid
             fname = f"{uuid.uuid4().hex}.pdf"
-            save_path = os.path.join(upload_dir, fname)
-            pdf_file.save(save_path)
-            # Caminho público relativo
-            file_path = f"uploads/apostilas/{fname}"
-            # Tenta gerar miniatura (primeira página) usando PyMuPDF
-            try:
-                import fitz  # PyMuPDF
-                doc = fitz.open(save_path)
-                if doc.page_count > 0:
-                    page = doc.load_page(0)
-                    # Zoom visando largura ~280px (ajuste fino)
-                    zoom = 0.4
-                    pix = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), alpha=False)
-                    th_dir = os.path.join(os.path.dirname(__file__), '..', 'static', 'uploads', 'apostilas', 'thumbs')
-                    th_dir = os.path.normpath(th_dir)
-                    os.makedirs(th_dir, exist_ok=True)
-                    th_name = f"{os.path.splitext(fname)[0]}.png"
-                    th_path = os.path.join(th_dir, th_name)
-                    pix.save(th_path)
-                    extra_dict['thumb'] = f"uploads/apostilas/thumbs/{th_name}"
-                doc.close()
-            except Exception as _e:
-                # Se falhar, segue sem thumb
-                print('[WARN] PDF thumbnail generation failed:', _e)
+            
+            # Tenta upload para Supabase primeiro
+            pdf_bytes = pdf_file.read()
+            pdf_file.seek(0)
+            ctype, _ = guess_type(fname)
+            remote_path = build_apostila_path(fname)
+            public_url = upload_bytes_to_supabase(remote_path, pdf_bytes, content_type=ctype or 'application/pdf')
+            
+            if public_url:
+                # Sucesso no Supabase - usa URL pública
+                file_path = public_url
+                # Nota: thumbnail generation para PDFs no Supabase requer processamento adicional
+                # Por ora, não geramos thumbnail quando usando Supabase
+            else:
+                # Fallback: salvar localmente (pode não funcionar em serverless)
+                upload_dir = os.path.join(os.path.dirname(__file__), '..', 'static', 'uploads', 'apostilas')
+                upload_dir = os.path.normpath(upload_dir)
+                os.makedirs(upload_dir, exist_ok=True)
+                save_path = os.path.join(upload_dir, fname)
+                pdf_file.save(save_path)
+                # Caminho público relativo
+                file_path = f"uploads/apostilas/{fname}"
+                # Tenta gerar miniatura (primeira página) usando PyMuPDF
+                try:
+                    import fitz  # PyMuPDF
+                    doc = fitz.open(save_path)
+                    if doc.page_count > 0:
+                        page = doc.load_page(0)
+                        # Zoom visando largura ~280px (ajuste fino)
+                        zoom = 0.4
+                        pix = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), alpha=False)
+                        th_dir = os.path.join(os.path.dirname(__file__), '..', 'static', 'uploads', 'apostilas', 'thumbs')
+                        th_dir = os.path.normpath(th_dir)
+                        os.makedirs(th_dir, exist_ok=True)
+                        th_name = f"{os.path.splitext(fname)[0]}.png"
+                        th_path = os.path.join(th_dir, th_name)
+                        pix.save(th_path)
+                        extra_dict['thumb'] = f"uploads/apostilas/thumbs/{th_name}"
+                    doc.close()
+                except Exception as _e:
+                    # Se falhar, segue sem thumb
+                    print('[WARN] PDF thumbnail generation failed:', _e)
         else:
             flash('Arquivo PDF obrigatório para apostila.')
             return redirect(url_for('admin.dashboard', _anchor='edu'))
