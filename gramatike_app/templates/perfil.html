@@ -46,7 +46,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
   /* Tooltip simples acessível */
   .profile-avatar-link[data-tooltip]:hover::after, .profile-avatar-link[data-tooltip]:focus-visible::after { content:attr(data-tooltip); position:absolute; bottom:-6px; left:50%; transform:translate(-50%,100%); background:#222; color:#fff; font-size:.6rem; font-weight:600; padding:4px 7px 5px; border-radius:8px; white-space:nowrap; box-shadow:0 4px 12px rgba(0,0,0,.35); letter-spacing:.5px; }
   @media (max-width:640px){ .profile-avatar-link { width:46px; height:46px; right:16px; } .profile-avatar-link span.initial { font-size:1.4rem; } }
-    .head-actions { position:absolute; left:16px; top:50%; transform:translateY(-50%); display:flex; gap:.5rem; }
+    .head-actions { position:absolute; right:16px; top:50%; transform:translateY(-50%); display:flex; gap:.5rem; }
     .icon-btn { width:40px; height:40px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; background:#ffffff22; border:1px solid #ffffff44; color:#fff; text-decoration:none; font-size:18px; font-weight:700; box-shadow:0 4px 14px rgba(0,0,0,.25); }
     .icon-btn:hover { background:#ffffff33; }
 
@@ -227,20 +227,6 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       <a href="javascript:history.back()" class="icon-btn" title="Voltar" aria-label="Voltar">⬅️</a>
       <a href="{{ url_for('main.configuracoes') }}" class="icon-btn" title="Configurações" aria-label="Configurações">⚙️</a>
     </div>
-    {% if current_user.is_authenticated %}
-    <a href="{{ url_for('main.meu_perfil') }}" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
-      {% if current_user.foto_perfil %}
-        {% set is_abs = current_user.foto_perfil.startswith('http://') or current_user.foto_perfil.startswith('https://') %}
-        <img src="{{ current_user.foto_perfil if is_abs else url_for('static', filename=current_user.foto_perfil) }}" alt="Avatar de {{ current_user.username }}" loading="lazy">
-      {% else %}
-        <span class="initial">{{ (current_user.username or '?')[:1].upper() }}</span>
-      {% endif %}
-    </a>
-    {% else %}
-    <a href="{{ url_for('main.login') }}" class="profile-avatar-link" aria-label="Entrar" data-tooltip="Entrar">
-      <span class="initial">?</span>
-    </a>
-    {% endif %}
   </header>
 
   <main>
@@ -425,11 +411,13 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
                 </div>
                 <p style='white-space:pre-line;margin:.6rem 0 .3rem;'>${p.conteudo}</p>
                 ${p.imagem ? `<img src='/static/${p.imagem}' style='max-width:100%;border-radius:8px;margin-top:4px;'>` : ''}
+                <div class='likes-list' style='font-size:.7rem;margin:.4rem 0;'></div>
                 <div style='display:flex;gap:.5rem;margin-top:.6rem;align-items:center;'>
                   <button class='like-btn-perfil' data-post-id='${p.id}' style='background:none;border:none;cursor:pointer;font-size:.75rem;padding:.4rem .6rem;border-radius:6px;transition:background .2s;'>❤️ Curtir</button>
-                  <button class='comment-btn-perfil' style='background:none;border:none;cursor:pointer;font-size:.75rem;padding:.4rem .6rem;border-radius:6px;transition:background .2s;'>💬 Comentar</button>
+                  <button class='comment-btn-perfil' data-post-id='${p.id}' style='background:none;border:none;cursor:pointer;font-size:.75rem;padding:.4rem .6rem;border-radius:6px;transition:background .2s;'>💬 Comentar</button>
                   <button class='toggle-comments-btn-perfil' data-post-id='${p.id}' style='background:none;border:none;cursor:pointer;font-size:.9rem;padding:.4rem .5rem;transition:transform .2s;'>↓</button>
                 </div>
+                <div class='comments-list' data-post-id='${p.id}' style='display:none;margin-top:.6rem;'></div>
               </div>`).join('');
           }
           document.getElementById('tab-content').innerHTML = `<div id='postagens'>${html}</div>`;
@@ -469,6 +457,163 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
           navigator.clipboard.writeText(shareUrl).then(()=>alert('Link copiado.'));
         });
       });
+
+      // Like button functionality
+      document.querySelectorAll('.like-btn-perfil').forEach(btn=>{
+        btn.addEventListener('click', e=>{
+          e.stopPropagation();
+          const postId = btn.getAttribute('data-post-id');
+          fetch(`/api/posts/${postId}/like`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+              if (data.liked) {
+                btn.classList.add('liked');
+                btn.textContent = '❤️ Curtido';
+              } else {
+                btn.classList.remove('liked');
+                btn.textContent = '❤️ Curtir';
+              }
+              updateLikesDisplayPerfil(postId, btn.closest('.post'));
+            });
+        });
+      });
+
+      // Comment button functionality
+      document.querySelectorAll('.comment-btn-perfil').forEach(btn=>{
+        btn.addEventListener('click', e=>{
+          e.stopPropagation();
+          showCommentBoxPerfil(btn);
+        });
+      });
+
+      // Toggle comments button functionality
+      document.querySelectorAll('.toggle-comments-btn-perfil').forEach(btn=>{
+        btn.addEventListener('click', e=>{
+          e.stopPropagation();
+          const postId = btn.getAttribute('data-post-id');
+          toggleCommentsPerfil(btn, postId);
+        });
+      });
+
+      // Load likes for each post
+      document.querySelectorAll('.post').forEach(post=>{
+        const postId = post.getAttribute('data-post-id');
+        updateLikesDisplayPerfil(postId, post);
+      });
+    }
+
+    function updateLikesDisplayPerfil(postId, postElem) {
+      fetch(`/api/posts/${postId}/likes`)
+        .then(res => res.json())
+        .then(users => {
+          let likesDiv = postElem.querySelector('.likes-list');
+          if (!likesDiv) {
+            likesDiv = document.createElement('div');
+            likesDiv.className = 'likes-list';
+            likesDiv.style.cssText = 'font-size:.7rem;margin:.4rem 0;';
+            const actionsDiv = postElem.querySelector('.like-btn-perfil').parentElement;
+            postElem.insertBefore(likesDiv, actionsDiv);
+          }
+          if (users.length === 0) {
+            likesDiv.innerHTML = '';
+          } else {
+            const currentUser = '{{ current_user.username if current_user.is_authenticated else "" }}';
+            const curtiu = users.includes(currentUser);
+            likesDiv.innerHTML = `<span style="color:#666;">`+
+              (curtiu ? '<strong style="color:#7c3aed;">Você</strong>' : '') +
+              (curtiu && users.length > 1 ? ' e ' : '') +
+              users.filter(u => u !== currentUser).slice(0, 2).join(', ') +
+              (users.length > 3 ? ` e mais ${users.length - 3}` : '') +
+              ' curtiram</span>';
+          }
+        });
+    }
+
+    function showCommentBoxPerfil(btn) {
+      const postElem = btn.closest('.post');
+      let box = postElem.querySelector('.comment-box');
+      if (!box) {
+        box = document.createElement('div');
+        box.className = 'comment-box';
+        box.style.cssText = 'margin-top:.6rem;display:flex;gap:.5rem;flex-direction:column;';
+        box.innerHTML = `
+          <textarea class="comment-input" placeholder="Escreva um comentário..." style="border:1px solid #ddd;border-radius:8px;padding:.6rem;font-size:.75rem;resize:vertical;min-height:60px;"></textarea>
+          <button onclick="submitCommentPerfil(this)" style="align-self:flex-end;background:#9B5DE5;color:#fff;border:none;border-radius:6px;padding:.4rem .8rem;font-size:.75rem;cursor:pointer;">Enviar</button>
+        `;
+        postElem.appendChild(box);
+      } else {
+        box.remove();
+      }
+    }
+
+    function submitCommentPerfil(btn) {
+      const textarea = btn.parentElement.querySelector('.comment-input');
+      if(!textarea) return;
+      const postElem = btn.closest('.post');
+      const postId = postElem.getAttribute('data-post-id');
+      const val = textarea.value.trim();
+      if(!val) return;
+      fetch(`/api/posts/${postId}/comentarios`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({conteudo: val})
+      }).then(() => {
+        textarea.value = '';
+        const commentBox = btn.closest('.comment-box');
+        if(commentBox) commentBox.remove();
+        const list = postElem.querySelector('.comments-list');
+        const toggleBtn = postElem.querySelector('.toggle-comments-btn-perfil');
+        if(list && list.style.display !== 'none') {
+          loadCommentsPerfil(postId, postElem).then(count=>{
+            if(toggleBtn) toggleBtn.textContent = count ? `↑ ${count}` : '↑';
+          });
+        } else {
+          loadCommentsPerfil(postId, postElem, true).then(count=>{
+            if(toggleBtn) toggleBtn.textContent = count ? `↓ ${count}` : '↓';
+          });
+        }
+      });
+    }
+
+    function toggleCommentsPerfil(btn, postId) {
+      const postElem = btn.closest('.post');
+      const commentsDiv = postElem.querySelector('.comments-list');
+      if (commentsDiv.style.display === 'none') {
+        loadCommentsPerfil(postId, postElem).then(count => {
+          commentsDiv.style.display = 'block';
+          btn.textContent = count ? `↑ ${count}` : '↑';
+        });
+      } else {
+        commentsDiv.style.display = 'none';
+        btn.textContent = '↓';
+      }
+    }
+
+    function loadCommentsPerfil(postId, postElem, silent=false) {
+      return fetch(`/api/posts/${postId}/comentarios`)
+        .then(res => res.json())
+        .then(comments => {
+          let commentsDiv = postElem.querySelector('.comments-list');
+          if (!commentsDiv) {
+            commentsDiv = document.createElement('div');
+            commentsDiv.className = 'comments-list';
+            commentsDiv.setAttribute('data-post-id', postId);
+            commentsDiv.style.cssText = 'display:none;margin-top:.6rem;';
+            postElem.appendChild(commentsDiv);
+          }
+          if(!Array.isArray(comments)) comments = [];
+          if(comments.length === 0){
+            commentsDiv.innerHTML = '<div style="font-size:.7rem;color:#888;padding:.4rem 0;">Nenhum comentário ainda.</div>';
+          } else {
+            commentsDiv.innerHTML = comments.map(c =>
+              `<div style="padding:.5rem;border-left:2px solid #eee;margin-bottom:.4rem;">
+                <div style="font-size:.7rem;"><strong>@${c.usuario}</strong> <span style="color:#888;">${(c.data||'').replace(' ',' · ')}</span></div>
+                <p style="font-size:.7rem;margin:.2rem 0 0;white-space:pre-line;">${c.conteudo}</p>
+              </div>`
+            ).join('');
+          }
+          return comments.length;
+        });
     }
 
     // Carregar postagens ao abrir o perfil

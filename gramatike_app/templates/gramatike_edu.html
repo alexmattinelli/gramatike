@@ -194,7 +194,12 @@
         const node = tpl.cloneNode(true); node.id=''; node.style.display='block';
   if ((it.source||'').toLowerCase() === 'novidade') { node.classList.add('is-novidade'); }
         node.querySelector('.fi-meta').textContent = (it.source||'').toUpperCase();
-        node.querySelector('.fi-title').textContent = it.title || '(Sem título)';
+        // For POST source type, show "Confira" instead of title
+        if ((it.source||'').toLowerCase() === 'post') {
+          node.querySelector('.fi-title').textContent = 'Confira';
+        } else {
+          node.querySelector('.fi-title').textContent = it.title || '(Sem título)';
+        }
         node.querySelector('.fi-body').textContent = it.snippet || (it.resumo||'');
         const tags = node.querySelector('.fi-tags');
         (it.tags||[]).forEach(t=>{ const s=document.createElement('span'); s.textContent=t; tags.appendChild(s); });
