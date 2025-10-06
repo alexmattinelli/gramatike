@@ -402,6 +402,9 @@ def editar_perfil():
     if username is not None:
         novo_username = (username or '').strip().lstrip('@')
         if novo_username and novo_username != user.username:
+            # Validate username - no spaces allowed
+            if ' ' in novo_username:
+                return jsonify({'erro': 'Nome de usuário não pode conter espaços.'}), 400
             ok_u, cat_u, _ = check_text(novo_username)
             if not ok_u:
                 return jsonify({'erro': refusal_message_pt(cat_u)}), 400
@@ -2022,6 +2025,11 @@ def cadastro():
                 data_nascimento = datetime.strptime(data_nascimento_str, '%Y-%m-%d').date()
             except Exception:
                 data_nascimento = None
+
+        # Validate username - no spaces allowed
+        if ' ' in username:
+            flash('Nome de usuário não pode conter espaços.')
+            return redirect(url_for('main.cadastro'))
 
         # Verifica se o usuário já existe
         if User.query.filter_by(email=email).first():
