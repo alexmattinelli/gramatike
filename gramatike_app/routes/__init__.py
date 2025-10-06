@@ -947,13 +947,26 @@ def admin_divulgacao_aviso_rapido():
             font_wm = ImageFont.load_default()
         wb = draw.textbbox((0,0), wm, font=font_wm)
         draw.text((W-wb[2]-24, H-wb[3]-20), wm, fill=(240,240,240), font=font_wm)
-        # Salva
-        target_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'divulgacao')
-        os.makedirs(target_dir, exist_ok=True)
+        # Salva - tenta Supabase primeiro
         fname = f"aviso_{uuid.uuid4().hex[:10]}.png"
-        path = os.path.join(target_dir, fname)
-        im.save(path, format='PNG')
-        rel = f"uploads/divulgacao/{fname}"
+        from io import BytesIO
+        buffer = BytesIO()
+        im.save(buffer, format='PNG')
+        buffer.seek(0)
+        
+        remote_path = build_divulgacao_path(fname)
+        public_url = upload_bytes_to_supabase(remote_path, buffer.read(), content_type='image/png')
+        
+        if public_url:
+            # Sucesso no Supabase - usa URL pública
+            rel = public_url
+        else:
+            # Fallback: salvar localmente (pode não funcionar em serverless)
+            target_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'divulgacao')
+            os.makedirs(target_dir, exist_ok=True)
+            path = os.path.join(target_dir, fname)
+            im.save(path, format='PNG')
+            rel = f"uploads/divulgacao/{fname}"
     except Exception as e:
         current_app.logger.warning(f"falha ao gerar imagem do aviso: {e}")
         rel = None
@@ -1576,6 +1589,12 @@ def api_posts_multi_create():
     conteudo = (request.form.get('conteudo') or '').strip()
     if not conteudo:
         return jsonify({'success': False, 'error': 'conteudo_vazio'}), 400
+    
+    # Moderação de conteúdo
+    ok, cat, _m = check_text(conteudo)
+    if not ok:
+        return jsonify({'error': 'conteudo_bloqueado', 'reason': cat, 'message': refusal_message_pt(cat)}), 400
+    
     files = request.files.getlist('imagens') if 'imagens' in request.files else []
     paths = []
     meta = []
