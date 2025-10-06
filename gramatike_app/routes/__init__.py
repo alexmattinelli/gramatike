@@ -1576,6 +1576,12 @@ def api_posts_multi_create():
     conteudo = (request.form.get('conteudo') or '').strip()
     if not conteudo:
         return jsonify({'success': False, 'error': 'conteudo_vazio'}), 400
+    
+    # Moderação de conteúdo
+    ok, cat, _m = check_text(conteudo)
+    if not ok:
+        return jsonify({'error': 'conteudo_bloqueado', 'reason': cat, 'message': refusal_message_pt(cat)}), 400
+    
     files = request.files.getlist('imagens') if 'imagens' in request.files else []
     paths = []
     meta = []
