@@ -143,9 +143,17 @@ def stats_users():
     if not current_user.is_admin:
         return {"error":"forbidden"}, 403
     from sqlalchemy import func
-    # Agrupar por dia
+    # Agrupar por dia e calcular crescimento acumulado
     rows = db.session.query(func.date(User.created_at), func.count(User.id)).group_by(func.date(User.created_at)).order_by(func.date(User.created_at)).all()
-    return {"labels":[str(r[0]) for r in rows], "data":[r[1] for r in rows]}
+    
+    # Calculate cumulative growth
+    cumulative = []
+    total = 0
+    for r in rows:
+        total += r[1]
+        cumulative.append(total)
+    
+    return {"labels":[str(r[0]) for r in rows], "data":cumulative}
 
 @admin_bp.route('/postar_estudo', methods=['POST'])
 @login_required

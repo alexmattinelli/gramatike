@@ -194,14 +194,21 @@
         const node = tpl.cloneNode(true); node.id=''; node.style.display='block';
   if ((it.source||'').toLowerCase() === 'novidade') { node.classList.add('is-novidade'); }
         node.querySelector('.fi-meta').textContent = (it.source||'').toUpperCase();
-        // For POST source type, show "Confira" instead of title
+        // For POST source type: no title, add "Confira" as a tag
         if ((it.source||'').toLowerCase() === 'post') {
-          node.querySelector('.fi-title').textContent = 'Confira';
+          node.querySelector('.fi-title').style.display = 'none';
         } else {
           node.querySelector('.fi-title').textContent = it.title || '(Sem título)';
         }
         node.querySelector('.fi-body').textContent = it.snippet || (it.resumo||'');
         const tags = node.querySelector('.fi-tags');
+        // For POST source type, add "Confira" as first tag
+        if ((it.source||'').toLowerCase() === 'post') {
+          const conferirTag = document.createElement('span');
+          conferirTag.textContent = 'Confira';
+          conferirTag.style.cursor = 'pointer';
+          tags.appendChild(conferirTag);
+        }
         (it.tags||[]).forEach(t=>{ const s=document.createElement('span'); s.textContent=t; tags.appendChild(s); });
         if(it.url){ node.addEventListener('click', ()=>{ window.location = it.url; }); node.style.cursor='pointer'; }
         list.insertBefore(node, empty);

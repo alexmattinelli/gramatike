@@ -52,14 +52,6 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
     .icon-btn { width:40px; height:40px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; background:#ffffff22; border:1px solid #ffffff44; color:#fff; text-decoration:none; font-size:18px; font-weight:700; box-shadow:0 4px 14px rgba(0,0,0,.25); }
     .icon-btn:hover { background:#ffffff33; }
 
-    .logo {
-      font-size: 2.2rem;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing:1px;
-      line-height:1.1;
-    }
-
     nav a {
       margin-left: 1rem;
       text-decoration: none;
@@ -163,6 +155,18 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       margin-left: auto;
       margin-right: auto;
     }
+
+    /* Post action buttons - matching index.html */
+    .post-actions { display:flex; gap:1.2rem; }
+    .post-actions button { cursor:pointer; border:none; border-radius:28px; padding:.45rem .9rem; font-weight:600; font-size:.8rem; display:flex; align-items:center; gap:.35rem; transition: background-color .2s, transform .15s; }
+    .post-actions button:active { transform: translateY(1px); }
+    .likes-list { margin-bottom:.9rem; font-size:.9rem; color: var(--text-secondary); font-weight:500; }
+    .like-btn-perfil { background:#ede7ff; color: #9B5DE5; box-shadow: 0 4px 10px rgba(130,87,229,0.25); border:1px solid #d3c5ff; border-radius:28px; padding:.45rem .9rem; font-weight:600; font-size:.8rem; }
+    .like-btn-perfil:hover, .like-btn-perfil.liked { background: #9B5DE5; color:#fff; box-shadow: 0 6px 16px rgba(130,87,229,0.45); border-color: #9B5DE5; }
+    .comment-btn-perfil { background: #9B5DE5; color:#fff; box-shadow: 0 5px 15px rgba(130,87,229,0.6); border-radius:28px; padding:.45rem .9rem; font-weight:600; font-size:.8rem; }
+    .comment-btn-perfil:hover { background: #7d3dc9; box-shadow: 0 8px 25px rgba(111,72,201,0.9); }
+    .toggle-comments-btn-perfil { background:#f1edff; color:#9B5DE5; border:1px solid #d8ccff; padding:.45rem 1rem; font-size:.7rem; font-weight:700; border-radius:40px; cursor:pointer; letter-spacing:.5px; box-shadow:0 2px 6px rgba(0,0,0,.06); }
+    .toggle-comments-btn-perfil:hover { background:#9B5DE5; color:#fff; border-color:#9B5DE5; }
 
     @media (max-width: 900px) {
       .profile-header, .tabs, .tab-content { width: 100%; }
@@ -426,11 +430,11 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
                 </div>
                 <p style="white-space:pre-line;">${post.conteudo}</p>
                 <span style="color:#888;font-size:0.7rem;">${post.data}</span>
-                <div class='likes-list' style='font-size:.7rem;margin:.4rem 0;'></div>
-                <div style='display:flex;gap:.5rem;margin-top:.6rem;align-items:center;'>
-                  <button class='like-btn-perfil' data-post-id='${post.id}' style='background:none;border:none;cursor:pointer;font-size:.75rem;padding:.4rem .6rem;border-radius:6px;transition:background .2s;'>❤️ Curtir</button>
-                  <button class='comment-btn-perfil' data-post-id='${post.id}' style='background:none;border:none;cursor:pointer;font-size:.75rem;padding:.4rem .6rem;border-radius:6px;transition:background .2s;'>💬 Comentar</button>
-                  <button class='toggle-comments-btn-perfil' data-post-id='${post.id}' style='background:none;border:none;cursor:pointer;font-size:.9rem;padding:.4rem .5rem;transition:transform .2s;'>↓</button>
+                <div class='likes-list' style='font-size:.9rem;margin:.4rem 0;'></div>
+                <div class='post-actions'>
+                  <button class='like-btn-perfil' data-post-id='${post.id}'>❤️ Curtir</button>
+                  <button class='comment-btn-perfil' data-post-id='${post.id}'>💬 Comentar</button>
+                  <button class='toggle-comments-btn-perfil' data-post-id='${post.id}'>↓</button>
                 </div>
                 <div class='comments-list' data-post-id='${post.id}' style='display:none;margin-top:.6rem;'></div>
               </div>
