@@ -1255,17 +1255,21 @@
                                 <td>
                                     {% if not r.resolved %}
                                         <form class="inline" method="POST" action="{{ url_for('admin.resolve_report', report_id=r.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
                                             <button type="submit" class="action-btn">Resolver</button>
                                         </form>
                                         <form class="inline" method="POST" action="{{ url_for('admin.delete_report_post', report_id=r.id) }}" onsubmit="return confirm('Excluir post #{{ r.post_id }}?');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
                                             <button type="submit" class="action-btn danger">Excluir Post</button>
                                         </form>
                                         {% if r.post and r.post.usuario_id %}
                                         <form class="inline" method="POST" action="{{ url_for('admin.ban_user', user_id=r.post.usuario_id) }}" onsubmit="return confirm('Banir autore do post #{{ r.post_id }}?');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
                                             <input type="hidden" name="reason" value="Denúncia: {{ r.category or 'violação' }}" />
                                             <button type="submit" class="action-btn danger">Banir Autor</button>
                                         </form>
                                         <form class="inline" method="POST" action="{{ url_for('admin.suspend_user', user_id=r.post.usuario_id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
                                             <input type="hidden" name="hours" value="24" />
                                             <button type="submit" class="action-btn">Suspender 24h</button>
                                         </form>
