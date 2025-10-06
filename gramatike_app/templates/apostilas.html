@@ -113,7 +113,11 @@
                     <li style="position:relative; padding:.65rem .25rem;">
                         {% set _pdf_src = None %}
                         {% if c.file_path %}
-                            {% set _pdf_src = url_for('static', filename=c.file_path) %}
+                            {% if c.file_path.startswith('http://') or c.file_path.startswith('https://') %}
+                                {% set _pdf_src = c.file_path %}
+                            {% else %}
+                                {% set _pdf_src = url_for('static', filename=c.file_path) %}
+                            {% endif %}
                         {% elif c.url and c.url.lower().endswith('.pdf') %}
                             {% set _pdf_src = c.url %}
                         {% endif %}
@@ -130,14 +134,22 @@
                         <div class="pdf-item">
                             {% if extra and extra.thumb %}
                                 <div class="pdf-thumb-wrap">
-                                    <img class="pdf-thumb" src="{{ url_for('static', filename=extra.thumb) }}" alt="Miniatura da apostila {{ c.titulo }}" loading="lazy" />
+                                    {% if extra.thumb.startswith('http://') or extra.thumb.startswith('https://') %}
+                                        <img class="pdf-thumb" src="{{ extra.thumb }}" alt="Miniatura da apostila {{ c.titulo }}" loading="lazy" />
+                                    {% else %}
+                                        <img class="pdf-thumb" src="{{ url_for('static', filename=extra.thumb) }}" alt="Miniatura da apostila {{ c.titulo }}" loading="lazy" />
+                                    {% endif %}
                                     {% if _pdf_src %}<button type="button" class="thumb-view-btn thumb-visualizar" data-src="{{ _pdf_src }}" title="Visualizar PDF">👁️</button>{% endif %}
                                 </div>
                             {% endif %}
                             <div class="pdf-meta">
                                 {% if c.file_path %}
-                                    {% set pdf_src = url_for('static', filename=c.file_path) %}
-                                    <a href="{{ pdf_src }}" target="_blank" rel="noopener">{{ c.titulo }}</a>
+                                    {% if c.file_path.startswith('http://') or c.file_path.startswith('https://') %}
+                                        <a href="{{ c.file_path }}" target="_blank" rel="noopener">{{ c.titulo }}</a>
+                                    {% else %}
+                                        {% set pdf_src = url_for('static', filename=c.file_path) %}
+                                        <a href="{{ pdf_src }}" target="_blank" rel="noopener">{{ c.titulo }}</a>
+                                    {% endif %}
                                 {% elif c.url %}
                                     <a href="{{ c.url }}" target="_blank" rel="noopener">{{ c.titulo }}</a>
                                 {% else %}
