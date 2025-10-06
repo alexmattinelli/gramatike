@@ -78,9 +78,9 @@ button { font-family: var(--font-base); font-weight:600; }
   body.dark #feed-list article.post { background:#1e293b; border:1px solid #334155; box-shadow:0 8px 22px -4px rgba(0,0,0,.55); }
   /* Gradiente removido do dark mode */
   body.dark #feed-list article.post::before { display:none; }
-  /* Separador visual sutil entre cards (alternância leve) */
-  #feed-list article.post:nth-child(even) { background:#fbf9ff; }
-  body.dark #feed-list article.post:nth-child(even) { background:#243044; }
+  /* Todos os posts com fundo branco uniforme */
+  #feed-list article.post:nth-child(even) { background:#fff; }
+  body.dark #feed-list article.post:nth-child(even) { background:#1e293b; }
   .post-header img.post-avatar { width:52px; height:52px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,.18); }
   .post-username strong { font-weight:800; }
   /* Quick menu */
@@ -286,9 +286,9 @@ button { font-family: var(--font-base); font-weight:600; }
   <div id="amigues-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08);">
       <div class="amigues-toolbar" style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0 0 .6rem;">
         <a href="{{ url_for('main.configuracoes') }}" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="3"></circle>
-            <path d="M12 1v6m0 6v6m8.66-7.66-5.2 3m-6.92 4-5.2 3M20.66 17.66l-5.2-3m-6.92-4-5.2-3"></path>
+            <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"></path>
           </svg>
         </a>
         <a href="{{ url_for('main.suporte') }}" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
@@ -325,7 +325,7 @@ button { font-family: var(--font-base); font-weight:600; }
             <div class="carousel-track" style="display:flex; transition:transform 0.3s ease;">
       {# Divulgações (inclui Aviso Rápido com imagem gerada) #}
           {% for d in (div_edu or []) %}
-          <div class="promo-card carousel-item" style="min-width:100%; background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
+          <div class="promo-card carousel-item" style="flex-shrink:0; width:100%; background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
             <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#6233B5; margin:0 0 .35rem;">{{ d.titulo }}</strong>
             {% if d.imagem %}
               {% set imgsrc = d.imagem if d.imagem.startswith('http') else url_for('static', filename=d.imagem) %}
