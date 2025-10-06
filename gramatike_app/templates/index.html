@@ -493,7 +493,7 @@ function loadPosts(params={}) {
               </div>
             </div>
           </div>
-          <p class="post-content">${parseTextWithLinks(post.conteudo)}</p>
+          <p class="post-content" style="white-space:pre-line;">${parseTextWithLinks(post.conteudo)}</p>
           ${ (post.images && post.images.length) ? renderPostImages(post.images.join('|')) : (post.imagem ? renderPostImages(post.imagem) : '') }
           <div class="likes-list"></div>
           <div class="post-actions">
@@ -1009,7 +1009,7 @@ document.addEventListener('click', function(e){
   };
   box.addEventListener('click', e=>{
     const it = e.target.closest('.item');
-    if(it){ pick(it.getAttribute('data-value')); }
+    if(it){ pick(it.getAttribute('data-value'), it.getAttribute('data-type')); }
   });
   box.addEventListener('mouseover', e=>{
     const it = e.target.closest('.item');
@@ -1018,7 +1018,23 @@ document.addEventListener('click', function(e){
   document.addEventListener('click', e=>{
     if(!e.target.closest('.search-wrap')) hide();
   });
-  const pick = val => { input.value = val; hide(); executarBusca(); };
+  const pick = (val, type) => { 
+    input.value = val; 
+    hide(); 
+    // If it's a user (starts with @), navigate to their profile
+    if(type === 'user' && val.startsWith('@')) {
+      const uname = val.substring(1); // Remove @ symbol
+      if(window.currentUser && uname === window.currentUser){ 
+        window.location.href = '/perfil'; 
+      } else {
+        fetch(`/api/usuarios/username/${uname}`).then(r=>r.json()).then(u=>{ 
+          if(u.id){ window.location.href = '/perfil/'+u.id; } 
+        });
+      }
+    } else {
+      executarBusca(); 
+    }
+  };
   function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
   const fetchSuggest = debounce(()=>{
     const q = (input.value||'').trim();
@@ -1065,7 +1081,7 @@ document.addEventListener('click', function(e){
     } else if(e.key==='Enter'){
       if(activeIndex>=0 && items[activeIndex]){
         e.preventDefault();
-        pick(items[activeIndex].getAttribute('data-value'));
+        pick(items[activeIndex].getAttribute('data-value'), items[activeIndex].getAttribute('data-type'));
       }
     } else if(e.key==='Escape'){
       hide();
