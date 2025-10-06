@@ -146,7 +146,8 @@ def stats_users():
         return {"error":"forbidden"}, 403
     from sqlalchemy import func
     # Agrupar por dia e calcular crescimento acumulado
-    rows = db.session.query(func.date(User.created_at), func.count(User.id)).group_by(func.date(User.created_at)).order_by(func.date(User.created_at)).all()
+    # Filtra registros com created_at NULL para evitar problemas no agrupamento
+    rows = db.session.query(func.date(User.created_at), func.count(User.id)).filter(User.created_at.isnot(None)).group_by(func.date(User.created_at)).order_by(func.date(User.created_at)).all()
     
     # Calculate cumulative growth
     cumulative = []

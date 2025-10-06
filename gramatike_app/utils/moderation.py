@@ -55,7 +55,7 @@ def _compiled_custom_terms():
             if ' ' in term:
                 pat = re.compile(re.escape(term), re.IGNORECASE)
             else:
-                pat = re.compile(r"\\b" + re.escape(term) + r"\\b", re.IGNORECASE)
+                pat = re.compile(r"\b" + re.escape(term) + r"\b", re.IGNORECASE)
             patterns.append((pat, (r.category or 'custom').lower()))
     except Exception:
         # Em casos de erro (ex.: sem contexto app), ignore
