@@ -1659,15 +1659,17 @@ def artigos():
     q = request.args.get('q','').strip()
     page = max(int(request.args.get('page', 1) or 1), 1)
     per_page = 9
-    # Novo critério: apenas artigos cujo autor seja admin ou superadmin
+    # Novo critério: apenas artigos cujo autor seja admin ou superadmin (ou sem autor definido)
     from sqlalchemy import or_
-    query = EduContent.query.filter(
-        (EduContent.tipo=='artigo') & (
-            EduContent.author.has(or_(User.is_admin == True, User.is_superadmin == True))
-        )
+    query = EduContent.query.filter(EduContent.tipo=='artigo')
+    # Filtro por autor admin - inclui casos onde author_id é NULL
+    admin_filter = or_(
+        EduContent.author_id.is_(None),
+        EduContent.author.has(User.is_admin.is_(True)),
+        EduContent.author.has(User.is_superadmin.is_(True))
     )
+    query = query.filter(admin_filter)
     if q:
-        from sqlalchemy import or_
         like = f"%{q}%"
         query = query.filter(or_(EduContent.titulo.ilike(like), EduContent.resumo.ilike(like)))
     total = query.count()
