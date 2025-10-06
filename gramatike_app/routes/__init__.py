@@ -1285,6 +1285,117 @@ def dinamica_export_csv(dyn_id: int):
     output.seek(0)
     return Response(output.read(), mimetype='text/csv', headers={'Content-Disposition': f'attachment; filename=dinamica_{d.id}.csv'})
 
+@bp.route('/dinamicas/<int:dyn_id>/toggle-active', methods=['POST'])
+@login_required
+def dinamica_toggle_active(dyn_id: int):
+    if not (getattr(current_user, 'is_admin', False) or getattr(current_user, 'is_superadmin', False)):
+        flash('Apenas administradores podem alterar dinâmicas.')
+        return redirect(url_for('main.dinamicas_home'))
+    d = Dynamic.query.get_or_404(dyn_id)
+    if d.created_by != current_user.id:
+        flash('Você só pode alterar suas próprias dinâmicas.')
+        return redirect(url_for('main.dinamicas_home'))
+    d.active = not d.active
+    db.session.commit()
+    status = 'ativada' if d.active else 'finalizada'
+    flash(f'Dinâmica {status} com sucesso!')
+    return redirect(url_for('main.dinamicas_home'))
+
+@bp.route('/dinamicas/<int:dyn_id>/edit', methods=['GET'])
+@login_required
+def dinamica_edit(dyn_id: int):
+    if not (getattr(current_user, 'is_admin', False) or getattr(current_user, 'is_superadmin', False)):
+        flash('Apenas administradores podem editar dinâmicas.')
+        return redirect(url_for('main.dinamicas_home'))
+    d = Dynamic.query.get_or_404(dyn_id)
+    if d.created_by != current_user.id:
+        flash('Você só pode editar suas próprias dinâmicas.')
+        return redirect(url_for('main.dinamicas_home'))
+    import json as _json
+    cfg = {}
+    try:
+        cfg = _json.loads(d.config) if d.config else {}
+    except Exception:
+        cfg = {}
+    return render_template('dinamica_edit.html', d=d, cfg=cfg)
+
+@bp.route('/dinamicas/<int:dyn_id>/update', methods=['POST'])
+@login_required
+def dinamica_update(dyn_id: int):
+    if not (getattr(current_user, 'is_admin', False) or getattr(current_user, 'is_superadmin', False)):
+        flash('Apenas administradores podem editar dinâmicas.')
+        return redirect(url_for('main.dinamicas_home'))
+    d = Dynamic.query.get_or_404(dyn_id)
+    if d.created_by != current_user.id:
+        flash('Você só pode editar suas próprias dinâmicas.')
+        return redirect(url_for('main.dinamicas_home'))
+    
+    titulo = (request.form.get('titulo') or '').strip()
+    descricao = (request.form.get('descricao') or '').strip() or None
+    
+    if not titulo:
+        flash('Título é obrigatório.')
+        return redirect(url_for('main.dinamica_edit', dyn_id=d.id))
+    
+    import json as _json
+    cfg = {}
+    
+    # Atualizar configuração baseada no tipo
+    if d.tipo == 'poll':
+        raw_opts = (request.form.get('opcoes') or '').strip()
+        opts = [o.strip() for o in raw_opts.split('\n') if o.strip()]
+        if len(opts) < 2:
+            flash('Informe pelo menos duas opções para a enquete.')
+            return redirect(url_for('main.dinamica_edit', dyn_id=d.id))
+        cfg['options'] = opts
+    elif d.tipo == 'oneword':
+        # sem config necessária
+        pass
+    elif d.tipo == 'form':
+        try:
+            cfg_json = request.form.get('config_json')
+            if cfg_json:
+                parsed = _json.loads(cfg_json)
+                fields = parsed.get('fields') or []
+                if not fields:
+                    flash('Adicione pelo menos uma pergunta no formulário.')
+                    return redirect(url_for('main.dinamica_edit', dyn_id=d.id))
+                norm = []
+                for q in fields:
+                    qtype = (q.get('type') or 'short').lower()
+                    if qtype not in ('short','paragraph','multiple_choice'):
+                        qtype = 'short'
+                    item = {
+                        'id': int(q.get('id') or 0),
+                        'type': qtype,
+                        'label': (q.get('label') or '').strip(),
+                        'required': bool(q.get('required'))
+                    }
+                    if qtype == 'multiple_choice':
+                        opts = [str(o).strip() for o in (q.get('options') or []) if str(o).strip()]
+                        if len(opts) < 2:
+                            flash('Cada múltipla escolha precisa de pelo menos 2 opções.')
+                            return redirect(url_for('main.dinamica_edit', dyn_id=d.id))
+                        item['options'] = opts
+                    norm.append(item)
+                cfg['fields'] = norm
+            else:
+                # manter config existente
+                try:
+                    cfg = _json.loads(d.config) if d.config else {}
+                except Exception:
+                    cfg = {}
+        except Exception as _e:
+            flash('Configuração inválida do formulário.')
+            return redirect(url_for('main.dinamica_edit', dyn_id=d.id))
+    
+    d.titulo = titulo
+    d.descricao = descricao
+    d.config = _json.dumps(cfg) if cfg else None
+    db.session.commit()
+    flash('Dinâmica atualizada com sucesso!')
+    return redirect(url_for('main.dinamicas_home'))
+
 @bp.route('/dinamicas/<int:dyn_id>/responder', methods=['POST'])
 @login_required
 def dinamica_responder(dyn_id: int):
