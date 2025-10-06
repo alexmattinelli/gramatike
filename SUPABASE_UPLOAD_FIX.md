@@ -20,14 +20,29 @@ Adicionado suporte ao Supabase Storage para todos os tipos de upload de arquivos
 - **`api_posts_multi_create()`**: Atualizada para tentar upload no Supabase primeiro
   - Se Supabase estiver configurado → salva no Supabase e retorna URL pública
   - Se Supabase não estiver configurado → fallback para armazenamento local
+  - **NOVO**: Adicionada verificação de moderação de conteúdo antes de criar posts
   
 - **`admin_divulgacao_upload()`**: Atualizada da mesma forma
   - Tenta Supabase primeiro, depois fallback local
+
+- **`admin_divulgacao_aviso_rapido()`**: **ATUALIZADO**
+  - Agora gera imagens em memória (BytesIO)
+  - Upload para Supabase primeiro, depois fallback local
+  - Imagens promocionais agora persistem em produção
 
 #### 3. `/gramatike_app/routes/admin.py`
 - **`edu_publicar()`**: Seção de upload de apostilas (PDFs) atualizada
   - Tenta Supabase primeiro, depois fallback local
   - Nota: Geração de thumbnail de PDF só funciona no modo local (requer arquivo físico)
+
+### Moderação de Conteúdo
+
+Todos os endpoints de criação de posts agora verificam o conteúdo contra palavras bloqueadas:
+- ✓ `create_post()` - posts JSON simples
+- ✓ `api_posts_multi_create()` - posts com múltiplas imagens
+- ✓ `comentarios()` - comentários em posts
+
+Posts que contêm palavras bloqueadas são rejeitados antes da criação.
 
 ### Configuração Necessária
 
@@ -68,6 +83,8 @@ SUPABASE_BUCKET=avatars
 ✓ Sintaxe Python validada
 ✓ Funções de geração de path testadas
 ✓ Imports verificados
+✓ Moderação de conteúdo adicionada a todos os endpoints de criação
+✓ Upload de imagens geradas (aviso_rapido) atualizado para Supabase
 
 ### Próximos Passos
 
@@ -76,3 +93,4 @@ SUPABASE_BUCKET=avatars
 3. Teste upload de PDF de apostila
 4. Teste upload de imagem de divulgação
 5. Verifique que as URLs públicas funcionam corretamente
+6. Teste que palavras bloqueadas impedem criação de posts
