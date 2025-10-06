@@ -72,10 +72,12 @@ button { font-family: var(--font-base); font-weight:600; }
   section#feed article.post:hover { box-shadow:0 18px 38px rgba(0,0,0,.14); }
   /* Novo: aplicar mesmo estilo aos cards renderizados em #feed-list */
   #feed-list article.post { background:#fff; border:1px solid #e5e7eb; padding:1.6rem 1.9rem 1.3rem; border-radius:26px; margin:0 0 2rem; box-shadow:0 10px 24px -6px rgba(0,0,0,.10); position:relative; overflow:hidden; }
-  #feed-list article.post::before { content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit; background:radial-gradient(circle at 85% 20%, rgba(155,93,229,0.08), transparent 60%); opacity:.9; }
+  /* Gradiente removido dos posts do feed */
+  #feed-list article.post::before { content:""; display:none; }
   #feed-list article.post:hover { box-shadow:0 16px 40px -6px rgba(0,0,0,.18); }
   body.dark #feed-list article.post { background:#1e293b; border:1px solid #334155; box-shadow:0 8px 22px -4px rgba(0,0,0,.55); }
-  body.dark #feed-list article.post::before { background:radial-gradient(circle at 85% 20%, rgba(155,93,229,0.15), transparent 60%); }
+  /* Gradiente removido do dark mode */
+  body.dark #feed-list article.post::before { display:none; }
   /* Separador visual sutil entre cards (alternância leve) */
   #feed-list article.post:nth-child(even) { background:#fbf9ff; }
   body.dark #feed-list article.post:nth-child(even) { background:#243044; }
@@ -284,32 +286,27 @@ button { font-family: var(--font-base); font-weight:600; }
   <div id="amigues-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08);">
       <div class="amigues-toolbar" style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0 0 .6rem;">
         <a href="{{ url_for('main.configuracoes') }}" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="4" y1="6" x2="20" y2="6"></line>
-            <circle cx="8" cy="6" r="2"></circle>
-            <line x1="4" y1="12" x2="20" y2="12"></line>
-            <circle cx="14" cy="12" r="2"></circle>
-            <line x1="4" y1="18" x2="20" y2="18"></line>
-            <circle cx="10" cy="18" r="2"></circle>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6m8.66-7.66-5.2 3m-6.92 4-5.2 3M20.66 17.66l-5.2-3m-6.92-4-5.2-3"></path>
           </svg>
         </a>
         <a href="{{ url_for('main.suporte') }}" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="9"></circle>
-            <circle cx="12" cy="12" r="4"></circle>
-            <line x1="12" y1="3" x2="12" y2="7"></line>
-            <line x1="12" y1="21" x2="12" y2="17"></line>
-            <line x1="3" y1="12" x2="7" y2="12"></line>
-            <line x1="21" y1="12" x2="17" y2="12"></line>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
           </svg>
         </a>
         {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
         <a href="{{ url_for('admin.dashboard') }}" class="search-btn icon-btn" title="Painel" aria-label="Painel">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3" y="3" width="8" height="8" rx="2"></rect>
-            <rect x="13" y="3" width="8" height="8" rx="2"></rect>
-            <rect x="3" y="13" width="8" height="8" rx="2"></rect>
-            <rect x="13" y="13" width="8" height="8" rx="2"></rect>
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
           </svg>
         </a>
         {% endif %}
@@ -323,10 +320,12 @@ button { font-family: var(--font-base); font-weight:600; }
     <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary);">📣 Divulgação</h3>
     {% set tem_conteudo = (div_edu and div_edu|length>0) %}
       {% if tem_conteudo %}
-        <div style="display:flex; flex-direction:column; gap:.9rem;">
+        <div class="carousel-wrapper" style="position:relative;">
+          <div class="carousel-container" style="overflow:hidden; position:relative;">
+            <div class="carousel-track" style="display:flex; transition:transform 0.3s ease;">
       {# Divulgações (inclui Aviso Rápido com imagem gerada) #}
           {% for d in (div_edu or []) %}
-          <div class="promo-card" style="background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
+          <div class="promo-card carousel-item" style="min-width:100%; background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
             <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#6233B5; margin:0 0 .35rem;">{{ d.titulo }}</strong>
             {% if d.imagem %}
               {% set imgsrc = d.imagem if d.imagem.startswith('http') else url_for('static', filename=d.imagem) %}
@@ -336,6 +335,17 @@ button { font-family: var(--font-base); font-weight:600; }
             {% if d.link %}<a href="{{ d.link }}" target="_blank" rel="noopener" style="display:inline-block; font-size:.55rem; font-weight:700; background:#9B5DE5; color:#fff; padding:.45rem .8rem .4rem; border-radius:14px; text-decoration:none; letter-spacing:.5px;">Abrir →</a>{% endif %}
           </div>
           {% endfor %}
+            </div>
+          </div>
+          {% if div_edu|length > 1 %}
+          <div class="carousel-controls" style="display:flex; justify-content:center; gap:.4rem; margin-top:.6rem;">
+            {% for i in range(div_edu|length) %}
+            <button class="carousel-dot" data-index="{{ i }}" onclick="goToSlide({{ i }})" style="width:8px; height:8px; border-radius:50%; border:none; background:#d1d5db; cursor:pointer; transition:background 0.3s;" aria-label="Ir para divulgação {{ i+1 }}"></button>
+            {% endfor %}
+          </div>
+          <button class="carousel-prev" onclick="prevSlide()" style="position:absolute; left:0; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.9); border:1px solid #e5e7eb; width:28px; height:28px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:700; color:#6233B5; box-shadow:0 2px 8px rgba(0,0,0,.1);" aria-label="Anterior">‹</button>
+          <button class="carousel-next" onclick="nextSlide()" style="position:absolute; right:0; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.9); border:1px solid #e5e7eb; width:28px; height:28px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:700; color:#6233B5; box-shadow:0 2px 8px rgba(0,0,0,.1);" aria-label="Próximo">›</button>
+          {% endif %}
         </div>
       {% else %}
         <div style="font-size:.6rem; font-weight:700; letter-spacing:.5px; color:#999; padding:.65rem .85rem; border:1px dashed #d2c5ef; border-radius:18px; background:#faf7ff;">Nenhuma divulgação ativa.</div>
@@ -489,9 +499,7 @@ function loadPosts(params={}) {
           <div class="post-actions">
             <button class="${likeClass}" onclick="likePost(${post.id}, this)">${likeLabel}</button>
             <button class="comment-btn" onclick="showCommentBox(this)">💬 Comentar</button>
-          </div>
-          <div class="comments-toggle-line">
-            <button class="toggle-comments-btn" data-post-id="${post.id}" data-loaded="0" onclick="toggleComments(this, ${post.id})">Ver comentários</button>
+            <button class="toggle-comments-btn" data-post-id="${post.id}" data-loaded="0" onclick="toggleComments(this, ${post.id})" title="Ver comentários" aria-label="Ver comentários">↓</button>
           </div>
           <div class="comments-list" data-post-id="${post.id}"></div>
         `;
@@ -756,18 +764,21 @@ function toggleComments(btn, postId){
     loadComments(postId, postElem).then(count=>{
       btn.dataset.loaded='1';
       list.style.display='block';
-      btn.textContent = count ? `Esconder comentários (${count})` : 'Esconder comentários (0)';
+      btn.textContent = '↑';
+      btn.setAttribute('title', count ? `Esconder comentários (${count})` : 'Esconder comentários');
     });
     return;
   }
   if(list.style.display === 'none'){
     list.style.display='block';
     const count = list.querySelectorAll('.comment').length;
-    btn.textContent = count ? `Esconder comentários (${count})` : 'Esconder comentários (0)';
+    btn.textContent = '↑';
+    btn.setAttribute('title', count ? `Esconder comentários (${count})` : 'Esconder comentários');
   } else {
     list.style.display='none';
     const count = list.querySelectorAll('.comment').length;
-    btn.textContent = count ? `Ver comentários (${count})` : 'Ver comentários (0)';
+    btn.textContent = '↓';
+    btn.setAttribute('title', count ? `Ver comentários (${count})` : 'Ver comentários');
   }
 }
 
@@ -1277,6 +1288,48 @@ function initMentionAutocomplete(ta, box, scope){
   // Inicializar UI
   setStatus('Sua vez: você é X');
   render();
+})();
+
+// Carousel functionality for Divulgação
+(function(){
+  let currentSlide = 0;
+  const track = document.querySelector('.carousel-track');
+  const dots = document.querySelectorAll('.carousel-dot');
+  const items = document.querySelectorAll('.carousel-item');
+  
+  if (!track || items.length === 0) return;
+  
+  function updateCarousel() {
+    track.style.transform = `translateX(-${currentSlide * 100}%)`;
+    dots.forEach((dot, idx) => {
+      dot.style.background = idx === currentSlide ? '#9B5DE5' : '#d1d5db';
+    });
+  }
+  
+  window.goToSlide = function(index) {
+    currentSlide = index;
+    updateCarousel();
+  };
+  
+  window.nextSlide = function() {
+    currentSlide = (currentSlide + 1) % items.length;
+    updateCarousel();
+  };
+  
+  window.prevSlide = function() {
+    currentSlide = (currentSlide - 1 + items.length) % items.length;
+    updateCarousel();
+  };
+  
+  // Auto-advance every 5 seconds
+  if (items.length > 1) {
+    setInterval(() => {
+      window.nextSlide();
+    }, 5000);
+  }
+  
+  // Initialize
+  updateCarousel();
 })();
 </script>
 </body>
