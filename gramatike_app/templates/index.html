@@ -320,12 +320,10 @@ button { font-family: var(--font-base); font-weight:600; }
     <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary);">📣 Divulgação</h3>
     {% set tem_conteudo = (div_edu and div_edu|length>0) %}
       {% if tem_conteudo %}
-        <div class="carousel-wrapper" style="position:relative;">
-          <div class="carousel-container" style="overflow:hidden; position:relative;">
-            <div class="carousel-track" style="display:flex; transition:transform 0.3s ease;">
-      {# Divulgações (inclui Aviso Rápido com imagem gerada) #}
+        <div style="display:flex; flex-direction:column; gap:.9rem;">
+          {# Divulgações (inclui Aviso Rápido com imagem gerada) #}
           {% for d in (div_edu or []) %}
-          <div class="promo-card carousel-item" style="flex-shrink:0; width:100%; background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
+          <div class="promo-card" style="background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
             <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#6233B5; margin:0 0 .35rem;">{{ d.titulo }}</strong>
             {% if d.imagem %}
               {% set imgsrc = d.imagem if d.imagem.startswith('http') else url_for('static', filename=d.imagem) %}
@@ -335,17 +333,6 @@ button { font-family: var(--font-base); font-weight:600; }
             {% if d.link %}<a href="{{ d.link }}" target="_blank" rel="noopener" style="display:inline-block; font-size:.55rem; font-weight:700; background:#9B5DE5; color:#fff; padding:.45rem .8rem .4rem; border-radius:14px; text-decoration:none; letter-spacing:.5px;">Abrir →</a>{% endif %}
           </div>
           {% endfor %}
-            </div>
-          </div>
-          {% if div_edu|length > 1 %}
-          <div class="carousel-controls" style="display:flex; justify-content:center; gap:.4rem; margin-top:.6rem;">
-            {% for i in range(div_edu|length) %}
-            <button class="carousel-dot" data-index="{{ i }}" onclick="goToSlide({{ i }})" style="width:8px; height:8px; border-radius:50%; border:none; background:#d1d5db; cursor:pointer; transition:background 0.3s;" aria-label="Ir para divulgação {{ i+1 }}"></button>
-            {% endfor %}
-          </div>
-          <button class="carousel-prev" onclick="prevSlide()" style="position:absolute; left:0; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.9); border:1px solid #e5e7eb; width:28px; height:28px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:700; color:#6233B5; box-shadow:0 2px 8px rgba(0,0,0,.1);" aria-label="Anterior">‹</button>
-          <button class="carousel-next" onclick="nextSlide()" style="position:absolute; right:0; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.9); border:1px solid #e5e7eb; width:28px; height:28px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:700; color:#6233B5; box-shadow:0 2px 8px rgba(0,0,0,.1);" aria-label="Próximo">›</button>
-          {% endif %}
         </div>
       {% else %}
         <div style="font-size:.6rem; font-weight:700; letter-spacing:.5px; color:#999; padding:.65rem .85rem; border:1px dashed #d2c5ef; border-radius:18px; background:#faf7ff;">Nenhuma divulgação ativa.</div>
@@ -1306,47 +1293,6 @@ function initMentionAutocomplete(ta, box, scope){
   render();
 })();
 
-// Carousel functionality for Divulgação
-(function(){
-  let currentSlide = 0;
-  const track = document.querySelector('.carousel-track');
-  const dots = document.querySelectorAll('.carousel-dot');
-  const items = document.querySelectorAll('.carousel-item');
-  
-  if (!track || items.length === 0) return;
-  
-  function updateCarousel() {
-    track.style.transform = `translateX(-${currentSlide * 100}%)`;
-    dots.forEach((dot, idx) => {
-      dot.style.background = idx === currentSlide ? '#9B5DE5' : '#d1d5db';
-    });
-  }
-  
-  window.goToSlide = function(index) {
-    currentSlide = index;
-    updateCarousel();
-  };
-  
-  window.nextSlide = function() {
-    currentSlide = (currentSlide + 1) % items.length;
-    updateCarousel();
-  };
-  
-  window.prevSlide = function() {
-    currentSlide = (currentSlide - 1 + items.length) % items.length;
-    updateCarousel();
-  };
-  
-  // Auto-advance every 5 seconds
-  if (items.length > 1) {
-    setInterval(() => {
-      window.nextSlide();
-    }, 5000);
-  }
-  
-  // Initialize
-  updateCarousel();
-})();
 </script>
 </body>
 </html>
