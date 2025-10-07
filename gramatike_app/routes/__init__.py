@@ -1185,6 +1185,17 @@ def dinamica_view(dyn_id: int):
         cfg = _json.loads(d.config) if d.config else {}
     except Exception:
         cfg = {}
+    
+    # Check if current user has already responded (only if authenticated)
+    user_response = None
+    if getattr(current_user, 'is_authenticated', False):
+        prev = DynamicResponse.query.filter_by(dynamic_id=d.id, usuario_id=current_user.id).first()
+        if prev:
+            try:
+                user_response = _json.loads(prev.payload) if prev.payload else {}
+            except Exception:
+                pass
+    
     # Coletar agregados simples para oneword e poll
     agg = {}
     if d.tipo == 'oneword':
@@ -1214,7 +1225,7 @@ def dinamica_view(dyn_id: int):
             except Exception:
                 pass
         agg['counts'] = counts
-    return render_template('dinamica_view.html', d=d, cfg=cfg, agg=agg)
+    return render_template('dinamica_view.html', d=d, cfg=cfg, agg=agg, user_response=user_response)
 
 @bp.route('/dinamicas/<int:dyn_id>/admin')
 @login_required
@@ -1330,6 +1341,27 @@ def dinamica_toggle_active(dyn_id: int):
     db.session.commit()
     status = 'ativada' if d.active else 'finalizada'
     flash(f'Dinâmica {status} com sucesso!')
+    return redirect(url_for('main.dinamicas_home'))
+
+@bp.route('/dinamicas/<int:dyn_id>/delete', methods=['POST'])
+@login_required
+def dinamica_delete(dyn_id: int):
+    if not (getattr(current_user, 'is_admin', False) or getattr(current_user, 'is_superadmin', False)):
+        flash('Apenas administradores podem excluir dinâmicas.')
+        return redirect(url_for('main.dinamicas_home'))
+    d = Dynamic.query.get_or_404(dyn_id)
+    if d.created_by != current_user.id:
+        flash('Você só pode excluir suas próprias dinâmicas.')
+        return redirect(url_for('main.dinamicas_home'))
+    
+    # Delete all responses first (cascade)
+    DynamicResponse.query.filter_by(dynamic_id=d.id).delete()
+    
+    # Delete the dynamic
+    db.session.delete(d)
+    db.session.commit()
+    
+    flash('Dinâmica excluída com sucesso!')
     return redirect(url_for('main.dinamicas_home'))
 
 @bp.route('/dinamicas/<int:dyn_id>/edit', methods=['GET'])
