@@ -142,6 +142,7 @@
                             <button type="button" data-edit="{{ c.id }}">Editar</button>
                             <button type="button" data-share="{{ c.id }}" data-title="{{ c.titulo }}">Compartilhar</button>
                             <form method="POST" action="/admin/edu/content/{{ c.id }}/delete" onsubmit="return confirm('Excluir esta apostila?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
                                 <input type="hidden" name="next" value="{{ request.url }}" />
                                 <button type="submit" class="danger">Excluir</button>
                             </form>
@@ -213,44 +214,50 @@
         </div>
     </dialog>
     {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
-    <dialog id="editApostilaDialog">
-        <form id="editApostilaForm" method="post">
-            <h3>Editar Apostila</h3>
+    <dialog id="editApostilaDialog" style="border:none; border-radius:20px; padding:0; max-width:600px; width:90%;">
+        <form id="editApostilaForm" method="post" style="display:grid; gap:.9rem; padding:1.5rem;">
+            <h3 style="margin:0; font-size:1.3rem; color:#6233B5;">Editar Apostila</h3>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
             <input type="hidden" name="content_id" id="ap_id" />
-            <label style="display:block; font-size:.8rem; margin:.4rem 0 .2rem;">Título</label>
-            <input name="titulo" id="ap_titulo" required />
-        <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">Autore/Canal</label>
-        <input name="autor" id="ap_autor" />
-            <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">Resumo</label>
-            <textarea name="resumo" id="ap_resumo" rows="3"></textarea>
-            <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">URL (opcional)</label>
-            <input name="url" id="ap_url" />
-            <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">Tópico</label>
-            <select name="topic_id" id="ap_topic">
-                <option value="">(Tópico)</option>
-                {% for t in topics %}<option value="{{ t.id }}">{{ t.nome }}</option>{% endfor %}
-            </select>
-            <p style="font-size:.75rem; color:#5d6a7c; margin:.4rem 0 0;">Obs.: Troca de arquivo PDF não é suportada aqui; use o painel admin para reenviar se necessário.</p>
-            <menu style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
-                <button type="button" id="ap_cancel">Cancelar</button>
-                <button type="submit" class="nav-button" style="padding:.5rem 1rem; border-radius:8px;">Salvar</button>
+            
+            <label style="display:grid; gap:.3rem;">
+                <span style="font-size:.75rem; font-weight:700; color:#666;">Título</span>
+                <input name="titulo" id="ap_titulo" required style="border:1px solid #cfd7e2; border-radius:10px; padding:.65rem .75rem; font-size:.85rem;" />
+            </label>
+            
+            <label style="display:grid; gap:.3rem;">
+                <span style="font-size:.75rem; font-weight:700; color:#666;">Autore/Canal</span>
+                <input name="autor" id="ap_autor" style="border:1px solid #cfd7e2; border-radius:10px; padding:.65rem .75rem; font-size:.85rem;" />
+            </label>
+            
+            <label style="display:grid; gap:.3rem;">
+                <span style="font-size:.75rem; font-weight:700; color:#666;">Resumo</span>
+                <textarea name="resumo" id="ap_resumo" rows="3" style="min-height:80px; border:1px solid #cfd7e2; border-radius:10px; padding:.65rem .75rem; font-size:.85rem;"></textarea>
+            </label>
+            
+            <label style="display:grid; gap:.3rem;">
+                <span style="font-size:.75rem; font-weight:700; color:#666;">URL (opcional)</span>
+                <input name="url" id="ap_url" style="border:1px solid #cfd7e2; border-radius:10px; padding:.65rem .75rem; font-size:.85rem;" />
+            </label>
+            
+            <label style="display:grid; gap:.3rem;">
+                <span style="font-size:.75rem; font-weight:700; color:#666;">Tópico</span>
+                <select name="topic_id" id="ap_topic" style="border:1px solid #cfd7e2; border-radius:10px; padding:.65rem .75rem; font-size:.85rem;">
+                    <option value="">(Tópico)</option>
+                    {% for t in topics %}<option value="{{ t.id }}">{{ t.nome }}</option>{% endfor %}
+                </select>
+            </label>
+            
+            <p style="font-size:.7rem; color:#999; margin:.2rem 0 0;">Obs.: Troca de arquivo PDF não é suportada aqui; use o painel admin para reenviar se necessário.</p>
+            
+            <menu style="display:flex; gap:.6rem; justify-content:flex-end; margin:0; padding-top:.6rem;">
+                <button type="button" id="ap_cancel" style="padding:.65rem 1.2rem; border:1px solid #cfd7e2; background:#f9f9f9; border-radius:12px; font-weight:700; cursor:pointer;">Cancelar</button>
+                <button type="submit" style="padding:.65rem 1.2rem; border:none; background:#9B5DE5; color:#fff; border-radius:12px; font-weight:700; cursor:pointer;">Salvar</button>
             </menu>
         </form>
     </dialog>
     <style>
-        #editApostilaDialog{ width:min(94vw, 820px); border:0; border-radius:14px; padding:0; box-shadow:0 24px 44px rgba(16,24,40,.22), 0 0 0 1px rgba(16,24,40,.06); }
         #editApostilaDialog::backdrop{ background:rgba(13,20,33,.45); backdrop-filter: blur(2px); }
-        #editApostilaForm{ padding:1rem 1rem 1.1rem; display:grid; gap:.9rem; grid-template-columns:1fr; }
-        #editApostilaForm h3{ margin:.2rem 0 .4rem; font-size:1.08rem; letter-spacing:.2px; }
-        #editApostilaForm label{ display:block; font-size:.78rem; font-weight:700; color:#3f4f63; }
-        #editApostilaForm input, #editApostilaForm textarea, #editApostilaForm select{ width:100%; padding:.65rem .75rem; border:1px solid #cfd7e2; border-radius:10px; background:#f9fbfd; font-size:.85rem; }
-        #editApostilaForm textarea{ min-height:110px; }
-        #editApostilaForm menu{ padding-top:.2rem; }
-        @media (min-width: 860px){
-            #editApostilaForm{ grid-template-columns:1fr 1fr; }
-            #editApostilaForm h3, #editApostilaForm menu{ grid-column:1 / -1; }
-        }
     </style>
     <script>
     (function(){
