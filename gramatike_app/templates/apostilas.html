@@ -199,6 +199,7 @@
     <dialog id="editApostilaDialog">
         <form id="editApostilaForm" method="post">
             <h3>Editar Apostila</h3>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
             <input type="hidden" name="content_id" id="ap_id" />
             <label style="display:block; font-size:.8rem; margin:.4rem 0 .2rem;">Título</label>
             <input name="titulo" id="ap_titulo" required />
