@@ -53,3 +53,6 @@ gramatike_app/static/uploads/*
 gramatike/
 # Ignorar banco de dados local
 instance/app.db
+node_modules/
+package-lock.json
+package.json
