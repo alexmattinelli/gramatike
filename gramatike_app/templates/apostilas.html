@@ -125,6 +125,7 @@
                         <button class="item-menu-trigger" aria-label="Menu"><span aria-hidden="true" style="font-size:18px; line-height:0; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.35);">⋮</span></button>
                         <div class="item-menu" role="menu">
                             <button type="button" data-edit="{{ c.id }}">Editar</button>
+                            <button type="button" data-share="{{ c.id }}" data-title="{{ c.titulo }}">Compartilhar</button>
                             <form method="POST" action="/admin/edu/content/{{ c.id }}/delete" onsubmit="return confirm('Excluir esta apostila?');">
                                 <input type="hidden" name="next" value="{{ request.url }}" />
                                 <button type="submit" class="danger">Excluir</button>
@@ -255,8 +256,52 @@
             if(pdfClose){ pdfClose.addEventListener('click', closePdf); }
             if(pdfDlg){ pdfDlg.addEventListener('close', ()=>{ pdfFrame.src='about:blank'; }); }
 
-        // Toggle menus (delegação no main)
-        document.addEventListener('click', (e)=>{
+        // Edit modal
+        const dlg = document.getElementById('editApostilaDialog');
+        const form = document.getElementById('editApostilaForm');
+        const ap_id = document.getElementById('ap_id');
+        const ap_titulo = document.getElementById('ap_titulo');
+        const ap_resumo = document.getElementById('ap_resumo');
+        const ap_url = document.getElementById('ap_url');
+        const ap_topic = document.getElementById('ap_topic');
+        const ap_cancel = document.getElementById('ap_cancel');
+        const ap_autor = document.getElementById('ap_autor');
+        
+        // Unified click handler
+        document.addEventListener('click', async (e)=>{
+            // Check for edit button first
+            const editBtn = e.target.closest('[data-edit]');
+            if(editBtn){
+                e.preventDefault();
+                const id = editBtn.getAttribute('data-edit');
+                try{
+                    const data = await fetch(`/admin/edu/content/${id}.json`).then(r=>r.json());
+                    ap_id.value = data.id;
+                    ap_titulo.value = data.titulo||'';
+                    ap_resumo.value = data.resumo||'';
+                    ap_url.value = data.url||'';
+                    ap_autor.value = (data.extra && data.extra.author) ? data.extra.author : '';
+                    [...ap_topic.options].forEach(o=>{ o.selected = String(o.value)===String(data.topic_id||''); });
+                    dlg.showModal();
+                }catch(err){ alert('Falha ao carregar'); }
+                return;
+            }
+            
+            // Check for share button
+            const shareBtn = e.target.closest('[data-share]');
+            if(shareBtn){
+                e.preventDefault();
+                const title = shareBtn.getAttribute('data-title') || 'Apostila';
+                const url = window.location.href;
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Link copiado!');
+                }).catch(() => {
+                    alert('Erro ao copiar link. URL: ' + url);
+                });
+                return;
+            }
+            
+            // Toggle menu
             const trigger = e.target.closest('.item-menu-trigger');
             if(trigger){
                 e.preventDefault();
@@ -275,6 +320,7 @@
                 }
                 return;
             }
+            
             if(!e.target.closest('.item-menu')){
                 document.querySelectorAll('.item-menu.show').forEach(m=>{
                     m.classList.remove('show');
@@ -283,31 +329,7 @@
                 });
             }
         });
-        // Edit modal
-        const dlg = document.getElementById('editApostilaDialog');
-        const form = document.getElementById('editApostilaForm');
-        const ap_id = document.getElementById('ap_id');
-        const ap_titulo = document.getElementById('ap_titulo');
-        const ap_resumo = document.getElementById('ap_resumo');
-        const ap_url = document.getElementById('ap_url');
-        const ap_topic = document.getElementById('ap_topic');
-        const ap_cancel = document.getElementById('ap_cancel');
-        const ap_autor = document.getElementById('ap_autor');
-        document.addEventListener('click', async (e)=>{
-            const btn = e.target.closest('[data-edit]');
-            if(!btn) return;
-            const id = btn.getAttribute('data-edit');
-            try{
-                const data = await fetch(`/admin/edu/content/${id}.json`).then(r=>r.json());
-                ap_id.value = data.id;
-                ap_titulo.value = data.titulo||'';
-                ap_resumo.value = data.resumo||'';
-                ap_url.value = data.url||'';
-            ap_autor.value = (data.extra && data.extra.author) ? data.extra.author : '';
-                [...ap_topic.options].forEach(o=>{ o.selected = String(o.value)===String(data.topic_id||''); });
-                dlg.showModal();
-            }catch(err){ alert('Falha ao carregar'); }
-        });
+        
         ap_cancel.addEventListener('click', ()=> dlg.close());
         form.addEventListener('submit', async (e)=>{
             e.preventDefault();
