@@ -1690,9 +1690,12 @@ def api_posts_multi_create():
 @bp.route('/apostilas')
 def apostilas():
     q = request.args.get('q','').strip()
+    topic_id = request.args.get('topic_id','').strip()
     page = max(int(request.args.get('page', 1) or 1), 1)
     per_page = 9
     query = EduContent.query.filter_by(tipo='apostila')
+    if topic_id:
+        query = query.filter_by(topic_id=int(topic_id))
     if q:
         from sqlalchemy import or_
         like = f"%{q}%"
@@ -1704,12 +1707,13 @@ def apostilas():
                       .all())
     topics = EduTopic.query.filter_by(area='apostila').order_by(EduTopic.nome.asc()).all()
     last_page = (total + per_page - 1)//per_page
-    return render_template('apostilas.html', conteudos=conteudos, topics=topics, q=q,
+    return render_template('apostilas.html', conteudos=conteudos, topics=topics, q=q, topic_id=topic_id,
                            page=page, last_page=last_page, total=total, per_page=per_page)
 
 @bp.route('/artigos')
 def artigos():
     q = request.args.get('q','').strip()
+    topic_id = request.args.get('topic_id','').strip()
     page = max(int(request.args.get('page', 1) or 1), 1)
     per_page = 9
     # Novo critério: apenas artigos cujo autor seja admin ou superadmin (ou sem autor definido)
@@ -1722,6 +1726,8 @@ def artigos():
         EduContent.author.has(User.is_superadmin.is_(True))
     )
     query = query.filter(admin_filter)
+    if topic_id:
+        query = query.filter_by(topic_id=int(topic_id))
     if q:
         like = f"%{q}%"
         query = query.filter(or_(EduContent.titulo.ilike(like), EduContent.resumo.ilike(like)))
@@ -1732,7 +1738,7 @@ def artigos():
                       .all())
     topics = EduTopic.query.filter_by(area='artigo').order_by(EduTopic.nome.asc()).all()
     last_page = (total + per_page - 1)//per_page
-    return render_template('artigos.html', conteudos=conteudos, topics=topics, q=q,
+    return render_template('artigos.html', conteudos=conteudos, topics=topics, q=q, topic_id=topic_id,
                            page=page, last_page=last_page, total=total, per_page=per_page)
 
 @bp.route('/podcasts')

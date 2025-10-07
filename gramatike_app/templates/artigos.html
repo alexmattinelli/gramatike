@@ -25,6 +25,7 @@
     .topics-bar { display:flex; flex-wrap:wrap; gap:.55rem; justify-content:center; margin:0 0 2rem; }
     .topics-bar a { text-decoration:none; font-size:.6rem; font-weight:800; letter-spacing:.6px; padding:.55rem .85rem .5rem; background:#f1edff; color:#6233B5; border:1px solid #e3daf9; border-radius:18px; box-shadow:0 2px 6px rgba(155,93,229,.18); transition:.25s; }
     .topics-bar a:hover { background:#9B5DE5; color:#fff; border-color:#9B5DE5; }
+    .topics-bar a.active { background:#9B5DE5; color:#fff; border-color:#9B5DE5; }
     .search-box form { display:flex; gap:.55rem; max-width:860px; margin:0 auto 2.0rem; }
     .search-box input { flex:1; height:50px; border:1px solid var(--border); border-radius:20px; padding:0 1.15rem; font-size:.85rem; background:var(--card); font-weight:600; }
     .search-box button { height:50px; border:none; background:#9B5DE5; color:#fff; font-weight:700; font-size:.78rem; padding:0 1.4rem; border-radius:20px; cursor:pointer; letter-spacing:.45px; box-shadow:0 6px 20px rgba(155,93,229,.4); display:inline-flex; align-items:center; gap:.45rem; }
@@ -73,13 +74,6 @@
     </header>
     <main>
     <!-- Título removido a pedido -->
-                {% if topics %}
-                <div class="topics-bar">
-                        {% for topico in topics %}
-                            <a href="#topico-{{ topico.id }}">{{ topico.nome }}</a>
-                        {% endfor %}
-                </div>
-                {% endif %}
                 <div class="search-box">
                     <form method="get" action="">
                         <input type="text" name="q" value="{{ q }}" placeholder="Pesquisar título ou resumo..." />
@@ -91,6 +85,16 @@
                         </button>
                     </form>
                 </div>
+                {% if topics %}
+                <div class="topics-bar">
+                        {% for topico in topics %}
+                            <a href="?topic_id={{ topico.id }}{% if q %}&q={{ q }}{% endif %}" class="{% if topic_id and topic_id|string == topico.id|string %}active{% endif %}">{{ topico.nome }}</a>
+                        {% endfor %}
+                        {% if topic_id or q %}
+                        <a href="?" class="clear-filters" style="background:#ffe4e1; color:#b42318; border-color:#ffb8b1;">✕ Limpar Filtros</a>
+                        {% endif %}
+                </div>
+                {% endif %}
         <!-- Formulário para admin adicionar novos artigos -->
         <!-- Lista de artigos disponíveis -->
     <div class="artigos-lista">
@@ -130,12 +134,14 @@
         </div>
         {% if last_page and last_page > 1 %}
         <div class="pagination" style="margin:2.2rem 0 0; display:flex; gap:.6rem; justify-content:center; align-items:center; flex-wrap:wrap; font-size:.7rem; font-weight:700; letter-spacing:.4px;">
-            {% set base_q = '&q=' + q if q else '' %}
-            <a href="?page=1{{ base_q }}" class="pag-btn {% if page==1 %}disabled{% endif %}">« Primeiro</a>
-            <a href="?page={{ page-1 }}{{ base_q }}" class="pag-btn {% if page==1 %}disabled{% endif %}">‹ Anterior</a>
+            {% set base_params = '' %}
+            {% if q %}{% set base_params = base_params + '&q=' + q %}{% endif %}
+            {% if topic_id %}{% set base_params = base_params + '&topic_id=' + topic_id %}{% endif %}
+            <a href="?page=1{{ base_params }}" class="pag-btn {% if page==1 %}disabled{% endif %}">« Primeiro</a>
+            <a href="?page={{ page-1 }}{{ base_params }}" class="pag-btn {% if page==1 %}disabled{% endif %}">‹ Anterior</a>
             <span style="color:#6233B5;">Página {{ page }} de {{ last_page }}</span>
-            <a href="?page={{ page+1 }}{{ base_q }}" class="pag-btn {% if page==last_page %}disabled{% endif %}">Próxima ›</a>
-            <a href="?page={{ last_page }}{{ base_q }}" class="pag-btn {% if page==last_page %}disabled{% endif %}">Última »</a>
+            <a href="?page={{ page+1 }}{{ base_params }}" class="pag-btn {% if page==last_page %}disabled{% endif %}">Próxima ›</a>
+            <a href="?page={{ last_page }}{{ base_params }}" class="pag-btn {% if page==last_page %}disabled{% endif %}">Última »</a>
         </div>
         {% endif %}
     </main>
