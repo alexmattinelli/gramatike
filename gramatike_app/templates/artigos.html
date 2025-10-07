@@ -144,6 +144,7 @@
     <dialog id="editArtigoDialog">
         <form id="editArtigoForm" method="post">
             <h3>Editar Artigo</h3>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
             <input type="hidden" name="content_id" id="ea_id" />
             <label style="display:block; font-size:.8rem; margin:.4rem 0 .2rem;">Título</label>
             <input name="titulo" id="ea_titulo" required />
