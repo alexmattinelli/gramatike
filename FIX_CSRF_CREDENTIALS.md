@@ -10,12 +10,15 @@ Os formulários de edição para apostilas e artigos não estavam salvando as al
 ### Causa Raiz
 As chamadas `fetch()` no JavaScript não incluíam a opção `credentials: 'same-origin'`, o que impedia o envio dos cookies de sessão necessários para validar o token CSRF.
 
+### Causa Secundária (Crítica)
+O formulário de edição em `exercicios.html` **não tinha token CSRF**, representando uma vulnerabilidade de segurança grave.
+
 ### Contexto Técnico
 1. **CSRF Protection habilitado**: A aplicação tem proteção CSRF ativa via `flask_wtf.csrf.CSRFProtect`
-2. **Tokens CSRF presentes**: Os formulários já continham os tokens CSRF corretos (fix anterior)
+2. **Tokens CSRF presentes**: Os formulários já continham os tokens CSRF corretos (fix anterior) - **EXCETO exercicios.html**
 3. **Problema de cookies**: Por padrão, `fetch()` **não envia cookies** em requisições same-origin a menos que seja explicitamente configurado
 4. **Validação CSRF**: Flask-WTF requer:
-   - Token CSRF no corpo da requisição ✓ (já estava presente)
+   - Token CSRF no corpo da requisição ✓ (agora presente em TODOS os formulários)
    - Cookie de sessão para validar o token ✗ (não estava sendo enviado)
 
 ### Detalhes da API fetch()
@@ -50,7 +53,8 @@ fetch('/admin/edu/content/1/update', {
    - Linha 538: Adicionado `credentials: 'same-origin'` ao GET request
    - Linha 551: Adicionado `credentials: 'same-origin'` ao POST request
 
-5. **gramatike_app/templates/exercicios.html** (prevenção)
+5. **gramatike_app/templates/exercicios.html** (prevenção + correção crítica)
+   - Linha 153: **Adicionado token CSRF ausente** (vulnerabilidade de segurança corrigida)
    - Linha 262: Adicionado `credentials: 'same-origin'` ao GET request
    - Linha 302: Adicionado `credentials: 'same-origin'` ao POST request
 
@@ -117,9 +121,11 @@ const res = await fetch(`/admin/edu/content/${id}/update`, { method:'POST', body
 | **Nova Causa** | Cookies de sessão não sendo enviados nas requisições fetch |
 | **Solução** | Adicionado `credentials: 'same-origin'` em todas as chamadas fetch |
 | **Arquivos** | `apostilas.html`, `artigos.html`, `podcasts.html`, `videos.html`, `exercicios.html` |
-| **Linhas Alteradas** | 10 linhas modificadas (2 por arquivo) |
-| **Impacto** | Mínimo - mudança cirúrgica |
+| **Linhas Alteradas** | 11 linhas modificadas (10 credentials + 1 CSRF token) |
+| **Impacto** | Mínimo - mudança cirúrgica + correção de vulnerabilidade |
 | **Status** | ✅ Corrigido |
+
+**Nota Importante**: O formulário de exercícios não tinha token CSRF, representando uma vulnerabilidade de segurança. Isso foi corrigido.
 
 **Nota**: Embora o usuário tenha mencionado apenas "apostila e artigo", foram corrigidos todos os tipos de conteúdo educacional (apostilas, artigos, podcasts, vídeos e exercícios) que compartilham o mesmo padrão, para prevenir o mesmo problema.
 
