@@ -318,3 +318,30 @@ class BlockedWord(db.Model):
     def __repr__(self):
         return f"<BlockedWord {self.term} ({self.category})>"
 
+# Palavras do Dia (feature educacional inclusiva)
+class PalavraDoDia(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    palavra = db.Column(db.String(200), nullable=False)
+    significado = db.Column(db.Text, nullable=False)  # Explicação curta e inclusiva
+    ordem = db.Column(db.Integer, default=0, index=True)  # Para rotação diária
+    ativo = db.Column(db.Boolean, default=True, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), index=True)
+    author = db.relationship('User')
+
+    def __repr__(self):
+        return f"<PalavraDoDia {self.palavra}>"
+
+class PalavraDoDiaInteracao(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    palavra_id = db.Column(db.Integer, db.ForeignKey('palavra_do_dia.id'), index=True, nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=False)
+    tipo = db.Column(db.String(20), nullable=False)  # 'frase' | 'significado'
+    frase = db.Column(db.Text)  # Preenchido apenas se tipo='frase'
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    palavra = db.relationship('PalavraDoDia', backref=db.backref('interacoes', lazy='dynamic'))
+    usuario = db.relationship('User')
+
+    def __repr__(self):
+        return f"<PalavraDoDiaInteracao palavra={self.palavra_id} user={self.usuario_id} tipo={self.tipo}>"
+
