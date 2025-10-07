@@ -45,7 +45,7 @@
         {% else %}
           <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
-            <label>Digite uma palavra</label>
+            <label>Digite uma ou duas palavras</label>
             <input type="text" name="word" required />
             <button type="submit" class="btn primary">Enviar</button>
           </form>

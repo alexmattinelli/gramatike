@@ -1472,11 +1472,11 @@ def dinamica_responder(dyn_id: int):
         return redirect(url_for('main.dinamica_view', dyn_id=d.id))
     if d.tipo == 'oneword':
         w = (request.form.get('word') or '').strip()
-        if not w or len(w.split()) > 1:
-            flash('Informe apenas uma palavra.')
+        if not w or len(w.split()) > 2:
+            flash('Informe uma ou duas palavras.')
             return redirect(url_for('main.dinamica_view', dyn_id=d.id))
-        if len(w) > 40:
-            flash('Palavra muito longa (máx 40).')
+        if len(w) > 80:
+            flash('Palavra(s) muito longa(s) (máx 80 caracteres).')
             return redirect(url_for('main.dinamica_view', dyn_id=d.id))
         payload['word'] = w
     elif d.tipo == 'poll':

@@ -114,8 +114,14 @@ def dashboard():
     # Divulgações (cards de destaque curados manualmente)
     divulgacoes = Divulgacao.query.order_by(Divulgacao.area.asc(), Divulgacao.ordem.asc(), Divulgacao.created_at.desc()).all()
     novidades = EduNovidade.query.order_by(EduNovidade.created_at.desc()).limit(30).all()
-    blocked_words = BlockedWord.query.order_by(BlockedWord.created_at.desc()).all()
-    return render_template('admin/dashboard.html', usuaries=usuaries, estudos=estudos, edu_latest=edu_latest, topics=topics, sections=sections, sections_map=sections_map, reports=reports, now=now, current_year=datetime.now().year, edu_topics=edu_topics, novidades=novidades, divulgacoes=divulgacoes, blocked_words=blocked_words, users_pagination=users_pagination, reports_pagination=reports_pagination)
+    
+    # Paginação para palavras bloqueadas
+    moderation_page = request.args.get('moderation_page', 1, type=int)
+    moderation_per_page = 10
+    blocked_words_pagination = BlockedWord.query.order_by(BlockedWord.created_at.desc()).paginate(page=moderation_page, per_page=moderation_per_page, error_out=False)
+    blocked_words = blocked_words_pagination.items
+    
+    return render_template('admin/dashboard.html', usuaries=usuaries, estudos=estudos, edu_latest=edu_latest, topics=topics, sections=sections, sections_map=sections_map, reports=reports, now=now, current_year=datetime.now().year, edu_topics=edu_topics, novidades=novidades, divulgacoes=divulgacoes, blocked_words=blocked_words, users_pagination=users_pagination, reports_pagination=reports_pagination, blocked_words_pagination=blocked_words_pagination)
 
 @admin_bp.route('/moderation/blocked_words/add', methods=['POST'])
 @login_required
@@ -539,8 +545,8 @@ def update_edu_content(content_id: int):
                 extra['thumb'] = f"uploads/videos/thumbs/{save_name}"
     c.extra = json.dumps(extra) if extra else None
     db.session.commit()
-    flash('Conteúdo atualizado.')
-    return redirect(url_for('admin.dashboard', _anchor='edu'))
+    # Sempre retornar JSON pois esta rota é usada apenas via AJAX
+    return {'success': True, 'message': 'Conteúdo atualizado.'}, 200
 
 @admin_bp.route('/edu/content/<int:content_id>/delete', methods=['POST'])
 @login_required
