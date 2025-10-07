@@ -103,6 +103,7 @@
                                                     <button class="item-menu-trigger" aria-label="Menu"><span aria-hidden="true" style="font-size:18px; line-height:0; color:#334155;">⋮</span></button>
                                                     <div class="item-menu" role="menu">
                                                         <button type="button" data-edit="{{ c.id }}">Editar</button>
+                                                        <button type="button" data-share="{{ c.id }}">Compartilhar</button>
                                                         <form method="POST" action="/admin/edu/content/{{ c.id }}/delete" onsubmit="return confirm('Excluir este artigo?');">
                                                             <input type="hidden" name="next" value="{{ request.url }}" />
                                                             <button type="submit" class="danger">Excluir</button>
@@ -181,8 +182,53 @@
     (function(){
         const list = document.querySelector('.artigos-ul');
         if(!list) return;
-        // Toggle menu ⋯
-        list.addEventListener('click', (e)=>{
+        
+        // Editar via modal
+        const dlg = document.getElementById('editArtigoDialog');
+        const form = document.getElementById('editArtigoForm');
+        const ea_id = document.getElementById('ea_id');
+        const ea_titulo = document.getElementById('ea_titulo');
+        const ea_resumo = document.getElementById('ea_resumo');
+        const ea_url = document.getElementById('ea_url');
+        const ea_topic = document.getElementById('ea_topic');
+        const ea_cancel = document.getElementById('ea_cancel');
+        const ea_autor = document.getElementById('ea_autor');
+        
+        // Unified click handler
+        list.addEventListener('click', async (e)=>{
+            // Check for edit button first
+            const editBtn = e.target.closest('[data-edit]');
+            if(editBtn){
+                e.preventDefault();
+                const id = editBtn.getAttribute('data-edit');
+                try{
+                    const data = await fetch(`/admin/edu/content/${id}.json`).then(r=>r.json());
+                    ea_id.value = data.id;
+                    ea_titulo.value = data.titulo||'';
+                    ea_resumo.value = data.resumo||'';
+                    ea_autor.value = (data.extra && data.extra.author) ? data.extra.author : '';
+                    ea_url.value = data.url||'';
+                    [...ea_topic.options].forEach(o=>{ o.selected = String(o.value)===String(data.topic_id||''); });
+                    dlg.showModal();
+                }catch(err){ alert('Falha ao carregar'); }
+                return;
+            }
+            
+            // Check for share button
+            const shareBtn = e.target.closest('[data-share]');
+            if(shareBtn){
+                e.preventDefault();
+                const id = shareBtn.getAttribute('data-share');
+                const url = `${window.location.origin}${window.location.pathname}#topico-${id}`;
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Link copiado!');
+                }).catch(() => {
+                    alert('Erro ao copiar link. URL: ' + url);
+                });
+                return;
+            }
+            
+            // Toggle menu ⋯
             const trigger = e.target.closest('.item-menu-trigger');
             if(trigger){
                 e.preventDefault();
@@ -197,36 +243,13 @@
                 }
                 return;
             }
+            
             if(!e.target.closest('.item-menu')){
                 document.querySelectorAll('.item-menu.show').forEach(m=>m.classList.remove('show'));
                 document.querySelectorAll('.artigo.menu-open').forEach(a=>a.classList.remove('menu-open'));
             }
         });
-        // Editar via modal
-        const dlg = document.getElementById('editArtigoDialog');
-        const form = document.getElementById('editArtigoForm');
-        const ea_id = document.getElementById('ea_id');
-        const ea_titulo = document.getElementById('ea_titulo');
-        const ea_resumo = document.getElementById('ea_resumo');
-        const ea_url = document.getElementById('ea_url');
-        const ea_topic = document.getElementById('ea_topic');
-        const ea_cancel = document.getElementById('ea_cancel');
-        const ea_autor = document.getElementById('ea_autor');
-        list.addEventListener('click', async (e)=>{
-            const btn = e.target.closest('[data-edit]');
-            if(!btn) return;
-            const id = btn.getAttribute('data-edit');
-            try{
-                const data = await fetch(`/admin/edu/content/${id}.json`).then(r=>r.json());
-                ea_id.value = data.id;
-                ea_titulo.value = data.titulo||'';
-                ea_resumo.value = data.resumo||'';
-                ea_autor.value = (data.extra && data.extra.author) ? data.extra.author : '';
-                ea_url.value = data.url||'';
-                [...ea_topic.options].forEach(o=>{ o.selected = String(o.value)===String(data.topic_id||''); });
-                dlg.showModal();
-            }catch(err){ alert('Falha ao carregar'); }
-        });
+        
         ea_cancel.addEventListener('click', ()=> dlg.close());
         form.addEventListener('submit', async (e)=>{
             e.preventDefault();
@@ -237,6 +260,7 @@
                 if(res.ok){ dlg.close(); location.reload(); } else { alert('Falha ao salvar'); }
             }catch(err){ alert('Erro de rede'); }
         });
+        
         // Fecha menus ao clicar fora
         document.addEventListener('click', (e)=>{
             if(!e.target.closest('.artigo')){
