@@ -1048,6 +1048,8 @@ def login():
 @login_required
 def logout():
     logout_user()
+    # Clear any pending flash messages before redirecting to login
+    session.pop('_flashes', None)
     return redirect(url_for('main.login'))
 
 @bp.route('/educacao')
