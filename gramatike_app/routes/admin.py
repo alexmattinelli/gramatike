@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from gramatike_app.models import User, Estudo, EduContent, ExerciseTopic, ExerciseQuestion, EduTopic, ExerciseSection, Divulgacao
 from gramatike_app.models import EduNovidade
-from gramatike_app.models import Post, Report
+from gramatike_app.models import Post, Report, Comentario
 from gramatike_app.models import BlockedWord
 from gramatike_app import db
 # Lune admin/config removido
@@ -176,6 +176,48 @@ def stats_users():
     
     return {"labels":[str(r[0]) for r in rows], "data":cumulative}
 
+@admin_bp.route('/stats/content.json')
+@login_required
+def stats_content():
+    if not current_user.is_admin:
+        return {"error":"forbidden"}, 403
+    from sqlalchemy import func
+    from gramatike_app.models import EduContent
+    # Agrupar conteúdo Edu por tipo
+    rows = db.session.query(EduContent.tipo, func.count(EduContent.id)).group_by(EduContent.tipo).all()
+    return {"labels":[r[0].capitalize() for r in rows], "data":[r[1] for r in rows]}
+
+@admin_bp.route('/stats/posts.json')
+@login_required
+def stats_posts():
+    if not current_user.is_admin:
+        return {"error":"forbidden"}, 403
+    from sqlalchemy import func
+    from gramatike_app.models import Post
+    from datetime import datetime, timedelta
+    # Posts dos últimos 7 dias
+    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    rows = db.session.query(func.date(Post.data), func.count(Post.id)).filter(Post.data >= seven_days_ago).group_by(func.date(Post.data)).order_by(func.date(Post.data)).all()
+    return {"labels":[str(r[0]) for r in rows], "data":[r[1] for r in rows]}
+
+@admin_bp.route('/stats/activity.json')
+@login_required
+def stats_activity():
+    if not current_user.is_admin:
+        return {"error":"forbidden"}, 403
+    from sqlalchemy import func
+    from gramatike_app.models import Post, EduContent, Comentario
+    # Contagem de diferentes tipos de atividade
+    post_count = db.session.query(func.count(Post.id)).scalar() or 0
+    edu_count = db.session.query(func.count(EduContent.id)).scalar() or 0
+    comment_count = db.session.query(func.count(Comentario.id)).scalar() or 0
+    user_count = db.session.query(func.count(User.id)).scalar() or 0
+    
+    return {
+        "labels": ["Posts", "Conteúdo Edu", "Comentários", "Usuários"],
+        "data": [post_count, edu_count, comment_count, user_count]
+    }
+
 @admin_bp.route('/postar_estudo', methods=['POST'])
 @login_required
 def postar_estudo():
@@ -236,6 +278,18 @@ def edu_publicar():
     extra_dict = {}
     # Autor/Canal opcional (guardado em extra.author)
     autor = request.form.get('autor', '').strip() or None
+    
+    # Validação de limite de palavras para artigos (5000 palavras)
+    if tipo == 'artigo' and corpo:
+        word_count = len(corpo.split())
+        if word_count > 5000:
+            flash(f'O artigo excede o limite de 5000 palavras (atual: {word_count} palavras). Por favor, reduza o conteúdo.')
+            return redirect(url_for('admin.dashboard', _anchor='edu'))
+    
+    # Validação do resumo (1000 caracteres)
+    if resumo and len(resumo) > 1000:
+        flash(f'O resumo excede o limite de 1000 caracteres (atual: {len(resumo)} caracteres). Por favor, reduza o resumo.')
+        return redirect(url_for('admin.dashboard', _anchor='edu'))
     # Upload de apostila (PDF)
     if tipo == 'apostila':
         pdf_file = request.files.get('pdf')
@@ -346,7 +400,16 @@ def edu_publicar():
         flash('Conteúdo publicado!')
     except Exception as e:
         db.session.rollback()
-        flash(f'Erro ao publicar conteúdo: {str(e)}')
+        error_msg = str(e)
+        # Mensagens de erro mais detalhadas
+        if 'too long' in error_msg.lower() or 'data too long' in error_msg.lower():
+            flash(f'Erro: Campo muito longo. Verifique os limites: Resumo (1000 caracteres), Título (220 caracteres). Detalhes: {error_msg}')
+        elif 'resumo' in error_msg.lower():
+            flash(f'Erro no campo Resumo: {error_msg}. Limite: 1000 caracteres.')
+        elif 'titulo' in error_msg.lower():
+            flash(f'Erro no campo Título: {error_msg}. Limite: 220 caracteres.')
+        else:
+            flash(f'Erro ao publicar conteúdo: {error_msg}')
     return redirect(url_for('admin.dashboard', _anchor='edu'))
 
 @admin_bp.route('/promover_admin', methods=['POST'])
