@@ -65,7 +65,7 @@ class EduContent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tipo = db.Column(db.String(40), index=True, nullable=False)
     titulo = db.Column(db.String(220), nullable=False)
-    resumo = db.Column(db.String(400))
+    resumo = db.Column(db.String(1000))
     corpo = db.Column(db.Text)  # texto principal (artigos, apostilas resumo, variação, tema redação)
     url = db.Column(db.String(500))  # link externo (podcast spotify, pdf remoto, etc.)
     file_path = db.Column(db.String(500))  # reservado para upload de PDFs futuramente
