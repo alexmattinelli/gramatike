@@ -32,6 +32,14 @@
                 .exercise { background:var(--card); border:1px solid var(--border); border-radius:26px; padding:1.3rem 1.35rem 1.1rem; position:relative; box-shadow:0 10px 24px -6px rgba(0,0,0,.10); transition:.3s; margin:0 0 1.8rem; }
                 .exercise:hover { box-shadow:0 18px 46px -10px rgba(0,0,0,.28); transform:translateY(-3px); }
                 .exercise h4 { margin:0 0 .55rem; font-size:1.05rem; color:#6233B5; font-weight:800; letter-spacing:.4px; }
+                .item-menu-trigger { position:absolute; top:10px; right:10px; background:#f1edff; border:1px solid #d6c9f2; border-radius:18px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 10px rgba(155,93,229,.25); }
+                .item-menu { position:absolute; top:46px; right:10px; background:#fff; border:1px solid var(--border); border-radius:14px; box-shadow:0 14px 40px -8px rgba(0,0,0,.25); padding:.35rem 0; min-width:170px; display:none; z-index:30; }
+                .item-menu.show { display:block; }
+                .item-menu button { all:unset; display:block; width:100%; font-size:.7rem; font-weight:700; letter-spacing:.4px; padding:.55rem .85rem .5rem; cursor:pointer; color:#444; }
+                .item-menu button:hover { background:#f1edff; color:#6233B5; }
+                .item-menu form button.danger { color:#b42318; }
+                .item-menu form button.danger:hover { background:#ffe4e1; }
+                .item-menu form { margin:0; padding:0; }
                 .question { font-size:.85rem; font-weight:700; margin:.9rem 0 .4rem; color:#222; }
                 .options label { display:block; margin:.25rem 0; cursor:pointer; font-size:.78rem; font-weight:600; color:#444; }
                 textarea { width:100%; min-height:90px; border:1px solid #cfd5e3; border-radius:14px; padding:.7rem .85rem; font-family:inherit; font-size:.8rem; background:#f9f7ff; }
@@ -81,14 +89,26 @@
                 {% for bloco in estrutura %}
                 {% if bloco.sections or bloco.unsectioned %}
                 <div id="etopico-{{ bloco.topic.id }}" style="margin-bottom:2.5rem;">
-                        <h3 style="margin:0 0 .6rem; font-size:1.35rem; color:#2c3e50;">{{ bloco.topic.nome }}</h3>
                         {% if bloco.sections %}
                                 {% for sec in bloco.sections %}
                                         {% if sec.questions %}
                                         <div class="exercise">
                                                 <h4>{{ sec.section.nome }}</h4>
                                                 {% for qobj in sec.questions %}
-                                                        <div class="question">{{ loop.index }}. {{ qobj.enunciado }}</div>
+                                                        <div class="question" style="position:relative;">
+                                                                {{ loop.index }}. {{ qobj.enunciado }}
+                                                                {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+                                                                <button class="item-menu-trigger" aria-label="Menu"><span aria-hidden="true" style="font-size:18px; line-height:0; color:#6233B5;">⋮</span></button>
+                                                                <div class="item-menu" role="menu">
+                                                                        <button type="button" data-edit="{{ qobj.id }}">Editar</button>
+                                                                        <button type="button" data-view-answer="{{ qobj.id }}" data-resposta="{{ qobj.resposta|e }}">Ver Resposta</button>
+                                                                        <form method="POST" action="/admin/edu/question/{{ qobj.id }}/delete" onsubmit="return confirm('Excluir esta questão?');">
+                                                                                <input type="hidden" name="next" value="{{ request.url }}" />
+                                                                                <button type="submit" class="danger">Excluir</button>
+                                                                        </form>
+                                                                </div>
+                                                                {% endif %}
+                                                        </div>
                                                         <div data-qid="{{ qobj.id }}" class="q-block" data-tipo="{{ qobj.tipo }}" data-opcoes="{{ qobj.opcoes|e }}" data-resposta="{{ qobj.resposta|e }}"></div>
                                                 {% endfor %}
                                         </div>
@@ -99,7 +119,20 @@
                         <div class="exercise">
                                 <h4>Sem sessão</h4>
                                 {% for qobj in bloco.unsectioned %}
-                                        <div class="question">{{ loop.index }}. {{ qobj.enunciado }}</div>
+                                        <div class="question" style="position:relative;">
+                                                {{ loop.index }}. {{ qobj.enunciado }}
+                                                {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+                                                <button class="item-menu-trigger" aria-label="Menu"><span aria-hidden="true" style="font-size:18px; line-height:0; color:#6233B5;">⋮</span></button>
+                                                <div class="item-menu" role="menu">
+                                                        <button type="button" data-edit="{{ qobj.id }}">Editar</button>
+                                                        <button type="button" data-view-answer="{{ qobj.id }}" data-resposta="{{ qobj.resposta|e }}">Ver Resposta</button>
+                                                        <form method="POST" action="/admin/edu/question/{{ qobj.id }}/delete" onsubmit="return confirm('Excluir esta questão?');">
+                                                                <input type="hidden" name="next" value="{{ request.url }}" />
+                                                                <button type="submit" class="danger">Excluir</button>
+                                                        </form>
+                                                </div>
+                                                {% endif %}
+                                        </div>
                                         <div data-qid="{{ qobj.id }}" class="q-block" data-tipo="{{ qobj.tipo }}" data-opcoes="{{ qobj.opcoes|e }}" data-resposta="{{ qobj.resposta|e }}"></div>
                                 {% endfor %}
                         </div>
@@ -109,6 +142,55 @@
                 {% endfor %}
                 {% if not estrutura %}<p>Nenhum exercício.</p>{% endif %}
                 </main>
+
+        <!-- Modal de Edição de Questão -->
+        <dialog id="editQuestionDialog" style="border:none; border-radius:20px; padding:0; max-width:600px; width:90%;">
+                <form id="editQuestionForm" method="POST" style="display:grid; gap:.9rem; padding:1.5rem;">
+                        <h3 style="margin:0; font-size:1.3rem; color:#6233B5;">Editar Questão</h3>
+                        <input type="hidden" id="eq_id" name="id" />
+                        <input type="hidden" id="eq_next" name="next" />
+                        
+                        <label style="display:grid; gap:.3rem;">
+                                <span style="font-size:.75rem; font-weight:700; color:#666;">Enunciado</span>
+                                <textarea id="eq_enunciado" name="enunciado" required style="min-height:100px; border:1px solid #cfd7e2; border-radius:10px; padding:.65rem .75rem; font-size:.85rem;"></textarea>
+                        </label>
+                        
+                        <label style="display:grid; gap:.3rem;">
+                                <span style="font-size:.75rem; font-weight:700; color:#666;">Resposta</span>
+                                <textarea id="eq_resposta" name="resposta" style="min-height:80px; border:1px solid #cfd7e2; border-radius:10px; padding:.65rem .75rem; font-size:.85rem;"></textarea>
+                        </label>
+                        
+                        <label style="display:grid; gap:.3rem;">
+                                <span style="font-size:.75rem; font-weight:700; color:#666;">Tipo</span>
+                                <select id="eq_tipo" name="tipo" style="border:1px solid #cfd7e2; border-radius:10px; padding:.65rem .75rem; font-size:.85rem;">
+                                        <option value="multipla_escolha">Múltipla Escolha</option>
+                                        <option value="verdadeiro_falso">Verdadeiro/Falso</option>
+                                        <option value="lacunas">Preencher Lacunas</option>
+                                        <option value="discursiva">Discursiva</option>
+                                </select>
+                        </label>
+                        
+                        <label style="display:grid; gap:.3rem;">
+                                <span style="font-size:.75rem; font-weight:700; color:#666;">Opções (JSON)</span>
+                                <textarea id="eq_opcoes" name="opcoes" style="min-height:60px; border:1px solid #cfd7e2; border-radius:10px; padding:.65rem .75rem; font-size:.85rem; font-family:monospace;"></textarea>
+                        </label>
+                        
+                        <label style="display:grid; gap:.3rem;">
+                                <span style="font-size:.75rem; font-weight:700; color:#666;">Dificuldade</span>
+                                <select id="eq_dificuldade" name="dificuldade" style="border:1px solid #cfd7e2; border-radius:10px; padding:.65rem .75rem; font-size:.85rem;">
+                                        <option value="">Nenhuma</option>
+                                        <option value="facil">Fácil</option>
+                                        <option value="media">Média</option>
+                                        <option value="dificil">Difícil</option>
+                                </select>
+                        </label>
+                        
+                        <menu style="display:flex; gap:.6rem; justify-content:flex-end; margin:0; padding-top:.6rem;">
+                                <button type="button" id="eq_cancel" style="padding:.65rem 1.2rem; border:1px solid #cfd7e2; background:#f9f9f9; border-radius:12px; font-weight:700; cursor:pointer;">Cancelar</button>
+                                <button type="submit" style="padding:.65rem 1.2rem; border:none; background:#9B5DE5; color:#fff; border-radius:12px; font-weight:700; cursor:pointer;">Salvar</button>
+                        </menu>
+                </form>
+        </dialog>
 
         <footer>© 2025 Gramátike • Inclusão e Gênero Neutro</footer>
 
@@ -150,6 +232,90 @@ document.addEventListener('click',e=>{
             fb.textContent = palavras.length ? `Palavras-chave encontradas: ${hits.length}/${palavras.length}` : 'Enviado!'; fb.style.color= hits.length===palavras.length ? 'green':'#c47';
         }
     }
+});
+
+// Menu toggle functionality
+document.addEventListener('click', e => {
+    const trigger = e.target.closest('.item-menu-trigger');
+    if (trigger) {
+        e.preventDefault();
+        e.stopPropagation();
+        const menu = trigger.nextElementSibling;
+        if (menu && menu.classList.contains('item-menu')) {
+            // Close all other menus
+            document.querySelectorAll('.item-menu.show').forEach(m => {
+                if (m !== menu) m.classList.remove('show');
+            });
+            menu.classList.toggle('show');
+        }
+        return;
+    }
+    
+    // Edit button - load question data and show modal
+    const editBtn = e.target.closest('[data-edit]');
+    if (editBtn) {
+        e.preventDefault();
+        const id = editBtn.getAttribute('data-edit');
+        fetch(`/admin/edu/question/${id}.json`)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('eq_id').value = data.id;
+                document.getElementById('eq_enunciado').value = data.enunciado || '';
+                document.getElementById('eq_resposta').value = data.resposta || '';
+                document.getElementById('eq_tipo').value = data.tipo || 'multipla_escolha';
+                document.getElementById('eq_opcoes').value = data.opcoes || '';
+                document.getElementById('eq_dificuldade').value = data.dificuldade || '';
+                document.getElementById('eq_next').value = window.location.href;
+                document.getElementById('editQuestionDialog').showModal();
+            })
+            .catch(err => {
+                alert('Erro ao carregar dados da questão');
+                console.error(err);
+            });
+        return;
+    }
+    
+    // View answer button
+    const viewBtn = e.target.closest('[data-view-answer]');
+    if (viewBtn) {
+        e.preventDefault();
+        const resposta = viewBtn.getAttribute('data-resposta');
+        alert(resposta || 'Sem resposta cadastrada');
+        return;
+    }
+    
+    // Close menus when clicking outside
+    if (!e.target.closest('.item-menu')) {
+        document.querySelectorAll('.item-menu.show').forEach(m => m.classList.remove('show'));
+    }
+});
+
+// Modal edit form submission
+document.getElementById('editQuestionForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const id = document.getElementById('eq_id').value;
+    
+    fetch(`/admin/edu/question/${id}/update`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => {
+        if (r.redirected) {
+            window.location.href = r.url;
+        } else {
+            return r.text();
+        }
+    })
+    .catch(err => {
+        alert('Erro ao atualizar questão');
+        console.error(err);
+    });
+});
+
+// Modal cancel button
+document.getElementById('eq_cancel').addEventListener('click', () => {
+    document.getElementById('editQuestionDialog').close();
 });
 </script>
 </body>

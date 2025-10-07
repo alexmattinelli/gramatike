@@ -605,6 +605,57 @@ def edu_create_question():
     flash('Questão adicionada.')
     return redirect(url_for('admin.dashboard', _anchor='edu'))
 
+@admin_bp.route('/edu/question/<int:question_id>.json')
+@login_required
+def get_question_json(question_id: int):
+    if not current_user.is_admin:
+        return {"error":"forbidden"}, 403
+    q = ExerciseQuestion.query.get_or_404(question_id)
+    return {
+        "id": q.id,
+        "topic_id": q.topic_id,
+        "section_id": q.section_id,
+        "enunciado": q.enunciado,
+        "resposta": q.resposta,
+        "dificuldade": q.dificuldade,
+        "tipo": q.tipo,
+        "opcoes": q.opcoes
+    }
+
+@admin_bp.route('/edu/question/<int:question_id>/update', methods=['POST'])
+@login_required
+def update_question(question_id: int):
+    if not current_user.is_admin:
+        return redirect(url_for('main.index'))
+    q = ExerciseQuestion.query.get_or_404(question_id)
+    q.enunciado = request.form.get('enunciado','').strip() or q.enunciado
+    q.resposta = request.form.get('resposta','').strip() or None
+    q.dificuldade = request.form.get('dificuldade','').strip() or None
+    q.tipo = request.form.get('tipo','').strip() or q.tipo
+    q.opcoes = request.form.get('opcoes','').strip() or None
+    topic_id = request.form.get('topic_id')
+    if topic_id:
+        q.topic_id = int(topic_id)
+    section_id = request.form.get('section_id')
+    if section_id:
+        q.section_id = int(section_id) if section_id != '' else None
+    db.session.commit()
+    flash('Questão atualizada.')
+    next_url = request.form.get('next') or request.referrer or url_for('main.exercicios')
+    return redirect(next_url)
+
+@admin_bp.route('/edu/question/<int:question_id>/delete', methods=['POST'])
+@login_required
+def delete_question(question_id: int):
+    if not current_user.is_admin:
+        return redirect(url_for('main.index'))
+    q = ExerciseQuestion.query.get_or_404(question_id)
+    db.session.delete(q)
+    db.session.commit()
+    flash('Questão excluída.')
+    next_url = request.form.get('next') or request.referrer or url_for('main.exercicios')
+    return redirect(next_url)
+
 @admin_bp.route('/exercicios/section', methods=['POST'])
 @login_required
 def exercicios_create_section():
