@@ -1780,7 +1780,9 @@ def exercicios():
             unsec_q = unsec_q.filter(ExerciseQuestion.enunciado.ilike(like))
         unsec_list = unsec_q.order_by(ExerciseQuestion.created_at.desc()).all()
         data.append({'topic': t, 'sections': section_blocks, 'unsectioned': unsec_list})
-    return render_template('exercicios.html', etopics=topics, q=q, estrutura=data)
+    # Only include topics that have questions in the navigation
+    etopics = [bloco['topic'] for bloco in data if bloco['sections'] or bloco['unsectioned']]
+    return render_template('exercicios.html', etopics=etopics, q=q, estrutura=data)
 
 @bp.route('/videos')
 def videos():

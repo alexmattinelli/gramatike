@@ -79,6 +79,7 @@
                 {% endif %}
 
                 {% for bloco in estrutura %}
+                {% if bloco.sections or bloco.unsectioned %}
                 <div id="etopico-{{ bloco.topic.id }}" style="margin-bottom:2.5rem;">
                         <h3 style="margin:0 0 .6rem; font-size:1.35rem; color:#2c3e50;">{{ bloco.topic.nome }}</h3>
                         {% if bloco.sections %}
@@ -103,10 +104,8 @@
                                 {% endfor %}
                         </div>
                         {% endif %}
-                        {% if not bloco.sections and not bloco.unsectioned %}
-                        <p style="font-size:.85rem; color:#666;">Nenhuma questão ainda.</p>
-                        {% endif %}
                 </div>
+                {% endif %}
                 {% endfor %}
                 {% if not estrutura %}<p>Nenhum exercício.</p>{% endif %}
                 </main>
