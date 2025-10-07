@@ -204,7 +204,6 @@
                     </div>
                     <button type="submit">Promover</button>
                 </form>
-                <p class="small-muted" style="margin:.2rem 0 0;">Busca primeiro por username; se não achar, tenta email. Não afeta superadmin.</p>
             </div>
             <div class="card" style="margin:0 0 1rem;">
                 <h4>Moderação — Palavras bloqueadas</h4>
@@ -344,12 +343,10 @@
                 {% endif %}
             </div>
             {% endif %}
-            <p id="legenda-usuarios" class="small-muted" style="margin:.6rem 0 0;">Tabela de gerenciamento de usuáries com ações administrativas.</p>
         </section>
 
         <section class="tab-panel" id="tab-analytics">
             <h2 style="margin-top:0;">Analytics</h2>
-            <p class="small-muted">Análise e métricas do sistema.</p>
             <div class="card" style="margin:0 0 1rem;">
                 <h4>Crescimento de Usuáries</h4>
                 <canvas id="usersChart" height="120" style="width:100%;"></canvas>
@@ -358,7 +355,6 @@
 
         <section class="tab-panel" id="tab-publi">
             <h2 style="margin-top:0;">Publi / Divulgação</h2>
-            <p class="small-muted">Espaço para gerenciar conteúdos promocionais, avisos, banners e chamadas de destaque. (Placeholder inicial)</p>
             <div class="cards-grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));">
                 <div class="card">
                     <h4 style="margin:0 0 .8rem; font-size:.85rem; letter-spacing:.5px;">Nova Divulgação</h4>
@@ -1110,7 +1106,6 @@
                                 {% for t in edu_topics if t.area=='video' %}<option value="{{ t.id }}">{{ t.nome }}</option>{% endfor %}
                             </select>
                             <input name="url" id="video-url" placeholder="Link do vídeo (YouTube, Vimeo, TikTok...)" required />
-                            <small class="muted-inline">Cole o link/iframe da plataforma. Um preview aparecerá abaixo quando possível.</small>
                             <div id="video-preview" style="margin-top:.6rem; padding:.6rem; border:1px dashed #cfd7e2; border-radius:10px; background:#f9fbfd; display:none;"></div>
                             <label style="font-size:.62rem; font-weight:600; text-transform:uppercase; letter-spacing:.55px; color:#48515c; margin-top:.5rem;">Thumb (opcional)</label>
                             <input type="file" name="thumb" id="video-thumb" accept="image/png,image/jpeg,image/webp,image/gif" />
@@ -1238,7 +1233,6 @@
 
     <section class="tab-panel" id="tab-gramatike">
             <h2 style="margin-top:0;">Gramátike</h2>
-            <p class="small-muted">Denúncias de posts e ações rápidas.</p>
             <div class="cards-grid">
                 <div class="card" id="card-suporte" style="position:relative;">
                     <h4 style="display:flex;align-items:center;gap:.5rem;">Suporte <span id="badge-suporte" style="display:none;background:#ff9800;color:#fff;font-size:.6rem;padding:.2rem .45rem;border-radius:40px;letter-spacing:.5px;">0</span></h4>
