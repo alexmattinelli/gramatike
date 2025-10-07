@@ -143,28 +143,13 @@
             Gramatike
           </a>
         </div>
-        <div class="side-card">
-          <h3>ℹ️ Informações</h3>
-          <p>Espaço de aprendizado e convivência, feito para todes de forma inclusiva e respeitosa<strong>@gramatike</strong>.</p>
-          <p style="font-size:.58rem; font-weight:700; letter-spacing:.55px; color:#6233B5;">Atualizado em {{ generated_at.strftime('%d/%m/%Y %H:%M') if generated_at else '' }}</p>
-          {% if novidades and novidades|length > 0 %}
-          <div style="margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e5e7eb;">
-            <h4 style="font-size:.65rem; font-weight:700; letter-spacing:.5px; margin:0 0 .5rem; color:#6233B5;">📢 Últimas Novidades</h4>
-            <div style="display:flex; flex-direction:column; gap:.5rem;">
-              {% for n in novidades[:5] %}
-              <div style="padding:.45rem .5rem; background:#f9fafb; border-radius:10px; border-left:3px solid #9B5DE5;">
-                <strong style="display:block; font-size:.6rem; color:#333; margin-bottom:.2rem;">{{ n.titulo }}</strong>
-                {% if n.descricao %}
-                <p style="margin:0; font-size:.55rem; color:#666; line-height:1.3;">{{ n.descricao[:80] }}{{ '...' if n.descricao|length > 80 else '' }}</p>
-                {% endif %}
-                {% if n.link %}
-                <a href="{{ n.link }}" target="_blank" style="display:inline-block; margin-top:.3rem; font-size:.52rem; font-weight:600; color:#9B5DE5; text-decoration:none;">Ver mais →</a>
-                {% endif %}
-              </div>
-              {% endfor %}
+        <div class="side-card" id="palavra-do-dia-card">
+          <h3>💜 Palavras do Dia</h3>
+          <div id="palavra-do-dia-content">
+            <div style="text-align:center; padding:1rem;">
+              <div style="font-size:.65rem; color:#999;">Carregando...</div>
             </div>
           </div>
-          {% endif %}
         </div>
         <div class="side-card">
           <h3>📣 Divulgação</h3>
@@ -240,6 +225,135 @@
     // carga inicial
     search('');
   })();
+
+  // Palavras do Dia
+  (function(){
+    const container = document.getElementById('palavra-do-dia-content');
+    if(!container) return;
+    
+    // Carrega palavra do dia
+    fetch('/api/palavra-do-dia')
+      .then(r => r.json())
+      .then(data => {
+        if(data.error){
+          container.innerHTML = '<div style="text-align:center; padding:1rem; font-size:.65rem; color:#999;">Nenhuma palavra disponível</div>';
+          return;
+        }
+        
+        const { id, palavra, significado, ja_interagiu } = data;
+        
+        if(ja_interagiu){
+          // Usuário já interagiu hoje
+          container.innerHTML = `
+            <div style="padding:.8rem; background:#f1edff; border-radius:16px; text-align:center;">
+              <div style="font-size:1.1rem; font-weight:800; color:#6233B5; margin-bottom:.5rem;">${palavra}</div>
+              <div style="font-size:.65rem; color:#666; margin-bottom:.8rem;">${significado}</div>
+              <div style="font-size:.65rem; font-weight:700; color:#9B5DE5;">✨ Incrível! Hoje tu aprendeu uma nova forma de incluir todes 💜</div>
+            </div>
+          `;
+        } else {
+          // Mostra opções de interação
+          container.innerHTML = `
+            <div style="padding:.8rem;">
+              <div style="font-size:1.1rem; font-weight:800; color:#6233B5; margin-bottom:.5rem; text-align:center;">${palavra}</div>
+              <div style="display:flex; flex-direction:column; gap:.6rem; margin-top:.8rem;">
+                <button onclick="mostrarFormularioFrase(${id}, '${palavra}')" style="padding:.65rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; font-size:.7rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:.4rem; transition:.2s;">
+                  ✍️ Quero criar uma frase
+                </button>
+                <button onclick="mostrarSignificado(${id}, '${significado}')" style="padding:.65rem; background:#fff; color:#6233B5; border:1.5px solid #6233B5; border-radius:14px; font-size:.7rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:.4rem; transition:.2s;">
+                  🔍 Quero saber o significado
+                </button>
+              </div>
+            </div>
+          `;
+        }
+      })
+      .catch(() => {
+        container.innerHTML = '<div style="text-align:center; padding:1rem; font-size:.65rem; color:#999;">Erro ao carregar</div>';
+      });
+  })();
+
+  // Funções para interação com Palavras do Dia
+  window.mostrarFormularioFrase = function(palavraId, palavra){
+    const container = document.getElementById('palavra-do-dia-content');
+    container.innerHTML = `
+      <div style="padding:.8rem;">
+        <div style="font-size:.9rem; font-weight:800; color:#6233B5; margin-bottom:.6rem; text-align:center;">Crie uma frase com "${palavra}"</div>
+        <textarea id="frase-input" placeholder="Digite sua frase aqui..." style="width:100%; min-height:80px; padding:.6rem; border:1.5px solid #e5e7eb; border-radius:12px; font-size:.65rem; font-family:inherit; resize:vertical;"></textarea>
+        <div style="display:flex; gap:.5rem; margin-top:.6rem;">
+          <button onclick="enviarFrase(${palavraId})" style="flex:1; padding:.6rem; background:#9B5DE5; color:#fff; border:none; border-radius:12px; font-size:.65rem; font-weight:700; cursor:pointer;">Enviar</button>
+          <button onclick="location.reload()" style="flex:1; padding:.6rem; background:#f3f4f6; color:#666; border:none; border-radius:12px; font-size:.65rem; font-weight:700; cursor:pointer;">Cancelar</button>
+        </div>
+      </div>
+    `;
+  };
+
+  window.mostrarSignificado = function(palavraId, significado){
+    const container = document.getElementById('palavra-do-dia-content');
+    container.innerHTML = `
+      <div style="padding:.8rem;">
+        <div style="padding:.8rem; background:#f1edff; border-radius:14px; margin-bottom:.8rem;">
+          <div style="font-size:.65rem; line-height:1.5; color:#333;">${significado}</div>
+        </div>
+        <button onclick="registrarVisualizacao(${palavraId})" style="width:100%; padding:.65rem; background:#9B5DE5; color:#fff; border:none; border-radius:12px; font-size:.65rem; font-weight:700; cursor:pointer;">Entendi! 💜</button>
+      </div>
+    `;
+  };
+
+  window.enviarFrase = function(palavraId){
+    const fraseInput = document.getElementById('frase-input');
+    const frase = fraseInput ? fraseInput.value.trim() : '';
+    
+    if(!frase){
+      alert('Por favor, escreva uma frase.');
+      return;
+    }
+    
+    fetch('/api/palavra-do-dia/interagir', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ palavra_id: palavraId, tipo: 'frase', frase })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.error){
+        alert(data.error);
+        return;
+      }
+      const container = document.getElementById('palavra-do-dia-content');
+      container.innerHTML = `
+        <div style="padding:.8rem; text-align:center;">
+          <div style="font-size:.8rem; font-weight:700; color:#9B5DE5; margin-bottom:.5rem;">✨ ${data.mensagem}</div>
+          <div style="padding:.7rem; background:#f9fafb; border-radius:12px; margin-top:.6rem;">
+            <div style="font-size:.6rem; color:#666; font-style:italic;">"${frase}"</div>
+          </div>
+        </div>
+      `;
+    })
+    .catch(() => alert('Erro ao enviar frase'));
+  };
+
+  window.registrarVisualizacao = function(palavraId){
+    fetch('/api/palavra-do-dia/interagir', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ palavra_id: palavraId, tipo: 'significado' })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.error){
+        alert(data.error);
+        return;
+      }
+      const container = document.getElementById('palavra-do-dia-content');
+      container.innerHTML = `
+        <div style="padding:.8rem; text-align:center;">
+          <div style="font-size:.8rem; font-weight:700; color:#9B5DE5;">✨ ${data.mensagem}</div>
+        </div>
+      `;
+    })
+    .catch(() => alert('Erro ao registrar visualização'));
+  };
   </script>
   <footer>© 2025 Gramátike • Inclusão e Gênero Neutro</footer>
 </body>

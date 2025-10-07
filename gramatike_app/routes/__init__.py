@@ -2242,3 +2242,91 @@ from sqlalchemy import func
 ## Todas as rotas do Lune removidas
 
 
+
+## Palavras do Dia - Feature educacional inclusiva
+
+@bp.route('/api/palavra-do-dia')
+def api_palavra_do_dia():
+    """Retorna a palavra do dia com base na data atual (rotação diária)."""
+    from gramatike_app.models import PalavraDoDia
+    from datetime import datetime
+    
+    # Busca palavras ativas ordenadas
+    palavras = PalavraDoDia.query.filter_by(ativo=True).order_by(PalavraDoDia.ordem.asc()).all()
+    
+    if not palavras:
+        return jsonify({'error': 'Nenhuma palavra cadastrada'}), 404
+    
+    # Calcula índice baseado no dia do ano para rotação diária
+    dia_do_ano = datetime.utcnow().timetuple().tm_yday
+    indice = dia_do_ano % len(palavras)
+    palavra = palavras[indice]
+    
+    # Verifica se usuário já interagiu hoje
+    ja_interagiu = False
+    if current_user.is_authenticated:
+        from gramatike_app.models import PalavraDoDiaInteracao
+        hoje = datetime.utcnow().date()
+        interacao_hoje = PalavraDoDiaInteracao.query.filter(
+            PalavraDoDiaInteracao.palavra_id == palavra.id,
+            PalavraDoDiaInteracao.usuario_id == current_user.id,
+            func.date(PalavraDoDiaInteracao.created_at) == hoje
+        ).first()
+        ja_interagiu = interacao_hoje is not None
+    
+    return jsonify({
+        'id': palavra.id,
+        'palavra': palavra.palavra,
+        'significado': palavra.significado,
+        'ja_interagiu': ja_interagiu
+    })
+
+@bp.route('/api/palavra-do-dia/interagir', methods=['POST'])
+@login_required
+def api_palavra_do_dia_interagir():
+    """Registra interação do usuário com a palavra do dia."""
+    from gramatike_app.models import PalavraDoDia, PalavraDoDiaInteracao
+    from datetime import datetime
+    
+    data = request.get_json() or {}
+    palavra_id = data.get('palavra_id')
+    tipo = data.get('tipo')  # 'frase' ou 'significado'
+    frase = data.get('frase', '').strip()
+    
+    if not palavra_id or not tipo:
+        return jsonify({'error': 'Dados incompletos'}), 400
+    
+    if tipo not in ['frase', 'significado']:
+        return jsonify({'error': 'Tipo inválido'}), 400
+    
+    palavra = PalavraDoDia.query.get_or_404(palavra_id)
+    
+    # Verifica se já interagiu hoje
+    hoje = datetime.utcnow().date()
+    interacao_existente = PalavraDoDiaInteracao.query.filter(
+        PalavraDoDiaInteracao.palavra_id == palavra_id,
+        PalavraDoDiaInteracao.usuario_id == current_user.id,
+        func.date(PalavraDoDiaInteracao.created_at) == hoje
+    ).first()
+    
+    if interacao_existente:
+        return jsonify({'error': 'Você já interagiu com a palavra de hoje'}), 400
+    
+    # Valida frase se for tipo 'frase'
+    if tipo == 'frase':
+        if not frase:
+            return jsonify({'error': 'Frase não pode estar vazia'}), 400
+        if len(frase) > 500:
+            return jsonify({'error': 'Frase muito longa (máximo 500 caracteres)'}), 400
+    
+    # Registra interação
+    interacao = PalavraDoDiaInteracao(
+        palavra_id=palavra_id,
+        usuario_id=current_user.id,
+        tipo=tipo,
+        frase=frase if tipo == 'frase' else None
+    )
+    db.session.add(interacao)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'mensagem': 'Incrível! Hoje tu aprendeu uma nova forma de incluir todes 💜'})
