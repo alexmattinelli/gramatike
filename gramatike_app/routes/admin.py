@@ -86,7 +86,13 @@ def dashboard():
                     print('[WARN] fallback schema blocked_word:', _bw)
     except Exception as _e:
         print('[WARN] fallback schema edu_content/topic_id:', _e)
-    usuaries = User.query.all()
+    
+    # Pagination for users
+    users_page = request.args.get('users_page', 1, type=int)
+    users_per_page = 10
+    users_pagination = User.query.paginate(page=users_page, per_page=users_per_page, error_out=False)
+    usuaries = users_pagination.items
+    
     estudos = Estudo.query.order_by(Estudo.id.desc()).all()
     edu_latest = EduContent.query.order_by(EduContent.created_at.desc()).limit(12).all()
     edu_topics = EduTopic.query.order_by(EduTopic.area.asc(), EduTopic.nome.asc()).all()
@@ -97,13 +103,19 @@ def dashboard():
     for s in sections:
         sections_map.setdefault(s.topic_id, []).append({'id': s.id, 'nome': s.nome})
     from datetime import datetime
-    reports = Report.query.order_by(Report.data.desc()).limit(50).all()
+    
+    # Pagination for reports
+    reports_page = request.args.get('reports_page', 1, type=int)
+    reports_per_page = 10
+    reports_pagination = Report.query.order_by(Report.data.desc()).paginate(page=reports_page, per_page=reports_per_page, error_out=False)
+    reports = reports_pagination.items
+    
     now = datetime.utcnow()
     # Divulgações (cards de destaque curados manualmente)
     divulgacoes = Divulgacao.query.order_by(Divulgacao.area.asc(), Divulgacao.ordem.asc(), Divulgacao.created_at.desc()).all()
     novidades = EduNovidade.query.order_by(EduNovidade.created_at.desc()).limit(30).all()
     blocked_words = BlockedWord.query.order_by(BlockedWord.created_at.desc()).all()
-    return render_template('admin/dashboard.html', usuaries=usuaries, estudos=estudos, edu_latest=edu_latest, topics=topics, sections=sections, sections_map=sections_map, reports=reports, now=now, current_year=datetime.now().year, edu_topics=edu_topics, novidades=novidades, divulgacoes=divulgacoes, blocked_words=blocked_words)
+    return render_template('admin/dashboard.html', usuaries=usuaries, estudos=estudos, edu_latest=edu_latest, topics=topics, sections=sections, sections_map=sections_map, reports=reports, now=now, current_year=datetime.now().year, edu_topics=edu_topics, novidades=novidades, divulgacoes=divulgacoes, blocked_words=blocked_words, users_pagination=users_pagination, reports_pagination=reports_pagination)
 
 @admin_bp.route('/moderation/blocked_words/add', methods=['POST'])
 @login_required
