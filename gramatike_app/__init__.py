@@ -389,7 +389,7 @@ def create_app():
             "media-src 'self' https: data:; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' data: https://fonts.gstatic.com; "
-            "script-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
             "connect-src 'self' https:; "
             "frame-ancestors 'none'; "
             "report-uri /api/csp-report;"
