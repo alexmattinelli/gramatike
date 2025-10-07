@@ -106,6 +106,7 @@
                                                                         <button type="button" data-edit="{{ qobj.id }}">Editar</button>
                                                                         <button type="button" data-view-answer="{{ qobj.id }}" data-resposta="{{ qobj.resposta|e }}">Ver Resposta</button>
                                                                         <form method="POST" action="/admin/edu/question/{{ qobj.id }}/delete" onsubmit="return confirm('Excluir esta questão?');">
+                                                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
                                                                                 <input type="hidden" name="next" value="{{ request.url }}" />
                                                                                 <button type="submit" class="danger">Excluir</button>
                                                                         </form>
@@ -130,6 +131,7 @@
                                                         <button type="button" data-edit="{{ qobj.id }}">Editar</button>
                                                         <button type="button" data-view-answer="{{ qobj.id }}" data-resposta="{{ qobj.resposta|e }}">Ver Resposta</button>
                                                         <form method="POST" action="/admin/edu/question/{{ qobj.id }}/delete" onsubmit="return confirm('Excluir esta questão?');">
+                                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
                                                                 <input type="hidden" name="next" value="{{ request.url }}" />
                                                                 <button type="submit" class="danger">Excluir</button>
                                                         </form>
