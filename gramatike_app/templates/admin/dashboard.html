@@ -881,8 +881,9 @@
                     <div class="edu-box" style="grid-column: span 2;">
                         <h3>Publicar Exercício</h3>
                         <form id="form-exercicio" method="POST" action="{{ url_for('admin.edu_create_question') }}" style="display:flex; flex-direction:column; gap:.6rem;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
                             <div style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:flex-start;">
-                                <select name="topic_id" required style="flex:1; min-width:180px;">
+                                <select name="topic_id" id="ex-topic" required style="flex:1; min-width:180px;">
                                     <option value="">Tópico (Exercício)</option>
                                     {% for t in topics %}<option value="{{ t.id }}">{{ t.nome }}</option>{% endfor %}
                                 </select>
@@ -920,7 +921,7 @@
                             const cont = document.getElementById('ex-campos');
                             const opcoesHidden = document.getElementById('ex-opcoes');
                             const respostaHidden = document.getElementById('ex-resposta');
-                                                        const topicSel = document.querySelector('select[name=topic_id]');
+                                                        const topicSel = document.getElementById('ex-topic');
                                                         const sectionSel = document.getElementById('ex-section');
                                                         function updateSections(){
                                                                 if(!topicSel) return;
