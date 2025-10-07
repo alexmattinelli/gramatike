@@ -259,7 +259,7 @@ document.addEventListener('click', e => {
     if (editBtn) {
         e.preventDefault();
         const id = editBtn.getAttribute('data-edit');
-        fetch(`/admin/edu/question/${id}.json`)
+        fetch(`/admin/edu/question/${id}.json`, { credentials: 'same-origin' })
             .then(r => r.json())
             .then(data => {
                 document.getElementById('eq_id').value = data.id;
@@ -301,7 +301,8 @@ document.getElementById('editQuestionForm').addEventListener('submit', function(
     
     fetch(`/admin/edu/question/${id}/update`, {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'same-origin'
     })
     .then(r => {
         if (r.redirected) {
