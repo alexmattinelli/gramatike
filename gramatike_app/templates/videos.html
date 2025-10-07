@@ -535,7 +535,7 @@
         if(!btn) return;
         const id=btn.getAttribute('data-edit');
         try{
-          const data=await fetch(`/admin/edu/content/${id}.json`).then(r=>r.json());
+          const data=await fetch(`/admin/edu/content/${id}.json`, { credentials: 'same-origin' }).then(r=>r.json());
           ev_id.value=data.id; ev_titulo.value=data.titulo||''; ev_resumo.value=data.resumo||''; ev_autor.value=(data.extra && data.extra.author)?data.extra.author:''; ev_url.value=data.url||'';
           [...ev_topic.options].forEach(o=>o.selected=String(o.value)===String(data.topic_id||''));
           const th=data.extra && data.extra.thumb?data.extra.thumb:null;
@@ -548,7 +548,7 @@
       form.addEventListener('submit', async e=>{
         e.preventDefault();
         const id=ev_id.value; const fd=new FormData(form); if(ev_remove_chk.checked) fd.append('remove_thumb','1');
-        try{ const res=await fetch(`/admin/edu/content/${id}/update`, {method:'POST', body:fd}); if(res.ok){ dlg.close(); location.reload(); } else alert('Falha ao salvar'); }
+        try{ const res=await fetch(`/admin/edu/content/${id}/update`, {method:'POST', body:fd, credentials: 'same-origin'}); if(res.ok){ dlg.close(); location.reload(); } else alert('Falha ao salvar'); }
         catch(err){ alert('Erro de rede'); }
       });
     }

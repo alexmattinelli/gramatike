@@ -209,7 +209,7 @@
                 e.preventDefault();
                 const id = editBtn.getAttribute('data-edit');
                 try{
-                    const data = await fetch(`/admin/edu/content/${id}.json`).then(r=>r.json());
+                    const data = await fetch(`/admin/edu/content/${id}.json`, { credentials: 'same-origin' }).then(r=>r.json());
                     ea_id.value = data.id;
                     ea_titulo.value = data.titulo||'';
                     ea_resumo.value = data.resumo||'';
@@ -263,7 +263,7 @@
             const id = ea_id.value;
             const fd = new FormData(form);
             try{
-                const res = await fetch(`/admin/edu/content/${id}/update`, { method:'POST', body: fd });
+                const res = await fetch(`/admin/edu/content/${id}/update`, { method:'POST', body: fd, credentials: 'same-origin' });
                 if(res.ok){ dlg.close(); location.reload(); } else { alert('Falha ao salvar'); }
             }catch(err){ alert('Erro de rede'); }
         });
