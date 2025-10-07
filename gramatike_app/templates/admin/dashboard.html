@@ -595,7 +595,6 @@
                             <a href="/apostilas" target="_blank" style="text-decoration:none; color:#9B5DE5; font-weight:600;">Ver Apostilas</a>
                             <a href="/artigos" target="_blank" style="text-decoration:none; color:#9B5DE5; font-weight:600;">Ver Artigos</a>
                             <a href="/videos" target="_blank" style="text-decoration:none; color:#9B5DE5; font-weight:600;">Ver Vídeos</a>
-                            <a href="/podcasts" target="_blank" style="text-decoration:none; color:#9B5DE5; font-weight:600;">Ver Podcasts</a>
                         </div>
                     </div>
                 </div>
@@ -1353,10 +1352,18 @@
             // Tabs
             const links = document.querySelectorAll('.tab-link');
             const panels = document.querySelectorAll('.tab-panel');
+            let chartsLoaded = false;
+            
             function activate(tab, push=true){
                 links.forEach(a=>a.classList.toggle('active', a.dataset.tab===tab));
                 panels.forEach(p=>p.classList.toggle('active', p.id==='tab-'+tab));
                 if(push) history.replaceState({},'', '#'+tab);
+                
+                // Load charts when Analytics tab is activated for the first time
+                if(tab === 'analytics' && !chartsLoaded){
+                    chartsLoaded = true;
+                    loadAnalyticsCharts();
+                }
             }
             links.forEach(l=>{
                 l.addEventListener('click', e=>{ e.preventDefault(); activate(l.dataset.tab); });
@@ -1369,7 +1376,8 @@
                 if(anchor) activate(anchor,false);
             }
             // Suporte a tema removido
-            // Gráfico de usuários
+            // Gráfico de usuários - now wrapped in function
+            function loadAnalyticsCharts() {
             fetch("{{ url_for('admin.stats_users') }}").then(r=>r.json()).then(d=>{
                 if(!d || !d.hasOwnProperty('labels') || !d.hasOwnProperty('data')) {
                     console.error('Dados de usuários inválidos:', d);
@@ -1404,6 +1412,7 @@
             }).catch(err => {
                 console.error('Erro ao carregar dados de usuários:', err);
             });
+            }
             // (Busca removida do painel; agora nas páginas públicas)
         </script>
         <script>

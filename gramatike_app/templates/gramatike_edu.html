@@ -147,7 +147,24 @@
           <h3>ℹ️ Informações</h3>
           <p>Espaço de aprendizado e convivência, feito para todes de forma inclusiva e respeitosa<strong>@gramatike</strong>.</p>
           <p style="font-size:.58rem; font-weight:700; letter-spacing:.55px; color:#6233B5;">Atualizado em {{ generated_at.strftime('%d/%m/%Y %H:%M') if generated_at else '' }}</p>
-          <!-- novidades removidas do card de Informações -->
+          {% if novidades and novidades|length > 0 %}
+          <div style="margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e5e7eb;">
+            <h4 style="font-size:.65rem; font-weight:700; letter-spacing:.5px; margin:0 0 .5rem; color:#6233B5;">📢 Últimas Novidades</h4>
+            <div style="display:flex; flex-direction:column; gap:.5rem;">
+              {% for n in novidades[:5] %}
+              <div style="padding:.45rem .5rem; background:#f9fafb; border-radius:10px; border-left:3px solid #9B5DE5;">
+                <strong style="display:block; font-size:.6rem; color:#333; margin-bottom:.2rem;">{{ n.titulo }}</strong>
+                {% if n.descricao %}
+                <p style="margin:0; font-size:.55rem; color:#666; line-height:1.3;">{{ n.descricao[:80] }}{{ '...' if n.descricao|length > 80 else '' }}</p>
+                {% endif %}
+                {% if n.link %}
+                <a href="{{ n.link }}" target="_blank" style="display:inline-block; margin-top:.3rem; font-size:.52rem; font-weight:600; color:#9B5DE5; text-decoration:none;">Ver mais →</a>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
         </div>
         <div class="side-card">
           <h3>📣 Divulgação</h3>
