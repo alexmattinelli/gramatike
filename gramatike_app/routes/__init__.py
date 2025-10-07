@@ -1716,16 +1716,8 @@ def artigos():
     topic_id = request.args.get('topic_id','').strip()
     page = max(int(request.args.get('page', 1) or 1), 1)
     per_page = 9
-    # Novo critério: apenas artigos cujo autor seja admin ou superadmin (ou sem autor definido)
     from sqlalchemy import or_
     query = EduContent.query.filter(EduContent.tipo=='artigo')
-    # Filtro por autor admin - inclui casos onde author_id é NULL
-    admin_filter = or_(
-        EduContent.author_id.is_(None),
-        EduContent.author.has(User.is_admin.is_(True)),
-        EduContent.author.has(User.is_superadmin.is_(True))
-    )
-    query = query.filter(admin_filter)
     if topic_id:
         query = query.filter_by(topic_id=int(topic_id))
     if q:
