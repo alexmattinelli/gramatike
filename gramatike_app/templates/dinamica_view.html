@@ -38,12 +38,18 @@
     <div class="card" style="margin-bottom:1rem;">
       {% if d.descricao %}<p class="muted" style="margin-top:0;">{{ d.descricao }}</p>{% endif %}
       {% if d.tipo == 'oneword' %}
-        <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
-          <label>Digite uma palavra</label>
-          <input type="text" name="word" required />
-          <button type="submit" class="btn primary">Enviar</button>
-        </form>
+        {% if user_response %}
+          <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
+            <strong>✓ Você já respondeu:</strong> {{ user_response.word }}
+          </div>
+        {% else %}
+          <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+            <label>Digite uma palavra</label>
+            <input type="text" name="word" required />
+            <button type="submit" class="btn primary">Enviar</button>
+          </form>
+        {% endif %}
         {% if agg.counts %}
           <h3 style="margin-top:1rem;">Nuvem de palavras</h3>
           <div id="word-cloud" class="cloud" aria-label="Nuvem de palavras"></div>
@@ -99,32 +105,53 @@
           </script>
         {% endif %}
       {% elif d.tipo == 'poll' %}
-        <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="options">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
-          {% for opt in cfg.options %}
-            <label style="display:flex; align-items:center; gap:.5rem;">
-              <input type="radio" name="option" value="{{ loop.index0 }}" required /> {{ opt }}
-            </label>
-          {% endfor %}
-          <button type="submit" class="btn primary" style="margin-top:.6rem;">Votar</button>
-        </form>
+        {% if user_response %}
+          {% set user_option_idx = user_response.option %}
+          {% set user_option_text = cfg.options[user_option_idx] if user_option_idx < (cfg.options|length) else 'Opção inválida' %}
+          <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
+            <strong>✓ Você já votou:</strong> {{ user_option_text }}
+          </div>
+        {% else %}
+          <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="options">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+            {% for opt in cfg.options %}
+              <label style="display:flex; align-items:center; gap:.5rem;">
+                <input type="radio" name="option" value="{{ loop.index0 }}" required /> {{ opt }}
+              </label>
+            {% endfor %}
+            <button type="submit" class="btn primary" style="margin-top:.6rem;">Votar</button>
+          </form>
+        {% endif %}
         {% if agg.counts %}
           {% set total = (agg.counts | sum) if agg.counts else 0 %}
+          {% set colors = ['#9B5DE5', '#F15BB5', '#00BBF9', '#00F5FF', '#FEE440', '#FCA311'] %}
           <h3 style="margin-top:1rem;">Parciais</h3>
           <div class="poll-bars" role="list" aria-label="Resultados parciais da enquete">
             {% for opt in cfg.options %}
               {% set c = agg.counts[loop.index0] if agg.counts else 0 %}
               {% set pct = ( (c * 100.0) / (total if total else 1) ) | round(0, 'floor') %}
+              {% set bar_color = colors[loop.index0 % colors|length] %}
               <div class="poll-row" role="listitem">
                 <div class="poll-label">{{ opt }}</div>
                 <div class="poll-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ pct }}" aria-label="{{ opt }}: {{ pct }}%">
-                  <div class="poll-fill" data-pct="{{ '%d' % pct }}"></div>
+                  <div class="poll-fill" data-pct="{{ '%d' % pct }}" style="background:{{ bar_color }};"></div>
                 </div>
-                <div class="poll-pct">{{ '%d' % pct }}%</div>
+                <div class="poll-pct">{{ '%d' % pct }}% ({{ c }})</div>
               </div>
             {% endfor %}
           </div>
           <div class="muted" style="margin-top:.4rem; font-size:.75rem;">Total de votos: {{ total }}</div>
+          <script>
+            (function(){
+              try{
+                document.querySelectorAll('.poll-fill[data-pct]').forEach(function(el){
+                  var pct = parseInt(el.getAttribute('data-pct'), 10) || 0;
+                  pct = Math.max(0, Math.min(100, pct));
+                  el.style.width = pct + '%';
+                });
+              }catch(e){}
+            })();
+          </script>
         {% endif %}
       {% elif d.tipo == 'form' %}
         <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="dinamica-form" style="display:flex;flex-direction:column;gap:12px;">
@@ -156,17 +183,6 @@
           {% endfor %}
           <button type="submit" class="btn primary" style="align-self:flex-start;padding:10px 16px;border:none;border-radius:8px;cursor:pointer;">Enviar</button>
         </form>
-        <script>
-          (function(){
-            try{
-              document.querySelectorAll('.poll-fill[data-pct]').forEach(function(el){
-                var pct = parseInt(el.getAttribute('data-pct'), 10) || 0;
-                pct = Math.max(0, Math.min(100, pct));
-                el.style.width = pct + '%';
-              });
-            }catch(e){}
-          })();
-        </script>
       {% endif %}
     </div>
   </main>

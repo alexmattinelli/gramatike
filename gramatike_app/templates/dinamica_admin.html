@@ -63,8 +63,10 @@
       <div class="card" style="margin-bottom:1rem;">
         <h3 style="margin-top:0;">Parciais da enquete</h3>
         {% set opts = cfg.get('options', []) %}
+        {% set colors = ['#9B5DE5', '#F15BB5', '#00BBF9', '#00F5FF', '#FEE440', '#FCA311'] %}
         {% if agg.counts %}
           {% for opt in opts %}
+            {% set bar_color = colors[loop.index0 % colors|length] %}
             <div style="margin:.35rem 0;">
               <div style="display:flex; justify-content:space-between;">
                 <strong>{{ opt }}</strong>
@@ -75,7 +77,7 @@
                 {% for n in agg.counts %}{% set total = total + n %}{% endfor %}
                 {% set pct = (agg.counts[loop.index0] / (total if total>0 else 1)) * 100 %}
                 {% set pct_str = '%.1f' % pct %}
-                <div class="bar-fill" data-w="{{ pct_str }}" style="height:100%; background:#9B5DE5;"></div>
+                <div class="bar-fill" data-w="{{ pct_str }}" style="height:100%; background:{{ bar_color }};"></div>
               </div>
             </div>
           {% endfor %}

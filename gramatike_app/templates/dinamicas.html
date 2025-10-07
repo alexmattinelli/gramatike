@@ -95,6 +95,12 @@
                       {% if d.active %}Finalizar{% else %}Ativar{% endif %}
                     </button>
                   </form>
+                  <form method="POST" action="{{ url_for('main.dinamica_delete', dyn_id=d.id) }}" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta dinâmica? Esta ação não pode ser desfeita.');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+                    <button type="submit" class="btn" style="background:#dc3545;color:#fff;">
+                      Excluir
+                    </button>
+                  </form>
                 </div>
               </div>
             {% endfor %}
