@@ -1,14 +1,13 @@
+# api/index.py
 # Vercel Python entrypoint for Flask (WSGI)
 # Exposes `app` so Vercel can detect and serve the Flask application.
 
 from gramatike_app import create_app
 
-# Create the Flask WSGI app
+# Cria o app Flask usando a factory
 app = create_app()
 
-# Basic health endpoint to help verify function is alive on Vercel
+# Endpoint básico de saúde para teste
 @app.get("/api/health")
 def _health():
-	return {"status": "ok"}
-
-# Do not export a 'handler' symbol; Vercel detects WSGI via module-level 'app'
+    return {"status": "ok"}
