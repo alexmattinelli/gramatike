@@ -1245,6 +1245,13 @@ def dinamica_view(dyn_id: int):
         for r in d.responses:
             try:
                 pr = _json.loads(r.payload) if r.payload else {}
+                # Collect word1, word2, word3
+                for key in ['word1', 'word2', 'word3']:
+                    w = (pr.get(key) or '').strip()
+                    if w:
+                        w_lower = w.lower()
+                        words.append(w_lower)
+                # For backwards compatibility with old 'word' format
                 w = (pr.get('word') or '').strip()
                 if w:
                     w_lower = w.lower()
@@ -1301,6 +1308,12 @@ def dinamica_admin(dyn_id: int):
         from collections import Counter
         words = []
         for row in rows:
+            # Collect word1, word2, word3
+            for key in ['word1', 'word2', 'word3']:
+                w = (row['payload'].get(key) or '').strip().lower()
+                if w:
+                    words.append(w)
+            # For backwards compatibility with old 'word' format
             w = (row['payload'].get('word') or '').strip().lower()
             if w:
                 words.append(w)
@@ -1350,7 +1363,20 @@ def dinamica_export_csv(dyn_id: int):
             payload = {}
         content = ''
         if d.tipo == 'oneword':
-            content = payload.get('word','')
+            word1 = payload.get('word1', '')
+            word2 = payload.get('word2', '')
+            word3 = payload.get('word3', '')
+            # For backwards compatibility
+            old_word = payload.get('word', '')
+            if old_word:
+                content = old_word
+            else:
+                parts = [word1]
+                if word2:
+                    parts.append(word2)
+                if word3:
+                    parts.append(word3)
+                content = ', '.join(parts)
         elif d.tipo == 'poll':
             opts = (cfg.get('options') or [])
             idx = payload.get('option')
@@ -1512,14 +1538,30 @@ def dinamica_responder(dyn_id: int):
         flash('Você já respondeu esta dinâmica.')
         return redirect(url_for('main.dinamica_view', dyn_id=d.id))
     if d.tipo == 'oneword':
-        w = (request.form.get('word') or '').strip()
-        if not w or len(w.split()) > 3:
-            flash('Informe até 3 palavras.')
+        word1 = (request.form.get('word1') or '').strip()
+        word2 = (request.form.get('word2') or '').strip()
+        word3 = (request.form.get('word3') or '').strip()
+        
+        if not word1:
+            flash('Informe pelo menos a primeira palavra.')
             return redirect(url_for('main.dinamica_view', dyn_id=d.id))
-        if len(w) > 120:
-            flash('Palavra(s) muito longa(s) (máx 120 caracteres).')
+        
+        # Validate each word (allow compound words, but limit length)
+        if len(word1) > 50:
+            flash('Palavra 1 muito longa (máx 50 caracteres).')
             return redirect(url_for('main.dinamica_view', dyn_id=d.id))
-        payload['word'] = w
+        if word2 and len(word2) > 50:
+            flash('Palavra 2 muito longa (máx 50 caracteres).')
+            return redirect(url_for('main.dinamica_view', dyn_id=d.id))
+        if word3 and len(word3) > 50:
+            flash('Palavra 3 muito longa (máx 50 caracteres).')
+            return redirect(url_for('main.dinamica_view', dyn_id=d.id))
+        
+        payload['word1'] = word1
+        if word2:
+            payload['word2'] = word2
+        if word3:
+            payload['word3'] = word3
     elif d.tipo == 'poll':
         try:
             idx = int(request.form.get('option'))
@@ -1581,7 +1623,20 @@ def dinamica_responder(dyn_id: int):
             # Montar conteúdo human-readable
             content = ''
             if d.tipo == 'oneword':
-                content = payload.get('word','')
+                word1 = payload.get('word1', '')
+                word2 = payload.get('word2', '')
+                word3 = payload.get('word3', '')
+                # For backwards compatibility
+                old_word = payload.get('word', '')
+                if old_word:
+                    content = old_word
+                else:
+                    parts = [word1]
+                    if word2:
+                        parts.append(word2)
+                    if word3:
+                        parts.append(word3)
+                    content = ', '.join(parts)
             elif d.tipo == 'poll':
                 try:
                     cfg = _json.loads(d.config) if d.config else {}
