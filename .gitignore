@@ -37,6 +37,7 @@ app.db
 *.sqlite3
 instance/*.db
 instance/app.db
+instance/app_web_cache.json
 
 # Logs
 *.log
