@@ -45,15 +45,8 @@
         {% else %}
           <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
-            <label style="font-weight:700; margin-bottom:.4rem; display:block;">Digite uma ou duas palavras</label>
+            <label style="font-weight:700; margin-bottom:.4rem; display:block;">Digite até 3 palavras</label>
             <input type="text" name="word" required style="width:100%; padding:.6rem; border:1px solid var(--border); border-radius:8px; margin-bottom:1rem;" />
-            
-            <label style="font-weight:700; margin-bottom:.4rem; display:block;">Palavras para evitar na nuvem (opcional, até 3)</label>
-            <div style="display:flex; flex-direction:column; gap:.5rem; margin-bottom:1rem;">
-              <input type="text" name="evitar1" placeholder="Palavra 1" style="width:100%; padding:.6rem; border:1px solid var(--border); border-radius:8px;" />
-              <input type="text" name="evitar2" placeholder="Palavra 2" style="width:100%; padding:.6rem; border:1px solid var(--border); border-radius:8px;" />
-              <input type="text" name="evitar3" placeholder="Palavra 3" style="width:100%; padding:.6rem; border:1px solid var(--border); border-radius:8px;" />
-            </div>
             
             <button type="submit" class="btn primary">Enviar</button>
           </form>
