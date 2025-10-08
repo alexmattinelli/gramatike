@@ -41,7 +41,10 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
         <form method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
             {# {% csrf_token %} #}
-            <label for="username">Nome de usuário</label>
+            <label for="username">Nome</label>
+            <input type="text" name="nome" required>
+                
+            <label for="username">Usuárie</label>
             <input type="text" id="username" name="username" required>
 
             <label for="email">E-mail</label>
