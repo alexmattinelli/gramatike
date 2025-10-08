@@ -28,6 +28,13 @@ E-mail (opcional, mas necessário para verificação de e-mail, reset de senha, 
 - MAIL_DEFAULT_SENDER: e-mail remetente padrão (ex: no-reply@gramatike.com.br)
 - MAIL_SENDER_NAME: nome amigável do remetente (ex: Gramátike)
 
+**Para Brevo (recomendado)**: Veja o guia completo em [BREVO_EMAIL_SETUP.md](BREVO_EMAIL_SETUP.md) com:
+- Instruções passo-a-passo de configuração
+- Como obter a SMTP Key
+- Configuração de SPF/DKIM
+- Scripts de diagnóstico e teste
+- Solução de problemas comuns
+
 Supabase Storage (necessário para upload de arquivos em ambientes serverless como Vercel):
 
 - SUPABASE_URL: URL do projeto Supabase (ex: https://xxxxx.supabase.co)
