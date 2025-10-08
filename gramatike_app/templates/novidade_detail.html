@@ -19,8 +19,7 @@
         .edu-nav a { text-decoration:none; font-weight:700; font-size:.7rem; letter-spacing:.55px; padding:.65rem 1.05rem .62rem; background:#ffffff18; color:#fff; border:1px solid #ffffff30; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); border-radius:22px; display:inline-flex; align-items:center; gap:.35rem; box-shadow:0 4px 12px rgba(0,0,0,.18); transition:.25s; }
         .edu-nav a:hover, .edu-nav a.active { background:#fff; color:#7d3dc9; }
         main { width:100%; max-width:900px; margin:2rem auto 4rem; padding:0 clamp(16px,4vw,40px); flex:1; }
-        .back-link { display:inline-flex; align-items:center; gap:.4rem; text-decoration:none; font-size:.75rem; font-weight:700; color:#9B5DE5; margin-bottom:1.5rem; }
-        .back-link:hover { text-decoration:underline; }
+        .back-link:hover { background:#f7f2ff; border-color:#d4c5ef; box-shadow:0 6px 16px rgba(155,93,229,.25); transform:translateY(-1px); }
         .article-header { background:var(--card); border:1px solid var(--border); border-radius:28px; padding:2rem 2.5rem; box-shadow:0 10px 32px -8px rgba(0,0,0,.12); margin-bottom:2rem; }
         .article-title { font-size:2.2rem; color:#6233B5; margin-bottom:.8rem; line-height:1.2; }
         .article-meta { font-size:.8rem; color:var(--text-dim); font-weight:600; margin-bottom:1.2rem; }
@@ -46,20 +45,11 @@
 </head>
 <body>
     <header class="site-head">
-        <h1 class="logo">Gramátike Edu</h1>
-        {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
-            <a href="{{ url_for('admin.dashboard') }}" style="position:absolute; top:14px; right:16px; background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; text-decoration:none; letter-spacing:.5px;">🛠️ Painel</a>
-        {% endif %}
-        <nav class="edu-nav" aria-label="Seções educacionais">
-            <a href="{{ url_for('main.educacao') }}">🏠 Início</a>
-            <a href="{{ url_for('main.apostilas') }}">📚 Apostilas</a>
-            <a href="{{ url_for('main.exercicios') }}">🧠 Exercícios</a>
-            <a href="{{ url_for('main.artigos') }}">📑 Artigos</a>
-        </nav>
+        <h1 class="logo">Novidade</h1>
     </header>
     <main>
-        <a href="{{ url_for('main.educacao') }}" class="back-link">
-            ← Voltar para Início
+        <a href="{{ url_for('main.educacao') }}" class="back-link" style="font-size:.85rem; font-weight:700; color:#9B5DE5; padding:.6rem 1.2rem; background:#fff; border:1px solid #e5e7eb; border-radius:14px; display:inline-flex; align-items:center; gap:.5rem; transition:.2s; text-decoration:none; box-shadow:0 4px 12px rgba(155,93,229,.15);">
+            ← Voltar ao Início
         </a>
         
         <article>

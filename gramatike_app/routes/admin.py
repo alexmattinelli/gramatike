@@ -262,10 +262,10 @@ def novidades_edit(nid):
     n.link = (request.form.get('link') or '').strip() or None
     if not n.titulo:
         flash('Título é obrigatório para novidade.')
-        return redirect(url_for('admin.dashboard', _anchor='gramatike'))
+        return redirect(url_for('main.novidade_detail', novidade_id=nid))
     db.session.commit()
     flash('Novidade atualizada.')
-    return redirect(url_for('admin.dashboard', _anchor='gramatike'))
+    return redirect(url_for('main.novidade_detail', novidade_id=nid))
 
 @admin_bp.route('/novidades/<int:nid>/delete', methods=['POST'])
 @login_required

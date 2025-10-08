@@ -198,7 +198,18 @@
       items.forEach(it=>{
         const node = tpl.cloneNode(true); node.id=''; node.style.display='block';
   if ((it.source||'').toLowerCase() === 'novidade') { node.classList.add('is-novidade'); }
-        node.querySelector('.fi-meta').textContent = (it.source||'').toUpperCase();
+        // Map source to display name with proper accents
+        const sourceMap = {
+          'dinamica': 'DINÂMICA',
+          'novidade': 'NOVIDADE',
+          'post': 'POST',
+          'artigo': 'ARTIGO',
+          'apostila': 'APOSTILA',
+          'podcast': 'PODCAST',
+          'video': 'VÍDEO'
+        };
+        const displaySource = sourceMap[(it.source||'').toLowerCase()] || (it.source||'').toUpperCase();
+        node.querySelector('.fi-meta').textContent = displaySource;
         // For POST source type: no title, add "Confira" as a tag
         if ((it.source||'').toLowerCase() === 'post') {
           node.querySelector('.fi-title').style.display = 'none';
