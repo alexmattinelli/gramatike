@@ -35,6 +35,30 @@ E-mail (opcional, mas necessário para verificação de e-mail, reset de senha, 
 - Scripts de diagnóstico e teste
 - Solução de problemas comuns
 
+### Testar Envio de E-mails
+
+Para testar se o envio de e-mails está funcionando corretamente, use o script `send_test_email.py`:
+
+```bash
+# E-mail de teste básico (usa configuração do .env ou variáveis de ambiente)
+python3 scripts/send_test_email.py seu_email@exemplo.com
+
+# E-mail personalizado com título e conteúdo
+python3 scripts/send_test_email.py seu_email@exemplo.com \
+  --title "Meu Teste" \
+  --html "<p>Conteúdo personalizado do e-mail</p>"
+
+# Especificar servidor SMTP manualmente (útil para testes)
+python3 scripts/send_test_email.py seu_email@exemplo.com \
+  --server smtp.gmail.com \
+  --port 587 \
+  --tls \
+  --user seu_email@gmail.com \
+  --password sua_senha
+```
+
+**Nota:** Os e-mails de teste agora incluem o template completo do Gramátike com logo e botões roxos. Veja [EMAIL_TEST_TEMPLATE_FIX.md](EMAIL_TEST_TEMPLATE_FIX.md) para mais detalhes.
+
 Supabase Storage (necessário para upload de arquivos em ambientes serverless como Vercel):
 
 - SUPABASE_URL: URL do projeto Supabase (ex: https://xxxxx.supabase.co)
