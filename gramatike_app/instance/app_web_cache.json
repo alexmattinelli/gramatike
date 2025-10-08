@@ -1,0 +1,1 @@
+{"test:key1": {"value": {"data": "test", "number": 42}, "expires_at": 1759950362.6332736}, "key1": {"value": "value1", "expires_at": 1759950415.6343033}, "key2": {"value": "value2", "expires_at": 1759950415.6346827}}
