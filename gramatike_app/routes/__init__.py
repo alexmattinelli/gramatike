@@ -12,7 +12,6 @@ from gramatike_app.utils.emailer import send_email, render_welcome_email, render
 from gramatike_app.utils.tokens import generate_token, verify_token
 from gramatike_app.utils.moderation import check_text, check_image_hint, refusal_message_pt
 from gramatike_app.models import EduNovidade
-from gramatike_app.utils import web_cache
 
 # Helper: converter datas para horário de Brasília (America/Sao_Paulo)
 def _to_brasilia(dt: datetime) -> datetime:
@@ -79,14 +78,6 @@ def api_gramatike_search():
     q = (request.args.get('q') or '').strip()
     limit = min(int(request.args.get('limit', 15) or 15), 40)
     include_edu = request.args.get('include_edu') == '1'
-    
-    # Cache key incluindo parâmetros de busca
-    cache_key = f"gramatike_search:q={q}:limit={limit}:edu={include_edu}"
-    
-    # Tenta obter do cache
-    cached = web_cache.get(cache_key)
-    if cached is not None:
-        return jsonify({'items': cached})
     
     items = []
     try:
@@ -190,9 +181,6 @@ def api_gramatike_search():
             pass
     except Exception as e:
         current_app.logger.warning(f"api_gramatike_search failed: {e}")
-    
-    # Cache por 5 minutos (300 segundos)
-    web_cache.set(cache_key, items, ttl_seconds=300)
     
     return jsonify({'items': items})
 
@@ -649,13 +637,7 @@ def index():
     now = datetime.utcnow()
     window_ini = now - timedelta(days=7)
 
-    # Cache key para a página index
-    cache_key = "index:trending_commented"
-    
-    # Tenta obter dados cacheados (exceto divulgações que são sempre frescas)
-    cached_data = web_cache.get(cache_key)
-    
-    # Divulgações curadas (admin) – sempre buscar frescos, não cachear
+    # Divulgações curadas (admin) – sempre buscar frescos
     try:
         div_edu = (Divulgacao.query.filter_by(area='edu', ativo=True)
                    .filter(Divulgacao.show_on_index == True)
@@ -668,62 +650,51 @@ def index():
                    .limit(6).all())
     # Removido fallback automático para EduContent: só mostra o que for publicado como Divulgacao
 
-    if cached_data:
-        # Usa dados cacheados para trending e commented
-        delu_trending = cached_data.get('trending', [])
-        delu_commented = cached_data.get('commented', [])
-    else:
-        # Subqueries para likes e comentários (Delu)
-        likes_sub = (db.session.query(Post.id.label('pid'), func.count(post_likes.c.user_id).label('likes'))
-                     .outerjoin(post_likes, post_likes.c.post_id == Post.id)
-                     .filter(((Post.is_deleted == False) | (Post.is_deleted.is_(None))) & (Post.data >= window_ini))
-                     .group_by(Post.id)
-                     .subquery())
-        comments_sub = (db.session.query(Comentario.post_id.label('pid'), func.count(Comentario.id).label('comments'))
-                        .filter(Comentario.data >= window_ini)
-                        .group_by(Comentario.post_id)
-                        .subquery())
+    # Subqueries para likes e comentários (Delu)
+    likes_sub = (db.session.query(Post.id.label('pid'), func.count(post_likes.c.user_id).label('likes'))
+                 .outerjoin(post_likes, post_likes.c.post_id == Post.id)
+                 .filter(((Post.is_deleted == False) | (Post.is_deleted.is_(None))) & (Post.data >= window_ini))
+                 .group_by(Post.id)
+                 .subquery())
+    comments_sub = (db.session.query(Comentario.post_id.label('pid'), func.count(Comentario.id).label('comments'))
+                    .filter(Comentario.data >= window_ini)
+                    .group_by(Comentario.post_id)
+                    .subquery())
 
-        # Trending por likes
-        trending_posts = (db.session.query(Post, func.coalesce(likes_sub.c.likes, 0).label('lk'))
-                          .outerjoin(likes_sub, likes_sub.c.pid == Post.id)
-                          .filter(((Post.is_deleted == False) | (Post.is_deleted.is_(None))) & (Post.data >= window_ini))
-                          .order_by(func.coalesce(likes_sub.c.likes, 0).desc(), Post.data.desc())
-                          .limit(5)
-                          .all())
+    # Trending por likes
+    trending_posts = (db.session.query(Post, func.coalesce(likes_sub.c.likes, 0).label('lk'))
+                      .outerjoin(likes_sub, likes_sub.c.pid == Post.id)
+                      .filter(((Post.is_deleted == False) | (Post.is_deleted.is_(None))) & (Post.data >= window_ini))
+                      .order_by(func.coalesce(likes_sub.c.likes, 0).desc(), Post.data.desc())
+                      .limit(5)
+                      .all())
 
-        # Mais comentados
-        commented_posts = (db.session.query(Post, func.coalesce(comments_sub.c.comments, 0).label('cm'))
-                           .outerjoin(comments_sub, comments_sub.c.pid == Post.id)
-                           .filter(((Post.is_deleted == False) | (Post.is_deleted.is_(None))) & (Post.data >= window_ini))
-                           .order_by(func.coalesce(comments_sub.c.comments, 0).desc(), Post.data.desc())
-                           .limit(5)
-                           .all())
+    # Mais comentados
+    commented_posts = (db.session.query(Post, func.coalesce(comments_sub.c.comments, 0).label('cm'))
+                       .outerjoin(comments_sub, comments_sub.c.pid == Post.id)
+                       .filter(((Post.is_deleted == False) | (Post.is_deleted.is_(None))) & (Post.data >= window_ini))
+                       .order_by(func.coalesce(comments_sub.c.comments, 0).desc(), Post.data.desc())
+                       .limit(5)
+                       .all())
 
-        def post_to_dict(p: Post, likes_count=0, comments_count=0):
-            try:
-                data_str = p.data.strftime('%d/%m %H:%M') if p.data else ''
-            except Exception:
-                data_str = ''
-            texto = (p.conteudo or '').strip().replace('\n', ' ')
-            excerpt = (texto[:80] + '…') if len(texto) > 80 else texto
-            return {
-                'id': p.id,
-                'usuario': p.usuario or 'Usuárie',
-                'excerpt': excerpt or '(sem texto)',
-                'likes': likes_count,
-                'comments': comments_count,
-                'data': data_str
-            }
+    def post_to_dict(p: Post, likes_count=0, comments_count=0):
+        try:
+            data_str = p.data.strftime('%d/%m %H:%M') if p.data else ''
+        except Exception:
+            data_str = ''
+        texto = (p.conteudo or '').strip().replace('\n', ' ')
+        excerpt = (texto[:80] + '…') if len(texto) > 80 else texto
+        return {
+            'id': p.id,
+            'usuario': p.usuario or 'Usuárie',
+            'excerpt': excerpt or '(sem texto)',
+            'likes': likes_count,
+            'comments': comments_count,
+            'data': data_str
+        }
 
-        delu_trending = [post_to_dict(p, likes_count=lk) for p, lk in trending_posts]
-        delu_commented = [post_to_dict(p, comments_count=cm) for p, cm in commented_posts]
-        
-        # Cache por 3 minutos (180 segundos)
-        web_cache.set(cache_key, {
-            'trending': delu_trending,
-            'commented': delu_commented
-        }, ttl_seconds=180)
+    delu_trending = [post_to_dict(p, likes_count=lk) for p, lk in trending_posts]
+    delu_commented = [post_to_dict(p, comments_count=cm) for p, cm in commented_posts]
 
     return render_template('index.html',
                            div_edu=div_edu,
@@ -1675,14 +1646,6 @@ def estudos_legacy():
 
 @bp.route('/api/novidades')
 def api_novidades():
-    # Cache key simples para novidades
-    cache_key = "novidades:list"
-    
-    # Tenta obter do cache
-    cached = web_cache.get(cache_key)
-    if cached is not None:
-        return jsonify({'items': cached})
-    
     rows = EduNovidade.query.order_by(EduNovidade.created_at.desc()).limit(10).all()
     out = []
     for r in rows:
@@ -1693,9 +1656,6 @@ def api_novidades():
             'link': r.link,
             'created_at': r.created_at.isoformat() if r.created_at else None
         })
-    
-    # Cache por 5 minutos (300 segundos)
-    web_cache.set(cache_key, out, ttl_seconds=300)
     
     return jsonify({'items': out})
 
@@ -1860,14 +1820,6 @@ def redacao():
 
 @bp.route('/api/redacao/temas')
 def api_redacao_temas():
-    # Cache key simples para temas de redação
-    cache_key = "redacao_temas:list"
-    
-    # Tenta obter do cache
-    cached = web_cache.get(cache_key)
-    if cached is not None:
-        return jsonify(cached)
-    
     temas = EduContent.query.filter_by(tipo='redacao_tema').order_by(EduContent.created_at.desc()).all()
     result = [
         {
@@ -1878,9 +1830,6 @@ def api_redacao_temas():
             'created_at': t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else None
         } for t in temas
     ]
-    
-    # Cache por 10 minutos (600 segundos)
-    web_cache.set(cache_key, result, ttl_seconds=600)
     
     return jsonify(result)
 
@@ -2387,16 +2336,6 @@ def api_palavra_do_dia():
     from gramatike_app.models import PalavraDoDia
     from datetime import datetime
     
-    # Cache key baseado no dia e usuário (se autenticado)
-    dia_do_ano = datetime.utcnow().timetuple().tm_yday
-    user_id = current_user.id if current_user.is_authenticated else 'anon'
-    cache_key = f"palavra_do_dia:{dia_do_ano}:{user_id}"
-    
-    # Tenta obter do cache
-    cached = web_cache.get(cache_key)
-    if cached is not None:
-        return jsonify(cached)
-    
     # Busca palavras ativas ordenadas
     palavras = PalavraDoDia.query.filter_by(ativo=True).order_by(PalavraDoDia.ordem.asc()).all()
     
@@ -2404,6 +2343,7 @@ def api_palavra_do_dia():
         return jsonify({'error': 'Nenhuma palavra cadastrada'}), 404
     
     # Calcula índice baseado no dia do ano para rotação diária
+    dia_do_ano = datetime.utcnow().timetuple().tm_yday
     indice = dia_do_ano % len(palavras)
     palavra = palavras[indice]
     
@@ -2425,9 +2365,6 @@ def api_palavra_do_dia():
         'significado': palavra.significado,
         'ja_interagiu': ja_interagiu
     }
-    
-    # Cache por 1 hora (3600 segundos)
-    web_cache.set(cache_key, result, ttl_seconds=3600)
     
     return jsonify(result)
 

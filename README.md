@@ -1,22 +1,6 @@
 # Gramatike
 
-## Performance Optimization
-
-**Caching Implementation**: The app uses response caching to reduce CPU usage and stay within Vercel's free tier limits. See [CACHE_IMPLEMENTATION.md](CACHE_IMPLEMENTATION.md) for details.
-
-Key cached endpoints:
-- `/api/palavra-do-dia` - 1 hour cache
-- `/api/redacao/temas` - 10 minute cache
-- `/api/gramatike/search` - 5 minute cache
-- `/api/novidades` - 5 minute cache
-- `/` (index page) - 3 minute cache for trending/commented posts
-
-To monitor cache performance:
-```bash
-python scripts/monitor_cache.py
-```
-
-### Vercel (via GitHub)
+## Vercel (via GitHub)
 1. Tenha este repositório no GitHub (já está em `main`).
 2. No painel da Vercel, importe o projeto a partir deste repositório.
 3. Build & Output Settings:
