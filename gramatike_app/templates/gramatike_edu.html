@@ -144,33 +144,25 @@
           </a>
         </div>
         <div class="side-card" id="palavra-do-dia-card">
-          <h3>💜 Palavras do Dia</h3>
+          <h3>💡 Palavras do Dia</h3>
+          <div style="font-size:.6rem; color:#666; margin:0 0 .8rem; line-height:1.4; padding:0 .2rem;">
+            <strong>Objetivo:</strong> Apresentar todo dia uma nova palavra em linguagem neutra (ou expressão inclusiva), incentivando o aprendizado cotidiano e a reflexão sobre o uso da língua de forma acolhedora.
+          </div>
+          <div style="font-size:.6rem; color:#666; margin:0 0 .8rem; line-height:1.4; padding:0 .2rem;">
+            <strong>Como funciona:</strong> A cada dia, aparece uma palavra ou expressão (ex: elu, todes, amigue, pessoa não binárie, linguagem neutra). Abaixo, há duas opções de interação:
+            <ul style="margin:.3rem 0 0; padding-left:1.2rem;">
+              <li style="margin-bottom:.3rem;">✍️ <strong>Quero criar uma frase</strong> → a pessoa escreve uma frase usando a palavra.</li>
+              <li>🔍 <strong>Quero saber o significado</strong> → aparece uma explicação curta e inclusiva.</li>
+            </ul>
+          </div>
           <div id="palavra-do-dia-content">
             <div style="text-align:center; padding:1rem;">
               <div style="font-size:.65rem; color:#999;">Carregando...</div>
             </div>
           </div>
         </div>
-        {% if novidades and novidades|length > 0 %}
         <div class="side-card">
-          <h3>📢 Últimas Novidades</h3>
-          <div style="display:flex; flex-direction:column; gap:.5rem;">
-            {% for n in novidades[:5] %}
-              <div style="background:#f9fafb; border-left:3px solid #9B5DE5; border-radius:10px; padding:.6rem .7rem;">
-                <strong style="display:block; font-size:.68rem; letter-spacing:.35px; color:#6233B5; margin:0 0 .25rem;">{{ n.titulo }}</strong>
-                {% if n.descricao %}
-                  <p style="margin:0 0 .4rem; font-size:.6rem; line-height:1.32; color:#666; font-weight:500;">{{ n.descricao[:80] }}{% if n.descricao|length > 80 %}...{% endif %}</p>
-                {% endif %}
-                {% if n.link %}
-                  <a href="{{ n.link }}" style="display:inline-block; font-size:.55rem; font-weight:700; color:#9B5DE5; text-decoration:none; letter-spacing:.3px;">Ver mais →</a>
-                {% endif %}
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-        {% endif %}
-        <div class="side-card">
-          <h3>📣 Divulgação</h3>
+          <h3>📣 Novidades</h3>
           {% set tem_conteudo = (divulgacoes and divulgacoes|length>0) %}
           {% if tem_conteudo %}
             <div style="display:flex; flex-direction:column; gap:.9rem;">
