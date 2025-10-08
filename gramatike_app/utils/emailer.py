@@ -202,6 +202,11 @@ def render_reset_email(username: str, reset_url: str) -> str:
     return _render_email_template("Redefinir senha", content)
 
 
+def render_test_email(title: str, content: str) -> str:
+    """Renderiza e-mail de teste com o template base."""
+    return _render_email_template(title, content)
+
+
 def render_change_email_email(username: str, confirm_url: str, new_email: str) -> str:
     content = f"""
         <p style="margin:0 0 20px; font-size:16px; line-height:1.6; color:#333;">
