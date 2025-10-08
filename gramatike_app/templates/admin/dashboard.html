@@ -580,11 +580,125 @@
                         </form>
                         <!-- Lista de novidades removida do dashboard a pedido -->
                     </div>
+                    <div class="edu-box" style="grid-column:1/-1;">
+                        <h3>💡 Palavra do Dia</h3>
+                        <form method="POST" action="{{ url_for('admin.palavra_do_dia_create') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+                            <input name="palavra" placeholder="Palavra ou expressão" required />
+                            <textarea name="significado" placeholder="Significado (explicação curta e inclusiva)" required></textarea>
+                            <button type="submit">Adicionar Palavra</button>
+                        </form>
+                    </div>
+                    <div class="edu-box" style="grid-column:1/-1;">
+                        <h3>Palavras Cadastradas</h3>
+                        <div id="lista-palavras-do-dia" style="display:flex; flex-direction:column; gap:.5rem;">
+                            <div style="text-align:center; color:#999; font-size:.7rem;">Carregando...</div>
+                        </div>
+                    </div>
+                    <div class="edu-box" style="grid-column:1/-1;">
+                        <h3>📝 Ver Respostas</h3>
+                        <div style="display:flex; gap:.5rem; margin-bottom:.8rem;">
+                            <input id="filtro-palavra-id" placeholder="ID da palavra (opcional)" style="width:150px;" />
+                            <button type="button" onclick="carregarRespostasPalavras()" style="padding:.55rem 1rem;">Buscar Respostas</button>
+                        </div>
+                        <div id="lista-respostas-palavras" style="display:flex; flex-direction:column; gap:.5rem;">
+                            <div style="text-align:center; color:#999; font-size:.7rem;">Clique em "Buscar Respostas" para ver as interações</div>
+                        </div>
+                    </div>
                     <!-- Cards "Ideias / Backlog" e "Atalhos Rápidos" removidos a pedido -->
                 </div>
                 <script>
                 // Novidades ocultas no dashboard; mantém handler para evitar erro no onsubmit
                 (function(){ window.addNovidadeGmtk = function(){ return; }; })();
+                
+                // Palavra do Dia - Listar
+                async function carregarPalavrasDoDia() {
+                    const container = document.getElementById('lista-palavras-do-dia');
+                    if (!container) return;
+                    
+                    try {
+                        const res = await fetch('/admin/palavra-do-dia/list');
+                        const palavras = await res.json();
+                        
+                        if (!palavras.length) {
+                            container.innerHTML = '<div style="text-align:center; color:#999; font-size:.7rem;">Nenhuma palavra cadastrada</div>';
+                            return;
+                        }
+                        
+                        container.innerHTML = palavras.map(p => `
+                            <div style="border:1px solid #e3e9f0; border-radius:10px; padding:.7rem; background:#f9fbfd; display:flex; justify-content:space-between; align-items:center;">
+                                <div style="flex:1;">
+                                    <div style="font-weight:700; font-size:.85rem;">${p.palavra}</div>
+                                    <div style="font-size:.65rem; color:#666; margin-top:.2rem;">${p.significado}</div>
+                                    <div style="font-size:.6rem; color:#999; margin-top:.3rem;">
+                                        Ordem: ${p.ordem} | ${p.ativo ? '✅ Ativa' : '❌ Inativa'} | Interações: ${p.interacoes_count || 0}
+                                    </div>
+                                </div>
+                                <div style="display:flex; gap:.4rem;">
+                                    <form method="POST" action="/admin/palavra-do-dia/${p.id}/toggle" style="display:inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+                                        <button type="submit" class="action-btn" style="font-size:.6rem;">
+                                            ${p.ativo ? 'Desativar' : 'Ativar'}
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="/admin/palavra-do-dia/${p.id}/delete" onsubmit="return confirm('Excluir esta palavra?');" style="display:inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+                                        <button type="submit" class="action-btn danger" style="font-size:.6rem;">Excluir</button>
+                                    </form>
+                                </div>
+                            </div>
+                        `).join('');
+                    } catch (e) {
+                        container.innerHTML = '<div style="text-align:center; color:#f44; font-size:.7rem;">Erro ao carregar</div>';
+                    }
+                }
+                
+                // Palavra do Dia - Respostas
+                window.carregarRespostasPalavras = async function() {
+                    const container = document.getElementById('lista-respostas-palavras');
+                    const palavraId = document.getElementById('filtro-palavra-id').value.trim();
+                    if (!container) return;
+                    
+                    container.innerHTML = '<div style="text-align:center; color:#999; font-size:.7rem;">Carregando...</div>';
+                    
+                    try {
+                        const url = '/admin/palavra-do-dia/respostas' + (palavraId ? `?palavra_id=${palavraId}` : '');
+                        const res = await fetch(url);
+                        const respostas = await res.json();
+                        
+                        if (!respostas.length) {
+                            container.innerHTML = '<div style="text-align:center; color:#999; font-size:.7rem;">Nenhuma resposta encontrada</div>';
+                            return;
+                        }
+                        
+                        container.innerHTML = respostas.map(r => `
+                            <div style="border:1px solid #e3e9f0; border-radius:10px; padding:.7rem; background:#fff;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:.4rem;">
+                                    <div style="font-weight:700; font-size:.75rem;">${r.palavra}</div>
+                                    <div style="font-size:.65rem; color:#999;">${r.data}</div>
+                                </div>
+                                <div style="font-size:.7rem; color:#666; margin-bottom:.3rem;">
+                                    <strong>Usuárie:</strong> ${r.usuario} | <strong>Tipo:</strong> ${r.tipo === 'frase' ? '✍️ Frase' : '🔍 Significado'}
+                                </div>
+                                ${r.frase ? `<div style="font-size:.7rem; color:#333; background:#f1edff; padding:.5rem; border-radius:8px; margin-top:.4rem;">"${r.frase}"</div>` : ''}
+                            </div>
+                        `).join('');
+                    } catch (e) {
+                        container.innerHTML = '<div style="text-align:center; color:#f44; font-size:.7rem;">Erro ao carregar</div>';
+                    }
+                }
+                
+                // Carregar palavras ao mostrar a seção
+                document.addEventListener('DOMContentLoaded', () => {
+                    const btns = document.querySelectorAll('.edu-area-btn');
+                    btns.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            if (btn.dataset.area === 'gramatike') {
+                                setTimeout(carregarPalavrasDoDia, 100);
+                            }
+                        });
+                    });
+                });
                 </script>
             </div>
             <div class="edu-area-section active" id="area-artigos">
