@@ -745,7 +745,8 @@
                                 <option value="">(Tópico)</option>
                                 {% for t in edu_topics if t.area=='apostila' %}<option value="{{ t.id }}">{{ t.nome }}</option>{% endfor %}
                             </select>
-                            <input type="file" name="pdf" accept="application/pdf" required />
+                            <input type="file" name="pdf" accept="application/pdf" />
+                            <input name="url" placeholder="OU insira um link (URL)" />
                             <textarea name="resumo" placeholder="Descrição"></textarea>
                             <button type="submit">Publicar</button>
                         </form>

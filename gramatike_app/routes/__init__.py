@@ -116,7 +116,7 @@ def api_gramatike_search():
                     'title': (n.titulo[:60] + '…') if len(n.titulo) > 60 else n.titulo,
                     'snippet': snippet,
                     'tags': [],
-                    'url': n.link or None,
+                    'url': url_for('main.novidade_detail', novidade_id=n.id),
                     'created_at': n.created_at.isoformat() if n.created_at else None,
                     'source': 'novidade'
                 })
@@ -1592,6 +1592,15 @@ def api_novidades():
             'created_at': r.created_at.isoformat() if r.created_at else None
         })
     return jsonify({'items': out})
+
+@bp.route('/novidade/<int:novidade_id>')
+def novidade_detail(novidade_id):
+    n = EduNovidade.query.get_or_404(novidade_id)
+    is_admin = getattr(current_user, 'is_authenticated', False) and (
+        getattr(current_user, 'is_admin', False) or 
+        getattr(current_user, 'is_superadmin', False)
+    )
+    return render_template('novidade_detail.html', novidade=n, is_admin=is_admin)
 
 ## (Rotas Lune e legacy /delu removidas)
 
