@@ -214,7 +214,7 @@ def stats_activity():
     user_count = db.session.query(func.count(User.id)).scalar() or 0
     
     return {
-        "labels": ["Posts", "Conteúdo Edu", "Comentários", "Usuários"],
+        "labels": ["Posts", "Conteúdo Edu", "Comentários", "Usuáries"],
         "data": [post_count, edu_count, comment_count, user_count]
     }
 
@@ -878,6 +878,129 @@ def delete_report_post(report_id):
     db.session.commit()
     flash('Post excluído e denúncia resolvida.')
     return redirect(url_for('admin.dashboard', _anchor='gramatike'))
+
+# --- Palavra do Dia Admin Routes ---
+
+@admin_bp.route('/palavra-do-dia/create', methods=['POST'])
+@login_required
+def palavra_do_dia_create():
+    """Criar uma nova palavra do dia."""
+    if not _ensure_admin():
+        return redirect(url_for('main.index'))
+    
+    from gramatike_app.models import PalavraDoDia
+    from sqlalchemy import func
+    
+    palavra = request.form.get('palavra', '').strip()
+    significado = request.form.get('significado', '').strip()
+    
+    if not palavra or not significado:
+        flash('Palavra e significado são obrigatórios.', 'error')
+        return redirect(url_for('admin.dashboard', _anchor='gramatike'))
+    
+    # Define ordem como próximo número disponível
+    max_ordem = db.session.query(func.max(PalavraDoDia.ordem)).scalar() or 0
+    
+    nova_palavra = PalavraDoDia(
+        palavra=palavra,
+        significado=significado,
+        ordem=max_ordem + 1,
+        ativo=True,
+        created_by=current_user.id
+    )
+    db.session.add(nova_palavra)
+    db.session.commit()
+    
+    flash(f'Palavra "{palavra}" adicionada com sucesso!', 'success')
+    return redirect(url_for('admin.dashboard', _anchor='gramatike'))
+
+@admin_bp.route('/palavra-do-dia/list')
+@login_required
+def palavra_do_dia_list():
+    """Listar todas as palavras do dia com contagem de interações."""
+    if not _ensure_admin():
+        return jsonify({'error': 'Não autorizado'}), 403
+    
+    from gramatike_app.models import PalavraDoDia, PalavraDoDiaInteracao
+    
+    palavras = PalavraDoDia.query.order_by(PalavraDoDia.ordem.asc()).all()
+    
+    result = []
+    for p in palavras:
+        interacoes_count = PalavraDoDiaInteracao.query.filter_by(palavra_id=p.id).count()
+        result.append({
+            'id': p.id,
+            'palavra': p.palavra,
+            'significado': p.significado,
+            'ordem': p.ordem,
+            'ativo': p.ativo,
+            'interacoes_count': interacoes_count
+        })
+    
+    return jsonify(result)
+
+@admin_bp.route('/palavra-do-dia/<int:palavra_id>/toggle', methods=['POST'])
+@login_required
+def palavra_do_dia_toggle(palavra_id):
+    """Ativar/desativar uma palavra do dia."""
+    if not _ensure_admin():
+        return redirect(url_for('main.index'))
+    
+    from gramatike_app.models import PalavraDoDia
+    
+    palavra = PalavraDoDia.query.get_or_404(palavra_id)
+    palavra.ativo = not palavra.ativo
+    db.session.commit()
+    
+    status = 'ativada' if palavra.ativo else 'desativada'
+    flash(f'Palavra "{palavra.palavra}" {status} com sucesso!', 'success')
+    return redirect(url_for('admin.dashboard', _anchor='gramatike'))
+
+@admin_bp.route('/palavra-do-dia/<int:palavra_id>/delete', methods=['POST'])
+@login_required
+def palavra_do_dia_delete(palavra_id):
+    """Excluir uma palavra do dia."""
+    if not _ensure_admin():
+        return redirect(url_for('main.index'))
+    
+    from gramatike_app.models import PalavraDoDia
+    
+    palavra = PalavraDoDia.query.get_or_404(palavra_id)
+    db.session.delete(palavra)
+    db.session.commit()
+    
+    flash(f'Palavra "{palavra.palavra}" excluída com sucesso!', 'success')
+    return redirect(url_for('admin.dashboard', _anchor='gramatike'))
+
+@admin_bp.route('/palavra-do-dia/respostas')
+@login_required
+def palavra_do_dia_respostas():
+    """Listar respostas/interações das palavras do dia."""
+    if not _ensure_admin():
+        return jsonify({'error': 'Não autorizado'}), 403
+    
+    from gramatike_app.models import PalavraDoDiaInteracao, PalavraDoDia, User
+    
+    palavra_id = request.args.get('palavra_id', type=int)
+    
+    query = PalavraDoDiaInteracao.query
+    if palavra_id:
+        query = query.filter_by(palavra_id=palavra_id)
+    
+    interacoes = query.order_by(PalavraDoDiaInteracao.created_at.desc()).limit(100).all()
+    
+    result = []
+    for i in interacoes:
+        result.append({
+            'id': i.id,
+            'palavra': i.palavra.palavra if i.palavra else 'N/A',
+            'usuario': i.usuario.username if i.usuario else 'N/A',
+            'tipo': i.tipo,
+            'frase': i.frase,
+            'data': i.created_at.strftime('%d/%m/%Y %H:%M') if i.created_at else 'N/A'
+        })
+    
+    return jsonify(result)
 
 ## Rotas de configuração/IA do Lune removidas
 

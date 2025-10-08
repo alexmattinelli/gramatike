@@ -145,16 +145,6 @@
         </div>
         <div class="side-card" id="palavra-do-dia-card">
           <h3>💡 Palavras do Dia</h3>
-          <div style="font-size:.6rem; color:#666; margin:0 0 .8rem; line-height:1.4; padding:0 .2rem;">
-            <strong>Objetivo:</strong> Apresentar todo dia uma nova palavra em linguagem neutra (ou expressão inclusiva), incentivando o aprendizado cotidiano e a reflexão sobre o uso da língua de forma acolhedora.
-          </div>
-          <div style="font-size:.6rem; color:#666; margin:0 0 .8rem; line-height:1.4; padding:0 .2rem;">
-            <strong>Como funciona:</strong> A cada dia, aparece uma palavra ou expressão (ex: elu, todes, amigue, pessoa não binárie, linguagem neutra). Abaixo, há duas opções de interação:
-            <ul style="margin:.3rem 0 0; padding-left:1.2rem;">
-              <li style="margin-bottom:.3rem;">✍️ <strong>Quero criar uma frase</strong> → a pessoa escreve uma frase usando a palavra.</li>
-              <li>🔍 <strong>Quero saber o significado</strong> → aparece uma explicação curta e inclusiva.</li>
-            </ul>
-          </div>
           <div id="palavra-do-dia-content">
             <div style="text-align:center; padding:1rem;">
               <div style="font-size:.65rem; color:#999;">Carregando...</div>
@@ -253,7 +243,7 @@
         const { id, palavra, significado, ja_interagiu } = data;
         
         if(ja_interagiu){
-          // Usuário já interagiu hoje
+          // Usuárie já interagiu hoje
           container.innerHTML = `
             <div style="padding:.8rem; background:#f1edff; border-radius:16px; text-align:center;">
               <div style="font-size:1.1rem; font-weight:800; color:#6233B5; margin-bottom:.5rem;">${palavra}</div>
