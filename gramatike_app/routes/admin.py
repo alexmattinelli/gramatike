@@ -889,6 +889,7 @@ def palavra_do_dia_create():
         return redirect(url_for('main.index'))
     
     from gramatike_app.models import PalavraDoDia
+    from sqlalchemy import func
     
     palavra = request.form.get('palavra', '').strip()
     significado = request.form.get('significado', '').strip()
