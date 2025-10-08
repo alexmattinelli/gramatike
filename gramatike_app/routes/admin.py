@@ -251,6 +251,22 @@ def novidades_create():
     flash('Novidade adicionada.')
     return redirect(url_for('admin.dashboard', _anchor='gramatike'))
 
+@admin_bp.route('/novidades/<int:nid>/edit', methods=['POST'])
+@login_required
+def novidades_edit(nid):
+    if not getattr(current_user, 'is_admin', False):
+        return redirect(url_for('main.index'))
+    n = EduNovidade.query.get_or_404(nid)
+    n.titulo = (request.form.get('titulo') or '').strip()
+    n.descricao = (request.form.get('descricao') or '').strip() or None
+    n.link = (request.form.get('link') or '').strip() or None
+    if not n.titulo:
+        flash('Título é obrigatório para novidade.')
+        return redirect(url_for('admin.dashboard', _anchor='gramatike'))
+    db.session.commit()
+    flash('Novidade atualizada.')
+    return redirect(url_for('admin.dashboard', _anchor='gramatike'))
+
 @admin_bp.route('/novidades/<int:nid>/delete', methods=['POST'])
 @login_required
 def novidades_delete(nid):
@@ -286,14 +302,17 @@ def edu_publicar():
             flash(f'O artigo excede o limite de 5000 palavras (atual: {word_count} palavras). Por favor, reduza o conteúdo.')
             return redirect(url_for('admin.dashboard', _anchor='edu'))
     
-    # Validação do resumo (1000 caracteres)
-    if resumo and len(resumo) > 1000:
-        flash(f'O resumo excede o limite de 1000 caracteres (atual: {len(resumo)} caracteres). Por favor, reduza o resumo.')
+    # Validação do resumo (2000 caracteres)
+    if resumo and len(resumo) > 2000:
+        flash(f'O resumo excede o limite de 2000 caracteres (atual: {len(resumo)} caracteres). Por favor, reduza o resumo.')
         return redirect(url_for('admin.dashboard', _anchor='edu'))
-    # Upload de apostila (PDF)
+    # Upload de apostila (PDF ou URL)
     if tipo == 'apostila':
         pdf_file = request.files.get('pdf')
-        if pdf_file and pdf_file.filename.lower().endswith('.pdf'):
+        # Se forneceu URL, usa a URL
+        if url_field:
+            file_path = url_field
+        elif pdf_file and pdf_file.filename.lower().endswith('.pdf'):
             import uuid
             fname = f"{uuid.uuid4().hex}.pdf"
             
@@ -339,7 +358,7 @@ def edu_publicar():
                     # Se falhar, segue sem thumb
                     print('[WARN] PDF thumbnail generation failed:', _e)
         else:
-            flash('Arquivo PDF obrigatório para apostila.')
+            flash('É necessário enviar um arquivo PDF ou um link (URL) para apostila.')
             return redirect(url_for('admin.dashboard', _anchor='edu'))
     # Metadados/embeds para mídias
     if tipo == 'podcast':
