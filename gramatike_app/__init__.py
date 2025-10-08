@@ -297,7 +297,12 @@ def create_app():
             import os
             from PIL import Image, ImageDraw, ImageFont
             base_dir = os.path.join(app.root_path, 'static', 'img', 'icons')
-            os.makedirs(base_dir, exist_ok=True)
+            # Tenta criar diretório; ignora se falhar (read-only filesystem em serverless)
+            try:
+                os.makedirs(base_dir, exist_ok=True)
+            except (OSError, PermissionError):
+                # Filesystem read-only (Vercel/serverless) - ícones devem existir no repo
+                return
             targets = [(192, 'icon-192.png'), (512, 'icon-512.png')]
             for size, name in targets:
                 path = os.path.join(base_dir, name)
@@ -361,11 +366,19 @@ def create_app():
                         font = ImageFont.truetype("arial.ttf", font_size)
                     except Exception:
                         font = ImageFont.load_default()
-                    tw, th = draw.textsize(txt, font=font)
+                    # Use textbbox (Pillow 10+) em vez de textsize (deprecated)
+                    bbox = draw.textbbox((0, 0), txt, font=font)
+                    tw = bbox[2] - bbox[0]
+                    th = bbox[3] - bbox[1]
                     draw.text(((size-tw)//2, (size-th)//2), txt, fill=(255,255,255,255), font=font)
                 except Exception:
                     pass
-                im.convert('RGB').save(path, format='PNG')
+                # Tenta salvar; ignora se falhar (filesystem read-only)
+                try:
+                    im.convert('RGB').save(path, format='PNG')
+                except (OSError, PermissionError):
+                    # Filesystem read-only (Vercel/serverless)
+                    pass
         except Exception as _e:
             app.logger.warning(f"Falha ao gerar ícones PWA: {_e}")
 
