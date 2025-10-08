@@ -42,7 +42,7 @@ def _render_email_template(title: str, content: str) -> str:
                                 © 2025 Gramátike • Inclusão e Gênero Neutro
                             </p>
                             <p style="margin:0; font-size:12px; color:#999;">
-                                Este é um e-mail automático, mas você pode respondê-lo se precisar de ajuda.
+                                Este é um e-mail automático.
                             </p>
                         </td>
                     </tr>
@@ -141,7 +141,7 @@ def render_welcome_email(username: str) -> str:
             </p>
             <ul style="margin:0; padding-left:20px; color:#555; line-height:1.8;">
                 <li><strong>Edu:</strong> Trilhas de estudo e conteúdos educativos</li>
-                <li><strong>Comunidade:</strong> Postagens e interações com outros usuários</li>
+                <li><strong>Comunidade:</strong> Postagens e interações com outres usuáries</li>
                 <li><strong>Exercícios:</strong> Pratique e aprenda gramática</li>
             </ul>
         </div>
