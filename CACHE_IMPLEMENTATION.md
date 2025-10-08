@@ -160,7 +160,7 @@ Consider decreasing TTL if:
 ### Cache Functionality Test
 Run the test suite:
 ```bash
-python test_cache.py
+python tests/test_cache.py
 ```
 
 Expected output:
