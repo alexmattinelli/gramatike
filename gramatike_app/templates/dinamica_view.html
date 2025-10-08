@@ -19,7 +19,7 @@
     .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito'; font-weight:800; letter-spacing:.3px; background:#fff; color:#6233B5; }
     .btn.primary { background:#9B5DE5; color:#fff; border:none; }
   /* Word cloud - texto puro, sem pills */
-  .cloud { display:flex; flex-wrap:wrap; gap:.3rem .6rem; align-items:flex-end; margin:.6rem 0 0; }
+  .cloud { display:flex; flex-wrap:wrap; gap:.5rem .8rem; align-items:flex-end; margin:1rem 0 0; padding:1rem; background:rgba(155,93,229,0.03); border-radius:16px; border:1px solid rgba(155,93,229,0.1); }
   .cloud .w { display:inline-block; font-weight:900; letter-spacing:.3px; line-height:1; will-change:transform; }
   /* Poll bars */
   .poll-bars { display:flex; flex-direction:column; gap:.45rem; margin-top:.5rem; }
@@ -51,7 +51,7 @@
           </form>
         {% endif %}
         {% if agg.counts %}
-          <h3 style="margin-top:1rem;">Nuvem de palavras</h3>
+          <h3 style="margin-top:1.5rem; margin-bottom:1.2rem;">Nuvem de palavras</h3>
           <div id="word-cloud" class="cloud" aria-label="Nuvem de palavras"></div>
           <div id="wc-data" data-entries='{{ agg.counts.most_common(80) | tojson | safe }}' style="display:none"></div>
           <noscript>
