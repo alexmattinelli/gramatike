@@ -13,27 +13,67 @@ def send_email(to_email: str, subject: str, html_body: str, text_body: str | Non
         password = cfg.get('MAIL_PASSWORD')
         sender = cfg.get('MAIL_DEFAULT_SENDER') or username
         sender_name = cfg.get('MAIL_SENDER_NAME', 'Gramátike')
+        
+        # Validação de configuração
         if not host or not sender:
-            current_app.logger.warning('Envio de e-mail desativado: MAIL_SERVER ou MAIL_DEFAULT_SENDER não configurados.')
+            msg_error = 'Envio de e-mail desativado: MAIL_SERVER ou MAIL_DEFAULT_SENDER não configurados.'
+            try:
+                current_app.logger.warning(msg_error)
+            except Exception:
+                print(f"[AVISO] {msg_error}", flush=True)
             return False
+        
+        if not username or not password:
+            msg_error = f'Configuração SMTP incompleta: MAIL_USERNAME ou MAIL_PASSWORD ausentes. Host: {host}'
+            try:
+                current_app.logger.warning(msg_error)
+            except Exception:
+                print(f"[AVISO] {msg_error}", flush=True)
+            return False
+        
         body_text = text_body or ''
         msg = MIMEText(html_body, 'html', 'utf-8')
         msg['Subject'] = subject
         msg['From'] = formataddr((sender_name, sender))
         msg['To'] = to_email
+        
         # Conexão SMTP
         with smtplib.SMTP(host, port, timeout=15) as server:
+            # Habilita debug em desenvolvimento (comentado por padrão)
+            # server.set_debuglevel(1)
             if use_tls:
                 server.starttls()
             if username and password:
                 server.login(username, password)
             server.sendmail(sender, [to_email], msg.as_string())
-        return True
-    except Exception as e:
+        
+        # Log de sucesso
         try:
-            current_app.logger.error(f"Falha ao enviar e-mail: {e}")
+            current_app.logger.info(f"E-mail enviado com sucesso para {to_email}")
         except Exception:
-            pass
+            print(f"[INFO] E-mail enviado com sucesso para {to_email}", flush=True)
+        
+        return True
+    except smtplib.SMTPAuthenticationError as e:
+        error_msg = f"Falha de autenticação SMTP: {e}. Verifique MAIL_USERNAME e MAIL_PASSWORD."
+        try:
+            current_app.logger.error(error_msg)
+        except Exception:
+            print(f"[ERRO] {error_msg}", flush=True)
+        return False
+    except smtplib.SMTPException as e:
+        error_msg = f"Erro SMTP ao enviar e-mail para {to_email}: {e}"
+        try:
+            current_app.logger.error(error_msg)
+        except Exception:
+            print(f"[ERRO] {error_msg}", flush=True)
+        return False
+    except Exception as e:
+        error_msg = f"Falha inesperada ao enviar e-mail para {to_email}: {type(e).__name__}: {e}"
+        try:
+            current_app.logger.error(error_msg)
+        except Exception:
+            print(f"[ERRO] {error_msg}", flush=True)
         return False
 
 def render_welcome_email(username: str) -> str:
