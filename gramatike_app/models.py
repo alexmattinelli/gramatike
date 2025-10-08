@@ -305,6 +305,19 @@ class DynamicResponse(db.Model):
     def __repr__(self):
         return f"<DynamicResponse dyn={self.dynamic_id} user={self.usuario_id}>"
 
+# Palavras para evitar na nuvem de palavras (oneword dynamics)
+class WordExclusion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    dynamic_id = db.Column(db.Integer, db.ForeignKey('dynamic.id'), index=True, nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=False)
+    palavra = db.Column(db.String(100), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    dynamic = db.relationship('Dynamic')
+    usuario = db.relationship('User')
+    
+    def __repr__(self):
+        return f"<WordExclusion dyn={self.dynamic_id} user={self.usuario_id} palavra={self.palavra}>"
+
 
 # Palavras bloqueadas customizadas (gerenciadas no painel de admin)
 class BlockedWord(db.Model):

@@ -7,7 +7,7 @@ import re
 from werkzeug.utils import secure_filename
 from mimetypes import guess_type
 from gramatike_app.utils.storage import upload_bytes_to_supabase, build_avatar_path, build_post_image_path, build_apostila_path, build_divulgacao_path
-from gramatike_app.models import User, db, Post, Curtida, Comentario, Report, EduContent, EduTopic, ExerciseTopic, ExerciseQuestion, ExerciseSection, SupportTicket, Divulgacao, post_likes, PostImage, Dynamic, DynamicResponse
+from gramatike_app.models import User, db, Post, Curtida, Comentario, Report, EduContent, EduTopic, ExerciseTopic, ExerciseQuestion, ExerciseSection, SupportTicket, Divulgacao, post_likes, PostImage, Dynamic, DynamicResponse, WordExclusion
 from gramatike_app.utils.emailer import send_email, render_welcome_email, render_verify_email, render_reset_email, render_change_email_email
 from gramatike_app.utils.tokens import generate_token, verify_token
 from gramatike_app.utils.moderation import check_text, check_image_hint, refusal_message_pt
@@ -402,9 +402,15 @@ def editar_perfil():
     if username is not None:
         novo_username = (username or '').strip().lstrip('@')
         if novo_username and novo_username != user.username:
-            # Validate username - no spaces allowed
+            # Validate username - no spaces allowed and length requirements
             if ' ' in novo_username:
                 return jsonify({'erro': 'Nome de usuário não pode conter espaços.'}), 400
+            
+            if len(novo_username) < 5:
+                return jsonify({'erro': 'Nome de usuário deve ter no mínimo 5 caracteres.'}), 400
+            
+            if len(novo_username) > 45:
+                return jsonify({'erro': 'Nome de usuário deve ter no máximo 45 caracteres.'}), 400
             ok_u, cat_u, _ = check_text(novo_username)
             if not ok_u:
                 return jsonify({'erro': refusal_message_pt(cat_u)}), 400
@@ -1204,12 +1210,25 @@ def dinamica_view(dyn_id: int):
         # contar palavras (case-insensitive)
         from collections import Counter
         words = []
+        
+        # Buscar palavras excluídas pelo usuário atual
+        excluded_words = set()
+        if current_user.is_authenticated:
+            exclusions = WordExclusion.query.filter_by(
+                dynamic_id=d.id,
+                usuario_id=current_user.id
+            ).all()
+            excluded_words = {ex.palavra.lower() for ex in exclusions}
+        
         for r in d.responses:
             try:
                 pr = _json.loads(r.payload) if r.payload else {}
                 w = (pr.get('word') or '').strip()
                 if w:
-                    words.append(w.lower())
+                    w_lower = w.lower()
+                    # Filtrar palavras excluídas
+                    if w_lower not in excluded_words:
+                        words.append(w_lower)
             except Exception:
                 pass
         agg['counts'] = Counter(words)
@@ -1481,6 +1500,22 @@ def dinamica_responder(dyn_id: int):
             flash('Palavra(s) muito longa(s) (máx 80 caracteres).')
             return redirect(url_for('main.dinamica_view', dyn_id=d.id))
         payload['word'] = w
+        
+        # Processar palavras para evitar (até 3)
+        palavras_evitar = []
+        for i in range(1, 4):
+            evitar = (request.form.get(f'evitar{i}') or '').strip().lower()
+            if evitar and len(evitar) <= 50:  # Limite de 50 caracteres por palavra
+                palavras_evitar.append(evitar)
+        
+        # Salvar palavras para evitar no banco
+        for palavra in palavras_evitar:
+            exclusion = WordExclusion(
+                dynamic_id=d.id,
+                usuario_id=current_user.id,
+                palavra=palavra
+            )
+            db.session.add(exclusion)
     elif d.tipo == 'poll':
         try:
             idx = int(request.form.get('option'))
@@ -2126,9 +2161,17 @@ def cadastro():
             except Exception:
                 data_nascimento = None
 
-        # Validate username - no spaces allowed
+        # Validate username - no spaces allowed and length requirements
         if ' ' in username:
             flash('Nome de usuário não pode conter espaços.')
+            return redirect(url_for('main.cadastro'))
+        
+        if len(username) < 5:
+            flash('Nome de usuário deve ter no mínimo 5 caracteres.')
+            return redirect(url_for('main.cadastro'))
+        
+        if len(username) > 45:
+            flash('Nome de usuário deve ter no máximo 45 caracteres.')
             return redirect(url_for('main.cadastro'))
 
         # Verifica se o usuário já existe
