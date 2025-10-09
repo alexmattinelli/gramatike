@@ -212,14 +212,33 @@ def _build_media_url(c: EduContent):
 @bp.route('/api/csp-report', methods=['POST'])
 def api_csp_report():
     try:
-        payload = request.get_json(silent=True) or {}
-        # Only log non-empty reports to reduce noise
-        if payload:
+        # Try to get JSON payload with force=True to handle application/csp-report content-type
+        payload = request.get_json(force=True, silent=True)
+        
+        # Only log non-empty, meaningful reports to reduce noise
+        # Check for truly empty reports: None, {}, or reports with empty nested objects
+        if payload and payload != {} and _is_meaningful_csp_report(payload):
             current_app.logger.warning(f"CSP report: {payload}")
     except Exception as _e:
-        current_app.logger.warning(f"CSP report parse failed: {_e}")
+        # Log parse failures at debug level to avoid noise
+        current_app.logger.debug(f"CSP report parse failed: {_e}")
     # retorna 204 para não poluir a rede
     return ('', 204)
+
+def _is_meaningful_csp_report(payload):
+    """Check if CSP report contains actual violation data"""
+    if not isinstance(payload, dict):
+        return False
+    
+    # Check if there's a csp-report key with actual data
+    if 'csp-report' in payload:
+        csp_data = payload.get('csp-report')
+        # Report is meaningful if csp-report object has keys beyond just existing
+        return isinstance(csp_data, dict) and bool(csp_data)
+    
+    # If no csp-report key, check if payload itself has meaningful data
+    # (some browsers might send different formats)
+    return len(payload) > 0
 # (RAG endpoints removidos)
 
 # Reenvio de verificação de e-mail

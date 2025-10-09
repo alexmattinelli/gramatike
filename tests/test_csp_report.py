@@ -25,16 +25,31 @@ def test_csp_report_empty_payload():
     app.logger.addHandler(handler)
     
     with app.test_client() as client:
-        # Send empty payload
+        # Test 1: Send empty JSON object
         resp = client.post('/api/csp-report', 
             data=json.dumps({}),
             content_type='application/json')
-        
         assert resp.status_code == 204, f"Expected 204, got {resp.status_code}"
         
-        # Check that no CSP report was logged (empty payload should be ignored)
+        # Test 2: Send CSP report with empty data
+        log_stream.truncate(0)
+        log_stream.seek(0)
+        resp = client.post('/api/csp-report',
+            data=json.dumps({'csp-report': {}}),
+            content_type='application/json')
+        assert resp.status_code == 204, f"Expected 204, got {resp.status_code}"
+        
+        # Test 3: Send with application/csp-report content-type
+        log_stream.truncate(0)
+        log_stream.seek(0)
+        resp = client.post('/api/csp-report',
+            data=json.dumps({}),
+            content_type='application/csp-report')
+        assert resp.status_code == 204, f"Expected 204, got {resp.status_code}"
+        
+        # Check that no CSP report was logged (empty payloads should be ignored)
         log_output = log_stream.getvalue()
-        assert 'CSP report: {}' not in log_output, "Empty CSP reports should not be logged"
+        assert 'CSP report:' not in log_output, "Empty CSP reports should not be logged"
     
     app.logger.removeHandler(handler)
     print("✅ Empty CSP reports are not logged (reduces noise)")
@@ -90,6 +105,50 @@ def test_csp_report_invalid_json():
     print("✅ Invalid JSON is handled gracefully (no crash)")
 
 
+def test_csp_report_with_csp_content_type():
+    """Test CSP reports with application/csp-report content-type"""
+    from api.index import app
+    import logging
+    from io import StringIO
+    
+    # Capture logs
+    log_stream = StringIO()
+    handler = logging.StreamHandler(log_stream)
+    handler.setLevel(logging.WARNING)
+    app.logger.addHandler(handler)
+    
+    with app.test_client() as client:
+        # Test 1: Empty report with application/csp-report
+        log_stream.truncate(0)
+        log_stream.seek(0)
+        resp = client.post('/api/csp-report',
+            data=json.dumps({}),
+            content_type='application/csp-report')
+        assert resp.status_code == 204
+        log_output = log_stream.getvalue()
+        assert 'CSP report:' not in log_output, "Empty reports should not be logged"
+        
+        # Test 2: Valid report with application/csp-report
+        log_stream.truncate(0)
+        log_stream.seek(0)
+        payload = {
+            'csp-report': {
+                'violated-directive': 'script-src',
+                'blocked-uri': 'https://evil.com/script.js'
+            }
+        }
+        resp = client.post('/api/csp-report',
+            data=json.dumps(payload),
+            content_type='application/csp-report')
+        assert resp.status_code == 204
+        log_output = log_stream.getvalue()
+        assert 'CSP report:' in log_output, "Valid reports should be logged"
+        assert 'script-src' in log_output, "Report details should be in log"
+    
+    app.logger.removeHandler(handler)
+    print("✅ CSP reports with application/csp-report content-type handled correctly")
+
+
 def main():
     print("=" * 70)
     print("UNIT TESTS - CSP REPORT FIX")
@@ -100,6 +159,7 @@ def main():
         test_csp_report_empty_payload,
         test_csp_report_non_empty_payload,
         test_csp_report_invalid_json,
+        test_csp_report_with_csp_content_type,
     ]
     
     passed = 0
