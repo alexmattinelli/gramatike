@@ -527,9 +527,9 @@ def editar_perfil():
     if pronome:
         user.pronome = pronome
     if bio is not None:
-        ok_b, cat_b, _ = check_text(bio)
+        ok_b, cat_b, matched_b = check_text(bio)
         if not ok_b:
-            return jsonify({'erro': refusal_message_pt(cat_b)}), 400
+            return jsonify({'erro': refusal_message_pt(cat_b, matched_b)}), 400
         user.bio = bio
     if data_nascimento_str:
         try:
@@ -2069,13 +2069,13 @@ def get_posts():
 def create_post():
     data = request.json
     # Moderação de conteúdo
-    ok, cat, _m = check_text(data.get('conteudo') or '')
+    ok, cat, matched_word = check_text(data.get('conteudo') or '')
     if not ok:
-        return jsonify({'error': 'conteudo_bloqueado', 'reason': cat, 'message': refusal_message_pt(cat)}), 400
+        return jsonify({'error': 'conteudo_bloqueado', 'reason': cat, 'message': refusal_message_pt(cat, matched_word)}), 400
     if (data.get('imagem') or ''):
-        ok_img, cat_img, _ = check_image_hint(data.get('imagem'))
+        ok_img, cat_img, matched_img = check_image_hint(data.get('imagem'))
         if not ok_img:
-            return jsonify({'error': 'imagem_bloqueada', 'reason': cat_img, 'message': refusal_message_pt(cat_img)}), 400
+            return jsonify({'error': 'imagem_bloqueada', 'reason': cat_img, 'message': refusal_message_pt(cat_img, matched_img)}), 400
     usuario_nome = current_user.username if hasattr(current_user, 'username') else data.get('usuario', 'Usuárie')
     usuario_id = current_user.id if hasattr(current_user, 'id') else None
     post = Post(

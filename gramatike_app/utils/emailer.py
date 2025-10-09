@@ -23,7 +23,7 @@ def _render_email_template(title: str, content: str) -> str:
                 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; background:#ffffff; border-radius:20px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
                     <!-- Header com logo -->
                     <tr>
-                        <td style="background:linear-gradient(135deg, #9B5DE5 0%, #6233B5 100%); padding:40px 30px; text-align:center;">
+                        <td style="background-color:#9B5DE5; padding:40px 30px; text-align:center;">
                             <img src="data:image/png;base64,{LOGO_BASE64}" alt="Gramátike" width="60" height="60" style="display:block; margin:0 auto 16px;">
                             <h1 style="margin:0; font-family:'Mansalva', cursive; font-size:32px; color:#ffffff; font-weight:400; letter-spacing:1px;">Gramátike</h1>
                         </td>
@@ -163,7 +163,7 @@ def render_verify_email(username: str, verify_url: str) -> str:
         <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
                 <td align="center" style="padding:20px 0;">
-                    <a href="{verify_url}" style="display:inline-block; background:linear-gradient(135deg, #9B5DE5 0%, #6233B5 100%); color:#ffffff; padding:16px 40px; border-radius:12px; text-decoration:none; font-weight:700; font-size:16px; box-shadow:0 4px 12px rgba(155,93,229,0.3);">
+                    <a href="{verify_url}" style="display:inline-block; background-color:#9B5DE5; color:#ffffff; padding:16px 40px; border-radius:12px; text-decoration:none; font-weight:700; font-size:16px; box-shadow:0 4px 12px rgba(155,93,229,0.3);">
                         ✓ Confirmar e-mail
                     </a>
                 </td>
@@ -187,7 +187,7 @@ def render_reset_email(username: str, reset_url: str) -> str:
         <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
                 <td align="center" style="padding:20px 0;">
-                    <a href="{reset_url}" style="display:inline-block; background:linear-gradient(135deg, #9B5DE5 0%, #6233B5 100%); color:#ffffff; padding:16px 40px; border-radius:12px; text-decoration:none; font-weight:700; font-size:16px; box-shadow:0 4px 12px rgba(155,93,229,0.3);">
+                    <a href="{reset_url}" style="display:inline-block; background-color:#9B5DE5; color:#ffffff; padding:16px 40px; border-radius:12px; text-decoration:none; font-weight:700; font-size:16px; box-shadow:0 4px 12px rgba(155,93,229,0.3);">
                         🔑 Redefinir senha
                     </a>
                 </td>
@@ -226,7 +226,7 @@ def render_change_email_email(username: str, confirm_url: str, new_email: str) -
         <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
                 <td align="center" style="padding:20px 0;">
-                    <a href="{confirm_url}" style="display:inline-block; background:linear-gradient(135deg, #9B5DE5 0%, #6233B5 100%); color:#ffffff; padding:16px 40px; border-radius:12px; text-decoration:none; font-weight:700; font-size:16px; box-shadow:0 4px 12px rgba(155,93,229,0.3);">
+                    <a href="{confirm_url}" style="display:inline-block; background-color:#9B5DE5; color:#ffffff; padding:16px 40px; border-radius:12px; text-decoration:none; font-weight:700; font-size:16px; box-shadow:0 4px 12px rgba(155,93,229,0.3);">
                         ✓ Confirmar novo e-mail
                     </a>
                 </td>
