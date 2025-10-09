@@ -50,7 +50,7 @@ def dashboard():
                     if 'category' not in rnames:
                         conn.exec_driver_sql("ALTER TABLE report ADD COLUMN category VARCHAR(40)")
                 except Exception as _er:
-                    print('[WARN] fallback schema report.category:', _er)
+                    current_app.logger.warning(f'Fallback schema report.category: {_er}')
                 # Tabela user: colunas de moderação
                 try:
                     ucols = conn.exec_driver_sql("PRAGMA table_info(user)").fetchall()
@@ -64,7 +64,7 @@ def dashboard():
                     if 'suspended_until' not in unames:
                         conn.exec_driver_sql("ALTER TABLE user ADD COLUMN suspended_until DATETIME")
                 except Exception as _eu:
-                    print('[WARN] fallback schema user moderation cols:', _eu)
+                    current_app.logger.warning(f'Fallback schema user moderation cols: {_eu}')
                 # Tabela blocked_word
                 try:
                     tbl = conn.exec_driver_sql("SELECT name FROM sqlite_master WHERE type='table' AND name='blocked_word'").fetchone()
@@ -83,9 +83,9 @@ def dashboard():
                         conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_blocked_word_category ON blocked_word(category)")
                         conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_blocked_word_created_at ON blocked_word(created_at)")
                 except Exception as _bw:
-                    print('[WARN] fallback schema blocked_word:', _bw)
+                    current_app.logger.warning(f'Fallback schema blocked_word: {_bw}')
     except Exception as _e:
-        print('[WARN] fallback schema edu_content/topic_id:', _e)
+        current_app.logger.warning(f'Fallback schema edu_content/topic_id: {_e}')
     
     # Pagination for users
     users_page = request.args.get('users_page', 1, type=int)
@@ -356,7 +356,7 @@ def edu_publicar():
                     doc.close()
                 except Exception as _e:
                     # Se falhar, segue sem thumb
-                    print('[WARN] PDF thumbnail generation failed:', _e)
+                    current_app.logger.warning(f'PDF thumbnail generation failed: {_e}')
         else:
             flash('É necessário enviar um arquivo PDF ou um link (URL) para apostila.')
             return redirect(url_for('admin.dashboard', _anchor='edu'))
