@@ -24,7 +24,7 @@ def _render_email_template(title: str, content: str) -> str:
                     <!-- Header com logo -->
                     <tr>
                         <td style="background-color:#9B5DE5; padding:40px 30px; text-align:center;">
-                            <img src="data:image/png;base64,{LOGO_BASE64}" alt="Gramátike" width="60" height="60" style="display:block; margin:0 auto 16px;">
+                            <img src="data:image/png;base64,{LOGO_BASE64}" alt="Gramátike" width="60" height="60" style="display:block; margin:0 auto 16px; filter:brightness(0) invert(1);">
                             <h1 style="margin:0; font-family:'Mansalva', cursive; font-size:32px; color:#ffffff; font-weight:400; letter-spacing:1px;">Gramátike</h1>
                         </td>
                     </tr>
