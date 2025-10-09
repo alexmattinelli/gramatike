@@ -999,7 +999,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }).then(list=>{
     const aside = document.querySelector('.right-col');
     if(!aside) return;
-    aside.style.display='block';
     const wrap = document.getElementById('amigues-list');
     const empty = document.getElementById('amigues-empty');
     if(!Array.isArray(list) || list.length===0){
