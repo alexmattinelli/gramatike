@@ -54,28 +54,6 @@ def create_app():
         static_folder=_os_paths.path.join(_pkg_dir, 'static')
     )
     
-    # Configuração de logging para ambientes serverless (Vercel)
-    import logging
-    import sys
-    
-    # Configura handler para stdout com flush automático (essencial para Vercel)
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG if os.getenv('FLASK_ENV') == 'development' else logging.INFO)
-    
-    # Formato detalhado de log com timestamp
-    formatter = logging.Formatter(
-        '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-    handler.setFormatter(formatter)
-    
-    # Aplica configuração ao logger da aplicação
-    app.logger.addHandler(handler)
-    app.logger.setLevel(logging.DEBUG if os.getenv('FLASK_ENV') == 'development' else logging.INFO)
-    
-    # Remove handlers padrão do Flask para evitar duplicação
-    app.logger.handlers = [handler]
-    
     app.config.from_object(Config)
     # Não sobrescrever valores vindos de Config/ambiente; apenas definir padrão se ausente
     app.config.setdefault('SECRET_KEY', os.getenv('SECRET_KEY', 'change-me'))

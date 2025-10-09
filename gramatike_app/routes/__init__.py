@@ -212,33 +212,13 @@ def _build_media_url(c: EduContent):
 @bp.route('/api/csp-report', methods=['POST'])
 def api_csp_report():
     try:
-        # Try to get JSON payload with force=True to handle application/csp-report content-type
-        payload = request.get_json(force=True, silent=True)
-        
-        # Only log non-empty, meaningful reports to reduce noise
-        # Check for truly empty reports: None, {}, or reports with empty nested objects
-        if payload and payload != {} and _is_meaningful_csp_report(payload):
-            current_app.logger.warning(f"CSP report: {payload}")
-    except Exception as _e:
-        # Log parse failures at debug level to avoid noise
-        current_app.logger.debug(f"CSP report parse failed: {_e}")
+        payload = request.get_json(silent=True) or {}
+        if payload:
+            print(f"CSP report: {payload}")
+    except Exception:
+        pass
     # retorna 204 para não poluir a rede
     return ('', 204)
-
-def _is_meaningful_csp_report(payload):
-    """Check if CSP report contains actual violation data"""
-    if not isinstance(payload, dict):
-        return False
-    
-    # Check if there's a csp-report key with actual data
-    if 'csp-report' in payload:
-        csp_data = payload.get('csp-report')
-        # Report is meaningful if csp-report object has keys beyond just existing
-        return isinstance(csp_data, dict) and bool(csp_data)
-    
-    # If no csp-report key, check if payload itself has meaningful data
-    # (some browsers might send different formats)
-    return len(payload) > 0
 # (RAG endpoints removidos)
 
 # Reenvio de verificação de e-mail
@@ -2053,7 +2033,7 @@ def get_posts():
             dt_local = _to_brasilia(p.data) if p.data else None
             data_str = dt_local.strftime('%d/%m/%Y %H:%M') if dt_local else ''
         except Exception as e:
-            current_app.logger.error(f'Erro ao formatar data do post id={p.id} data={p.data}: {e}')
+            print(f'[ERRO DATA POST] id={p.id} data={p.data} erro={e}')
             data_str = ''
         # Buscar o usuário autor do post
         autor = None
@@ -2082,7 +2062,7 @@ def get_posts():
             'foto_perfil': foto_perfil,
             'liked': liked
         })
-    current_app.logger.info(f'API /api/posts retornou {len(result)} posts')
+    print(f'[API /api/posts] {len(result)} posts retornados')
     return jsonify(result)
 
 @bp.route('/api/posts', methods=['POST'])
