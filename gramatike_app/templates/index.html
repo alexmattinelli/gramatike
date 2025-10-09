@@ -1324,9 +1324,11 @@ function toggleNotifications() {
   if (panel.style.display === 'none') {
     panel.style.display = 'block';
     loadNotifications();
-    // Clear badge when opening notifications
+    // Clear badge when opening notifications and mark as viewed
     setTimeout(() => {
       badge.style.display = 'none';
+      // Mark notifications as viewed in localStorage
+      localStorage.setItem('notificationsViewed', 'true');
     }, 500);
   } else {
     panel.style.display = 'none';
@@ -1379,8 +1381,25 @@ async function loadNotifications() {
           <div style="font-size:.65rem; color:#999; margin-top:.3rem;">${n.time}</div>
         </a>
       `).join('');
-      badge.textContent = notifications.length;
-      badge.style.display = 'inline-block';
+      
+      // Create a hash of current notifications to detect changes
+      const notifHash = JSON.stringify(notifications.map(n => n.message + n.link).sort());
+      const lastNotifHash = localStorage.getItem('lastNotifHash');
+      
+      // If notifications changed, reset the viewed flag
+      if (notifHash !== lastNotifHash) {
+        localStorage.setItem('lastNotifHash', notifHash);
+        localStorage.removeItem('notificationsViewed');
+      }
+      
+      // Only show badge if notifications haven't been viewed
+      const notificationsViewed = localStorage.getItem('notificationsViewed');
+      if (notificationsViewed !== 'true') {
+        badge.textContent = notifications.length;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
     }
   } catch (e) {
     console.error('Error loading notifications:', e);
