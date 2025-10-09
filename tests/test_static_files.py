@@ -41,15 +41,36 @@ def test_favicon_exists():
     from api.index import app
     
     with app.test_client() as client:
-        # Test PNG favicon
+        # Test PNG favicon from static path
         resp = client.get('/static/favicon.png')
         assert resp.status_code == 200, f"favicon.png - Expected 200, got {resp.status_code}"
         
-        # Test ICO favicon
+        # Test ICO favicon from static path
         resp = client.get('/static/favicon.ico')
         assert resp.status_code == 200, f"favicon.ico - Expected 200, got {resp.status_code}"
     
     print("✅ Favicons are accessible (200 OK)")
+
+
+def test_favicon_root_routes():
+    """Test that favicon files are accessible from root path (fix for browser 404s)"""
+    from api.index import app
+    
+    with app.test_client() as client:
+        # Test PNG favicon from root (browsers request this automatically)
+        resp = client.get('/favicon.png', follow_redirects=True)
+        assert resp.status_code == 200, f"/favicon.png - Expected 200, got {resp.status_code}"
+        assert resp.content_type.startswith('image/'), f"Expected image content type, got {resp.content_type}"
+        
+        # Test ICO favicon from root (browsers request this automatically)
+        resp = client.get('/favicon.ico', follow_redirects=True)
+        assert resp.status_code == 200, f"/favicon.ico - Expected 200, got {resp.status_code}"
+        
+        # Test that these are redirects (302) before following
+        resp_no_redirect = client.get('/favicon.png', follow_redirects=False)
+        assert resp_no_redirect.status_code == 302, f"Expected redirect (302), got {resp_no_redirect.status_code}"
+    
+    print("✅ Root-level favicon routes work correctly (302 redirect -> 200 OK)")
 
 
 def test_perfil_image_valid():
@@ -79,6 +100,7 @@ def main():
         test_style_css_exists,
         test_perfil_png_exists,
         test_favicon_exists,
+        test_favicon_root_routes,
         test_perfil_image_valid,
     ]
     
