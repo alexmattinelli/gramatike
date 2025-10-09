@@ -425,10 +425,43 @@ def create_app():
     # Simples tratador 500 para evitar página em branco
     @app.errorhandler(500)
     def _handle_500(e):
+        import traceback
+        from flask import request
+        
+        # Tenta extrair a exceção original da cadeia de exceções
+        original_error = e
+        if hasattr(e, '__cause__') and e.__cause__:
+            original_error = e.__cause__
+        elif hasattr(e, 'original_exception') and e.original_exception:
+            original_error = e.original_exception
+        
+        # Coletando informações detalhadas do erro
+        error_msg = str(original_error) if original_error else str(e)
+        error_type = type(original_error).__name__ if original_error else type(e).__name__
+        
+        error_details = {
+            'error': error_msg,
+            'type': error_type,
+            'path': request.path if request else 'N/A',
+            'method': request.method if request else 'N/A',
+            'ip': request.remote_addr if request else 'N/A',
+        }
+        
+        # Log detalhado do erro
         try:
-            app.logger.error(f"Erro 500: {e}")
+            # Log básico com informações do request
+            app.logger.error(
+                f"Erro 500: {error_details['type']}: {error_details['error']} | "
+                f"Path: {error_details['path']} | Method: {error_details['method']} | "
+                f"IP: {error_details['ip']}"
+            )
+            # Log do stack trace completo (inclui toda a cadeia de exceções)
+            app.logger.error(f"Stack trace:\n{traceback.format_exc()}")
         except Exception:
-            pass
+            # Fallback: imprime no console se logger falhar
+            print(f"[ERRO 500] {error_details}", flush=True)
+            print(f"[STACK TRACE]\n{traceback.format_exc()}", flush=True)
+        
         return ("Erro interno no servidor.", 500, {'Content-Type': 'text/plain; charset=utf-8'})
 
     # --- Rate limiting simples por endpoint/IP ---
