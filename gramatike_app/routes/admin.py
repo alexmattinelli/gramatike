@@ -497,6 +497,28 @@ def edu_topic_create():
     flash('Tópico criado.')
     return redirect(url_for('admin.dashboard', _anchor='edu'))
 
+@admin_bp.route('/edu/topico/<int:topic_id>', methods=['POST'])
+@login_required
+def edu_topic_update(topic_id):
+    if not current_user.is_admin:
+        return redirect(url_for('main.index'))
+    topic = EduTopic.query.get_or_404(topic_id)
+    nome = request.form.get('nome','').strip()
+    descricao = request.form.get('descricao','').strip() or None
+    if not nome:
+        flash('Nome do tópico é obrigatório.')
+        return redirect(url_for('admin.dashboard', _anchor='edu'))
+    # Check if another topic with same name exists in same area
+    existing = EduTopic.query.filter_by(area=topic.area, nome=nome).first()
+    if existing and existing.id != topic_id:
+        flash('Já existe tópico com esse nome nessa área.')
+        return redirect(url_for('admin.dashboard', _anchor='edu'))
+    topic.nome = nome
+    topic.descricao = descricao
+    db.session.commit()
+    flash('Tópico atualizado com sucesso.')
+    return redirect(url_for('admin.dashboard', _anchor='edu'))
+
 @admin_bp.route('/edu/buscar')
 @login_required
 def edu_buscar():
