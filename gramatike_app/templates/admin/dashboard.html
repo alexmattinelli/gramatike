@@ -923,6 +923,50 @@
                         </form>
                     </div>
                 </div>
+                <!-- Gerenciar Tópicos de Podcasts -->
+                <div class="edu-box" style="margin-top:1rem;">
+                    <h3>Gerenciar Tópicos de Podcasts</h3>
+                    {% if edu_topics %}
+                        {% set podcast_topics = edu_topics | selectattr('area', 'equalto', 'podcast') | list %}
+                        {% if podcast_topics %}
+                            <div style="display:grid; gap:.8rem; grid-template-columns:1fr;">
+                                {% for topic in podcast_topics %}
+                                <div style="background:#f9fbfd; border:1px solid #e3e9f0; border-radius:12px; padding:.9rem;">
+                                    <div style="display:flex; justify-content:space-between; align-items:start; gap:.8rem;">
+                                        <div style="flex:1;">
+                                            <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;">{{ topic.nome }}</div>
+                                            {% if topic.descricao %}
+                                                <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;">{{ topic.descricao }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <button onclick="toggleTopicEdit('podcast-{{ topic.id }}')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;">
+                                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                            </svg>
+                                            Editar
+                                        </button>
+                                    </div>
+                                    <div id="topic-edit-podcast-{{ topic.id }}" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
+                                        <form method="POST" action="{{ url_for('admin.edu_topic_update', topic_id=topic.id) }}" style="display:flex; flex-direction:column; gap:.5rem;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+                                            <label style="font-size:.7rem; font-weight:600; color:#666;">Nome</label>
+                                            <input name="nome" value="{{ topic.nome }}" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
+                                            <label style="font-size:.7rem; font-weight:600; color:#666;">Descrição</label>
+                                            <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;">{{ topic.descricao or '' }}</textarea>
+                                            <div style="display:flex; gap:.5rem; margin-top:.3rem;">
+                                                <button type="submit" class="action-btn" style="background:var(--accent); color:#fff; border:none; font-size:.65rem; padding:.5rem .9rem;">Salvar</button>
+                                                <button type="button" onclick="toggleTopicEdit('podcast-{{ topic.id }}')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="muted-inline">Nenhum tópico criado ainda.</p>
+                        {% endif %}
+                    {% endif %}
+                </div>
                 <div class="edu-box" style="margin-top:1rem;">
                     <h3>Podcasts Recentes</h3>
                     <div style="display:flex; gap:.5rem; align-items:center; margin-bottom:.6rem;">
@@ -1077,6 +1121,50 @@
                             <button type="submit">Criar</button>
                         </form>
                     </div>
+                </div>
+                <!-- Gerenciar Tópicos de Redação -->
+                <div class="edu-box" style="margin-top:1rem;">
+                    <h3>Gerenciar Tópicos de Redação</h3>
+                    {% if edu_topics %}
+                        {% set redacao_topics = edu_topics | selectattr('area', 'equalto', 'redacao') | list %}
+                        {% if redacao_topics %}
+                            <div style="display:grid; gap:.8rem; grid-template-columns:1fr;">
+                                {% for topic in redacao_topics %}
+                                <div style="background:#f9fbfd; border:1px solid #e3e9f0; border-radius:12px; padding:.9rem;">
+                                    <div style="display:flex; justify-content:space-between; align-items:start; gap:.8rem;">
+                                        <div style="flex:1;">
+                                            <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;">{{ topic.nome }}</div>
+                                            {% if topic.descricao %}
+                                                <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;">{{ topic.descricao }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <button onclick="toggleTopicEdit('redacao-{{ topic.id }}')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;">
+                                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                            </svg>
+                                            Editar
+                                        </button>
+                                    </div>
+                                    <div id="topic-edit-redacao-{{ topic.id }}" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
+                                        <form method="POST" action="{{ url_for('admin.edu_topic_update', topic_id=topic.id) }}" style="display:flex; flex-direction:column; gap:.5rem;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+                                            <label style="font-size:.7rem; font-weight:600; color:#666;">Nome</label>
+                                            <input name="nome" value="{{ topic.nome }}" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
+                                            <label style="font-size:.7rem; font-weight:600; color:#666;">Descrição</label>
+                                            <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;">{{ topic.descricao or '' }}</textarea>
+                                            <div style="display:flex; gap:.5rem; margin-top:.3rem;">
+                                                <button type="submit" class="action-btn" style="background:var(--accent); color:#fff; border:none; font-size:.65rem; padding:.5rem .9rem;">Salvar</button>
+                                                <button type="button" onclick="toggleTopicEdit('redacao-{{ topic.id }}')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="muted-inline">Nenhum tópico criado ainda.</p>
+                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
             <!-- Exercícios -->
@@ -1413,6 +1501,50 @@
                             <button type="submit">Criar</button>
                         </form>
                     </div>
+                </div>
+                <!-- Gerenciar Tópicos de Vídeos -->
+                <div class="edu-box" style="margin-top:1rem;">
+                    <h3>Gerenciar Tópicos de Vídeos</h3>
+                    {% if edu_topics %}
+                        {% set video_topics = edu_topics | selectattr('area', 'equalto', 'video') | list %}
+                        {% if video_topics %}
+                            <div style="display:grid; gap:.8rem; grid-template-columns:1fr;">
+                                {% for topic in video_topics %}
+                                <div style="background:#f9fbfd; border:1px solid #e3e9f0; border-radius:12px; padding:.9rem;">
+                                    <div style="display:flex; justify-content:space-between; align-items:start; gap:.8rem;">
+                                        <div style="flex:1;">
+                                            <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;">{{ topic.nome }}</div>
+                                            {% if topic.descricao %}
+                                                <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;">{{ topic.descricao }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <button onclick="toggleTopicEdit('video-{{ topic.id }}')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;">
+                                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                            </svg>
+                                            Editar
+                                        </button>
+                                    </div>
+                                    <div id="topic-edit-video-{{ topic.id }}" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
+                                        <form method="POST" action="{{ url_for('admin.edu_topic_update', topic_id=topic.id) }}" style="display:flex; flex-direction:column; gap:.5rem;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+                                            <label style="font-size:.7rem; font-weight:600; color:#666;">Nome</label>
+                                            <input name="nome" value="{{ topic.nome }}" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
+                                            <label style="font-size:.7rem; font-weight:600; color:#666;">Descrição</label>
+                                            <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;">{{ topic.descricao or '' }}</textarea>
+                                            <div style="display:flex; gap:.5rem; margin-top:.3rem;">
+                                                <button type="submit" class="action-btn" style="background:var(--accent); color:#fff; border:none; font-size:.65rem; padding:.5rem .9rem;">Salvar</button>
+                                                <button type="button" onclick="toggleTopicEdit('video-{{ topic.id }}')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="muted-inline">Nenhum tópico criado ainda.</p>
+                        {% endif %}
+                    {% endif %}
                 </div>
                 <div class="edu-box" style="margin-top:1rem;">
                     <!-- Bloco de "Vídeos Recentes" removido a pedido -->
