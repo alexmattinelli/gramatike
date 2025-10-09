@@ -2053,7 +2053,7 @@ def get_posts():
             dt_local = _to_brasilia(p.data) if p.data else None
             data_str = dt_local.strftime('%d/%m/%Y %H:%M') if dt_local else ''
         except Exception as e:
-            print(f'[ERRO DATA POST] id={p.id} data={p.data} erro={e}')
+            current_app.logger.error(f'Erro ao formatar data do post id={p.id} data={p.data}: {e}')
             data_str = ''
         # Buscar o usuário autor do post
         autor = None
@@ -2082,7 +2082,7 @@ def get_posts():
             'foto_perfil': foto_perfil,
             'liked': liked
         })
-    print(f'[API /api/posts] {len(result)} posts retornados')
+    current_app.logger.info(f'API /api/posts retornou {len(result)} posts')
     return jsonify(result)
 
 @bp.route('/api/posts', methods=['POST'])
