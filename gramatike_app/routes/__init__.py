@@ -213,7 +213,9 @@ def _build_media_url(c: EduContent):
 def api_csp_report():
     try:
         payload = request.get_json(silent=True) or {}
-        current_app.logger.warning(f"CSP report: {payload}")
+        # Only log non-empty reports to reduce noise
+        if payload:
+            current_app.logger.warning(f"CSP report: {payload}")
     except Exception as _e:
         current_app.logger.warning(f"CSP report parse failed: {_e}")
     # retorna 204 para não poluir a rede
@@ -2485,3 +2487,14 @@ def api_palavra_do_dia_interagir():
     db.session.commit()
     
     return jsonify({'success': True, 'mensagem': 'Incrível! Hoje tu aprendeu uma nova forma de incluir todes 💜'})
+
+# Favicon routes - serve favicons from root path to prevent 404 errors
+@bp.route('/favicon.ico')
+def favicon_ico():
+    """Serve favicon.ico from root path (browsers request this automatically)"""
+    return redirect(url_for('static', filename='favicon.ico'))
+
+@bp.route('/favicon.png')
+def favicon_png():
+    """Serve favicon.png from root path (browsers request this automatically)"""
+    return redirect(url_for('static', filename='favicon.png'))
