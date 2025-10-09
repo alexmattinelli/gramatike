@@ -1319,9 +1319,15 @@ function initMentionAutocomplete(ta, box, scope){
 // Notifications System
 function toggleNotifications() {
   const panel = document.getElementById('notifications-panel');
+  const badge = document.getElementById('notifications-badge');
+  
   if (panel.style.display === 'none') {
     panel.style.display = 'block';
     loadNotifications();
+    // Clear badge when opening notifications
+    setTimeout(() => {
+      badge.style.display = 'none';
+    }, 500);
   } else {
     panel.style.display = 'none';
   }
@@ -1342,6 +1348,9 @@ async function loadNotifications() {
     const ticketCount = 0;
     {% endif %}
     
+    // Fetch user notifications (likes and followers)
+    const userNotifications = await fetch('/api/notifications').then(r => r.json()).catch(() => []);
+    
     // Build notifications array
     const notifications = [];
     
@@ -1353,6 +1362,11 @@ async function loadNotifications() {
         time: 'agora'
       });
     }
+    
+    // Add user notifications (followers and likes)
+    userNotifications.forEach(n => {
+      notifications.push(n);
+    });
     
     // Display notifications
     if (notifications.length === 0) {

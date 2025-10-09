@@ -42,6 +42,60 @@
           <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
             <strong>✓ Você já respondeu:</strong> {{ user_response.word1 }}{% if user_response.word2 %}, {{ user_response.word2 }}{% endif %}{% if user_response.word3 %}, {{ user_response.word3 }}{% endif %}
           </div>
+          {% if agg.counts %}
+            <h3 style="margin-top:1.5rem; margin-bottom:1.2rem;">Nuvem de palavras</h3>
+            <div id="word-cloud" class="cloud" aria-label="Nuvem de palavras"></div>
+            <div id="wc-data" data-entries='{{ agg.counts.most_common(80) | tojson | safe }}' style="display:none"></div>
+            <noscript>
+              <h4 style="margin-top:.8rem;">Top palavras</h4>
+              <ul>
+                {% for w,c in agg.counts.most_common(10) %}
+                  <li><strong>{{ w }}</strong>: {{ c }}</li>
+                {% endfor %}
+              </ul>
+            </noscript>
+            <script>
+              (function(){
+                try{
+                  var dataEl = document.getElementById('wc-data');
+                  if(!dataEl) return;
+                  var entries = [];
+                  try { entries = JSON.parse(dataEl.getAttribute('data-entries') || '[]'); } catch(e) { entries = []; }
+                  if(!entries || !entries.length) return;
+                  var max = entries[0][1];
+                  var min = entries[entries.length-1][1];
+                  var clamp = function(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); };
+                  function seed(word){
+                    var s=0; for(var i=0;i<word.length;i++){ s = (s*31 + word.charCodeAt(i)) >>> 0; } return s;
+                  }
+                  var wrap = document.getElementById('word-cloud');
+                  wrap.innerHTML='';
+                  entries.forEach(function(pair){
+                    var word = pair[0];
+                    var cnt = pair[1];
+                    var ratio = max===min ? 1 : (cnt - min) / (max - min);
+                    var size = Math.round(14 + ratio * 34); // 14px..48px
+                    var span = document.createElement('span');
+                    span.className = 'w';
+                    span.style.fontSize = size + 'px';
+                    // cor em tons roxos/rosas variando com a palavra e frequência
+                    var baseH = 275; // roxo base
+                    var hue = baseH + (seed(word) % 40) - 20; // +-20 deg
+                    var sat = Math.round(50 + ratio*40); // 50..90
+                    var light = Math.round(35 + (1-ratio)*20); // 35..55
+                    span.style.color = 'hsl(' + hue + ', ' + sat + '%, ' + light + '%)';
+                    // leve rotação para lembrar um mosaico
+                    var ang = ((seed(word) % 7) - 3) * 4; // -12..+12
+                    span.style.transform = 'rotate(' + ang + 'deg)';
+                    span.style.transformOrigin = 'center bottom';
+                    span.title = cnt + (cnt===1 ? ' ocorrência' : ' ocorrências');
+                    span.textContent = word;
+                    wrap.appendChild(span);
+                  });
+                }catch(e){ /* ignore */ }
+              })();
+            </script>
+          {% endif %}
         {% else %}
           <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
@@ -57,60 +111,6 @@
             <button type="submit" class="btn primary">Enviar</button>
           </form>
         {% endif %}
-        {% if agg.counts %}
-          <h3 style="margin-top:1.5rem; margin-bottom:1.2rem;">Nuvem de palavras</h3>
-          <div id="word-cloud" class="cloud" aria-label="Nuvem de palavras"></div>
-          <div id="wc-data" data-entries='{{ agg.counts.most_common(80) | tojson | safe }}' style="display:none"></div>
-          <noscript>
-            <h4 style="margin-top:.8rem;">Top palavras</h4>
-            <ul>
-              {% for w,c in agg.counts.most_common(10) %}
-                <li><strong>{{ w }}</strong>: {{ c }}</li>
-              {% endfor %}
-            </ul>
-          </noscript>
-          <script>
-            (function(){
-              try{
-                var dataEl = document.getElementById('wc-data');
-                if(!dataEl) return;
-                var entries = [];
-                try { entries = JSON.parse(dataEl.getAttribute('data-entries') || '[]'); } catch(e) { entries = []; }
-                if(!entries || !entries.length) return;
-                var max = entries[0][1];
-                var min = entries[entries.length-1][1];
-                var clamp = function(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); };
-                function seed(word){
-                  var s=0; for(var i=0;i<word.length;i++){ s = (s*31 + word.charCodeAt(i)) >>> 0; } return s;
-                }
-                var wrap = document.getElementById('word-cloud');
-                wrap.innerHTML='';
-                entries.forEach(function(pair){
-                  var word = pair[0];
-                  var cnt = pair[1];
-                  var ratio = max===min ? 1 : (cnt - min) / (max - min);
-                  var size = Math.round(14 + ratio * 34); // 14px..48px
-                  var span = document.createElement('span');
-                  span.className = 'w';
-                  span.style.fontSize = size + 'px';
-                  // cor em tons roxos/rosas variando com a palavra e frequência
-                  var baseH = 275; // roxo base
-                  var hue = baseH + (seed(word) % 40) - 20; // +-20 deg
-                  var sat = Math.round(50 + ratio*40); // 50..90
-                  var light = Math.round(35 + (1-ratio)*20); // 35..55
-                  span.style.color = 'hsl(' + hue + ', ' + sat + '%, ' + light + '%)';
-                  // leve rotação para lembrar um mosaico
-                  var ang = ((seed(word) % 7) - 3) * 4; // -12..+12
-                  span.style.transform = 'rotate(' + ang + 'deg)';
-                  span.style.transformOrigin = 'center bottom';
-                  span.title = cnt + (cnt===1 ? ' ocorrência' : ' ocorrências');
-                  span.textContent = word;
-                  wrap.appendChild(span);
-                });
-              }catch(e){ /* ignore */ }
-            })();
-          </script>
-        {% endif %}
       {% elif d.tipo == 'poll' %}
         {% if user_response %}
           {% set user_option_idx = user_response.option %}
@@ -118,6 +118,37 @@
           <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
             <strong>✓ Você já votou:</strong> {{ user_option_text }}
           </div>
+          {% if agg.counts %}
+            {% set total = (agg.counts | sum) if agg.counts else 0 %}
+            {% set colors = ['#9B5DE5', '#F15BB5', '#00BBF9', '#00F5FF', '#FEE440', '#FCA311'] %}
+            <h3 style="margin-top:1rem;">Parciais</h3>
+            <div class="poll-bars" role="list" aria-label="Resultados parciais da enquete">
+              {% for opt in cfg.options %}
+                {% set c = agg.counts[loop.index0] if agg.counts else 0 %}
+                {% set pct = ( (c * 100.0) / (total if total else 1) ) | round(0, 'floor') %}
+                {% set bar_color = colors[loop.index0 % colors|length] %}
+                <div class="poll-row" role="listitem">
+                  <div class="poll-label">{{ opt }}</div>
+                  <div class="poll-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ pct }}" aria-label="{{ opt }}: {{ pct }}%">
+                    <div class="poll-fill" data-pct="{{ '%d' % pct }}" style="background:{{ bar_color }};"></div>
+                  </div>
+                  <div class="poll-pct">{{ '%d' % pct }}% ({{ c }})</div>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="muted" style="margin-top:.4rem; font-size:.75rem;">Total de votos: {{ total }}</div>
+            <script>
+              (function(){
+                try{
+                  document.querySelectorAll('.poll-fill[data-pct]').forEach(function(el){
+                    var pct = parseInt(el.getAttribute('data-pct'), 10) || 0;
+                    pct = Math.max(0, Math.min(100, pct));
+                    el.style.width = pct + '%';
+                  });
+                }catch(e){}
+              })();
+            </script>
+          {% endif %}
         {% else %}
           <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="options">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
@@ -128,37 +159,6 @@
             {% endfor %}
             <button type="submit" class="btn primary" style="margin-top:.6rem;">Votar</button>
           </form>
-        {% endif %}
-        {% if agg.counts %}
-          {% set total = (agg.counts | sum) if agg.counts else 0 %}
-          {% set colors = ['#9B5DE5', '#F15BB5', '#00BBF9', '#00F5FF', '#FEE440', '#FCA311'] %}
-          <h3 style="margin-top:1rem;">Parciais</h3>
-          <div class="poll-bars" role="list" aria-label="Resultados parciais da enquete">
-            {% for opt in cfg.options %}
-              {% set c = agg.counts[loop.index0] if agg.counts else 0 %}
-              {% set pct = ( (c * 100.0) / (total if total else 1) ) | round(0, 'floor') %}
-              {% set bar_color = colors[loop.index0 % colors|length] %}
-              <div class="poll-row" role="listitem">
-                <div class="poll-label">{{ opt }}</div>
-                <div class="poll-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ pct }}" aria-label="{{ opt }}: {{ pct }}%">
-                  <div class="poll-fill" data-pct="{{ '%d' % pct }}" style="background:{{ bar_color }};"></div>
-                </div>
-                <div class="poll-pct">{{ '%d' % pct }}% ({{ c }})</div>
-              </div>
-            {% endfor %}
-          </div>
-          <div class="muted" style="margin-top:.4rem; font-size:.75rem;">Total de votos: {{ total }}</div>
-          <script>
-            (function(){
-              try{
-                document.querySelectorAll('.poll-fill[data-pct]').forEach(function(el){
-                  var pct = parseInt(el.getAttribute('data-pct'), 10) || 0;
-                  pct = Math.max(0, Math.min(100, pct));
-                  el.style.width = pct + '%';
-                });
-              }catch(e){}
-            })();
-          </script>
         {% endif %}
       {% elif d.tipo == 'form' %}
         <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="dinamica-form" style="display:flex;flex-direction:column;gap:12px;">
