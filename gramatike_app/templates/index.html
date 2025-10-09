@@ -285,12 +285,31 @@ button { font-family: var(--font-base); font-weight:600; }
       <div style="flex:1; text-align:center; background:var(--card); border:1px solid var(--border); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; color:var(--primary); letter-spacing:.3px; transition:.18s;">Em breve</div>
     </div>
 
+  <!-- Notifications Button -->
+  <div style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem; position:relative;">
+    <button id="notifications-btn" onclick="toggleNotifications()" style="width:100%; background:transparent; border:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:.6rem .8rem; border-radius:16px; transition:.2s;" onmouseover="this.style.background='#f5f7fb'" onmouseout="this.style.background='transparent'">
+      <div style="display:flex; align-items:center; gap:.7rem;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span style="font-size:.85rem; font-weight:700; color:var(--text); font-family:'Nunito';">Notificações</span>
+      </div>
+      <span id="notifications-badge" style="display:none; background:#ff9800; color:#fff; font-size:.65rem; padding:.25rem .5rem; border-radius:40px; font-weight:700; letter-spacing:.5px;">0</span>
+    </button>
+    <div id="notifications-panel" style="display:none; margin-top:.8rem; border-top:1px solid var(--border); padding-top:.8rem;">
+      <div id="notifications-list" style="display:flex; flex-direction:column; gap:.6rem; max-height:300px; overflow-y:auto;">
+        <div style="text-align:center; color:#999; font-size:.75rem; padding:1rem;">Nenhuma notificação</div>
+      </div>
+    </div>
+  </div>
+
   <div id="amigues-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08);">
       <div class="amigues-toolbar" style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0 0 .6rem;">
         <a href="{{ url_for('main.configuracoes') }}" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="3"></circle>
-            <path d="M12 2.69l1.1 3.17 3.3.48-2.4 2.34.57 3.32L12 10.37 9.43 12l.57-3.32-2.4-2.34 3.3-.48L12 2.69zM19.14 12.94c.04-.31.06-.63.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4.68c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 6.74c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58z"></path>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
         </a>
         <a href="{{ url_for('main.suporte') }}" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
@@ -1296,6 +1315,73 @@ function initMentionAutocomplete(ta, box, scope){
   setStatus('Sua vez: você é X');
   render();
 })();
+
+// Notifications System
+function toggleNotifications() {
+  const panel = document.getElementById('notifications-panel');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    loadNotifications();
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+async function loadNotifications() {
+  const list = document.getElementById('notifications-list');
+  const badge = document.getElementById('notifications-badge');
+  
+  try {
+    // Check for support tickets (admin only)
+    {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+    const ticketsRes = await fetch('/admin/suporte');
+    const ticketsHtml = await ticketsRes.text();
+    const ticketMatches = ticketsHtml.match(/class="ticket"/g) || [];
+    const ticketCount = ticketMatches.length;
+    {% else %}
+    const ticketCount = 0;
+    {% endif %}
+    
+    // Build notifications array
+    const notifications = [];
+    
+    if (ticketCount > 0) {
+      notifications.push({
+        type: 'support',
+        message: `Você tem ${ticketCount} ticket(s) de suporte. Acesse o painel de suporte para gerenciar`,
+        link: '/admin/suporte',
+        time: 'agora'
+      });
+    }
+    
+    // Display notifications
+    if (notifications.length === 0) {
+      list.innerHTML = '<div style="text-align:center; color:#999; font-size:.75rem; padding:1rem;">Nenhuma notificação</div>';
+      badge.style.display = 'none';
+    } else {
+      list.innerHTML = notifications.map(n => `
+        <a href="${n.link}" style="text-decoration:none; display:block; padding:.7rem; background:#f9fbfd; border:1px solid #e3e9f0; border-radius:12px; transition:.2s;" onmouseover="this.style.background='#f1edff'" onmouseout="this.style.background='#f9fbfd'">
+          <div style="font-size:.75rem; color:#333; line-height:1.4; font-family:'Nunito';">${n.message}</div>
+          <div style="font-size:.65rem; color:#999; margin-top:.3rem;">${n.time}</div>
+        </a>
+      `).join('');
+      badge.textContent = notifications.length;
+      badge.style.display = 'inline-block';
+    }
+  } catch (e) {
+    console.error('Error loading notifications:', e);
+    list.innerHTML = '<div style="text-align:center; color:#f44; font-size:.75rem; padding:1rem;">Erro ao carregar</div>';
+  }
+}
+
+// Load notifications on page load
+{% if current_user.is_authenticated %}
+document.addEventListener('DOMContentLoaded', () => {
+  loadNotifications();
+  // Refresh notifications every 2 minutes
+  setInterval(loadNotifications, 120000);
+});
+{% endif %}
 
 </script>
 </body>
