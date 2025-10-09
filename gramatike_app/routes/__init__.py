@@ -481,9 +481,9 @@ def editar_perfil():
             
             if len(novo_username) > 45:
                 return jsonify({'erro': 'Nome de usuário deve ter no máximo 45 caracteres.'}), 400
-            ok_u, cat_u, _ = check_text(novo_username)
+            ok_u, cat_u, matched_u = check_text(novo_username)
             if not ok_u:
-                return jsonify({'erro': refusal_message_pt(cat_u)}), 400
+                return jsonify({'erro': refusal_message_pt(cat_u, matched_u)}), 400
             # checar unicidade
             existente = User.query.filter(User.username == novo_username, User.id != user.id).first()
             if existente:
@@ -1768,9 +1768,9 @@ def api_posts_multi_create():
         return jsonify({'success': False, 'error': 'conteudo_vazio'}), 400
     
     # Moderação de conteúdo
-    ok, cat, _m = check_text(conteudo)
+    ok, cat, matched_word = check_text(conteudo)
     if not ok:
-        return jsonify({'error': 'conteudo_bloqueado', 'reason': cat, 'message': refusal_message_pt(cat)}), 400
+        return jsonify({'error': 'conteudo_bloqueado', 'reason': cat, 'message': refusal_message_pt(cat, matched_word)}), 400
     
     files = request.files.getlist('imagens') if 'imagens' in request.files else []
     paths = []
@@ -2138,9 +2138,9 @@ def comentarios(post_id):
     post = Post.query.get_or_404(post_id)
     if request.method == 'POST':
         conteudo = request.json.get('conteudo')
-        ok, cat, _m = check_text(conteudo or '')
+        ok, cat, matched_word = check_text(conteudo or '')
         if not ok:
-            return jsonify({'error': 'conteudo_bloqueado', 'reason': cat, 'message': refusal_message_pt(cat)}), 400
+            return jsonify({'error': 'conteudo_bloqueado', 'reason': cat, 'message': refusal_message_pt(cat, matched_word)}), 400
         comentario = Comentario(
             usuario_id=current_user.id,
             conteudo=conteudo,
