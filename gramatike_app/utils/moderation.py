@@ -99,5 +99,9 @@ def check_image_hint(path_or_text: str):
     return check_text(path_or_text)
 
 
-def refusal_message_pt(category: str) -> str:
-    return "Não posso ajudar com discurso de ódio, xingamentos ou conteúdo sexual/nudez. Vamos manter um espaço seguro e respeitoso."
+def refusal_message_pt(category: str, matched_word: str = None) -> str:
+    """Retorna mensagem de moderação com palavra bloqueada se disponível."""
+    base_msg = "Não posso ajudar com discurso de ódio, xingamentos ou conteúdo sexual/nudez. Vamos manter um espaço seguro e respeitoso."
+    if matched_word:
+        return f"Seu conteúdo foi bloqueado porque contém a palavra '{matched_word}' que não é permitida. {base_msg}"
+    return base_msg
