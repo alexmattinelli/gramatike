@@ -416,11 +416,11 @@
                         </div>
                     </form>
                 </div>
-                <!-- Bloco de Promoções removido: tudo unificado como Divulgação -->
-                <div class="card" style="grid-column:1/-1;">
-                    <h4 style="margin:0 0 .9rem; font-size:.85rem; letter-spacing:.5px;">Divulgações</h4>
+                <!-- Divulgações feitas ao lado do card de Nova Divulgação -->
+                <div class="card">
+                    <h4 style="margin:0 0 .9rem; font-size:.85rem; letter-spacing:.5px;">Divulgações feitas</h4>
                     {% if divulgacoes %}
-                    <div style="display:grid; gap:1rem; grid-template-columns:repeat(auto-fill,minmax(260px,1fr));">
+                    <div style="display:flex; flex-direction:column; gap:.8rem; max-height:600px; overflow-y:auto;">
                         {% for d in divulgacoes %}
                         <div class="promo-item" style="background:var(--bg-alt); border:1px solid var(--border); border-radius:14px; padding:.7rem .75rem .85rem; position:relative; display:flex; flex-direction:column; gap:.55rem;">
                             <div style="display:flex; justify-content:space-between; align-items:center; gap:.6rem;">
@@ -503,7 +503,7 @@
                             </div>
                         </div>
                         {% else %}
-                            <p class="small-muted" style="grid-column:1/-1; font-size:.6rem;">Sem divulgações.</p>
+                            <p class="small-muted" style="font-size:.6rem;">Sem divulgações.</p>
                         {% endfor %}
                     </div>
                     {% else %}

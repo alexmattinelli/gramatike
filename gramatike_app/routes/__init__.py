@@ -316,6 +316,74 @@ def api_amigues():
         current_app.logger.warning(f"api_amigues failed: {e}")
         return jsonify([])
 
+@bp.route('/api/notifications', methods=['GET'])
+@login_required
+def api_notifications():
+    """Retorna notificações do usuário (novos seguidores e curtidas)."""
+    try:
+        user = current_user
+        notifications = []
+        
+        # Get recent followers (last 10)
+        recent_followers = user.seguidores.order_by(User.id.desc()).limit(10).all()
+        for follower in recent_followers:
+            notifications.append({
+                'type': 'follower',
+                'user_id': follower.id,
+                'username': follower.username,
+                'nome': follower.nome or follower.username,
+                'foto_perfil': follower.foto_perfil or 'img/perfil.png',
+                'message': f'{follower.nome or follower.username} começou a te seguir',
+                'link': f'/perfil/{follower.username}',
+                'time': 'recente'
+            })
+        
+        # Get recent likes on user's posts (last 10)
+        user_posts = Post.query.filter_by(usuario_id=user.id, is_deleted=False).all()
+        user_post_ids = [p.id for p in user_posts]
+        
+        if user_post_ids:
+            # Query post_likes for likes on user's posts
+            recent_likes = db.session.query(post_likes).filter(
+                post_likes.c.post_id.in_(user_post_ids)
+            ).order_by(post_likes.c.post_id.desc()).limit(20).all()
+            
+            # Get unique likers (avoid duplicates)
+            seen_users = set()
+            for like in recent_likes:
+                user_id = like.user_id
+                post_id = like.post_id
+                
+                if user_id == user.id:  # Skip self-likes
+                    continue
+                    
+                if user_id in seen_users:
+                    continue
+                seen_users.add(user_id)
+                
+                liker = User.query.get(user_id)
+                post = Post.query.get(post_id)
+                
+                if liker and post and len(notifications) < 20:
+                    notifications.append({
+                        'type': 'like',
+                        'user_id': liker.id,
+                        'username': liker.username,
+                        'nome': liker.nome or liker.username,
+                        'foto_perfil': liker.foto_perfil or 'img/perfil.png',
+                        'message': f'{liker.nome or liker.username} curtiu sua publicação',
+                        'link': f'/post/{post_id}',
+                        'time': 'recente'
+                    })
+                    
+                if len(notifications) >= 15:
+                    break
+        
+        return jsonify(notifications[:15])  # Limit to 15 notifications
+    except Exception as e:
+        current_app.logger.warning(f"api_notifications failed: {e}")
+        return jsonify([])
+
 # ROTA ALTERNATIVA: Postagens do usuário logado
 @bp.route('/api/posts/me', methods=['GET'])
 @login_required
