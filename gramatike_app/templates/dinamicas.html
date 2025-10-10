@@ -43,6 +43,7 @@
             <option value="poll">Enquete</option>
             <option value="oneword">Nuvem de Palavras</option>
             <option value="form">Formulário (simples)</option>
+            <option value="quemsoeu">Quem sou eu?</option>
           </select>
           <label style="font-weight:800; color:#6233B5;">Título</label>
           <input type="text" name="titulo" required />
@@ -59,6 +60,18 @@
               <button type="button" class="btn" id="add_q">+ Pergunta</button>
             </div>
             <input type="hidden" name="config_json" id="config_json" />
+          </div>
+          <div id="quemsoeu_builder" style="display:none;">
+            <div class="muted-sm">Adicione frases ou fotos que os participantes terão que responder. Escolha o que eles devem descobrir (gênero, orientação, pronome, etc.).</div>
+            <label style="font-weight:800; color:#6233B5; margin-top:.8rem;">O que a pessoa deve descobrir?</label>
+            <input type="text" name="questao_tipo" id="questao_tipo" placeholder="Ex: gênero, orientação sexual, pronome..." />
+            <label style="font-weight:800; color:#6233B5; margin-top:.8rem;">Moral/Mensagem Final</label>
+            <textarea name="moral" id="moral" rows="3" placeholder="Mensagem que aparecerá ao final da dinâmica..."></textarea>
+            <div id="items_list" style="margin-top:1rem;"></div>
+            <div class="builder-actions">
+              <button type="button" class="btn" id="add_item">+ Item (Frase ou Foto)</button>
+            </div>
+            <input type="hidden" name="quemsoeu_config_json" id="quemsoeu_config_json" />
           </div>
           <button type="submit" class="btn primary">Criar</button>
         </form>
@@ -113,6 +126,7 @@
     const tipo = document.getElementById('tipo');
     const poll = document.getElementById('poll_opts');
     const builder = document.getElementById('form_builder');
+    const quemsoeuBuilder = document.getElementById('quemsoeu_builder');
     const qList = document.getElementById('q_list');
     const addBtn = document.getElementById('add_q');
     const cfgEl = document.getElementById('config_json');
@@ -120,6 +134,63 @@
 
     let seq = 1;
     const fields = [];
+
+    // Quem sou eu? state
+    const itemsList = document.getElementById('items_list');
+    const addItemBtn = document.getElementById('add_item');
+    const quemsoeuCfgEl = document.getElementById('quemsoeu_config_json');
+    let itemSeq = 1;
+    const items = [];
+
+    function renderItems(){
+      itemsList.innerHTML='';
+      items.forEach((item, idx)=>{
+        const card = document.createElement('div');
+        card.className = 'builder-card';
+        card.innerHTML = `
+          <div class="row">
+            <div style="display:flex; gap:.5rem; align-items:center;">
+              <span class="chip">Item ${idx+1}</span>
+              <select data-k="tipo" style="flex:0 0 auto;">
+                <option value="frase" ${item.tipo==='frase'?'selected':''}>Frase</option>
+                <option value="foto" ${item.tipo==='foto'?'selected':''}>Foto</option>
+              </select>
+              <button type="button" class="btn" data-act="del-item">Remover</button>
+            </div>
+            <div data-role="frase-input" style="${item.tipo==='frase'?'':'display:none;'}">
+              <label style="font-weight:600; margin-top:.5rem; display:block;">Frase</label>
+              <textarea data-k="conteudo" rows="2" style="width:100%;">${item.conteudo||''}</textarea>
+            </div>
+            <div data-role="foto-input" style="${item.tipo==='foto'?'':'display:none;'}">
+              <label style="font-weight:600; margin-top:.5rem; display:block;">URL da Foto</label>
+              <input type="text" data-k="conteudo" value="${item.conteudo||''}" style="width:100%;" placeholder="https://..." />
+            </div>
+          </div>`;
+        
+        // bind events
+        card.querySelectorAll('input,select,textarea').forEach(el=>{
+          el.addEventListener('change', (e)=>{
+            const k = el.getAttribute('data-k');
+            if(!k) return;
+            if(k==='tipo'){ 
+              item.tipo = el.value; 
+              card.querySelector('[data-role="frase-input"]').style.display = (item.tipo==='frase')?'block':'none';
+              card.querySelector('[data-role="foto-input"]').style.display = (item.tipo==='foto')?'block':'none';
+            }
+            else if(k==='conteudo'){ item.conteudo = el.value; }
+          });
+        });
+        card.querySelector('[data-act="del-item"]').addEventListener('click', ()=>{ items.splice(idx,1); renderItems(); });
+        itemsList.appendChild(card);
+      });
+    }
+
+    function addItem(){
+      items.push({ id: itemSeq++, tipo: 'frase', conteudo: '' });
+      renderItems();
+    }
+
+    addItemBtn && addItemBtn.addEventListener('click', addItem);
 
     function render(){
       qList.innerHTML='';
@@ -184,12 +255,17 @@
       const v = tipo.value;
       poll.style.display = (v==='poll')?'block':'none';
       builder.style.display = (v==='form')?'block':'none';
+      quemsoeuBuilder.style.display = (v==='quemsoeu')?'block':'none';
     });
     // on submit serialize
     form.addEventListener('submit', ()=>{
       if(tipo.value==='form'){
         const cfg = { fields: fields.map(f=>({ id: f.id, type: f.type, label: f.label, required: !!f.required, options: (f.type==='multiple_choice'?(f.options||[]):undefined) })) };
         cfgEl.value = JSON.stringify(cfg);
+      }
+      if(tipo.value==='quemsoeu'){
+        const cfg = { items: items.map(item=>({ id: item.id, tipo: item.tipo, conteudo: item.conteudo })) };
+        quemsoeuCfgEl.value = JSON.stringify(cfg);
       }
     });
   })();

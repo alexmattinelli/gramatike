@@ -190,6 +190,146 @@
           {% endfor %}
           <button type="submit" class="btn primary" style="align-self:flex-start;padding:10px 16px;border:none;border-radius:8px;cursor:pointer;">Enviar</button>
         </form>
+      {% elif d.tipo == 'quemsoeu' %}
+        {% if user_response %}
+          <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
+            <strong>✓ Você já completou esta dinâmica!</strong>
+          </div>
+          <div style="text-align:center; margin-top:1.5rem;">
+            <button class="btn primary" id="verRespostasBtn">Ver Minhas Respostas</button>
+          </div>
+          <div id="respostasDiv" style="display:none; margin-top:1rem;">
+            <h3 style="margin-top:1.5rem; margin-bottom:1rem; color:#6233B5;">Suas Respostas</h3>
+            {% set items = cfg.get('items', []) %}
+            {% set respostas = user_response.respostas %}
+            {% for item in items %}
+              <div class="builder-card" style="margin-bottom:.8rem;">
+                <div style="font-weight:700; color:#6233B5; margin-bottom:.5rem;">Item {{ loop.index }}</div>
+                {% if item.tipo == 'frase' %}
+                  <p style="margin:.3rem 0;"><em>"{{ item.conteudo }}"</em></p>
+                {% else %}
+                  <img src="{{ item.conteudo }}" alt="Item {{ loop.index }}" style="max-width:100%; height:auto; border-radius:8px; margin:.5rem 0;" />
+                {% endif %}
+                <div style="margin-top:.5rem;">
+                  <strong>Sua resposta:</strong> {{ respostas[loop.index0] if respostas and loop.index0 < (respostas|length) else '(sem resposta)' }}
+                </div>
+              </div>
+            {% endfor %}
+            <div style="background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; padding:1rem; margin-top:1.5rem;">
+              <h4 style="margin:0 0 .5rem; color:#6233B5;">💡 Moral da História</h4>
+              <p style="margin:0;">{{ cfg.get('moral', '') }}</p>
+            </div>
+          </div>
+          <script>
+            document.getElementById('verRespostasBtn').addEventListener('click', function(){
+              var div = document.getElementById('respostasDiv');
+              div.style.display = div.style.display === 'none' ? 'block' : 'none';
+              this.textContent = div.style.display === 'none' ? 'Ver Minhas Respostas' : 'Ocultar Respostas';
+            });
+          </script>
+        {% else %}
+          <div id="quemsoeuInstrucoes">
+            <div style="background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; padding:1rem; margin-bottom:1rem;">
+              <h3 style="margin:0 0 .5rem; color:#6233B5;">📝 Instruções</h3>
+              <p style="margin:0;">Você verá {{ cfg.items|length }} {% if cfg.items|length == 1 %}item{% else %}itens{% endif %} (frases ou fotos). Para cada um, digite sua resposta sobre: <strong>{{ cfg.questao_tipo }}</strong></p>
+            </div>
+            <button class="btn primary" id="iniciarBtn">Começar</button>
+          </div>
+          <div id="quemsoeuJogo" style="display:none;">
+            <div id="itemAtual"></div>
+            <form id="quemsoeuForm" method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" style="margin-top:1rem;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+              <div id="respostasInputs"></div>
+            </form>
+          </div>
+          <script>
+          (function(){
+            var items = {{ cfg.items | tojson | safe }};
+            var questaoTipo = {{ cfg.questao_tipo | tojson | safe }};
+            var currentIdx = 0;
+            var respostas = new Array(items.length).fill('');
+            
+            document.getElementById('iniciarBtn').addEventListener('click', function(){
+              document.getElementById('quemsoeuInstrucoes').style.display = 'none';
+              document.getElementById('quemsoeuJogo').style.display = 'block';
+              mostrarItem(0);
+            });
+            
+            function mostrarItem(idx){
+              currentIdx = idx;
+              var item = items[idx];
+              var div = document.getElementById('itemAtual');
+              var html = '<div class="builder-card" style="text-align:center;">';
+              html += '<div style="font-weight:700; color:#6233B5; margin-bottom:.8rem;">Item ' + (idx+1) + ' de ' + items.length + '</div>';
+              
+              if(item.tipo === 'frase'){
+                html += '<p style="font-size:1.2rem; margin:1rem 0; font-weight:600;"><em>"' + item.conteudo + '"</em></p>';
+              } else {
+                html += '<img src="' + item.conteudo + '" alt="Item" style="max-width:100%; max-height:400px; height:auto; border-radius:8px; margin:.5rem 0;" />';
+              }
+              
+              html += '<div style="margin-top:1.5rem;">';
+              html += '<label style="font-weight:700; display:block; margin-bottom:.5rem;">' + questaoTipo + '</label>';
+              html += '<input type="text" id="respostaAtual" value="' + (respostas[idx] || '') + '" style="width:100%; max-width:400px; padding:.8rem; border:1px solid var(--border); border-radius:8px; font-size:1rem;" />';
+              html += '</div>';
+              html += '<div style="display:flex; gap:.5rem; justify-content:center; margin-top:1.5rem;">';
+              if(idx > 0){
+                html += '<button type="button" class="btn" id="anteriorBtn">← Anterior</button>';
+              }
+              if(idx < items.length - 1){
+                html += '<button type="button" class="btn primary" id="proximoBtn">Próximo →</button>';
+              } else {
+                html += '<button type="button" class="btn primary" id="finalizarBtn">Finalizar ✓</button>';
+              }
+              html += '</div>';
+              html += '</div>';
+              
+              div.innerHTML = html;
+              
+              var input = document.getElementById('respostaAtual');
+              input.focus();
+              input.addEventListener('input', function(){
+                respostas[currentIdx] = this.value;
+              });
+              
+              var anteriorBtn = document.getElementById('anteriorBtn');
+              if(anteriorBtn){
+                anteriorBtn.addEventListener('click', function(){
+                  respostas[currentIdx] = document.getElementById('respostaAtual').value;
+                  mostrarItem(currentIdx - 1);
+                });
+              }
+              
+              var proximoBtn = document.getElementById('proximoBtn');
+              if(proximoBtn){
+                proximoBtn.addEventListener('click', function(){
+                  respostas[currentIdx] = document.getElementById('respostaAtual').value;
+                  mostrarItem(currentIdx + 1);
+                });
+              }
+              
+              var finalizarBtn = document.getElementById('finalizarBtn');
+              if(finalizarBtn){
+                finalizarBtn.addEventListener('click', function(){
+                  respostas[currentIdx] = document.getElementById('respostaAtual').value;
+                  // Criar inputs hidden e submeter
+                  var form = document.getElementById('quemsoeuForm');
+                  var inputsDiv = document.getElementById('respostasInputs');
+                  inputsDiv.innerHTML = '';
+                  respostas.forEach(function(resp, i){
+                    var inp = document.createElement('input');
+                    inp.type = 'hidden';
+                    inp.name = 'resposta_' + i;
+                    inp.value = resp || '';
+                    inputsDiv.appendChild(inp);
+                  });
+                  form.submit();
+                });
+              }
+            }
+          })();
+          </script>
+        {% endif %}
       {% endif %}
     </div>
   </main>
