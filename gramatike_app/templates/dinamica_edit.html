@@ -28,7 +28,7 @@
   <main>
     <div class="card">
       <h2 style="margin:0 0 .6rem; font-size:1.2rem; color:#6233B5;">Editar "{{ d.titulo }}"</h2>
-      <form id="dynEditForm" method="POST" action="{{ url_for('main.dinamica_update', dyn_id=d.id) }}" style="display:grid; gap:.6rem; grid-template-columns:1fr; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
+      <form id="dynEditForm" method="POST" action="{{ url_for('main.dinamica_update', dyn_id=d.id) }}" enctype="multipart/form-data" style="display:grid; gap:.6rem; grid-template-columns:1fr; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
         
         <div style="padding:.6rem; background:#f0f0f0; border-radius:8px;">
@@ -181,7 +181,8 @@
     const items = existingItems.map(i => ({
       id: i.id,
       tipo: i.tipo || 'frase',
-      conteudo: i.conteudo || ''
+      conteudo: i.conteudo || '',
+      resposta_correta: i.resposta_correta || ''
     }));
 
     function renderItems(){
@@ -204,8 +205,13 @@
               <textarea data-k="conteudo" rows="2" style="width:100%;">${item.conteudo||''}</textarea>
             </div>
             <div data-role="foto-input" style="${item.tipo==='foto'?'':'display:none;'}">
-              <label style="font-weight:600; margin-top:.5rem; display:block;">URL da Foto</label>
-              <input type="text" data-k="conteudo" value="${item.conteudo||''}" style="width:100%;" placeholder="https://..." />
+              <label style="font-weight:600; margin-top:.5rem; display:block;">Foto</label>
+              <input type="file" data-k="foto" data-item-id="${item.id}" accept="image/*" style="width:100%;" />
+              ${item.conteudo ? `<div class="muted-sm" style="margin-top:.3rem;">Atual: <a href="${item.conteudo}" target="_blank">ver foto</a></div>` : ''}
+            </div>
+            <div style="margin-top:.5rem;">
+              <label style="font-weight:600; display:block;">Resposta Correta (opcional - para cálculo de acertos)</label>
+              <input type="text" data-k="resposta_correta" value="${item.resposta_correta||''}" style="width:100%;" placeholder="Ex: masculino, feminino, não-binário..." />
             </div>
           </div>`;
         
@@ -220,7 +226,16 @@
               card.querySelector('[data-role="foto-input"]').style.display = (item.tipo==='foto')?'block':'none';
             }
             else if(k==='conteudo'){ item.conteudo = el.value; }
+            else if(k==='resposta_correta'){ item.resposta_correta = el.value; }
+            else if(k==='foto'){
+              // Set name attribute for backend
+              el.name = 'foto_' + item.id;
+            }
           });
+          // Set initial name for file inputs
+          if(el.getAttribute('data-k') === 'foto'){
+            el.name = 'foto_' + item.id;
+          }
         });
         card.querySelector('[data-act="del-item"]').addEventListener('click', ()=>{ items.splice(idx,1); renderItems(); });
         itemsList.appendChild(card);
@@ -228,7 +243,7 @@
     }
 
     function addItem(){
-      items.push({ id: itemSeq++, tipo: 'frase', conteudo: '' });
+      items.push({ id: itemSeq++, tipo: 'frase', conteudo: '', resposta_correta: '' });
       renderItems();
     }
 
@@ -236,7 +251,7 @@
 
     // on submit serialize
     form.addEventListener('submit', ()=>{
-      const cfg = { items: items.map(item=>({ id: item.id, tipo: item.tipo, conteudo: item.conteudo })) };
+      const cfg = { items: items.map(item=>({ id: item.id, tipo: item.tipo, conteudo: item.conteudo, resposta_correta: item.resposta_correta || '' })) };
       quemsoeuCfgEl.value = JSON.stringify(cfg);
     });
 

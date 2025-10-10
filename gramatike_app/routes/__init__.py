@@ -1224,6 +1224,8 @@ def dinamicas_create():
     elif tipo == 'quemsoeu':
         # Quem sou eu? - coleta items (frases/fotos), questão_tipo e moral
         try:
+            from gramatike_app.utils.storage import upload_bytes_to_supabase, build_dinamica_image_path
+            
             cfg_json = request.form.get('quemsoeu_config_json')
             questao_tipo = (request.form.get('questao_tipo') or '').strip()
             moral = (request.form.get('moral') or '').strip()
@@ -1245,18 +1247,40 @@ def dinamicas_create():
                 if len(items) < 1:
                     flash('Adicione pelo menos um item (frase ou foto).')
                     return redirect(url_for('main.dinamicas_home'))
-                # normalizar
+                # normalizar e processar uploads
                 norm_items = []
                 for item in items:
                     item_tipo = (item.get('tipo') or 'frase').strip()
+                    item_id = int(item.get('id') or 0)
                     conteudo = (item.get('conteudo') or '').strip()
+                    
+                    # Se for foto, verificar se tem upload
+                    if item_tipo == 'foto':
+                        foto_key = f'foto_{item_id}'
+                        if foto_key in request.files and request.files[foto_key].filename:
+                            file = request.files[foto_key]
+                            try:
+                                file_data = file.read()
+                                file_path = build_dinamica_image_path(current_user.id, file.filename)
+                                url = upload_bytes_to_supabase(file_path, file_data, file.content_type)
+                                if url:
+                                    conteudo = url
+                                else:
+                                    flash(f'Falha ao fazer upload da foto do item {item_id}')
+                                    return redirect(url_for('main.dinamicas_home'))
+                            except Exception as e:
+                                current_app.logger.error(f'Erro ao fazer upload: {e}')
+                                flash(f'Erro ao processar foto do item {item_id}')
+                                return redirect(url_for('main.dinamicas_home'))
+                    
                     if not conteudo:
                         flash('Todos os itens precisam ter conteúdo.')
                         return redirect(url_for('main.dinamicas_home'))
                     norm_items.append({
-                        'id': int(item.get('id') or 0),
+                        'id': item_id,
                         'tipo': item_tipo,
-                        'conteudo': conteudo
+                        'conteudo': conteudo,
+                        'resposta_correta': (item.get('resposta_correta') or '').strip()
                     })
                 cfg['items'] = norm_items
             else:
@@ -1427,6 +1451,44 @@ def dinamica_admin(dyn_id: int):
             except Exception:
                 pass
         agg['counts'] = counts
+    elif d.tipo == 'quemsoeu':
+        # Calculate accuracy stats
+        items = cfg.get('items', [])
+        total_responses = len(rows)
+        if total_responses > 0 and items:
+            # Calculate accuracy per item
+            item_stats = []
+            for item in items:
+                item_id = item.get('id', 0)
+                resposta_correta = (item.get('resposta_correta') or '').strip().lower()
+                if resposta_correta:
+                    # Count correct answers for this item
+                    correct_count = 0
+                    for row in rows:
+                        respostas = row['payload'].get('respostas', [])
+                        # Find the item index by matching id
+                        item_idx = next((i for i, it in enumerate(items) if it.get('id') == item_id), None)
+                        if item_idx is not None and item_idx < len(respostas):
+                            resposta_usuario = (respostas[item_idx] or '').strip().lower()
+                            if resposta_usuario == resposta_correta:
+                                correct_count += 1
+                    
+                    accuracy = (correct_count / total_responses) * 100 if total_responses > 0 else 0
+                    item_stats.append({
+                        'item_id': item_id,
+                        'tipo': item.get('tipo'),
+                        'conteudo': item.get('conteudo'),
+                        'resposta_correta': item.get('resposta_correta'),
+                        'correct_count': correct_count,
+                        'total': total_responses,
+                        'accuracy': accuracy
+                    })
+            
+            agg['item_stats'] = item_stats
+            # Overall accuracy
+            if item_stats:
+                overall_accuracy = sum(s['accuracy'] for s in item_stats) / len(item_stats)
+                agg['overall_accuracy'] = overall_accuracy
     return render_template('dinamica_admin.html', d=d, cfg=cfg, rows=rows, agg=agg)
 
 @bp.route('/dinamicas/<int:dyn_id>/export.csv')
@@ -1583,6 +1645,8 @@ def dinamica_update(dyn_id: int):
     elif d.tipo == 'quemsoeu':
         # Update quem sou eu config
         try:
+            from gramatike_app.utils.storage import upload_bytes_to_supabase, build_dinamica_image_path
+            
             cfg_json = request.form.get('quemsoeu_config_json')
             questao_tipo = (request.form.get('questao_tipo') or '').strip()
             moral = (request.form.get('moral') or '').strip()
@@ -1605,12 +1669,34 @@ def dinamica_update(dyn_id: int):
                     norm_items = []
                     for item in items:
                         item_tipo = (item.get('tipo') or 'frase').strip()
+                        item_id = int(item.get('id') or 0)
                         conteudo = (item.get('conteudo') or '').strip()
+                        
+                        # Se for foto, verificar se tem novo upload
+                        if item_tipo == 'foto':
+                            foto_key = f'foto_{item_id}'
+                            if foto_key in request.files and request.files[foto_key].filename:
+                                file = request.files[foto_key]
+                                try:
+                                    file_data = file.read()
+                                    file_path = build_dinamica_image_path(current_user.id, file.filename)
+                                    url = upload_bytes_to_supabase(file_path, file_data, file.content_type)
+                                    if url:
+                                        conteudo = url
+                                    else:
+                                        flash(f'Falha ao fazer upload da foto do item {item_id}')
+                                        return redirect(url_for('main.dinamica_edit', dyn_id=d.id))
+                                except Exception as e:
+                                    current_app.logger.error(f'Erro ao fazer upload: {e}')
+                                    flash(f'Erro ao processar foto do item {item_id}')
+                                    return redirect(url_for('main.dinamica_edit', dyn_id=d.id))
+                        
                         if conteudo:
                             norm_items.append({
-                                'id': int(item.get('id') or 0),
+                                'id': item_id,
                                 'tipo': item_tipo,
-                                'conteudo': conteudo
+                                'conteudo': conteudo,
+                                'resposta_correta': (item.get('resposta_correta') or '').strip()
                             })
                     if norm_items:
                         cfg['items'] = norm_items

@@ -79,3 +79,12 @@ def build_divulgacao_path(filename: str) -> str:
     ts = int(time.time())
     safe_name = filename.replace(' ', '_')
     return f"divulgacao/{ts}_{safe_name}"
+
+
+def build_dinamica_image_path(user_id: int, filename: str) -> str:
+    """
+    Gera um caminho de upload para imagens de dinâmicas: dinamicas/<user_id>/<timestamp>_<filename>
+    """
+    ts = int(time.time())
+    safe_name = filename.replace(' ', '_')
+    return f"dinamicas/{user_id}/{ts}_{safe_name}"

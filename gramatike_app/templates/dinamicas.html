@@ -36,7 +36,7 @@
     {% else %}
       <div class="card" style="margin-bottom:1rem;">
         <h2 style="margin:0 0 .6rem; font-size:1.2rem; color:#6233B5;">Criar dinâmica</h2>
-        <form id="dynCreateForm" method="POST" action="{{ url_for('main.dinamicas_create') }}" style="display:grid; gap:.6rem; grid-template-columns:1fr; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
+        <form id="dynCreateForm" method="POST" action="{{ url_for('main.dinamicas_create') }}" enctype="multipart/form-data" style="display:grid; gap:.6rem; grid-template-columns:1fr; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
           <label style="font-weight:800; color:#6233B5;">Tipo</label>
           <select name="tipo" id="tipo" required>
@@ -162,8 +162,13 @@
               <textarea data-k="conteudo" rows="2" style="width:100%;">${item.conteudo||''}</textarea>
             </div>
             <div data-role="foto-input" style="${item.tipo==='foto'?'':'display:none;'}">
-              <label style="font-weight:600; margin-top:.5rem; display:block;">URL da Foto</label>
-              <input type="text" data-k="conteudo" value="${item.conteudo||''}" style="width:100%;" placeholder="https://..." />
+              <label style="font-weight:600; margin-top:.5rem; display:block;">Foto</label>
+              <input type="file" data-k="foto" data-item-id="${item.id}" accept="image/*" style="width:100%;" />
+              ${item.conteudo ? `<div class="muted-sm" style="margin-top:.3rem;">Já carregada: <a href="${item.conteudo}" target="_blank">ver foto</a></div>` : ''}
+            </div>
+            <div style="margin-top:.5rem;">
+              <label style="font-weight:600; display:block;">Resposta Correta (opcional - para cálculo de acertos)</label>
+              <input type="text" data-k="resposta_correta" value="${item.resposta_correta||''}" style="width:100%;" placeholder="Ex: masculino, feminino, não-binário..." />
             </div>
           </div>`;
         
@@ -178,7 +183,16 @@
               card.querySelector('[data-role="foto-input"]').style.display = (item.tipo==='foto')?'block':'none';
             }
             else if(k==='conteudo'){ item.conteudo = el.value; }
+            else if(k==='resposta_correta'){ item.resposta_correta = el.value; }
+            else if(k==='foto'){
+              // Set name attribute so backend can read it
+              el.name = 'foto_' + item.id;
+            }
           });
+          // Set initial name for file inputs
+          if(el.getAttribute('data-k') === 'foto'){
+            el.name = 'foto_' + item.id;
+          }
         });
         card.querySelector('[data-act="del-item"]').addEventListener('click', ()=>{ items.splice(idx,1); renderItems(); });
         itemsList.appendChild(card);
@@ -186,7 +200,7 @@
     }
 
     function addItem(){
-      items.push({ id: itemSeq++, tipo: 'frase', conteudo: '' });
+      items.push({ id: itemSeq++, tipo: 'frase', conteudo: '', resposta_correta: '' });
       renderItems();
     }
 
@@ -264,7 +278,8 @@
         cfgEl.value = JSON.stringify(cfg);
       }
       if(tipo.value==='quemsoeu'){
-        const cfg = { items: items.map(item=>({ id: item.id, tipo: item.tipo, conteudo: item.conteudo })) };
+        // For photos, file inputs will be sent separately with names foto_<item_id>
+        const cfg = { items: items.map(item=>({ id: item.id, tipo: item.tipo, conteudo: item.conteudo, resposta_correta: item.resposta_correta || '' })) };
         quemsoeuCfgEl.value = JSON.stringify(cfg);
       }
     });
