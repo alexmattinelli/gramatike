@@ -319,10 +319,16 @@
     let timer=null;
     let currentPage = 1;
     let totalPages = 1;
-    const perPage = 3; // Show 3 items per page
+    
+    // Dynamic posts per page based on screen size
+    function getPerPage() {
+      const isMobile = window.innerWidth <= 980;
+      return isMobile ? 3 : 10;
+    }
     
     async function search(q, page = 1){
       try {
+  const perPage = getPerPage();
   const resp = await fetch(`/api/gramatike/search?q=${encodeURIComponent(q||'')}&include_edu=0&page=${page}&per_page=${perPage}`);
         if(!resp.ok) throw new Error('fail');
         const data = await resp.json();
