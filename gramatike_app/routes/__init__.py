@@ -72,12 +72,14 @@ bp = Blueprint('main', __name__)
 @bp.route('/api/gramatike/search')
 def api_gramatike_search():
     """Busca somente posts do perfil @gramatike (unificado).
-    Parâmetros: ?q= termo opcional & limit= N (máx 40)
-    Retorna lista JSON: { items: [ {id,title,snippet,tags,url,created_at} ] }
+    Parâmetros: ?q= termo opcional & limit= N (máx 40) & page= N & per_page= N
+    Retorna lista JSON: { items: [ {id,title,snippet,tags,url,created_at} ], total: N, page: N, per_page: N, total_pages: N }
     """
     q = (request.args.get('q') or '').strip()
     limit = min(int(request.args.get('limit', 15) or 15), 40)
     include_edu = request.args.get('include_edu') == '1'
+    page = max(int(request.args.get('page', 1) or 1), 1)
+    per_page = min(int(request.args.get('per_page', 15) or 15), 40)
     
     items = []
     try:
@@ -182,7 +184,20 @@ def api_gramatike_search():
     except Exception as e:
         current_app.logger.warning(f"api_gramatike_search failed: {e}")
     
-    return jsonify({'items': items})
+    # Aplicar paginação
+    total = len(items)
+    total_pages = (total + per_page - 1) // per_page if per_page > 0 else 1
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    paginated_items = items[start_idx:end_idx]
+    
+    return jsonify({
+        'items': paginated_items,
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': total_pages
+    })
 
 def _extract_tags(text: str):
     if not text: return []

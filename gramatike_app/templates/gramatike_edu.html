@@ -57,6 +57,11 @@
   
   .placeholder { font-size:.6rem; font-weight:700; letter-spacing:.5px; color:#999; padding:.65rem .85rem; border:1px dashed #d2c5ef; border-radius:18px; background:#faf7ff; }
   .empty { font-size:.7rem; font-weight:600; color:#666; text-align:center; padding:2rem 0; }
+  
+  /* Pagination buttons (same style as admin) */
+  .pag-btn { padding:.55rem .9rem; border-radius:18px; background:#9B5DE5; color:#fff; text-decoration:none; display:inline-block; font-weight:600; font-size:.7rem; letter-spacing:.3px; cursor:pointer; border:none; transition:background .2s; }
+  .pag-btn:hover { background:#7d3dc9; }
+  
   @media (max-width:720px){ .feed-item{ padding:1rem 1.05rem .9rem; } .side-col { position:static; } }
   footer { margin-top:4rem; background:#9B5DE5; color:#fff; text-align:center; padding:1.4rem 1rem 1.6rem; font-size:.75rem; letter-spacing:.5px; font-weight:700; border-top-left-radius:38px; border-top-right-radius:38px; }
   @media (max-width: 980px){ footer { display:none !important; } }
@@ -67,7 +72,59 @@
   <header class="site-head">
     <h1 class="logo">Gramátike Edu</h1>
     {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
-      <a href="{{ url_for('admin.dashboard') }}" style="position:absolute; top:14px; right:16px; background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; text-decoration:none; letter-spacing:.5px;">🛠️ Painel</a>
+      <!-- Menu Dropdown -->
+      <div style="position:absolute; top:14px; right:16px;">
+        <button id="menu-toggle" onclick="toggleMenu()" style="background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; cursor:pointer; letter-spacing:.5px; display:flex; align-items:center; gap:6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+          Menu
+        </button>
+        <div id="menu-dropdown" style="display:none; position:absolute; right:0; top:calc(100% + 8px); background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.18); min-width:200px; z-index:100;">
+          <a href="{{ url_for('main.artigos') }}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            📑 Artigos
+          </a>
+          <a href="{{ url_for('main.exercicios') }}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+            </svg>
+            🧠 Exercícios
+          </a>
+          <a href="{{ url_for('main.apostilas') }}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            📚 Apostilas
+          </a>
+          <a href="{{ url_for('main.dinamicas_home') }}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+            🎲 Dinâmicas
+          </a>
+          <a href="{{ url_for('admin.dashboard') }}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            🛠️ Painel
+          </a>
+        </div>
+      </div>
     {% endif %}
     <nav class="edu-nav" aria-label="Seções educacionais">
   <a href="{{ url_for('main.educacao') }}" class="active">🏠 Início</a>
@@ -178,6 +235,23 @@
     </div>
   </main>
   <script>
+  // Menu toggle function
+  function toggleMenu() {
+    const dropdown = document.getElementById('menu-dropdown');
+    if (dropdown) {
+      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+  }
+  
+  // Close menu when clicking outside
+  document.addEventListener('click', function(e) {
+    const menuToggle = document.getElementById('menu-toggle');
+    const dropdown = document.getElementById('menu-dropdown');
+    if (dropdown && menuToggle && !menuToggle.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+
   (function(){
   const input = document.getElementById('gk_search_input');
   const btn = document.getElementById('gk_search_btn');
@@ -185,14 +259,65 @@
     const tpl = document.getElementById('gk_feed_template');
     const empty = document.getElementById('gk_empty_state');
     let timer=null;
-    async function search(q){
+    let currentPage = 1;
+    let totalPages = 1;
+    const perPage = 3; // Show 3 items per page
+    
+    async function search(q, page = 1){
       try {
-  const resp = await fetch(`/api/gramatike/search?q=${encodeURIComponent(q||'')}&include_edu=0`);
+  const resp = await fetch(`/api/gramatike/search?q=${encodeURIComponent(q||'')}&include_edu=0&page=${page}&per_page=${perPage}`);
         if(!resp.ok) throw new Error('fail');
         const data = await resp.json();
+        currentPage = data.page || 1;
+        totalPages = data.total_pages || 1;
         render(data.items||[]);
-      } catch(e){ render([]); }
+        renderPagination();
+      } catch(e){ render([]); renderPagination(); }
     }
+    
+    function renderPagination() {
+      let paginationHTML = document.getElementById('pagination-container');
+      if (!paginationHTML) {
+        paginationHTML = document.createElement('div');
+        paginationHTML.id = 'pagination-container';
+        paginationHTML.style.cssText = 'margin-top:1.5rem; display:flex; gap:.4rem; justify-content:center; align-items:center; flex-wrap:wrap; font-size:.7rem;';
+        list.parentNode.appendChild(paginationHTML);
+      }
+      
+      if (totalPages <= 1) {
+        paginationHTML.innerHTML = '';
+        return;
+      }
+      
+      let html = '';
+      
+      // Previous button
+      if (currentPage > 1) {
+        html += `<button onclick="changePage(${currentPage - 1})" class="pag-btn">← Anterior</button>`;
+      }
+      
+      // Page numbers
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === currentPage) {
+          html += `<span class="pag-btn" style="background:#9B5DE5; color:#fff; pointer-events:none;">${i}</span>`;
+        } else {
+          html += `<button onclick="changePage(${i})" class="pag-btn">${i}</button>`;
+        }
+      }
+      
+      // Next button
+      if (currentPage < totalPages) {
+        html += `<button onclick="changePage(${currentPage + 1})" class="pag-btn">Próximo →</button>`;
+      }
+      
+      paginationHTML.innerHTML = html;
+    }
+    
+    window.changePage = function(page) {
+      search(input.value.trim(), page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    
     function render(items){
       [...list.querySelectorAll('.feed-item')].forEach(el=>{ if(el!==tpl) el.remove(); });
       if(!items.length){ empty.style.display='block'; return; } else empty.style.display='none';
@@ -231,11 +356,11 @@
         list.insertBefore(node, empty);
       });
     }
-  input.addEventListener('input', ()=>{ clearTimeout(timer); timer=setTimeout(()=>search(input.value.trim()), 320); });
-  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); search(input.value.trim()); }});
-  if(btn){ btn.addEventListener('click', ()=> search(input.value.trim())); }
+  input.addEventListener('input', ()=>{ clearTimeout(timer); timer=setTimeout(()=>search(input.value.trim(), 1), 320); });
+  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); search(input.value.trim(), 1); }});
+  if(btn){ btn.addEventListener('click', ()=> search(input.value.trim(), 1)); }
     // carga inicial
-    search('');
+    search('', 1);
   })();
 
   // Palavras do Dia
