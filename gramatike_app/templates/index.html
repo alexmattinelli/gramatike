@@ -254,6 +254,31 @@ button { font-family: var(--font-base); font-weight:600; }
       <div id="autocomplete" class="autocomplete" role="listbox" aria-label="Sugestões de busca"></div>
     </div>
   </div>
+
+  <!-- Card de Novidades para Mobile (visível apenas em telas < 980px) -->
+  <div id="divulgacao-card-mobile" class="mobile-only-card" style="display:none; background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.1rem 1.15rem .95rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1.5rem;">
+    <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary);">📣 Novidades</h3>
+    {% set tem_conteudo_mobile = (div_edu and div_edu|length>0) %}
+      {% if tem_conteudo_mobile %}
+        <div style="display:flex; flex-direction:column; gap:.9rem;">
+          {# Divulgações (inclui Aviso Rápido com imagem gerada) #}
+          {% for d in (div_edu or []) %}
+          <div class="promo-card" style="background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
+            <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#6233B5; margin:0 0 .35rem;">{{ d.titulo }}</strong>
+            {% if d.imagem %}
+              {% set imgsrc = d.imagem if d.imagem.startswith('http') else url_for('static', filename=d.imagem) %}
+              <img src="{{ imgsrc }}" alt="{{ d.titulo }}" style="width:100%; border-radius:14px; margin:0 0 .5rem; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />
+            {% endif %}
+            {% if d.texto %}<p style="margin:0 0 .5rem; font-size:.6rem; line-height:1.32; color:#555; font-weight:600;">{{ d.texto }}</p>{% endif %}
+            {% if d.link %}<a href="{{ d.link }}" target="_blank" rel="noopener" style="display:inline-block; font-size:.55rem; font-weight:700; background:#9B5DE5; color:#fff; padding:.45rem .8rem .4rem; border-radius:14px; text-decoration:none; letter-spacing:.5px;">Abrir →</a>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="font-size:.6rem; font-weight:700; letter-spacing:.5px; color:#999; padding:.65rem .85rem; border:1px dashed #d2c5ef; border-radius:18px; background:#faf7ff;">Nenhuma divulgação ativa.</div>
+      {% endif %}
+  </div>
+
   <div id="feed-list"></div>
   {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
   <div id="suporte-alert" data-admin="{{ '1' if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) else '0' }}" style="display:none; background:#fff7e6; border:1px solid #f5d7a1; padding:1rem 1.1rem; border-radius:20px; margin:1.6rem 0 1rem; font-size:.75rem; font-weight:600; color:#8a5a00; box-shadow:0 3px 10px rgba(0,0,0,.05);">
@@ -420,6 +445,11 @@ button { font-family: var(--font-base); font-weight:600; }
   /* Garantir que o footer não sobreponha a barra inferior */
   .footer-bar {
     margin-bottom: calc(60px + env(safe-area-inset-bottom));
+  }
+  
+  /* Mostrar card de Novidades mobile */
+  .mobile-only-card {
+    display: block !important;
   }
 }
 
