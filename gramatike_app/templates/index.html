@@ -48,6 +48,11 @@ button { font-family: var(--font-base); font-weight:600; }
   /* HEADER ROXO (padronizado com páginas EDU) */
   header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:35px; border-bottom-right-radius:35px; position:relative; display:flex; flex-direction:column; align-items:center; }
   .logo { font-family: var(--font-brand) !important; font-size:2.5rem; color:#fff; letter-spacing:1px; font-weight:400; }
+  /* Mobile: Header mais compacto */
+  @media (max-width: 980px){ 
+    header.site-head { padding:18px clamp(12px,3vw,24px) 28px; }
+    .logo { font-size:1.8rem; }
+  }
   /* Avatar do usuário no cabeçalho */
   .profile-avatar-link { position:absolute; right:24px; top:50%; transform:translateY(-50%); display:inline-flex; align-items:center; justify-content:center; width:58px; height:58px; border-radius:50%; border:3px solid #ffffff55; box-shadow:0 4px 14px rgba(0,0,0,.25); overflow:hidden; background:#ffffff22; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); cursor:pointer; text-decoration:none; transition: box-shadow .25s, transform .18s; }
   .profile-avatar-link:hover { box-shadow:0 6px 20px rgba(0,0,0,.32); }
@@ -239,6 +244,61 @@ button { font-family: var(--font-base); font-weight:600; }
 
 <main class="site-main" style="width:100%; max-width:1400px; margin:2rem auto 4rem; padding:0 32px; display:flex; gap:48px; align-items:flex-start; justify-content:flex-start; box-sizing:border-box;">
   <div class="feed-col" style="flex:1 1 960px; max-width:960px; min-width:0;">
+  
+  <!-- Card de Ações Rápidas (mobile only - similar ao card de Amigues) -->
+  <div id="mobile-actions-card" style="display:none; background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem;">
+    <div style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0;">
+      <button onclick="window.location.href='{{ url_for('main.suporte') }}'" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </button>
+      <button onclick="toggleMobileTicTacToe()" class="search-btn icon-btn" title="Jogo da Velha" aria-label="Jogo da Velha">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+      </button>
+      <button onclick="toggleNotifications()" class="search-btn icon-btn" title="Notificações" aria-label="Notificações" style="position:relative;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span id="mobile-actions-notif-badge" style="display:none; position:absolute; top:-4px; right:-4px; background:#ff9800; color:#fff; font-size:.6rem; padding:2px 5px; border-radius:10px; font-weight:700;">0</span>
+      </button>
+      <button onclick="toggleMobileAmigues()" class="search-btn icon-btn" title="Amigues" aria-label="Amigues">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      </button>
+    </div>
+    <!-- Amigues list - mostrado quando clicar no botão -->
+    <div id="mobile-amigues-panel" style="display:none; margin-top:.8rem; border-top:1px solid var(--border); padding-top:.8rem;">
+      <h3 style="margin:0 0 .8rem; font-size:1rem; font-weight:800; letter-spacing:.5px; color:var(--primary); text-align:center;">Amigues</h3>
+      <div id="mobile-amigues-list" style="display:flex; flex-direction:column; gap:.65rem; min-height:20px;"></div>
+      <div id="mobile-amigues-empty" style="display:none; font-size:.7rem; opacity:.7; line-height:1.3; text-align:center;">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
+    </div>
+    <!-- Jogo da Velha - mostrado quando clicar no botão -->
+    <div id="mobile-ttt-panel" style="display:none; margin-top:.8rem; border-top:1px solid var(--border); padding-top:.8rem;">
+      <h3 style="margin:0 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary); text-align:center;"># Jogo da Velha</h3>
+      <p style="margin:.2rem 0 .7rem; font-size:.7rem; color:#555; font-weight:600; text-align:center;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
+      <div id="mobile_ttt_status" style="font-size:.72rem; font-weight:800; color:#6233B5; letter-spacing:.4px; margin:0 0 .6rem; text-align:center;">Sua vez: você é X</div>
+      <div id="mobile_ttt_board" role="grid" aria-label="Tabuleiro do Jogo da Velha" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:.5rem;">
+        {% for i in range(9) %}
+        <button type="button" data-i="{{ i }}" role="gridcell" aria-label="casa {{ i+1 }} vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#6233B5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+        {% endfor %}
+      </div>
+      <button id="mobile_ttt_reset" type="button" style="margin-top:.8rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; padding:.5rem .9rem; font-size:.7rem; font-weight:800; letter-spacing:.4px; cursor:pointer; width:100%;">Reiniciar</button>
+    </div>
+  </div>
+  
   <div class="feed-controls" style="margin-top:0;">
     <div class="search-wrap">
       <input type="text" id="search-input" placeholder="Pesquisar" autocomplete="off" onkeydown="if(event.key==='Enter'){executarBusca();}" />
@@ -258,7 +318,8 @@ button { font-family: var(--font-base); font-weight:600; }
     </div>
   </div>
 
-  <!-- Card de Novidades para Mobile (visível apenas em telas < 980px) -->
+  <!-- Card de Novidades para Mobile (visível apenas em telas < 980px e quando logado) -->
+  {% if current_user.is_authenticated %}
   <div id="divulgacao-card-mobile" class="mobile-only-card" style="display:none; background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.1rem 1.15rem .95rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1.5rem;">
     <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary);">📣 Novidades</h3>
     {% set tem_conteudo_mobile = (div_edu and div_edu|length>0) %}
@@ -281,6 +342,7 @@ button { font-family: var(--font-base); font-weight:600; }
         <div style="font-size:.6rem; font-weight:700; letter-spacing:.5px; color:#999; padding:.65rem .85rem; border:1px dashed #d2c5ef; border-radius:18px; background:#faf7ff;">Nenhuma divulgação ativa.</div>
       {% endif %}
   </div>
+  {% endif %}
 
   <div id="feed-list"></div>
   {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
@@ -438,6 +500,11 @@ button { font-family: var(--font-base); font-weight:600; }
     display: flex;
     justify-content: space-around;
     align-items: center;
+  }
+  
+  /* Mostrar card de ações rápidas no mobile */
+  #mobile-actions-card {
+    display: block !important;
   }
   
   /* Adicionar padding no main (não no body) para compensar a barra inferior */
@@ -1513,6 +1580,7 @@ function toggleNotifications() {
   const panel = document.getElementById('notifications-panel');
   const badge = document.getElementById('notifications-badge');
   const mobileBadge = document.getElementById('mobile-notifications-badge');
+  const mobileActionsBadge = document.getElementById('mobile-actions-notif-badge');
   
   if (panel.style.display === 'none') {
     panel.style.display = 'block';
@@ -1521,6 +1589,7 @@ function toggleNotifications() {
     setTimeout(() => {
       badge.style.display = 'none';
       if (mobileBadge) mobileBadge.style.display = 'none';
+      if (mobileActionsBadge) mobileActionsBadge.style.display = 'none';
       // Mark notifications as viewed in localStorage
       localStorage.setItem('notificationsViewed', 'true');
     }, 500);
@@ -1533,6 +1602,7 @@ async function loadNotifications() {
   const list = document.getElementById('notifications-list');
   const badge = document.getElementById('notifications-badge');
   const mobileBadge = document.getElementById('mobile-notifications-badge');
+  const mobileActionsBadge = document.getElementById('mobile-actions-notif-badge');
   
   try {
     // Check for support tickets (admin only)
@@ -1570,6 +1640,7 @@ async function loadNotifications() {
       list.innerHTML = '<div style="text-align:center; color:#999; font-size:.75rem; padding:1rem;">Nenhuma notificação</div>';
       badge.style.display = 'none';
       if (mobileBadge) mobileBadge.style.display = 'none';
+      if (mobileActionsBadge) mobileActionsBadge.style.display = 'none';
     } else {
       list.innerHTML = notifications.map(n => `
         <a href="${n.link}" style="text-decoration:none; display:block; padding:.7rem; background:#f9fbfd; border:1px solid #e3e9f0; border-radius:12px; transition:.2s;" onmouseover="this.style.background='#f1edff'" onmouseout="this.style.background='#f9fbfd'">
@@ -1597,9 +1668,14 @@ async function loadNotifications() {
           mobileBadge.textContent = notifications.length;
           mobileBadge.style.display = 'inline-block';
         }
+        if (mobileActionsBadge) {
+          mobileActionsBadge.textContent = notifications.length;
+          mobileActionsBadge.style.display = 'inline-block';
+        }
       } else {
         badge.style.display = 'none';
         if (mobileBadge) mobileBadge.style.display = 'none';
+        if (mobileActionsBadge) mobileActionsBadge.style.display = 'none';
       }
     }
   } catch (e) {
@@ -1614,8 +1690,163 @@ document.addEventListener('DOMContentLoaded', () => {
   loadNotifications();
   // Refresh notifications every 2 minutes
   setInterval(loadNotifications, 120000);
+  
+  // Load amigues for mobile card
+  loadMobileAmigues();
+  
+  // Initialize mobile tic-tac-toe
+  initMobileTicTacToe();
 });
 {% endif %}
+
+// Mobile Actions Card Functions
+function toggleMobileAmigues() {
+  const panel = document.getElementById('mobile-amigues-panel');
+  const tttPanel = document.getElementById('mobile-ttt-panel');
+  
+  // Close tic-tac-toe if open
+  if (tttPanel && tttPanel.style.display !== 'none') {
+    tttPanel.style.display = 'none';
+  }
+  
+  // Toggle amigues
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    loadMobileAmigues();
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+function toggleMobileTicTacToe() {
+  const panel = document.getElementById('mobile-ttt-panel');
+  const amiguesPanel = document.getElementById('mobile-amigues-panel');
+  
+  // Close amigues if open
+  if (amiguesPanel && amiguesPanel.style.display !== 'none') {
+    amiguesPanel.style.display = 'none';
+  }
+  
+  // Toggle tic-tac-toe
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+function loadMobileAmigues() {
+  fetch('/api/amigues').then(r => {
+    if (r.status === 401) return [];
+    return r.json();
+  }).then(list => {
+    const wrap = document.getElementById('mobile-amigues-list');
+    const empty = document.getElementById('mobile-amigues-empty');
+    if (!Array.isArray(list) || list.length === 0) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    wrap.innerHTML = list.slice(0, 12).map(u => {
+      const fp = (u.foto_perfil || '').trim() || 'img/perfil.png';
+      const src = /^https?:\/\//i.test(fp) ? fp : (`/static/${fp}`);
+      return `
+        <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem .6rem;border-radius:16px;background:#f9fafb;border:1px solid #e5e7eb;">
+          <img src="${src}" alt="Avatar de ${u.username}" loading="lazy" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.15);" />
+          <div style="flex:1;min-width:0;">
+            <a href="/perfil/${u.username}" style="display:block;font-weight:700;font-size:.7rem;color:var(--primary);text-decoration:none;letter-spacing:.4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.username}</a>
+          </div>
+        </div>`;
+    }).join('');
+  }).catch(() => {});
+}
+
+// Mobile Tic-Tac-Toe Game
+function initMobileTicTacToe() {
+  const board = document.getElementById('mobile_ttt_board');
+  const status = document.getElementById('mobile_ttt_status');
+  const resetBtn = document.getElementById('mobile_ttt_reset');
+  if (!board) return;
+  
+  let state = Array(9).fill('');
+  let turn = 'X';
+  let gameOver = false;
+  
+  const winPatterns = [
+    [0,1,2], [3,4,5], [6,7,8],
+    [0,3,6], [1,4,7], [2,5,8],
+    [0,4,8], [2,4,6]
+  ];
+  
+  function checkWin(player) {
+    return winPatterns.some(p => p.every(i => state[i] === player));
+  }
+  
+  function checkDraw() {
+    return state.every(cell => cell !== '');
+  }
+  
+  function aiMove() {
+    const empty = state.map((v, i) => v === '' ? i : null).filter(i => i !== null);
+    if (empty.length > 0) {
+      const move = empty[Math.floor(Math.random() * empty.length)];
+      state[move] = 'O';
+      render();
+      if (checkWin('O')) {
+        status.textContent = 'Robo venceu! 🤖';
+        gameOver = true;
+      } else if (checkDraw()) {
+        status.textContent = 'Empate! 🤝';
+        gameOver = true;
+      } else {
+        turn = 'X';
+        status.textContent = 'Sua vez: você é X';
+      }
+    }
+  }
+  
+  function handleClick(i) {
+    if (gameOver || state[i] !== '' || turn !== 'X') return;
+    state[i] = 'X';
+    render();
+    if (checkWin('X')) {
+      status.textContent = 'Você venceu! 🎉';
+      gameOver = true;
+      return;
+    }
+    if (checkDraw()) {
+      status.textContent = 'Empate! 🤝';
+      gameOver = true;
+      return;
+    }
+    turn = 'O';
+    status.textContent = 'Vez do Robo...';
+    setTimeout(aiMove, 500);
+  }
+  
+  function render() {
+    const cells = board.querySelectorAll('button');
+    cells.forEach((btn, i) => {
+      btn.textContent = state[i];
+      btn.setAttribute('aria-label', state[i] ? `casa ${i+1} ${state[i]}` : `casa ${i+1} vazia`);
+    });
+  }
+  
+  function reset() {
+    state = Array(9).fill('');
+    turn = 'X';
+    gameOver = false;
+    status.textContent = 'Sua vez: você é X';
+    render();
+  }
+  
+  board.querySelectorAll('button').forEach((btn, i) => {
+    btn.addEventListener('click', () => handleClick(i));
+  });
+  
+  resetBtn.addEventListener('click', reset);
+  render();
+}
 
 </script>
 </body>
