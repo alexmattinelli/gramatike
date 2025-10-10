@@ -86,15 +86,21 @@
   <header class="site-head">
     <h1 class="logo">Gramátike Edu</h1>
     {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
-      <!-- Menu Dropdown -->
+      <!-- Menu Dropdown (mobile) / Painel button (desktop) -->
       <div style="position:absolute; top:14px; right:16px;">
         <button id="menu-toggle" onclick="toggleMenu()" style="background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; cursor:pointer; letter-spacing:.5px; display:flex; align-items:center; gap:6px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg id="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="3" y1="12" x2="21" y2="12"></line>
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
-          Menu
+          <svg id="painel-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span id="menu-text">Menu</span>
         </button>
         <div id="menu-dropdown" style="display:none; position:absolute; right:0; top:calc(100% + 8px); background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.18); min-width:200px; z-index:100;">
           <a href="{{ url_for('main.artigos') }}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
@@ -250,12 +256,46 @@
   </main>
   <script>
   // Menu toggle function
-  function toggleMenu() {
+  // Update button text/icon based on screen size
+  function updateMenuButton() {
+    const isMobile = window.innerWidth <= 980;
+    const menuText = document.getElementById('menu-text');
+    const menuIcon = document.getElementById('menu-icon');
+    const painelIcon = document.getElementById('painel-icon');
     const dropdown = document.getElementById('menu-dropdown');
-    if (dropdown) {
-      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    
+    if (isMobile) {
+      // Mobile: Show "Menu" with hamburger icon and enable dropdown
+      if (menuText) menuText.textContent = 'Menu';
+      if (menuIcon) menuIcon.style.display = 'block';
+      if (painelIcon) painelIcon.style.display = 'none';
+    } else {
+      // Desktop: Show "Painel" with dashboard icon, no dropdown
+      if (menuText) menuText.textContent = 'Painel';
+      if (menuIcon) menuIcon.style.display = 'none';
+      if (painelIcon) painelIcon.style.display = 'block';
+      if (dropdown) dropdown.style.display = 'none';
     }
   }
+  
+  function toggleMenu() {
+    const isMobile = window.innerWidth <= 980;
+    
+    if (isMobile) {
+      // Mobile: Toggle dropdown
+      const dropdown = document.getElementById('menu-dropdown');
+      if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+      }
+    } else {
+      // Desktop: Go directly to Painel
+      window.location.href = "{{ url_for('admin.dashboard') }}";
+    }
+  }
+  
+  // Update button on load and resize
+  updateMenuButton();
+  window.addEventListener('resize', updateMenuButton);
   
   // Close menu when clicking outside
   document.addEventListener('click', function(e) {
@@ -310,13 +350,47 @@
         html += `<button onclick="changePage(${currentPage - 1})" class="pag-btn">← Anterior</button>`;
       }
       
-      // Page numbers
-      for (let i = 1; i <= totalPages; i++) {
+      // Page numbers with limit based on screen size
+      const isMobile = window.innerWidth <= 980;
+      const maxPages = isMobile ? 3 : 10;
+      
+      let startPage = 1;
+      let endPage = totalPages;
+      
+      if (totalPages > maxPages) {
+        const half = Math.floor(maxPages / 2);
+        startPage = Math.max(1, currentPage - half);
+        endPage = Math.min(totalPages, startPage + maxPages - 1);
+        
+        // Adjust if we're near the end
+        if (endPage - startPage + 1 < maxPages) {
+          startPage = Math.max(1, endPage - maxPages + 1);
+        }
+      }
+      
+      // Show first page if not in range
+      if (startPage > 1) {
+        html += `<button onclick="changePage(1)" class="pag-btn">1</button>`;
+        if (startPage > 2) {
+          html += `<span class="pag-btn" style="background:transparent; color:#666; pointer-events:none; border:none;">...</span>`;
+        }
+      }
+      
+      // Show page numbers in range
+      for (let i = startPage; i <= endPage; i++) {
         if (i === currentPage) {
           html += `<span class="pag-btn" style="background:#9B5DE5; color:#fff; pointer-events:none;">${i}</span>`;
         } else {
           html += `<button onclick="changePage(${i})" class="pag-btn">${i}</button>`;
         }
+      }
+      
+      // Show last page if not in range
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          html += `<span class="pag-btn" style="background:transparent; color:#666; pointer-events:none; border:none;">...</span>`;
+        }
+        html += `<button onclick="changePage(${totalPages})" class="pag-btn">${totalPages}</button>`;
       }
       
       // Next button
