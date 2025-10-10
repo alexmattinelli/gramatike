@@ -1221,6 +1221,50 @@ def dinamicas_create():
     elif tipo == 'oneword':
         # sem config necessária
         pass
+    elif tipo == 'quemsoeu':
+        # Quem sou eu? - coleta items (frases/fotos), questão_tipo e moral
+        try:
+            cfg_json = request.form.get('quemsoeu_config_json')
+            questao_tipo = (request.form.get('questao_tipo') or '').strip()
+            moral = (request.form.get('moral') or '').strip()
+            
+            if not questao_tipo:
+                flash('Informe o que a pessoa deve descobrir (ex: gênero, orientação, pronome).')
+                return redirect(url_for('main.dinamicas_home'))
+            
+            if not moral:
+                flash('Informe a moral/mensagem final da dinâmica.')
+                return redirect(url_for('main.dinamicas_home'))
+            
+            cfg['questao_tipo'] = questao_tipo
+            cfg['moral'] = moral
+            
+            if cfg_json:
+                parsed = _json.loads(cfg_json)
+                items = parsed.get('items') or []
+                if len(items) < 1:
+                    flash('Adicione pelo menos um item (frase ou foto).')
+                    return redirect(url_for('main.dinamicas_home'))
+                # normalizar
+                norm_items = []
+                for item in items:
+                    item_tipo = (item.get('tipo') or 'frase').strip()
+                    conteudo = (item.get('conteudo') or '').strip()
+                    if not conteudo:
+                        flash('Todos os itens precisam ter conteúdo.')
+                        return redirect(url_for('main.dinamicas_home'))
+                    norm_items.append({
+                        'id': int(item.get('id') or 0),
+                        'tipo': item_tipo,
+                        'conteudo': conteudo
+                    })
+                cfg['items'] = norm_items
+            else:
+                flash('Adicione pelo menos um item (frase ou foto).')
+                return redirect(url_for('main.dinamicas_home'))
+        except Exception as _e:
+            flash('Configuração inválida para Quem sou eu?')
+            return redirect(url_for('main.dinamicas_home'))
     elif tipo == 'form':
         # Suporta builder: config_json com { fields: [ {id,type,label,required,options?} ] }
         try:
@@ -1536,6 +1580,43 @@ def dinamica_update(dyn_id: int):
     elif d.tipo == 'oneword':
         # sem config necessária
         pass
+    elif d.tipo == 'quemsoeu':
+        # Update quem sou eu config
+        try:
+            cfg_json = request.form.get('quemsoeu_config_json')
+            questao_tipo = (request.form.get('questao_tipo') or '').strip()
+            moral = (request.form.get('moral') or '').strip()
+            
+            # Load existing config as fallback
+            try:
+                cfg = _json.loads(d.config) if d.config else {}
+            except Exception:
+                cfg = {}
+            
+            if questao_tipo:
+                cfg['questao_tipo'] = questao_tipo
+            if moral:
+                cfg['moral'] = moral
+            
+            if cfg_json:
+                parsed = _json.loads(cfg_json)
+                items = parsed.get('items') or []
+                if items:
+                    norm_items = []
+                    for item in items:
+                        item_tipo = (item.get('tipo') or 'frase').strip()
+                        conteudo = (item.get('conteudo') or '').strip()
+                        if conteudo:
+                            norm_items.append({
+                                'id': int(item.get('id') or 0),
+                                'tipo': item_tipo,
+                                'conteudo': conteudo
+                            })
+                    if norm_items:
+                        cfg['items'] = norm_items
+        except Exception as _e:
+            flash('Configuração inválida para Quem sou eu?')
+            return redirect(url_for('main.dinamica_edit', dyn_id=d.id))
     elif d.tipo == 'form':
         try:
             cfg_json = request.form.get('config_json')
@@ -1651,6 +1732,19 @@ def dinamica_responder(dyn_id: int):
                 return redirect(url_for('main.dinamica_view', dyn_id=d.id))
             answers.append({'id': q.get('id'), 'type': qtype, 'value': val})
         payload['answers'] = answers
+    elif d.tipo == 'quemsoeu':
+        # Coletar respostas do quem sou eu
+        try:
+            cfg = _json.loads(d.config) if d.config else {}
+        except Exception:
+            cfg = {}
+        items = cfg.get('items') or []
+        respostas = []
+        for idx in range(len(items)):
+            key = f"resposta_{idx}"
+            val = (request.form.get(key) or '').strip()
+            respostas.append(val)
+        payload['respostas'] = respostas
     else:
         flash('Tipo não suportado.')
         return redirect(url_for('main.dinamica_view', dyn_id=d.id))
@@ -1701,6 +1795,10 @@ def dinamica_responder(dyn_id: int):
                 idx = payload.get('option')
                 text = opts[idx] if isinstance(idx, int) and 0 <= idx < len(opts) else ''
                 content = f"option_index={idx}; option_text={text}"
+            elif d.tipo == 'quemsoeu':
+                # Para quem sou eu, mostrar respostas
+                respostas = payload.get('respostas') or []
+                content = ' | '.join([f"Item {i+1}: {r}" for i, r in enumerate(respostas)])
             else:
                 # para forms, montar string com pares label=valor
                 try:
