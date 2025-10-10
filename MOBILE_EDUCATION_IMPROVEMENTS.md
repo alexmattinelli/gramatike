@@ -31,8 +31,10 @@ This document outlines the improvements made to the mobile experience and the ed
   - New parameters: `page`, `per_page`
   - Returns: `{ items: [], total: N, page: N, per_page: N, total_pages: N }`
   
-- **3 Items Per Page**: Education feed now displays exactly 3 items per page
-  - Configured: `const perPage = 3;` in JavaScript
+- **Responsive Items Per Page**: Education feed displays different amounts based on device
+  - **UPDATE (Oct 2025)**: Changed to responsive: Desktop 10 posts, Mobile 3 posts
+  - Implementation: `getPerPage()` function checks screen width
+  - Previous: `const perPage = 3;` (fixed for all devices)
 
 - **Admin-Style Pagination**: Numbered pagination controls with Previous/Next buttons
   - Style matches the admin dashboard pagination
@@ -112,10 +114,19 @@ return jsonify({
 // State management
 let currentPage = 1;
 let totalPages = 1;
-const perPage = 3;
+
+// Dynamic posts per page (UPDATE Oct 2025)
+function getPerPage() {
+  const isMobile = window.innerWidth <= 980;
+  return isMobile ? 3 : 10;
+}
 
 // Fetch with pagination
-const resp = await fetch(`/api/gramatike/search?q=${encodeURIComponent(q||'')}&include_edu=0&page=${page}&per_page=${perPage}`);
+async function search(q, page = 1) {
+  const perPage = getPerPage();
+  const resp = await fetch(`/api/gramatike/search?q=${encodeURIComponent(q||'')}&include_edu=0&page=${page}&per_page=${perPage}`);
+  // ...
+}
 
 // Render pagination controls
 function renderPagination() {
