@@ -85,6 +85,41 @@
           <p class="muted">Sem votos ainda.</p>
         {% endif %}
       </div>
+    {% elif d.tipo == 'quemsoeu' %}
+      {% if agg.item_stats %}
+      <div class="card" style="margin-bottom:1rem;">
+        <h3 style="margin-top:0;">Taxa de Acertos</h3>
+        <div style="padding:1rem; background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; margin-bottom:1rem;">
+          <div style="font-size:1.8rem; font-weight:800; color:#6233B5; text-align:center;">
+            {{ '%.1f' % agg.overall_accuracy }}%
+          </div>
+          <div style="text-align:center; color:#666; font-size:.85rem; margin-top:.3rem;">Taxa de Acertos Geral</div>
+        </div>
+        <h4 style="margin-top:1.2rem; margin-bottom:.8rem; color:#6233B5;">Por Item:</h4>
+        {% for stat in agg.item_stats %}
+          <div style="margin-bottom:1rem; padding:.8rem; background:#f9f9f9; border-radius:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem;">
+              <div>
+                <strong>Item {{ loop.index }}</strong>
+                <span class="chip" style="margin-left:.4rem;">{{ stat.tipo }}</span>
+              </div>
+              <div style="font-size:1.2rem; font-weight:800; color:#6233B5;">{{ '%.1f' % stat.accuracy }}%</div>
+            </div>
+            {% if stat.tipo == 'frase' %}
+              <div style="font-style:italic; color:#666; margin-bottom:.3rem;">"{{ stat.conteudo[:80] }}{{ '...' if stat.conteudo|length > 80 else '' }}"</div>
+            {% else %}
+              <div style="color:#666; margin-bottom:.3rem;">Foto: <a href="{{ stat.conteudo }}" target="_blank">ver imagem</a></div>
+            {% endif %}
+            <div style="color:#666; font-size:.85rem;">
+              Resposta correta: <strong>{{ stat.resposta_correta }}</strong>
+            </div>
+            <div style="color:#888; font-size:.8rem; margin-top:.3rem;">
+              {{ stat.correct_count }} de {{ stat.total }} acertaram
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
     {% endif %}
 
     <div class="card">
