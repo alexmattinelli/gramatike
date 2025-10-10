@@ -61,6 +61,10 @@
   .quick-nav { display:flex; gap:.5rem; margin:0 0 .6rem; }
   .quick-nav a { text-decoration:none; font-weight:800; font-size:.62rem; letter-spacing:.4px; padding:.45rem .75rem .4rem; border-radius:16px; border:1px solid var(--border); background:#fff; color:#6233B5; box-shadow:0 4px 10px rgba(0,0,0,.06); }
   .quick-nav a:hover { background:#f7f2ff; border-color:#e1d4fb; }
+  /* Ocultar quick-nav em mobile */
+  @media (max-width: 980px){ 
+    #quick-nav { display:none !important; }
+  }
   
   .placeholder { font-size:.6rem; font-weight:700; letter-spacing:.5px; color:#999; padding:.65rem .85rem; border:1px dashed #d2c5ef; border-radius:18px; background:#faf7ff; }
   .empty { font-size:.7rem; font-weight:600; color:#666; text-align:center; padding:2rem 0; }
