@@ -106,7 +106,13 @@
               <tr>
                 <td>@{{ r.user.username }}</td>
                 <td>{{ r.created_at }}</td>
-                <td>{{ r.payload.word }}</td>
+                <td>
+                  {% if r.payload.word1 %}
+                    {{ r.payload.word1 }}{% if r.payload.word2 %}, {{ r.payload.word2 }}{% endif %}{% if r.payload.word3 %}, {{ r.payload.word3 }}{% endif %}
+                  {% else %}
+                    {{ r.payload.word }}
+                  {% endif %}
+                </td>
               </tr>
               {% endfor %}
             {% elif d.tipo == 'poll' %}
@@ -117,6 +123,19 @@
                 <td>@{{ r.user.username }}</td>
                 <td>{{ r.created_at }}</td>
                 <td>{{ opts[idx] if idx is not none and 0 <= idx < opts|length else '—' }}</td>
+              </tr>
+              {% endfor %}
+            {% elif d.tipo == 'quemsoeu' %}
+              {% for r in rows %}
+              <tr>
+                <td>@{{ r.user.username }}</td>
+                <td>{{ r.created_at }}</td>
+                <td>
+                  {% set respostas = r.payload.respostas or [] %}
+                  {% for resp in respostas %}
+                    <div><strong>Item {{ loop.index }}:</strong> {{ resp }}</div>
+                  {% endfor %}
+                </td>
               </tr>
               {% endfor %}
             {% else %}
