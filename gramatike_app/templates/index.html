@@ -261,11 +261,11 @@ button { font-family: var(--font-base); font-weight:600; }
       </button>
       <button onclick="toggleMobileTicTacToe()" class="search-btn icon-btn" title="Jogo da Velha" aria-label="Jogo da Velha">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
-          <path d="M8 12h8"></path>
-          <path d="M12 8v8"></path>
-          <circle cx="8.5" cy="8.5" r="1.5"></circle>
-          <circle cx="15.5" cy="15.5" r="1.5"></circle>
+          <line x1="6" y1="12" x2="18" y2="12"></line>
+          <line x1="12" y1="6" x2="12" y2="18"></line>
+          <rect x="2" y="7" width="20" height="10" rx="2"></rect>
+          <circle cx="6" cy="10" r="1"></circle>
+          <circle cx="18" cy="14" r="1"></circle>
         </svg>
       </button>
       <button onclick="toggleNotifications()" class="search-btn icon-btn" title="Notificações" aria-label="Notificações" style="position:relative;">
@@ -351,11 +351,7 @@ button { font-family: var(--font-base); font-weight:600; }
   {% endif %}
 
   <div id="feed-list"></div>
-  {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
-  <div id="suporte-alert" data-admin="{{ '1' if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) else '0' }}" style="display:none; background:#fff7e6; border:1px solid #f5d7a1; padding:1rem 1.1rem; border-radius:20px; margin:1.6rem 0 1rem; font-size:.75rem; font-weight:600; color:#8a5a00; box-shadow:0 3px 10px rgba(0,0,0,.05);">
-    Carregando tickets de suporte...
-  </div>
-  {% endif %}
+
   </div>
   <aside class="right-col" style="width:300px; flex:0 0 300px; position:sticky; top:15px; align-self:flex-start;">
   <!-- Navegação rápida: Educação -->
@@ -512,7 +508,7 @@ button { font-family: var(--font-base); font-weight:600; }
   #mobile-actions-card {
     display: block !important;
     padding: .9rem 1rem .8rem !important; /* Card menor */
-    margin-bottom: 1.2rem !important; /* Subir um pouquinho */
+    margin-bottom: 1.4rem !important; /* Subir um pouquinho mais */
   }
   
   /* Adicionar padding no main (não no body) para compensar a barra inferior */
@@ -532,7 +528,7 @@ button { font-family: var(--font-base); font-weight:600; }
   
   /* Cards de posts mais largos no mobile (igual educação) */
   #feed-list article.post {
-    padding: 1.8rem 2rem 1.6rem !important;
+    padding: 2rem 2.2rem 1.8rem !important;
     margin: 0 -0.5rem 2rem !important;
   }
   
@@ -1201,25 +1197,6 @@ loadPosts = function(params={}){
 function debounce(fn, wait){
   let t; return function(){ clearTimeout(t); const args = arguments; t = setTimeout(()=>fn.apply(this, args), wait||250); };
 }
-// Se admin, buscar contagem de tickets para alerta simples
-const _adminBox = document.getElementById('suporte-alert');
-if(_adminBox && _adminBox.getAttribute('data-admin')==='1'){
-  fetch('/admin/suporte')
-  .then(r=>r.text())
-  .then(html=>{
-    const count = (html.match(/class=\"ticket\"/g)||[]).length;
-    const box = document.getElementById('suporte-alert');
-    if(box){
-      if(count>0){
-        box.style.display='block';
-        box.textContent = `Você tem ${count} ticket(s) de suporte. Acesse o painel de suporte para gerenciar.`;
-        box.innerHTML += ' <a href="/admin/suporte" style="margin-left:.4rem; text-decoration:none; background:#f0cf85; color:#5d3c00; padding:.35rem .7rem; border-radius:40px; font-size:.65rem; font-weight:700; letter-spacing:.5px;">Ver</a>';
-      } else {
-        box.style.display='none';
-      }
-    }
-  }).catch(()=>{});
-}
 
 // Delegação: abrir modal de likes
 document.addEventListener('click', function(e){
@@ -1613,32 +1590,13 @@ async function loadNotifications() {
   const mobileActionsBadge = document.getElementById('mobile-actions-notif-badge');
   
   try {
-    // Check for support tickets (admin only)
-    {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
-    const ticketsRes = await fetch('/admin/suporte');
-    const ticketsHtml = await ticketsRes.text();
-    const ticketMatches = ticketsHtml.match(/class="ticket"/g) || [];
-    const ticketCount = ticketMatches.length;
-    {% else %}
-    const ticketCount = 0;
-    {% endif %}
-    
-    // Fetch user notifications (likes and followers)
+    // Fetch user notifications (likes and followers) only - no support tickets
     const userNotifications = await fetch('/api/notifications').then(r => r.json()).catch(() => []);
     
     // Build notifications array
     const notifications = [];
     
-    if (ticketCount > 0) {
-      notifications.push({
-        type: 'support',
-        message: `Você tem ${ticketCount} ticket(s) de suporte. Acesse o painel de suporte para gerenciar`,
-        link: '/admin/suporte',
-        time: 'agora'
-      });
-    }
-    
-    // Add user notifications (followers and likes)
+    // Add user notifications (followers and likes) only
     userNotifications.forEach(n => {
       notifications.push(n);
     });
