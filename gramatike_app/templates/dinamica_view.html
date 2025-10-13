@@ -114,16 +114,18 @@
       {% elif d.tipo == 'poll' %}
         {% if user_response %}
           {% set user_option_idx = user_response.option %}
-          {% set user_option_text = cfg.options[user_option_idx] if user_option_idx < (cfg.options|length) else 'Opção inválida' %}
+          {% set options_list = cfg.get('options', []) %}
+          {% set user_option_text = options_list[user_option_idx] if user_option_idx < (options_list|length) else 'Opção inválida' %}
           <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
             <strong>✓ Você já votou:</strong> {{ user_option_text }}
           </div>
           {% if agg.counts %}
             {% set total = (agg.counts | sum) if agg.counts else 0 %}
             {% set colors = ['#9B5DE5', '#F15BB5', '#00BBF9', '#00F5FF', '#FEE440', '#FCA311'] %}
+            {% set options_list = cfg.get('options', []) %}
             <h3 style="margin-top:1rem;">Parciais</h3>
             <div class="poll-bars" role="list" aria-label="Resultados parciais da enquete">
-              {% for opt in cfg.options %}
+              {% for opt in options_list %}
                 {% set c = agg.counts[loop.index0] if agg.counts else 0 %}
                 {% set pct = ( (c * 100.0) / (total if total else 1) ) | round(0, 'floor') %}
                 {% set bar_color = colors[loop.index0 % colors|length] %}
@@ -152,7 +154,8 @@
         {% else %}
           <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="options">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
-            {% for opt in cfg.options %}
+            {% set options_list = cfg.get('options', []) %}
+            {% for opt in options_list %}
               <label style="display:flex; align-items:center; gap:.5rem;">
                 <input type="radio" name="option" value="{{ loop.index0 }}" required /> {{ opt }}
               </label>
@@ -231,7 +234,7 @@
           <div id="quemsoeuInstrucoes">
             <div style="background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; padding:1rem; margin-bottom:1rem;">
               <h3 style="margin:0 0 .5rem; color:#6233B5;">📝 Instruções</h3>
-              <p style="margin:0;">Você verá {{ cfg.items|length }} {% if cfg.items|length == 1 %}item{% else %}itens{% endif %} (frases ou fotos). Para cada um, digite sua resposta sobre: <strong>{{ cfg.questao_tipo }}</strong></p>
+              <p style="margin:0;">Você verá {{ cfg.get('items', [])|length }} {% if cfg.get('items', [])|length == 1 %}item{% else %}itens{% endif %} (frases ou fotos). Para cada um, digite sua resposta sobre: <strong>{{ cfg.get('questao_tipo', '') }}</strong></p>
             </div>
             <button class="btn primary" id="iniciarBtn">Começar</button>
           </div>
@@ -244,8 +247,8 @@
           </div>
           <script>
           (function(){
-            var items = {{ cfg.items | tojson | safe }};
-            var questaoTipo = {{ cfg.questao_tipo | tojson | safe }};
+            var items = {{ cfg.get('items', []) | tojson | safe }};
+            var questaoTipo = {{ cfg.get('questao_tipo', '') | tojson | safe }};
             var currentIdx = 0;
             var respostas = new Array(items.length).fill('');
             
