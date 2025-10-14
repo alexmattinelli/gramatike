@@ -252,11 +252,15 @@ button { font-family: var(--font-base); font-weight:600; }
   <!-- Card de Ações Rápidas (mobile only - similar ao card de Amigues) -->
   <div id="mobile-actions-card" style="display:none; background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem;">
     <div style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0;">
-      <button onclick="window.location.href='{{ url_for('main.suporte') }}'" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      <button onclick="window.location.href='{{ url_for('main.dinamicas_home') }}'" class="search-btn icon-btn" title="Dinâmicas" aria-label="Dinâmicas">
+        <svg width="22" height="22" viewBox="0 0 48 48" fill="none" aria-hidden="true" role="img">
+          <defs>
+            <linearGradient id="dynGradMobile" x1="8" y1="8" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#9B5DE5"/>
+              <stop offset="100%" stop-color="#6233B5"/>
+            </linearGradient>
+          </defs>
+          <path d="M16 14h8v-2a4 4 0 1 1 8 0v2h6a2 2 0 0 1 2 2v6h-2a4 4 0 1 0 0 8h2v6a2 2 0 0 1-2 2h-6v-2a4 4 0 1 0-8 0v2h-6a2 2 0 0 1-2-2v-6h2a4 4 0 1 0 0-8h-2v-6a2 2 0 0 1 2-2Z" stroke="url(#dynGradMobile)" stroke-width="2.2" stroke-linejoin="round" fill="rgba(155,93,229,0.08)"/>
         </svg>
       </button>
       <button onclick="toggleMobileTicTacToe()" class="search-btn icon-btn" title="Jogo da Velha" aria-label="Jogo da Velha">
@@ -526,10 +530,10 @@ button { font-family: var(--font-base); font-weight:600; }
     display: block !important;
   }
   
-  /* Cards de posts mais largos no mobile (igual educação) */
+  /* Cards de posts mais largos no mobile (igual educação) - ENLARGUECER */
   #feed-list article.post {
-    padding: 2rem 2.2rem 1.8rem !important;
-    margin: 0 -0.5rem 2rem !important;
+    padding: 2.2rem 2.4rem 2rem !important;
+    margin: 0 -0.6rem 2.2rem !important;
   }
   
   /* Botões de ação menores no mobile */
@@ -624,14 +628,13 @@ button { font-family: var(--font-base); font-weight:600; }
     </svg>
   </a>
   
-  <button onclick="toggleNotifications()" aria-label="Notificações" title="Notificações" style="position: relative;">
+  <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px 12px; color: #666; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.3px;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      <circle cx="12" cy="12" r="10"></circle>
+      <polyline points="12 6 12 12 16 14"></polyline>
     </svg>
-    <span>Notificações</span>
-    <span id="mobile-notifications-badge" class="nav-badge" style="display:none;">0</span>
-  </button>
+    <span>Em breve</span>
+  </div>
   
   {% if current_user.is_authenticated %}
   <a href="{{ url_for('main.meu_perfil') }}" aria-label="Perfil" title="Perfil">
