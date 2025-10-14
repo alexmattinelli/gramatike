@@ -47,19 +47,8 @@
     .tab-link { text-decoration:none; font-weight:700; font-size:.7rem; letter-spacing:.55px; padding:.65rem 1.05rem .62rem; background:#ffffff14; color:#fff; border:1px solid #ffffff25; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); border-radius:22px; display:inline-flex; align-items:center; gap:.35rem; box-shadow:0 2px 6px rgba(0,0,0,.28); transition:.25s; position:static; top:0; }
     .tab-link:hover { background:#555; color:#fff; }
     .tab-link.active { background:#fff; color:#333; box-shadow:0 6px 18px -4px rgba(0,0,0,.55); }
-        /* Botão menu (3 pontinhos) – versão simplificada matching project standard */
-    .dots-btn { position:absolute; top:16px; right:18px; display:flex; align-items:center; justify-content:center; gap:4px; width:42px; height:42px; border-radius:12px; cursor:pointer; transition:.25s; z-index:50;
-            background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
-        .dots-btn .dot { width:5px; height:5px; background:rgba(255,255,255,.9); border-radius:50%; display:block; transition:.25s; }
-        .dots-btn:hover { background:rgba(255,255,255,.22); border-color:rgba(255,255,255,.35); }
-        .dots-btn:active { transform:scale(0.96); }
-        .dots-btn:focus-visible { outline:2px solid rgba(255,255,255,.6); outline-offset:2px; }
-        .dark .dots-btn { background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.2); }
-        .dark .dots-btn:hover { background:rgba(255,255,255,.15); }
-        #more-menu { position:absolute; top:62px; right:8px; background:#fff; border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 4px 18px -4px rgba(0,0,0,.15); z-index:40; min-width:160px; max-width:200px; padding:.25rem .25rem; display:none; }
-        #more-menu a, #more-menu button { display:block; padding:.46rem .65rem; font-size:.82rem; font-weight:500; color:#333; text-decoration:none; border-radius:8px; transition:background .18s; text-align:center; width:100%; background:transparent; border:none; cursor:pointer; }
-        #more-menu a:hover, #more-menu button:hover { background:#f5f7fa; }
-        #more-menu button { font-family:'Nunito', system-ui; }
+    /* Back button styling */
+    .back-btn:hover { background:#ffffff33 !important; }
     /* (Removido hack que ocultava header) */
         /* Footer unificado */
     /* Footer cola no final: margin-top:auto garante posicionamento inferior quando o conteúdo é curto */
@@ -134,17 +123,12 @@
     <!-- Cabeçalho unificado -->
     <header class="site-head">
         <h1 class="logo">Painel de Controle</h1>
-        <div class="dots-btn" id="more-btn" aria-label="Mais opções">
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        </div>
-        <div id="more-menu">
-            <a href="{{ url_for('main.index') }}">Início público</a>
-            <a href="{{ url_for('main.meu_perfil') }}">Perfil</a>
-            <form method="post" action="{{ url_for('main.logout') }}" style="margin:0;">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
-                <button type="submit" style="color:#c0392b; font-weight:600;">Sair</button>
-            </form>
-        </div>
+        <a href="javascript:history.back()" class="icon-btn back-btn" title="Voltar" aria-label="Voltar" style="position:absolute; top:16px; right:18px; width:40px; height:40px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; background:#ffffff22; border:1px solid #ffffff44; color:#fff; text-decoration:none; font-size:18px; font-weight:700; box-shadow:0 4px 14px rgba(0,0,0,.25); transition:.25s;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </a>
     </header>
     <nav class="tabs" aria-label="Seções do painel" style="margin-top:1.4rem;">
         <a href="#" data-tab="geral" class="tab-link active" aria-controls="tab-geral">Geral</a>
@@ -709,7 +693,7 @@
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
                             <input type="hidden" name="tipo" value="artigo" />
                             <input name="titulo" placeholder="Título" required />
-                            <input name="autor" placeholder="Autore/Canal (opcional)" />
+                            <input name="autor" placeholder="Autore (opcional)" />
                             <select name="topic_id">
                                 <option value="">(Tópico)</option>
                                 {% for t in edu_topics if t.area=='artigo' %}<option value="{{ t.id }}">{{ t.nome }}</option>{% endfor %}
@@ -860,7 +844,7 @@
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
                             <input type="hidden" name="tipo" value="podcast" />
                             <input name="titulo" placeholder="Título" required />
-                            <input name="autor" placeholder="Autore/Canal (opcional)" />
+                            <input name="autor" placeholder="Autore (opcional)" />
                             <select name="topic_id">
                                 <option value="">(Tópico)</option>
                                 {% for t in edu_topics if t.area=='podcast' %}<option value="{{ t.id }}">{{ t.nome }}</option>{% endfor %}
@@ -985,7 +969,7 @@
                             <input type="hidden" name="content_id" id="pe_id" />
                             <label style="display:block; font-size:.75rem; margin:.4rem 0 .2rem;">Título</label>
                             <input name="titulo" id="pe_titulo" required />
-                            <label style="display:block; font-size:.75rem; margin:.6rem 0 .2rem;">Autore/Canal</label>
+                            <label style="display:block; font-size:.75rem; margin:.6rem 0 .2rem;">Autore</label>
                             <input name="autor" id="pe_autor" />
                             <label style="display:block; font-size:.75rem; margin:.6rem 0 .2rem;">Resumo</label>
                             <textarea name="resumo" id="pe_resumo" rows="3"></textarea>
@@ -1191,7 +1175,12 @@
                                     <option value="lacunas">Lacunas</option>
                                     <option value="correspondencia">Correspondência</option>
                                 </select>
-                                <input name="dificuldade" placeholder="Dificuldade" style="flex:0 0 140px;" />
+                                <select name="dificuldade" style="flex:0 0 140px;">
+                                    <option value="">Dificuldade</option>
+                                    <option value="facil">Fácil</option>
+                                    <option value="media">Média</option>
+                                    <option value="dificil">Difícil</option>
+                                </select>
                             </div>
                             <textarea name="enunciado" placeholder="Enunciado" required></textarea>
                             <!-- Campos dinâmicos -->
@@ -1393,7 +1382,7 @@
                         <form method="POST" action="{{ url_for('admin.edu_publicar') }}" enctype="multipart/form-data">
                             <input type="hidden" name="tipo" value="video" />
                             <input name="titulo" placeholder="Título" required />
-                            <input name="autor" placeholder="Autore/Canal (opcional)" />
+                            <input name="autor" placeholder="Autore (opcional)" />
                             <select name="topic_id">
                                 <option value="">(Tópico)</option>
                                 {% for t in edu_topics if t.area=='video' %}<option value="{{ t.id }}">{{ t.nome }}</option>{% endfor %}
@@ -1933,17 +1922,7 @@
             @media (max-width:820px){ .admin-main-wrap { padding:0 20px 0; } }
         </style>
     <div style="text-align:center; padding:1rem 0; color:var(--text-soft); font-size:0.9rem;">© 2025 Gramátike • Inclusão e Gênero Neutro</div>
-    <!-- Script menu três pontos -->
     <script>
-      (function(){
-        const btn = document.getElementById('more-btn');
-        const menu = document.getElementById('more-menu');
-        if(!btn || !menu) return;
-        btn.addEventListener('click', e=>{ e.stopPropagation(); menu.style.display = (menu.style.display==='block') ? 'none':'block'; });
-        document.addEventListener('click', ()=>{ menu.style.display='none'; });
-        menu.addEventListener('click', e=> e.stopPropagation());
-      })();
-    
     // Toggle topic edit form
     function toggleTopicEdit(topicId) {
         const editDiv = document.getElementById('topic-edit-' + topicId);
