@@ -8,6 +8,9 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Quill Rich Text Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <style>
         :root { --primary:#9B5DE5; --primary-dark:#7d3dc9; --bg:#f7f8ff; --card:#ffffff; --border:#e5e7eb; --text:#222; --text-dim:#666; }
         * { box-sizing:border-box; }
@@ -26,15 +29,29 @@
         .article-meta time { color:#9B5DE5; }
         .article-body { background:var(--card); border:1px solid var(--border); border-radius:28px; padding:2rem 2.5rem; box-shadow:0 10px 32px -8px rgba(0,0,0,.12); }
         .article-body p { margin:0 0 1.2rem; font-size:1rem; line-height:1.75; color:#333; }
+        .article-body .content { font-size:1.05rem; line-height:1.8; color:#2d3748; }
+        .article-body .content h1, .article-body .content h2, .article-body .content h3 { color:#6233B5; margin-top:1.5rem; margin-bottom:1rem; }
+        .article-body .content h1 { font-size:1.8rem; }
+        .article-body .content h2 { font-size:1.5rem; }
+        .article-body .content h3 { font-size:1.25rem; }
+        .article-body .content strong { font-weight:700; color:#1a202c; }
+        .article-body .content em { font-style:italic; color:#4a5568; }
+        .article-body .content ul, .article-body .content ol { margin:1rem 0 1rem 1.5rem; }
+        .article-body .content li { margin-bottom:.5rem; }
         .article-link { display:inline-flex; align-items:center; gap:.5rem; margin-top:1.5rem; padding:.8rem 1.3rem; background:#9B5DE5; color:#fff; text-decoration:none; border-radius:16px; font-weight:700; font-size:.9rem; box-shadow:0 6px 20px rgba(155,93,229,.35); transition:.25s; }
         .article-link:hover { background:#7d3dc9; transform:translateY(-2px); box-shadow:0 8px 28px rgba(155,93,229,.45); }
         .admin-actions { margin-top:2rem; padding:1.5rem; background:#f9f7ff; border:1px solid #e5ddf9; border-radius:20px; display:flex; gap:.8rem; }
-        .admin-actions button, .admin-actions a { padding:.7rem 1.2rem; border:none; border-radius:12px; font-weight:700; font-size:.8rem; cursor:pointer; text-decoration:none; display:inline-block; }
+        .admin-actions button, .admin-actions a { padding:.7rem 1.2rem; border:none; border-radius:12px; font-weight:700; font-size:.8rem; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:.5rem; transition:.2s; }
         .btn-edit { background:#9B5DE5; color:#fff; }
-        .btn-edit:hover { background:#7d3dc9; }
+        .btn-edit:hover { background:#7d3dc9; transform:translateY(-1px); }
+        .btn-edit svg { width:16px; height:16px; }
         .btn-delete { background:#dc2626; color:#fff; }
         .btn-delete:hover { background:#b91c1c; }
         footer { margin-top:4rem; background:#9B5DE5; color:#fff; text-align:center; padding:1.4rem 1rem 1.6rem; font-size:.75rem; letter-spacing:.5px; font-weight:700; border-top-left-radius:38px; border-top-right-radius:38px; }
+        /* Quill editor styles */
+        #editor-container { min-height:250px; background:#fff; border:1px solid #cfd7e2; border-radius:10px; }
+        .ql-toolbar { border-top-left-radius:10px; border-top-right-radius:10px; background:#f9fafb; }
+        .ql-container { border-bottom-left-radius:10px; border-bottom-right-radius:10px; font-size:.9rem; }
         @media (max-width: 980px){ footer { display:none !important; } }
         @media (max-width:720px){ 
             header.site-head { padding:24px 18px 38px; } 
@@ -66,7 +83,7 @@
             
             <div class="article-body">
                 {% if novidade.descricao %}
-                    <p>{{ novidade.descricao }}</p>
+                    <div class="content">{{ novidade.descricao|safe }}</div>
                 {% else %}
                     <p><em>Sem descrição disponível.</em></p>
                 {% endif %}
@@ -80,7 +97,13 @@
             
             {% if is_admin %}
             <div class="admin-actions">
-                <button class="btn-edit" onclick="document.getElementById('editDialog').showModal()">✏️ Editar</button>
+                <button class="btn-edit" onclick="document.getElementById('editDialog').showModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Editar
+                </button>
                 <form method="POST" action="{{ url_for('admin.novidades_delete', nid=novidade.id) }}" onsubmit="return confirm('Tem certeza que deseja excluir esta novidade?');" style="margin:0;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
                     <button type="submit" class="btn-delete">🗑️ Excluir</button>
@@ -95,9 +118,10 @@
     </footer>
     
     {% if is_admin %}
-    <dialog id="editDialog" style="border:none; border-radius:20px; padding:0; max-width:600px; width:90%;">
+    <dialog id="editDialog" style="border:none; border-radius:20px; padding:0; max-width:800px; width:90%;">
         <form method="POST" action="{{ url_for('admin.novidades_edit', nid=novidade.id) }}" style="padding:2rem;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+            <input type="hidden" name="descricao" id="descricao-input" />
             <h3 style="margin:0 0 1.5rem; color:#6233B5;">Editar Novidade</h3>
             
             <label style="display:block; margin-bottom:1rem;">
@@ -107,7 +131,7 @@
             
             <label style="display:block; margin-bottom:1rem;">
                 <span style="display:block; font-size:.8rem; font-weight:700; color:#666; margin-bottom:.3rem;">Descrição</span>
-                <textarea name="descricao" rows="4" style="width:100%; padding:.7rem; border:1px solid #cfd7e2; border-radius:10px; font-size:.9rem;">{{ novidade.descricao or '' }}</textarea>
+                <div id="editor-container"></div>
             </label>
             
             <label style="display:block; margin-bottom:1.5rem;">
@@ -121,6 +145,30 @@
             </div>
         </form>
     </dialog>
+    <script>
+        // Initialize Quill editor
+        var quill = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link'],
+                    ['clean']
+                ]
+            },
+            placeholder: 'Escreva a descrição da novidade...'
+        });
+        
+        // Load existing content
+        quill.root.innerHTML = {{ novidade.descricao|tojson|safe }} || '';
+        
+        // Update hidden input on form submit
+        document.querySelector('#editDialog form').addEventListener('submit', function() {
+            document.getElementById('descricao-input').value = quill.root.innerHTML;
+        });
+    </script>
     {% endif %}
 </body>
 </html>
