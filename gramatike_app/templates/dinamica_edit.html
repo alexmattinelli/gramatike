@@ -56,8 +56,8 @@
           </div>
           <input type="hidden" name="config_json" id="config_json" />
         </div>
-        {% elif d.tipo == 'quemsoeu' %}
-        <div id="quemsoeu_builder">
+        {% elif d.tipo == 'quemsouleu' %}
+        <div id="quemsouleu_builder">
           <div class="muted-sm">Edite os itens da dinâmica "Quem soul eu"</div>
           <label style="font-weight:800; color:#6233B5; margin-top:.8rem;">O que a pessoa deve descobrir?</label>
           <input type="text" name="questao_tipo" id="questao_tipo" value="{{ cfg.get('questao_tipo', '') }}" placeholder="Ex: gênero, orientação sexual, pronome..." />
@@ -67,7 +67,7 @@
           <div class="builder-actions">
             <button type="button" class="btn" id="add_item">+ Item (Frase ou Foto)</button>
           </div>
-          <input type="hidden" name="quemsoeu_config_json" id="quemsoeu_config_json" />
+          <input type="hidden" name="quemsouleu_config_json" id="quemsouleu_config_json" />
         </div>
         {% endif %}
         
@@ -167,12 +167,12 @@
     render();
   })();
   </script>
-  {% elif d.tipo == 'quemsoeu' %}
+  {% elif d.tipo == 'quemsouleu' %}
   <script>
   (function(){
     const itemsList = document.getElementById('items_list');
     const addItemBtn = document.getElementById('add_item');
-    const quemsoeuCfgEl = document.getElementById('quemsoeu_config_json');
+    const quemsouleuCfgEl = document.getElementById('quemsouleu_config_json');
     const form = document.getElementById('dynEditForm');
 
     // Load existing items
@@ -252,7 +252,7 @@
     // on submit serialize
     form.addEventListener('submit', ()=>{
       const cfg = { items: items.map(item=>({ id: item.id, tipo: item.tipo, conteudo: item.conteudo, resposta_correta: item.resposta_correta || '' })) };
-      quemsoeuCfgEl.value = JSON.stringify(cfg);
+      quemsouleuCfgEl.value = JSON.stringify(cfg);
     });
 
     // initial render

@@ -1221,12 +1221,12 @@ def dinamicas_create():
     elif tipo == 'oneword':
         # sem config necessária
         pass
-    elif tipo == 'quemsoeu':
-        # Quem sou eu? - coleta items (frases/fotos), questão_tipo e moral
+    elif tipo == 'quemsouleu':
+        # Quem soul eu - coleta items (frases/fotos), questão_tipo e moral
         try:
             from gramatike_app.utils.storage import upload_bytes_to_supabase, build_dinamica_image_path
             
-            cfg_json = request.form.get('quemsoeu_config_json')
+            cfg_json = request.form.get('quemsouleu_config_json')
             questao_tipo = (request.form.get('questao_tipo') or '').strip()
             moral = (request.form.get('moral') or '').strip()
             
@@ -1287,7 +1287,7 @@ def dinamicas_create():
                 flash('Adicione pelo menos um item (frase ou foto).')
                 return redirect(url_for('main.dinamicas_home'))
         except Exception as _e:
-            flash('Configuração inválida para Quem sou eu?')
+            flash('Configuração inválida para Quem soul eu')
             return redirect(url_for('main.dinamicas_home'))
     elif tipo == 'form':
         # Suporta builder: config_json com { fields: [ {id,type,label,required,options?} ] }
@@ -1451,7 +1451,7 @@ def dinamica_admin(dyn_id: int):
             except Exception:
                 pass
         agg['counts'] = counts
-    elif d.tipo == 'quemsoeu':
+    elif d.tipo == 'quemsouleu':
         # Calculate accuracy stats
         items = cfg.get('items', [])
         total_responses = len(rows)
@@ -1642,12 +1642,12 @@ def dinamica_update(dyn_id: int):
     elif d.tipo == 'oneword':
         # sem config necessária
         pass
-    elif d.tipo == 'quemsoeu':
-        # Update quem sou eu config
+    elif d.tipo == 'quemsouleu':
+        # Update quem soul eu config
         try:
             from gramatike_app.utils.storage import upload_bytes_to_supabase, build_dinamica_image_path
             
-            cfg_json = request.form.get('quemsoeu_config_json')
+            cfg_json = request.form.get('quemsouleu_config_json')
             questao_tipo = (request.form.get('questao_tipo') or '').strip()
             moral = (request.form.get('moral') or '').strip()
             
@@ -1701,7 +1701,7 @@ def dinamica_update(dyn_id: int):
                     if norm_items:
                         cfg['items'] = norm_items
         except Exception as _e:
-            flash('Configuração inválida para Quem sou eu?')
+            flash('Configuração inválida para Quem soul eu')
             return redirect(url_for('main.dinamica_edit', dyn_id=d.id))
     elif d.tipo == 'form':
         try:
@@ -1818,8 +1818,8 @@ def dinamica_responder(dyn_id: int):
                 return redirect(url_for('main.dinamica_view', dyn_id=d.id))
             answers.append({'id': q.get('id'), 'type': qtype, 'value': val})
         payload['answers'] = answers
-    elif d.tipo == 'quemsoeu':
-        # Coletar respostas do quem sou eu
+    elif d.tipo == 'quemsouleu':
+        # Coletar respostas do quem soul eu
         try:
             cfg = _json.loads(d.config) if d.config else {}
         except Exception:
@@ -1881,8 +1881,8 @@ def dinamica_responder(dyn_id: int):
                 idx = payload.get('option')
                 text = opts[idx] if isinstance(idx, int) and 0 <= idx < len(opts) else ''
                 content = f"option_index={idx}; option_text={text}"
-            elif d.tipo == 'quemsoeu':
-                # Para quem sou eu, mostrar respostas
+            elif d.tipo == 'quemsouleu':
+                # Para quem soul eu, mostrar respostas
                 respostas = payload.get('respostas') or []
                 content = ' | '.join([f"Item {i+1}: {r}" for i, r in enumerate(respostas)])
             else:
