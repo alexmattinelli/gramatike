@@ -1401,6 +1401,87 @@
                         </form>
                     </div>
                 </div>
+                <!-- Gerenciar Tópicos de Exercícios -->
+                <div class="edu-box" style="margin-top:1rem;">
+                    <h3>Gerenciar Tópicos de Exercícios</h3>
+                    {% if topics %}
+                        <div style="display:grid; gap:.8rem; grid-template-columns:1fr;">
+                            {% for topic in topics %}
+                            <div style="background:#f9fbfd; border:1px solid #e3e9f0; border-radius:12px; padding:.9rem;">
+                                <div style="display:flex; justify-content:space-between; align-items:start; gap:.8rem;">
+                                    <div style="flex:1;">
+                                        <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;">{{ topic.nome }}</div>
+                                        {% if topic.descricao %}
+                                            <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;">{{ topic.descricao }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <button onclick="toggleTopicEdit('exercicio-{{ topic.id }}')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;">
+                                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                        </svg>
+                                        Editar
+                                    </button>
+                                </div>
+                                <div id="topic-edit-exercicio-{{ topic.id }}" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
+                                    <form method="POST" action="{{ url_for('admin.exercicios_topic_update', topic_id=topic.id) }}" style="display:flex; flex-direction:column; gap:.5rem;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+                                        <label style="font-size:.7rem; font-weight:600; color:#666;">Nome</label>
+                                        <input name="nome" value="{{ topic.nome }}" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
+                                        <label style="font-size:.7rem; font-weight:600; color:#666;">Descrição</label>
+                                        <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;">{{ topic.descricao or '' }}</textarea>
+                                        <div style="display:flex; gap:.5rem; margin-top:.3rem;">
+                                            <button type="submit" class="action-btn" style="background:var(--accent); color:#fff; border:none; font-size:.65rem; padding:.5rem .9rem;">Salvar</button>
+                                            <button type="button" onclick="toggleTopicEdit('exercicio-{{ topic.id }}')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <!-- Gerenciar Sessões deste Tópico -->
+                                {% set topic_sections = sections | selectattr('topic_id', 'equalto', topic.id) | list %}
+                                {% if topic_sections %}
+                                <div style="margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
+                                    <div style="font-size:.75rem; font-weight:600; color:#666; margin-bottom:.5rem;">Sessões deste Tópico:</div>
+                                    <div style="display:flex; flex-direction:column; gap:.5rem;">
+                                        {% for section in topic_sections %}
+                                        <div style="background:#fff; border:1px solid #e3e9f0; border-radius:8px; padding:.6rem;">
+                                            <div style="display:flex; justify-content:space-between; align-items:start; gap:.5rem;">
+                                                <div style="flex:1;">
+                                                    <div style="font-weight:600; font-size:.75rem; color:#333;">{{ section.nome }}</div>
+                                                    {% if section.descricao %}
+                                                        <div style="font-size:.65rem; color:#666; margin-top:.2rem;">{{ section.descricao }}</div>
+                                                    {% endif %}
+                                                    <div style="font-size:.6rem; color:#999; margin-top:.2rem;">Ordem: {{ section.ordem }}</div>
+                                                </div>
+                                                <button onclick="toggleTopicEdit('section-{{ section.id }}')" class="action-btn" style="font-size:.55rem; padding:3px 8px;">
+                                                    Editar
+                                                </button>
+                                            </div>
+                                            <div id="topic-edit-section-{{ section.id }}" style="display:none; margin-top:.6rem; padding-top:.6rem; border-top:1px solid #e3e9f0;">
+                                                <form method="POST" action="{{ url_for('admin.exercicios_section_update', section_id=section.id) }}" style="display:flex; flex-direction:column; gap:.4rem;">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+                                                    <label style="font-size:.65rem; font-weight:600; color:#666;">Nome</label>
+                                                    <input name="nome" value="{{ section.nome }}" placeholder="Nome" style="padding:.4rem; border:1px solid #cfd7e2; border-radius:6px; font-size:.68rem;" required />
+                                                    <label style="font-size:.65rem; font-weight:600; color:#666;">Descrição</label>
+                                                    <textarea name="descricao" placeholder="Descrição" style="padding:.4rem; border:1px solid #cfd7e2; border-radius:6px; font-size:.68rem; min-height:50px;">{{ section.descricao or '' }}</textarea>
+                                                    <label style="font-size:.65rem; font-weight:600; color:#666;">Ordem</label>
+                                                    <input name="ordem" type="number" value="{{ section.ordem }}" placeholder="Ordem" style="padding:.4rem; border:1px solid #cfd7e2; border-radius:6px; font-size:.68rem;" />
+                                                    <div style="display:flex; gap:.4rem; margin-top:.2rem;">
+                                                        <button type="submit" class="action-btn" style="background:var(--accent); color:#fff; border:none; font-size:.6rem; padding:.4rem .7rem;">Salvar</button>
+                                                        <button type="button" onclick="toggleTopicEdit('section-{{ section.id }}')" class="action-btn" style="font-size:.6rem; padding:.4rem .7rem;">Cancelar</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="muted-inline">Nenhum tópico criado ainda.</p>
+                    {% endif %}
+                </div>
             </div>
             <!-- Vídeos -->
             <div class="edu-area-section" id="area-videos">

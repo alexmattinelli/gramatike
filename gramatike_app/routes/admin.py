@@ -785,6 +785,56 @@ def exercicios_create_section():
     flash('Sessão criada.')
     return redirect(url_for('admin.dashboard', _anchor='edu'))
 
+@admin_bp.route('/exercicios/topic/<int:topic_id>', methods=['POST'])
+@login_required
+def exercicios_topic_update(topic_id):
+    if not current_user.is_admin:
+        return redirect(url_for('main.index'))
+    topic = ExerciseTopic.query.get_or_404(topic_id)
+    nome = request.form.get('nome','').strip()
+    descricao = request.form.get('descricao','').strip() or None
+    if not nome:
+        flash('Nome do tópico é obrigatório.')
+        return redirect(url_for('admin.dashboard', _anchor='edu'))
+    # Check if another topic with same name exists
+    existing = ExerciseTopic.query.filter_by(nome=nome).first()
+    if existing and existing.id != topic_id:
+        flash('Já existe tópico com esse nome.')
+        return redirect(url_for('admin.dashboard', _anchor='edu'))
+    topic.nome = nome
+    topic.descricao = descricao
+    db.session.commit()
+    flash('Tópico atualizado com sucesso.')
+    return redirect(url_for('admin.dashboard', _anchor='edu'))
+
+@admin_bp.route('/exercicios/section/<int:section_id>', methods=['POST'])
+@login_required
+def exercicios_section_update(section_id):
+    if not current_user.is_admin:
+        return redirect(url_for('main.index'))
+    section = ExerciseSection.query.get_or_404(section_id)
+    nome = request.form.get('nome','').strip()
+    descricao = request.form.get('descricao','').strip() or None
+    ordem = request.form.get('ordem') or 0
+    if not nome:
+        flash('Nome da sessão é obrigatório.')
+        return redirect(url_for('admin.dashboard', _anchor='edu'))
+    try:
+        ordem = int(ordem)
+    except ValueError:
+        ordem = 0
+    # Check if another section with same name exists in same topic
+    existing = ExerciseSection.query.filter_by(topic_id=section.topic_id, nome=nome).first()
+    if existing and existing.id != section_id:
+        flash('Já existe sessão com esse nome neste tópico.')
+        return redirect(url_for('admin.dashboard', _anchor='edu'))
+    section.nome = nome
+    section.descricao = descricao
+    section.ordem = ordem
+    db.session.commit()
+    flash('Sessão atualizada com sucesso.')
+    return redirect(url_for('admin.dashboard', _anchor='edu'))
+
 @admin_bp.route('/variacoes/salvar', methods=['POST'])
 @login_required
 def salvar_variacoes():
