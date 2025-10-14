@@ -233,7 +233,21 @@
                                                           <div style="font-size:.7rem; color:#5b6a7c;">Autore: {{ extra.author }}</div>
                                                     {% endif %}
                                                     {% if c.resumo %}
-                                                        <div style="font-size:.7rem; color:#666; margin-top:2px;">{{ c.resumo }}</div>
+                                                        {% set resumo_limit = 300 %}
+                                                        {% if c.resumo|length > resumo_limit %}
+                                                            <div class="resumo-container" data-id="{{ c.id }}">
+                                                                <div class="resumo-short" style="font-size:.7rem; color:#666; margin-top:2px;">
+                                                                    {{ c.resumo[:resumo_limit] }}...
+                                                                    <a href="javascript:void(0)" class="ver-mais" data-target="{{ c.id }}" style="color:#9B5DE5; font-weight:700; text-decoration:none; cursor:pointer; margin-left:4px;">Ver mais</a>
+                                                                </div>
+                                                                <div class="resumo-full" style="font-size:.7rem; color:#666; margin-top:2px; display:none;">
+                                                                    {{ c.resumo }}
+                                                                    <a href="javascript:void(0)" class="ver-menos" data-target="{{ c.id }}" style="color:#9B5DE5; font-weight:700; text-decoration:none; cursor:pointer; margin-left:4px;">Ver menos</a>
+                                                                </div>
+                                                            </div>
+                                                        {% else %}
+                                                            <div style="font-size:.7rem; color:#666; margin-top:2px;">{{ c.resumo }}</div>
+                                                        {% endif %}
                                                     {% endif %}
                                         </li>
                                     {% endfor %}
@@ -510,6 +524,25 @@
             }
         });
     })();
+    
+    // Ver mais / Ver menos resumo
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('ver-mais')) {
+            const targetId = e.target.getAttribute('data-target');
+            const container = document.querySelector(`.resumo-container[data-id="${targetId}"]`);
+            if (container) {
+                container.querySelector('.resumo-short').style.display = 'none';
+                container.querySelector('.resumo-full').style.display = 'block';
+            }
+        } else if (e.target.classList.contains('ver-menos')) {
+            const targetId = e.target.getAttribute('data-target');
+            const container = document.querySelector(`.resumo-container[data-id="${targetId}"]`);
+            if (container) {
+                container.querySelector('.resumo-short').style.display = 'block';
+                container.querySelector('.resumo-full').style.display = 'none';
+            }
+        }
+    });
     </script>
     {% endif %}
     
