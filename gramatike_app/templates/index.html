@@ -252,15 +252,17 @@ button { font-family: var(--font-base); font-weight:600; }
   <!-- Card de Ações Rápidas (mobile only - similar ao card de Amigues) -->
   <div id="mobile-actions-card" style="display:none; background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem;">
     <div style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0;">
-      <button onclick="window.location.href='{{ url_for('main.dinamicas_home') }}'" class="search-btn icon-btn" title="Dinâmicas" aria-label="Dinâmicas">
-        <svg width="22" height="22" viewBox="0 0 48 48" fill="none" aria-hidden="true" role="img">
-          <defs>
-            <linearGradient id="dynGradMobile" x1="8" y1="8" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#9B5DE5"/>
-              <stop offset="100%" stop-color="#6233B5"/>
-            </linearGradient>
-          </defs>
-          <path d="M16 14h8v-2a4 4 0 1 1 8 0v2h6a2 2 0 0 1 2 2v6h-2a4 4 0 1 0 0 8h2v6a2 2 0 0 1-2 2h-6v-2a4 4 0 1 0-8 0v2h-6a2 2 0 0 1-2-2v-6h2a4 4 0 1 0 0-8h-2v-6a2 2 0 0 1 2-2Z" stroke="url(#dynGradMobile)" stroke-width="2.2" stroke-linejoin="round" fill="rgba(155,93,229,0.08)"/>
+      <button onclick="window.location.href='{{ url_for('main.suporte') }}'" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </button>
+      <button onclick="window.location.href='{{ url_for('main.configuracoes') }}'" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
         </svg>
       </button>
       <button onclick="toggleMobileTicTacToe()" class="search-btn icon-btn" title="Jogo da Velha" aria-label="Jogo da Velha">
@@ -326,33 +328,6 @@ button { font-family: var(--font-base); font-weight:600; }
       <div id="autocomplete" class="autocomplete" role="listbox" aria-label="Sugestões de busca"></div>
     </div>
   </div>
-
-  <!-- Card de Novidades para Mobile (visível apenas em telas < 980px e quando logado) -->
-  {% if current_user.is_authenticated %}
-  <div id="divulgacao-card-mobile" class="mobile-only-card" style="display:none; background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.1rem 1.15rem .95rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1.5rem; position:relative;">
-    <button id="close-mobile-novidades-btn" style="position:absolute; top:12px; right:12px; background:transparent; border:none; color:#999; cursor:pointer; font-size:1.2rem; line-height:1; padding:0; width:24px; height:24px; display:flex; align-items:center; justify-content:center; border-radius:50%; transition:.2s; z-index:10; -webkit-tap-highlight-color: transparent;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='transparent'" title="Fechar" aria-label="Fechar novidades">×</button>
-    <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary);">📣 Novidades</h3>
-    {% set tem_conteudo_mobile = (div_edu and div_edu|length>0) %}
-      {% if tem_conteudo_mobile %}
-        <div style="display:flex; flex-direction:column; gap:.9rem;">
-          {# Divulgações (inclui Aviso Rápido com imagem gerada) #}
-          {% for d in (div_edu or []) %}
-          <div class="promo-card" style="background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
-            <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#6233B5; margin:0 0 .35rem;">{{ d.titulo }}</strong>
-            {% if d.imagem %}
-              {% set imgsrc = d.imagem if d.imagem.startswith('http') else url_for('static', filename=d.imagem) %}
-              <img src="{{ imgsrc }}" alt="{{ d.titulo }}" style="width:100%; border-radius:14px; margin:0 0 .5rem; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />
-            {% endif %}
-            {% if d.texto %}<p style="margin:0 0 .5rem; font-size:.6rem; line-height:1.32; color:#555; font-weight:600;">{{ d.texto }}</p>{% endif %}
-            {% if d.link %}<a href="{{ d.link }}" target="_blank" rel="noopener" style="display:inline-block; font-size:.55rem; font-weight:700; background:#9B5DE5; color:#fff; padding:.45rem .8rem .4rem; border-radius:14px; text-decoration:none; letter-spacing:.5px;">Abrir →</a>{% endif %}
-          </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div style="font-size:.6rem; font-weight:700; letter-spacing:.5px; color:#999; padding:.65rem .85rem; border:1px dashed #d2c5ef; border-radius:18px; background:#faf7ff;">Nenhuma divulgação ativa.</div>
-      {% endif %}
-  </div>
-  {% endif %}
 
   <div id="feed-list"></div>
 
@@ -523,11 +498,6 @@ button { font-family: var(--font-base); font-weight:600; }
   /* Garantir que o footer não sobreponha a barra inferior */
   .footer-bar {
     margin-bottom: calc(60px + env(safe-area-inset-bottom));
-  }
-  
-  /* Mostrar card de Novidades mobile */
-  .mobile-only-card {
-    display: block !important;
   }
   
   /* Cards de posts mais largos no mobile (igual educação) - ENLARGUECER */
@@ -1708,41 +1678,6 @@ function toggleMobileTicTacToe() {
     panel.style.display = 'none';
   }
 }
-
-function closeMobileNovidades() {
-  const card = document.getElementById('divulgacao-card-mobile');
-  if (card) {
-    card.style.display = 'none';
-    localStorage.setItem('mobileNovidadesClosed', 'true');
-  }
-}
-
-// Attach event listener to close button
-document.addEventListener('DOMContentLoaded', () => {
-  const closeBtn = document.getElementById('close-mobile-novidades-btn');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      closeMobileNovidades();
-    });
-    // Also support touch events on mobile
-    closeBtn.addEventListener('touchend', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      closeMobileNovidades();
-    });
-  }
-});
-
-// Check on page load if novidades card should be hidden
-document.addEventListener('DOMContentLoaded', () => {
-  const novidadesClosed = localStorage.getItem('mobileNovidadesClosed');
-  if (novidadesClosed === 'true') {
-    const card = document.getElementById('divulgacao-card-mobile');
-    if (card) card.style.display = 'none';
-  }
-});
 
 function loadMobileAmigues() {
   fetch('/api/amigues').then(r => {

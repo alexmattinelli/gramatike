@@ -1927,6 +1927,33 @@ def api_novidades():
     
     return jsonify({'items': out})
 
+@bp.route('/api/divulgacao')
+def api_divulgacao():
+    """API endpoint to fetch active divulgacao items for mobile feed integration"""
+    try:
+        items = (Divulgacao.query.filter_by(ativo=True)
+                .filter(Divulgacao.show_on_index == True)
+                .order_by(Divulgacao.ordem.asc(), Divulgacao.created_at.desc())
+                .limit(10).all())
+    except Exception:
+        # Fallback if show_on_index column doesn't exist
+        items = (Divulgacao.query.filter_by(ativo=True)
+                .order_by(Divulgacao.ordem.asc(), Divulgacao.created_at.desc())
+                .limit(10).all())
+    
+    out = []
+    for item in items:
+        out.append({
+            'id': item.id,
+            'titulo': item.titulo,
+            'texto': item.texto,
+            'link': item.link,
+            'imagem': item.imagem,
+            'area': item.area
+        })
+    
+    return jsonify({'items': out})
+
 @bp.route('/novidade/<int:novidade_id>')
 def novidade_detail(novidade_id):
     n = EduNovidade.query.get_or_404(novidade_id)
