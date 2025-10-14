@@ -161,6 +161,18 @@ button { font-family: var(--font-base); font-weight:600; }
   }
 
   .post-content { font-size:1.05rem; margin-bottom:1rem; line-height:1.5; color: var(--text); }
+  /* Rich text formatting in posts */
+  .post-content h1, .post-content h2, .post-content h3 { font-weight:800; color:#6233B5; margin:.8rem 0 .5rem; }
+  .post-content h1 { font-size:1.5rem; }
+  .post-content h2 { font-size:1.3rem; }
+  .post-content h3 { font-size:1.15rem; }
+  .post-content strong { font-weight:800; color:#6233B5; }
+  .post-content em { font-style:italic; }
+  .post-content u { text-decoration:underline; }
+  .post-content ul, .post-content ol { margin:.5rem 0 .5rem 1.5rem; padding:0; }
+  .post-content li { margin:.3rem 0; }
+  .post-content a:not(.mention):not(.hashtag) { color:#2563eb; text-decoration:underline; }
+  .post-content p { margin:.5rem 0; }
   .post-media img { width:100%; display:block; border-radius:24px; margin:.6rem 0 1.1rem; object-fit:cover; background:#f3f4f6; max-height:380px; aspect-ratio:1/1; }
   .post-media { position:relative; overflow:hidden; }
   .post-media img[data-lazy] { filter:blur(18px) brightness(.92); transform:scale(1.02); }
@@ -1080,13 +1092,46 @@ function compartilharPost(postId) {
 
 // Linkifica texto: escapa HTML, transforma @menções e #hashtags
 function parseTextWithLinks(text) {
-  const esc = (s)=> (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  let out = esc(text||'');
-  // menções @usuario (com acentos e _)
-  out = out.replace(/@([\wÁ-Úá-ú0-9_]+)/g, (m, u) => `<a href="#" class="mention" data-username="${u}" style="color:#2563eb;text-decoration:none;font-weight:700;">@${u}</a>`);
-  // hashtags #tag
-  out = out.replace(/#([\wÁ-Úá-ú0-9_]+)/g, (m, t) => `<a href="/hashtag/${t}" class="hashtag" style="color:#7c3aed;text-decoration:none;">#${t}</a>`);
-  return out;
+  if(!text) return '';
+  
+  // Check if content contains HTML tags (from rich text editor)
+  const hasHTML = /<[^>]+>/.test(text);
+  
+  if(hasHTML){
+    // Content from rich text editor - preserve HTML but still parse mentions/hashtags
+    let out = text;
+    // Parse mentions and hashtags within text nodes only (not inside HTML tags)
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = out;
+    
+    // Process text nodes to add mention and hashtag links
+    const walker = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT, null, false);
+    const textNodes = [];
+    while(walker.nextNode()) textNodes.push(walker.currentNode);
+    
+    textNodes.forEach(node => {
+      let text = node.textContent;
+      // Replace mentions and hashtags
+      text = text.replace(/@([\wÁ-Úá-ú0-9_]+)/g, (m, u) => `<a href="#" class="mention" data-username="${u}" style="color:#2563eb;text-decoration:none;font-weight:700;">@${u}</a>`);
+      text = text.replace(/#([\wÁ-Úá-ú0-9_]+)/g, (m, t) => `<a href="/hashtag/${t}" class="hashtag" style="color:#7c3aed;text-decoration:none;">#${t}</a>`);
+      if(text !== node.textContent){
+        const span = document.createElement('span');
+        span.innerHTML = text;
+        node.parentNode.replaceChild(span, node);
+      }
+    });
+    
+    return tempDiv.innerHTML;
+  } else {
+    // Plain text - escape and parse as before
+    const esc = (s)=> (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    let out = esc(text||'');
+    // menções @usuario (com acentos e _)
+    out = out.replace(/@([\wÁ-Úá-ú0-9_]+)/g, (m, u) => `<a href="#" class="mention" data-username="${u}" style="color:#2563eb;text-decoration:none;font-weight:700;">@${u}</a>`);
+    // hashtags #tag
+    out = out.replace(/#([\wÁ-Úá-ú0-9_]+)/g, (m, t) => `<a href="/hashtag/${t}" class="hashtag" style="color:#7c3aed;text-decoration:none;">#${t}</a>`);
+    return out;
+  }
 }
 
 function executarBusca(){
