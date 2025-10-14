@@ -39,14 +39,24 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
         <span>Nova senha</span>
         <div class="inline-eye">
           <input type="password" id="password" name="password" required />
-          <button type="button" class="toggle-eye" data-target="password" aria-label="Mostrar/ocultar">👁</button>
+          <button type="button" class="toggle-eye" data-target="password" aria-label="Mostrar/ocultar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
         </div>
       </label>
       <label>
         <span>Confirmar nova senha</span>
         <div class="inline-eye">
           <input type="password" id="password2" name="password2" required />
-          <button type="button" class="toggle-eye" data-target="password2" aria-label="Mostrar/ocultar">👁</button>
+          <button type="button" class="toggle-eye" data-target="password2" aria-label="Mostrar/ocultar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
         </div>
       </label>
       <button class="btn" type="submit">Salvar nova senha</button>
