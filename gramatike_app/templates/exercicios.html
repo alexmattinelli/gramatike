@@ -29,9 +29,9 @@
                 .topicos-nav { display:flex; flex-wrap:wrap; gap:.55rem; justify-content:center; margin:0 0 2rem; }
                 .topicos-nav a { text-decoration:none; font-size:.6rem; font-weight:800; letter-spacing:.6px; padding:.55rem .85rem .5rem; background:#f1edff; color:#6233B5; border:1px solid #e3daf9; border-radius:18px; box-shadow:0 2px 6px rgba(155,93,229,.18); }
                 .topicos-nav a:hover { background:#9B5DE5; color:#fff; border-color:#9B5DE5; }
-                .exercise { background:var(--card); border:1px solid var(--border); border-radius:26px; padding:1.3rem 1.35rem 1.1rem; position:relative; box-shadow:0 10px 24px -6px rgba(0,0,0,.10); transition:.3s; margin:0 0 1.8rem; }
-                .exercise:hover { box-shadow:0 18px 46px -10px rgba(0,0,0,.28); transform:translateY(-3px); }
-                .exercise h4 { margin:0 0 .55rem; font-size:1.05rem; color:#6233B5; font-weight:800; letter-spacing:.4px; }
+                .exercise { background:var(--card); border:1px solid var(--border); border-radius:26px; padding:1.5rem 1.5rem 1.3rem; position:relative; box-shadow:0 12px 28px -8px rgba(155,93,229,.18); transition:.3s; margin:0 0 2rem; }
+                .exercise:hover { box-shadow:0 20px 48px -10px rgba(155,93,229,.35); transform:translateY(-4px); }
+                .exercise h4 { margin:0 0 .8rem; font-size:1.15rem; color:#6233B5; font-weight:800; letter-spacing:.5px; border-bottom:2px solid #e5dff8; padding-bottom:.7rem; }
                 .item-menu-trigger { position:absolute; top:10px; right:10px; background:#f1edff; border:1px solid #d6c9f2; border-radius:18px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 10px rgba(155,93,229,.25); }
                 .item-menu { position:absolute; top:46px; right:10px; background:#fff; border:1px solid var(--border); border-radius:14px; box-shadow:0 14px 40px -8px rgba(0,0,0,.25); padding:.35rem 0; min-width:170px; display:none; z-index:30; }
                 .item-menu.show { display:block; }
@@ -40,13 +40,20 @@
                 .item-menu form button.danger { color:#b42318; }
                 .item-menu form button.danger:hover { background:#ffe4e1; }
                 .item-menu form { margin:0; padding:0; }
-                .question { font-size:.85rem; font-weight:700; margin:.9rem 0 .4rem; color:#222; padding-bottom:.6rem; }
-                .question:not(:last-of-type) { border-bottom:1px solid #e8e5f3; margin-bottom:1.2rem; }
+                .question { font-size:.9rem; font-weight:700; margin:1rem 0 .6rem; color:#222; padding-bottom:.7rem; line-height:1.5; }
+                .question:not(:last-of-type) { border-bottom:1px solid #e8e5f3; margin-bottom:1.3rem; padding-bottom:1rem; }
                 .exercise h4 { border-bottom:2px solid #d6c9f2; padding-bottom:.5rem; margin-bottom:1rem; }
-                .options label { display:block; margin:.25rem 0; cursor:pointer; font-size:.78rem; font-weight:600; color:#444; }
+                .options label { display:block; margin:.4rem 0; cursor:pointer; font-size:.82rem; font-weight:600; color:#444; padding:.5rem .7rem; border-radius:10px; transition:background .2s; }
+                .options label:hover { background:#f7f4ff; }
+                .options input[type="radio"] { margin-right:.5rem; cursor:pointer; }
+                .btn-checar { background:#9B5DE5; color:#fff; border:none; padding:.65rem 1.3rem; border-radius:14px; font-weight:700; font-size:.75rem; letter-spacing:.4px; cursor:pointer; box-shadow:0 6px 20px rgba(155,93,229,.35); transition:.25s; margin-top:.6rem; }
+                .btn-checar:hover { background:#7d3dc9; transform:translateY(-1px); box-shadow:0 8px 24px rgba(155,93,229,.45); }
                 textarea { width:100%; min-height:90px; border:1px solid #cfd5e3; border-radius:14px; padding:.7rem .85rem; font-family:inherit; font-size:.8rem; background:#f9f7ff; }
                 textarea:focus { outline:2px solid #d9c6fa; }
-                .feedback { font-size:.65rem; margin-top:.4rem; font-weight:800; letter-spacing:.4px; }
+                .feedback { font-size:.72rem; margin-top:.6rem; font-weight:800; letter-spacing:.4px; padding:.6rem .8rem; border-radius:10px; transition:.3s; }
+                .feedback.correct { background:#d1f4e0; color:#0a7c42; border:1px solid #9de4bd; }
+                .feedback.incorrect { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
+                .feedback.warning { background:#fff3cd; color:#856404; border:1px solid #ffd966; }
                 .dificuldade-badge { display:inline-block; font-size:.65rem; font-weight:800; letter-spacing:.5px; padding:.35rem .7rem; border-radius:12px; margin-left:.5rem; vertical-align:middle; }
                 .dificuldade-facil { background:#d1f4e0; color:#0a7c42; border:1px solid #9de4bd; }
                 .dificuldade-media { background:#fff3cd; color:#856404; border:1px solid #ffd966; }
@@ -459,39 +466,102 @@
 <script>
 // Renderização básica dos tipos de questões
 document.querySelectorAll('.q-block').forEach(block=>{
-    const tipo = block.dataset.tipo; let opcoes={}; try{ opcoes=JSON.parse(block.dataset.opcoes||'{}'); }catch(e){}
+    const tipo = block.dataset.tipo; 
+    let opcoes={}; 
+    try{ opcoes=JSON.parse(block.dataset.opcoes||'{}'); }catch(e){ console.warn('Erro ao parsear opções:', e); }
     const resp = block.dataset.resposta||'';
+    
     if(tipo==='multipla_escolha' && Array.isArray(opcoes.alternativas)){
         const alts = opcoes.alternativas.map((a,i)=>`<label><input type='radio' name='q${block.dataset.qid}' value='${i}'> ${a}</label>`).join('');
-        block.innerHTML = `<div class='options'>${alts}</div><button class='btn-checar' data-cor='${opcoes.correta ?? -1}' style='margin-top:.45rem;'>Verificar</button><div class='feedback'></div>`;
+        block.innerHTML = `<div class='options'>${alts}</div><button class='btn-checar' data-cor='${opcoes.correta ?? -1}'>Verificar</button><div class='feedback'></div>`;
     } else if(tipo==='verdadeiro_falso'){
-        block.innerHTML = `<label><input type='radio' name='q${block.dataset.qid}' value='verdadeiro'> Verdadeiro</label><label><input type='radio' name='q${block.dataset.qid}' value='falso'> Falso</label><button class='btn-checar' data-resp='${resp}' style='margin-top:.45rem;'>Verificar</button><div class='feedback'></div>`;
+        block.innerHTML = `<div class='options'><label><input type='radio' name='q${block.dataset.qid}' value='verdadeiro'> Verdadeiro</label><label><input type='radio' name='q${block.dataset.qid}' value='falso'> Falso</label></div><button class='btn-checar' data-resp='${resp}'>Verificar</button><div class='feedback'></div>`;
     } else if(tipo==='lacunas'){
         if(opcoes.frase){
             const count=(opcoes.frase.match(/___/g)||[]).length;
-            const inputs=Array.from({length:count},(_,i)=>`<input class='lacuna' data-i='${i}' style='width:120px; padding:4px 6px; margin:3px;' placeholder='${i+1}'>`).join(' ');
-            block.innerHTML = `<div style='margin:.3rem 0;'>${opcoes.frase.replace(/___/g,"<span style='display:inline-block; min-width:70px; border-bottom:2px dashed #888; margin:0 4px; height:20px;'></span>")}</div>${inputs}<br><button class='btn-checar' data-resp='${(opcoes.respostas||[]).join('|')}' style='margin-top:.45rem;'>Verificar</button><div class='feedback'></div>`;
+            const inputs=Array.from({length:count},(_,i)=>`<input class='lacuna' data-i='${i}' style='width:140px; padding:6px 8px; margin:4px; border:1px solid #cfd5e3; border-radius:8px; font-size:.8rem;' placeholder='Resposta ${i+1}'>`).join(' ');
+            const fraseHTML = opcoes.frase.replace(/___/g,"<span style='display:inline-block; min-width:90px; border-bottom:2px dashed #9B5DE5; margin:0 6px; height:24px;'></span>");
+            block.innerHTML = `<div style='margin:.5rem 0; font-size:.85rem; line-height:1.6;'>${fraseHTML}</div><div style='margin:.7rem 0;'>${inputs}</div><button class='btn-checar' data-resp='${(opcoes.respostas||[]).join('|')}'>Verificar</button><div class='feedback'></div>`;
         }
     } else if(tipo==='discursiva'){
-        block.innerHTML = `<textarea style='width:100%; min-height:80px;'></textarea><br><button class='btn-checar' data-palavras='${(opcoes.keywords||[]).join(',')}' style='margin-top:.45rem;'>Enviar</button><div class='feedback'></div>`;
-    } else { block.textContent='Tipo não suportado ainda.'; }
+        block.innerHTML = `<textarea style='width:100%; min-height:100px; border:1px solid #cfd5e3; border-radius:12px; padding:.8rem .9rem; font-family:inherit; font-size:.85rem;' placeholder='Escreva sua resposta...'></textarea><button class='btn-checar' data-palavras='${(opcoes.keywords||[]).join(',')}'>Enviar</button><div class='feedback'></div>`;
+    } else { 
+        block.innerHTML = `<div style='padding:.6rem; background:#fff3cd; border:1px solid #ffd966; border-radius:10px; font-size:.75rem; color:#856404;'>⚠️ Tipo de questão não suportado: ${tipo}</div>`; 
+    }
 });
 
 document.addEventListener('click',e=>{
     if(e.target.classList.contains('btn-checar')){
-        const btn=e.target; const parent=btn.closest('.q-block'); const fb=parent.querySelector('.feedback'); const tipo=parent.dataset.tipo; fb.textContent=''; fb.style.color='#333';
+        const btn=e.target; 
+        const parent=btn.closest('.q-block'); 
+        const fb=parent.querySelector('.feedback'); 
+        const tipo=parent.dataset.tipo; 
+        
+        // Reset feedback
+        fb.textContent=''; 
+        fb.className='feedback';
+        
         if(tipo==='multipla_escolha'){
-            const correta=parseInt(btn.dataset.cor,10); const selected=[...parent.querySelectorAll('input[type=radio]')].find(r=>r.checked); if(!selected){ fb.textContent='Selecione uma opção.'; fb.style.color='#c47'; return; }
-            const val=parseInt(selected.value,10); if(val===correta){ fb.textContent='Correto!'; fb.style.color='green'; } else { fb.textContent='Incorreto.'; fb.style.color='red'; }
+            const correta=parseInt(btn.dataset.cor,10); 
+            const selected=[...parent.querySelectorAll('input[type=radio]')].find(r=>r.checked); 
+            if(!selected){ 
+                fb.textContent='⚠️ Selecione uma opção primeiro.'; 
+                fb.classList.add('warning');
+                return; 
+            }
+            const val=parseInt(selected.value,10); 
+            if(val===correta){ 
+                fb.textContent='✅ Correto! Parabéns!'; 
+                fb.classList.add('correct');
+            } else { 
+                fb.textContent='❌ Incorreto. Tente novamente!'; 
+                fb.classList.add('incorrect');
+            }
         } else if(tipo==='verdadeiro_falso'){
-            const esperada=btn.dataset.resp; const selected=[...parent.querySelectorAll('input[type=radio]')].find(r=>r.checked); if(!selected){ fb.textContent='Selecione uma opção.'; return; }
-            fb.textContent= selected.value===esperada ? 'Correto!' : 'Incorreto.'; fb.style.color= selected.value===esperada ? 'green':'red';
+            const esperada=btn.dataset.resp; 
+            const selected=[...parent.querySelectorAll('input[type=radio]')].find(r=>r.checked); 
+            if(!selected){ 
+                fb.textContent='⚠️ Selecione uma opção primeiro.'; 
+                fb.classList.add('warning');
+                return; 
+            }
+            if(selected.value===esperada){
+                fb.textContent='✅ Correto! Parabéns!'; 
+                fb.classList.add('correct');
+            } else {
+                fb.textContent='❌ Incorreto. Tente novamente!'; 
+                fb.classList.add('incorrect');
+            }
         } else if(tipo==='lacunas'){
-            const esperado=(btn.dataset.resp||'').split('|'); const inputs=[...parent.querySelectorAll('.lacuna')]; let ok=true; inputs.forEach((inp,i)=>{ if((inp.value||'').trim().toLowerCase() !== (esperado[i]||'').toLowerCase()) ok=false; });
-            fb.textContent= ok ? 'Perfeito!' : 'Revise suas respostas.'; fb.style.color= ok ? 'green':'red';
+            const esperado=(btn.dataset.resp||'').split('|'); 
+            const inputs=[...parent.querySelectorAll('.lacuna')]; 
+            let ok=true; 
+            inputs.forEach((inp,i)=>{ 
+                if((inp.value||'').trim().toLowerCase() !== (esperado[i]||'').toLowerCase()) ok=false; 
+            });
+            if(ok){
+                fb.textContent='✅ Perfeito! Todas as respostas corretas!'; 
+                fb.classList.add('correct');
+            } else {
+                fb.textContent='❌ Revise suas respostas. Algumas estão incorretas.'; 
+                fb.classList.add('incorrect');
+            }
         } else if(tipo==='discursiva'){
-            const palavras=(btn.dataset.palavras||'').split(',').filter(Boolean); const texto=parent.querySelector('textarea').value.toLowerCase(); const hits=palavras.filter(p=>texto.includes(p.toLowerCase()));
-            fb.textContent = palavras.length ? `Palavras-chave encontradas: ${hits.length}/${palavras.length}` : 'Enviado!'; fb.style.color= hits.length===palavras.length ? 'green':'#c47';
+            const palavras=(btn.dataset.palavras||'').split(',').filter(Boolean); 
+            const texto=parent.querySelector('textarea').value.toLowerCase(); 
+            const hits=palavras.filter(p=>texto.includes(p.toLowerCase()));
+            if(palavras.length){
+                if(hits.length===palavras.length){
+                    fb.textContent = `✅ Excelente! Todas as palavras-chave encontradas (${hits.length}/${palavras.length})`;
+                    fb.classList.add('correct');
+                } else {
+                    fb.textContent = `⚠️ Palavras-chave encontradas: ${hits.length}/${palavras.length}. Continue desenvolvendo!`;
+                    fb.classList.add('warning');
+                }
+            } else {
+                fb.textContent = '✅ Resposta enviada com sucesso!';
+                fb.classList.add('correct');
+            }
         }
     }
 });
