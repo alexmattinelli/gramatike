@@ -117,7 +117,13 @@
         {% set extra = (c.extra | fromjson) if c.extra else None %}
         <div class="video-card" id="topico-{{ c.id }}">
           {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
-            <button class="item-menu-trigger" aria-label="Menu"><span aria-hidden="true" style="font-size:18px; line-height:0; color:#6233B5;">⋮</span></button>
+            <button class="item-menu-trigger" aria-label="Menu">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="1"></circle>
+                <circle cx="12" cy="5" r="1"></circle>
+                <circle cx="12" cy="19" r="1"></circle>
+              </svg>
+            </button>
             <div class="item-menu" role="menu">
               <button type="button" data-edit="{{ c.id }}">Editar</button>
               <form method="POST" action="/admin/edu/content/{{ c.id }}/delete" onsubmit="return confirm('Excluir este vídeo?');">
@@ -172,7 +178,7 @@
           {% endif %}
           <div class="video-title">{{ c.titulo }}</div>
           {% if c.extra and (c.extra | fromjson).author %}
-            <div class="video-meta">Autore/Canal: {{ (c.extra | fromjson).author }}</div>
+            <div class="video-meta">Autore: {{ (c.extra | fromjson).author }}</div>
           {% endif %}
           {% if c.resumo %}<div class="video-meta">{{ c.resumo }}</div>{% endif %}
         </div>
@@ -188,7 +194,7 @@
         <input type="hidden" name="content_id" id="ev_id" />
         <label>Título</label>
         <input name="titulo" id="ev_titulo" required />
-        <label>Autore/Canal</label>
+        <label>Autore</label>
         <input name="autor" id="ev_autor" />
         <label>Resumo</label>
         <textarea name="resumo" id="ev_resumo" rows="3"></textarea>

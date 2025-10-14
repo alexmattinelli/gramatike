@@ -215,7 +215,7 @@
                 {% endif %}
                                                 {% if c.resumo %}<p>{{ c.resumo }}</p>{% endif %}
                                                 {% if c.extra and (c.extra | fromjson).author %}
-                                                    <p class="meta-author">Autore/Canal: {{ (c.extra | fromjson).author }}</p>
+                                                    <p class="meta-author">Autore: {{ (c.extra | fromjson).author }}</p>
                                                 {% endif %}
             </li>
             {% else %}
@@ -230,7 +230,7 @@
                 <input type="hidden" name="content_id" id="ep_id" />
                 <label style="display:block; font-size:.8rem; margin:.4rem 0 .2rem;">Título</label>
                 <input name="titulo" id="ep_titulo" required />
-                <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">Autore/Canal</label>
+                <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">Autore</label>
                 <input name="autor" id="ep_autor" />
                 <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">Resumo</label>
                 <textarea name="resumo" id="ep_resumo" rows="3"></textarea>
