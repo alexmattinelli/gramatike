@@ -262,7 +262,7 @@ button { font-family: var(--font-base); font-weight:600; }
       <button onclick="window.location.href='{{ url_for('main.configuracoes') }}'" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="3"></circle>
-          <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
       </button>
       <button onclick="toggleMobileTicTacToe()" class="search-btn icon-btn" title="Jogo da Velha" aria-label="Jogo da Velha">
@@ -513,8 +513,8 @@ button { font-family: var(--font-base); font-weight:600; }
   
   /* Cards de posts mais largos no mobile (igual educação) - ENLARGUECER */
   #feed-list article.post {
-    padding: 2.2rem 2.4rem 2rem !important;
-    margin: 0 -0.8rem 2.2rem !important; /* Aumentar largura - reduzir margem */
+    padding: 1.5rem 1.2rem 1.3rem !important; /* Reduzir padding interno */
+    margin: 0 -1rem 2.2rem !important; /* Aumentar largura - card quase encostando nas bordas */
   }
   
   /* Aumentar conteúdo do card no mobile */
