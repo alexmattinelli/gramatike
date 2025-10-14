@@ -178,7 +178,7 @@
           {% endif %}
           <div class="video-title">{{ c.titulo }}</div>
           {% if c.extra and (c.extra | fromjson).author %}
-            <div class="video-meta">Autore/Canal: {{ (c.extra | fromjson).author }}</div>
+            <div class="video-meta">Autore: {{ (c.extra | fromjson).author }}</div>
           {% endif %}
           {% if c.resumo %}<div class="video-meta">{{ c.resumo }}</div>{% endif %}
         </div>
@@ -194,7 +194,7 @@
         <input type="hidden" name="content_id" id="ev_id" />
         <label>Título</label>
         <input name="titulo" id="ev_titulo" required />
-        <label>Autore/Canal</label>
+        <label>Autore</label>
         <input name="autor" id="ev_autor" />
         <label>Resumo</label>
         <textarea name="resumo" id="ev_resumo" rows="3"></textarea>
