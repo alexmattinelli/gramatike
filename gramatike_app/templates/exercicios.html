@@ -471,17 +471,30 @@ document.querySelectorAll('.q-block').forEach(block=>{
     try{ opcoes=JSON.parse(block.dataset.opcoes||'{}'); }catch(e){ console.warn('Erro ao parsear opções:', e); }
     const resp = block.dataset.resposta||'';
     
-    if(tipo==='multipla_escolha' && Array.isArray(opcoes.alternativas)){
-        const alts = opcoes.alternativas.map((a,i)=>`<label><input type='radio' name='q${block.dataset.qid}' value='${i}'> ${a}</label>`).join('');
-        block.innerHTML = `<div class='options'>${alts}</div><button class='btn-checar' data-cor='${opcoes.correta ?? -1}'>Verificar</button><div class='feedback'></div>`;
+    if(tipo==='multipla_escolha'){
+        // Verifica se tem alternativas válidas
+        if(Array.isArray(opcoes.alternativas) && opcoes.alternativas.length > 0){
+            const alts = opcoes.alternativas.map((a,i)=>`<label><input type='radio' name='q${block.dataset.qid}' value='${i}'> ${a}</label>`).join('');
+            block.innerHTML = `<div class='options'>${alts}</div><button class='btn-checar' data-cor='${opcoes.correta ?? -1}'>Verificar</button><div class='feedback'></div>`;
+        } else {
+            // Fallback quando não há alternativas configuradas
+            block.innerHTML = `<div style='padding:.6rem; background:#ffe4e1; border:1px solid #ff6b6b; border-radius:10px; font-size:.75rem; color:#c92a2a;'>⚠️ Questão de múltipla escolha sem alternativas configuradas. Configure as opções em formato JSON: {"alternativas": ["A", "B", "C"], "correta": 0}</div>`;
+        }
     } else if(tipo==='verdadeiro_falso'){
         block.innerHTML = `<div class='options'><label><input type='radio' name='q${block.dataset.qid}' value='verdadeiro'> Verdadeiro</label><label><input type='radio' name='q${block.dataset.qid}' value='falso'> Falso</label></div><button class='btn-checar' data-resp='${resp}'>Verificar</button><div class='feedback'></div>`;
     } else if(tipo==='lacunas'){
         if(opcoes.frase){
             const count=(opcoes.frase.match(/___/g)||[]).length;
-            const inputs=Array.from({length:count},(_,i)=>`<input class='lacuna' data-i='${i}' style='width:140px; padding:6px 8px; margin:4px; border:1px solid #cfd5e3; border-radius:8px; font-size:.8rem;' placeholder='Resposta ${i+1}'>`).join(' ');
-            const fraseHTML = opcoes.frase.replace(/___/g,"<span style='display:inline-block; min-width:90px; border-bottom:2px dashed #9B5DE5; margin:0 6px; height:24px;'></span>");
-            block.innerHTML = `<div style='margin:.5rem 0; font-size:.85rem; line-height:1.6;'>${fraseHTML}</div><div style='margin:.7rem 0;'>${inputs}</div><button class='btn-checar' data-resp='${(opcoes.respostas||[]).join('|')}'>Verificar</button><div class='feedback'></div>`;
+            if(count > 0){
+                const inputs=Array.from({length:count},(_,i)=>`<input class='lacuna' data-i='${i}' style='width:140px; padding:6px 8px; margin:4px; border:1px solid #cfd5e3; border-radius:8px; font-size:.8rem;' placeholder='Resposta ${i+1}'>`).join(' ');
+                const fraseHTML = opcoes.frase.replace(/___/g,"<span style='display:inline-block; min-width:90px; border-bottom:2px dashed #9B5DE5; margin:0 6px; height:24px;'></span>");
+                block.innerHTML = `<div style='margin:.5rem 0; font-size:.85rem; line-height:1.6;'>${fraseHTML}</div><div style='margin:.7rem 0;'>${inputs}</div><button class='btn-checar' data-resp='${(opcoes.respostas||[]).join('|')}'>Verificar</button><div class='feedback'></div>`;
+            } else {
+                block.innerHTML = `<div style='padding:.6rem; background:#ffe4e1; border:1px solid #ff6b6b; border-radius:10px; font-size:.75rem; color:#c92a2a;'>⚠️ Frase sem lacunas (___). Use ___ para marcar onde devem ser preenchidas as respostas.</div>`;
+            }
+        } else {
+            // Fallback quando não há frase configurada
+            block.innerHTML = `<div style='padding:.6rem; background:#ffe4e1; border:1px solid #ff6b6b; border-radius:10px; font-size:.75rem; color:#c92a2a;'>⚠️ Questão de lacunas sem frase configurada. Configure as opções em formato JSON: {"frase": "Complete: ___ é ___", "respostas": ["isto", "legal"]}</div>`;
         }
     } else if(tipo==='discursiva'){
         block.innerHTML = `<textarea style='width:100%; min-height:100px; border:1px solid #cfd5e3; border-radius:12px; padding:.8rem .9rem; font-family:inherit; font-size:.85rem;' placeholder='Escreva sua resposta...'></textarea><button class='btn-checar' data-palavras='${(opcoes.keywords||[]).join(',')}'>Enviar</button><div class='feedback'></div>`;
