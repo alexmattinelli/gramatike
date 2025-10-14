@@ -202,6 +202,25 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       .back-btn {
         display: none !important;
       }
+      
+      /* Fix post overflow on mobile */
+      .post {
+        max-width: 100% !important;
+        overflow-wrap: break-word !important;
+        word-wrap: break-word !important;
+      }
+      
+      .post p, .post strong, .post span {
+        max-width: 100% !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
+      }
+      
+      /* Fix post menu positioning on mobile */
+      .post-menu {
+        right: 0 !important;
+        left: auto !important;
+      }
     }
 
     /* Estilos para o modal de edição */
@@ -216,6 +235,8 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       justify-content: center;
       align-items: center;
       z-index: 1000;
+      overflow-y: auto;
+      padding: 1.5rem 1rem;
     }
 
     #form-editar-perfil {
@@ -225,6 +246,8 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       width: 90%;
       max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
     #form-editar-perfil label {
@@ -233,12 +256,13 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       color: var(--text);
     }
 
-    #form-editar-perfil input {
+    #form-editar-perfil input, #form-editar-perfil textarea, #form-editar-perfil select {
       width: 100%;
       padding: 0.5rem;
       margin-top: 0.5rem;
       border: 1px solid #ccc;
       border-radius: 4px;
+      box-sizing: border-box;
     }
 
     #form-editar-perfil button {
