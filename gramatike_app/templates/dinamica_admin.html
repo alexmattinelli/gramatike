@@ -112,6 +112,11 @@
             {% endif %}
             <div style="color:#666; font-size:.85rem;">
               Resposta correta: <strong>{{ stat.resposta_correta }}</strong>
+              {% if stat.alternativas and stat.alternativas|length > 0 %}
+              <div style="font-size:.8rem; margin-top:.2rem; color:#888;">
+                Alternativas: {{ stat.alternativas|join(', ') }}
+              </div>
+              {% endif %}
             </div>
             <div style="color:#888; font-size:.8rem; margin-top:.3rem;">
               {{ stat.correct_count }} de {{ stat.total }} acertaram

@@ -1452,7 +1452,8 @@ def dinamica_admin(dyn_id: int):
                 pass
         agg['counts'] = counts
     elif d.tipo == 'quemsouleu':
-        # Calculate accuracy stats
+        # Calculate accuracy stats with flexible answer matching
+        from gramatike_app.utils.text_comparison import is_answer_correct
         items = cfg.get('items', [])
         total_responses = len(rows)
         if total_responses > 0 and items:
@@ -1460,17 +1461,19 @@ def dinamica_admin(dyn_id: int):
             item_stats = []
             for item in items:
                 item_id = item.get('id', 0)
-                resposta_correta = (item.get('resposta_correta') or '').strip().lower()
+                resposta_correta = (item.get('resposta_correta') or '').strip()
+                alternativas = item.get('alternativas', [])
                 if resposta_correta:
-                    # Count correct answers for this item
+                    # Count correct answers for this item using flexible matching
                     correct_count = 0
                     for row in rows:
                         respostas = row['payload'].get('respostas', [])
                         # Find the item index by matching id
                         item_idx = next((i for i, it in enumerate(items) if it.get('id') == item_id), None)
                         if item_idx is not None and item_idx < len(respostas):
-                            resposta_usuario = (respostas[item_idx] or '').strip().lower()
-                            if resposta_usuario == resposta_correta:
+                            resposta_usuario = (respostas[item_idx] or '').strip()
+                            # Use flexible answer matching
+                            if is_answer_correct(resposta_usuario, resposta_correta, alternativas):
                                 correct_count += 1
                     
                     accuracy = (correct_count / total_responses) * 100 if total_responses > 0 else 0
@@ -1479,6 +1482,7 @@ def dinamica_admin(dyn_id: int):
                         'tipo': item.get('tipo'),
                         'conteudo': item.get('conteudo'),
                         'resposta_correta': item.get('resposta_correta'),
+                        'alternativas': alternativas,
                         'correct_count': correct_count,
                         'total': total_responses,
                         'accuracy': accuracy

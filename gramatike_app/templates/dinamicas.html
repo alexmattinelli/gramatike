@@ -215,8 +215,14 @@
               ${item.conteudo ? `<div class="muted-sm" style="margin-top:.3rem;">Já carregada: <a href="${item.conteudo}" target="_blank">ver foto</a></div>` : ''}
             </div>
             <div style="margin-top:.5rem;">
-              <label style="font-weight:600; display:block;">Resposta Correta (opcional - para cálculo de acertos)</label>
-              <input type="text" data-k="resposta_correta" value="${item.resposta_correta||''}" style="width:100%;" placeholder="Ex: masculino, feminino, não-binário..." />
+              <label style="font-weight:600; display:block;">Resposta Correta Principal</label>
+              <input type="text" data-k="resposta_correta" value="${item.resposta_correta||''}" style="width:100%;" placeholder="Ex: não-binário" />
+              <div class="muted-sm" style="margin-top:.3rem;">💡 Digite a resposta principal. Variações serão aceitas automaticamente.</div>
+            </div>
+            <div style="margin-top:.5rem;">
+              <label style="font-weight:600; display:block;">Respostas Alternativas (opcional)</label>
+              <input type="text" data-k="alternativas" value="${(item.alternativas||[]).join(', ')}" style="width:100%;" placeholder="Ex: nb, nao binario, enby" />
+              <div class="muted-sm" style="margin-top:.3rem;">💡 Separe com vírgula. Aceita variações de gênero, acentos e abreviações.</div>
             </div>
           </div>`;
         
@@ -232,6 +238,10 @@
             }
             else if(k==='conteudo'){ item.conteudo = el.value; }
             else if(k==='resposta_correta'){ item.resposta_correta = el.value; }
+            else if(k==='alternativas'){ 
+              // Parse comma-separated alternatives
+              item.alternativas = el.value.split(',').map(s => s.trim()).filter(Boolean);
+            }
             else if(k==='foto'){
               // Set name attribute so backend can read it
               el.name = 'foto_' + item.id;
@@ -248,7 +258,7 @@
     }
 
     function addItem(){
-      items.push({ id: itemSeq++, tipo: 'frase', conteudo: '', resposta_correta: '' });
+      items.push({ id: itemSeq++, tipo: 'frase', conteudo: '', resposta_correta: '', alternativas: [] });
       renderItems();
     }
 
@@ -327,7 +337,13 @@
       }
       if(tipo.value==='quemsouleu'){
         // For photos, file inputs will be sent separately with names foto_<item_id>
-        const cfg = { items: items.map(item=>({ id: item.id, tipo: item.tipo, conteudo: item.conteudo, resposta_correta: item.resposta_correta || '' })) };
+        const cfg = { items: items.map(item=>({ 
+          id: item.id, 
+          tipo: item.tipo, 
+          conteudo: item.conteudo, 
+          resposta_correta: item.resposta_correta || '',
+          alternativas: item.alternativas || []
+        })) };
         quemsouleuCfgEl.value = JSON.stringify(cfg);
       }
     });
