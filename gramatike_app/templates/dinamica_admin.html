@@ -85,7 +85,7 @@
           <p class="muted">Sem votos ainda.</p>
         {% endif %}
       </div>
-    {% elif d.tipo == 'quemsoeu' %}
+    {% elif d.tipo == 'quemsouleu' %}
       {% if agg.item_stats %}
       <div class="card" style="margin-bottom:1rem;">
         <h3 style="margin-top:0;">Taxa de Acertos</h3>
@@ -160,7 +160,7 @@
                 <td>{{ opts[idx] if idx is not none and 0 <= idx < opts|length else '—' }}</td>
               </tr>
               {% endfor %}
-            {% elif d.tipo == 'quemsoeu' %}
+            {% elif d.tipo == 'quemsouleu' %}
               {% for r in rows %}
               <tr>
                 <td>@{{ r.user.username }}</td>

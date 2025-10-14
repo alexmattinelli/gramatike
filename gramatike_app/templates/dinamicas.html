@@ -82,7 +82,7 @@
               <option value="poll">Enquete</option>
               <option value="oneword">Nuvem de Palavras</option>
               <option value="form">Formulário (simples)</option>
-              <option value="quemsoeu">Quem sou eu</option>
+              <option value="quemsouleu">Quem soul eu</option>
             </select>
           </div>
           <div>
@@ -105,7 +105,7 @@
             </div>
             <input type="hidden" name="config_json" id="config_json" />
           </div>
-          <div id="quemsoeu_builder" style="display:none;">
+          <div id="quemsouleu_builder" style="display:none;">
             <div class="muted-sm" style="margin-bottom:.6rem;">Adicione frases ou fotos que os participantes terão que responder. Escolha o que eles devem descobrir (gênero, orientação, pronome, etc.).</div>
             <div>
               <label style="margin-top:.8rem;">O que a pessoa deve descobrir?</label>
@@ -119,7 +119,7 @@
             <div class="builder-actions">
               <button type="button" class="btn" id="add_item">+ Item (Frase ou Foto)</button>
             </div>
-            <input type="hidden" name="quemsoeu_config_json" id="quemsoeu_config_json" />
+            <input type="hidden" name="quemsouleu_config_json" id="quemsouleu_config_json" />
           </div>
           <button type="submit" class="btn primary" style="margin-top:.5rem;">Criar Dinâmica</button>
         </form>
@@ -174,7 +174,7 @@
     const tipo = document.getElementById('tipo');
     const poll = document.getElementById('poll_opts');
     const builder = document.getElementById('form_builder');
-    const quemsoeuBuilder = document.getElementById('quemsoeu_builder');
+    const quemsouleuBuilder = document.getElementById('quemsouleu_builder');
     const qList = document.getElementById('q_list');
     const addBtn = document.getElementById('add_q');
     const cfgEl = document.getElementById('config_json');
@@ -183,10 +183,10 @@
     let seq = 1;
     const fields = [];
 
-    // Quem sou eu? state
+    // Quem soul eu state
     const itemsList = document.getElementById('items_list');
     const addItemBtn = document.getElementById('add_item');
-    const quemsoeuCfgEl = document.getElementById('quemsoeu_config_json');
+    const quemsouleuCfgEl = document.getElementById('quemsouleu_config_json');
     let itemSeq = 1;
     const items = [];
 
@@ -317,7 +317,7 @@
       const v = tipo.value;
       poll.style.display = (v==='poll')?'block':'none';
       builder.style.display = (v==='form')?'block':'none';
-      quemsoeuBuilder.style.display = (v==='quemsoeu')?'block':'none';
+      quemsouleuBuilder.style.display = (v==='quemsouleu')?'block':'none';
     });
     // on submit serialize
     form.addEventListener('submit', ()=>{
@@ -325,10 +325,10 @@
         const cfg = { fields: fields.map(f=>({ id: f.id, type: f.type, label: f.label, required: !!f.required, options: (f.type==='multiple_choice'?(f.options||[]):undefined) })) };
         cfgEl.value = JSON.stringify(cfg);
       }
-      if(tipo.value==='quemsoeu'){
+      if(tipo.value==='quemsouleu'){
         // For photos, file inputs will be sent separately with names foto_<item_id>
         const cfg = { items: items.map(item=>({ id: item.id, tipo: item.tipo, conteudo: item.conteudo, resposta_correta: item.resposta_correta || '' })) };
-        quemsoeuCfgEl.value = JSON.stringify(cfg);
+        quemsouleuCfgEl.value = JSON.stringify(cfg);
       }
     });
   })();
