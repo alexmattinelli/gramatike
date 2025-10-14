@@ -317,6 +317,8 @@
                                         <option value="verdadeiro_falso">Verdadeiro/Falso</option>
                                         <option value="lacunas">Preencher Lacunas</option>
                                         <option value="discursiva">Discursiva</option>
+                                        <option value="arrastar_palavras">Arrastar Palavras</option>
+                                        <option value="correspondencia">Correspondência</option>
                                 </select>
                         </label>
                         
@@ -498,6 +500,96 @@ document.querySelectorAll('.q-block').forEach(block=>{
         }
     } else if(tipo==='discursiva'){
         block.innerHTML = `<textarea style='width:100%; min-height:100px; border:1px solid #cfd5e3; border-radius:12px; padding:.8rem .9rem; font-family:inherit; font-size:.85rem;' placeholder='Escreva sua resposta...'></textarea><button class='btn-checar' data-palavras='${(opcoes.keywords||[]).join(',')}'>Enviar</button><div class='feedback'></div>`;
+    } else if(tipo==='arrastar_palavras'){
+        // Arrastar palavras - exibe palavras embaralhadas para ordenar
+        if(opcoes.palavras && Array.isArray(opcoes.palavras) && opcoes.palavras.length > 0){
+            const palavrasEmbaralhadas = [...opcoes.palavras].sort(() => Math.random() - 0.5);
+            const dragItems = palavrasEmbaralhadas.map((p, i) => 
+                `<div class='drag-item' draggable='true' data-palavra='${p}' data-index='${i}' style='background:#f1edff; border:1px solid #d6c9f2; border-radius:10px; padding:.6rem .9rem; margin:.3rem; cursor:move; font-size:.85rem; font-weight:600; color:#6233B5; display:inline-block; user-select:none;'>${p}</div>`
+            ).join('');
+            const ordemCorreta = (opcoes.ordem || []).join(',');
+            block.innerHTML = `
+                <div style='margin:.5rem 0; font-size:.75rem; color:#666; font-weight:600;'>Arraste as palavras para a ordem correta:</div>
+                <div class='drag-container' style='border:2px dashed #d6c9f2; border-radius:12px; padding:.8rem; min-height:80px; background:#fafbff; margin:.5rem 0;'>${dragItems}</div>
+                <button class='btn-checar' data-ordem='${ordemCorreta}'>Verificar Ordem</button>
+                <div class='feedback'></div>
+            `;
+            
+            // Implementar drag and drop
+            const container = block.querySelector('.drag-container');
+            let draggedElement = null;
+            
+            container.addEventListener('dragstart', (e) => {
+                if(e.target.classList.contains('drag-item')){
+                    draggedElement = e.target;
+                    e.target.style.opacity = '0.4';
+                }
+            });
+            
+            container.addEventListener('dragend', (e) => {
+                if(e.target.classList.contains('drag-item')){
+                    e.target.style.opacity = '1';
+                }
+            });
+            
+            container.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(container, e.clientX, e.clientY);
+                if(afterElement == null){
+                    container.appendChild(draggedElement);
+                } else {
+                    container.insertBefore(draggedElement, afterElement);
+                }
+            });
+            
+            function getDragAfterElement(container, x, y) {
+                const draggableElements = [...container.querySelectorAll('.drag-item:not(.dragging)')];
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = x - box.left - box.width / 2;
+                    if(offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            }
+        } else {
+            block.innerHTML = `<div style='padding:.6rem; background:#ffe4e1; border:1px solid #ff6b6b; border-radius:10px; font-size:.75rem; color:#c92a2a;'>⚠️ Questão de arrastar palavras sem palavras configuradas. Configure as opções em formato JSON: {"palavras": ["palavra1", "palavra2"], "ordem": ["palavra1", "palavra2"]}</div>`;
+        }
+    } else if(tipo==='correspondencia'){
+        // Correspondência - conectar pares
+        if(opcoes.pares && Array.isArray(opcoes.pares) && opcoes.pares.length > 0){
+            // Embaralhar lado B mantendo lado A ordenado
+            const ladoA = opcoes.pares.map(p => p.a);
+            const ladoB = [...opcoes.pares.map(p => p.b)].sort(() => Math.random() - 0.5);
+            
+            const paresHTML = ladoA.map((a, i) => `
+                <div style='display:grid; grid-template-columns:1fr auto 1fr; gap:.8rem; align-items:center; margin:.5rem 0; padding:.6rem; background:#fafbff; border-radius:10px;'>
+                    <div style='font-size:.85rem; font-weight:600; color:#6233B5;'>${a}</div>
+                    <div style='font-size:.7rem; color:#999;'>→</div>
+                    <select class='corresp-select' data-index='${i}' style='padding:.5rem; border:1px solid #d6c9f2; border-radius:8px; font-size:.85rem; background:#fff;'>
+                        <option value=''>Selecione...</option>
+                        ${ladoB.map((b, j) => `<option value='${j}'>${b}</option>`).join('')}
+                    </select>
+                </div>
+            `).join('');
+            
+            // Preparar resposta correta (índices do lado B na ordem do lado A)
+            const respostaCorreta = opcoes.pares.map(p => {
+                const idx = ladoB.indexOf(p.b);
+                return idx;
+            }).join(',');
+            
+            block.innerHTML = `
+                <div style='margin:.5rem 0; font-size:.75rem; color:#666; font-weight:600;'>Faça a correspondência correta:</div>
+                <div class='corresp-container'>${paresHTML}</div>
+                <button class='btn-checar' data-corresp='${respostaCorreta}' data-pares='${JSON.stringify(opcoes.pares)}'>Verificar</button>
+                <div class='feedback'></div>
+            `;
+        } else {
+            block.innerHTML = `<div style='padding:.6rem; background:#ffe4e1; border:1px solid #ff6b6b; border-radius:10px; font-size:.75rem; color:#c92a2a;'>⚠️ Questão de correspondência sem pares configurados. Configure as opções em formato JSON: {"pares": [{"a": "Item A", "b": "Item B"}]}</div>`;
+        }
     } else { 
         block.innerHTML = `<div style='padding:.6rem; background:#fff3cd; border:1px solid #ffd966; border-radius:10px; font-size:.75rem; color:#856404;'>⚠️ Tipo de questão não suportado: ${tipo}</div>`; 
     }
@@ -574,6 +666,57 @@ document.addEventListener('click',e=>{
             } else {
                 fb.textContent = '✅ Resposta enviada com sucesso!';
                 fb.classList.add('correct');
+            }
+        } else if(tipo==='arrastar_palavras'){
+            // Verificar ordem das palavras arrastadas
+            const ordemCorreta = (btn.dataset.ordem||'').split(',').map(s=>s.trim()).filter(Boolean);
+            const dragItems = [...parent.querySelectorAll('.drag-item')];
+            const ordemAtual = dragItems.map(item => item.dataset.palavra);
+            
+            let correto = true;
+            if(ordemAtual.length !== ordemCorreta.length){
+                correto = false;
+            } else {
+                for(let i = 0; i < ordemCorreta.length; i++){
+                    if(ordemAtual[i] !== ordemCorreta[i]){
+                        correto = false;
+                        break;
+                    }
+                }
+            }
+            
+            if(correto){
+                fb.textContent = '✅ Perfeito! Ordem correta!';
+                fb.classList.add('correct');
+            } else {
+                fb.textContent = '❌ Ordem incorreta. Tente novamente!';
+                fb.classList.add('incorrect');
+            }
+        } else if(tipo==='correspondencia'){
+            // Verificar correspondências
+            const respostaCorreta = (btn.dataset.corresp||'').split(',').map(s=>parseInt(s.trim()));
+            const selects = [...parent.querySelectorAll('.corresp-select')];
+            
+            let todasCorretas = true;
+            selects.forEach((select, i) => {
+                const valorSelecionado = parseInt(select.value);
+                if(valorSelecionado !== respostaCorreta[i] || isNaN(valorSelecionado)){
+                    todasCorretas = false;
+                }
+            });
+            
+            // Verificar se todos os selects foram preenchidos
+            const todosPreenchidos = selects.every(s => s.value !== '');
+            
+            if(!todosPreenchidos){
+                fb.textContent = '⚠️ Complete todas as correspondências primeiro.';
+                fb.classList.add('warning');
+            } else if(todasCorretas){
+                fb.textContent = '✅ Excelente! Todas as correspondências corretas!';
+                fb.classList.add('correct');
+            } else {
+                fb.textContent = '❌ Algumas correspondências estão incorretas. Tente novamente!';
+                fb.classList.add('incorrect');
             }
         }
     }
