@@ -486,8 +486,19 @@ button { font-family: var(--font-base); font-weight:600; }
   /* Mostrar card de ações rápidas no mobile */
   #mobile-actions-card {
     display: block !important;
-    padding: .9rem 1rem .8rem !important; /* Card menor */
-    margin-bottom: 1.4rem !important; /* Subir um pouquinho mais */
+    padding: 1rem 1.2rem .9rem !important; /* Card com mais padding */
+    margin: 0 -0.8rem 1.4rem !important; /* Aumentar largura - mesma margem dos posts */
+  }
+  
+  /* Botões do card de ações - mais quadrados e maiores */
+  #mobile-actions-card .search-btn.icon-btn {
+    width: 52px !important;
+    height: 52px !important;
+  }
+  
+  #mobile-actions-card .search-btn.icon-btn svg {
+    width: 24px !important;
+    height: 24px !important;
   }
   
   /* Adicionar padding no main (não no body) para compensar a barra inferior */
@@ -503,20 +514,31 @@ button { font-family: var(--font-base); font-weight:600; }
   /* Cards de posts mais largos no mobile (igual educação) - ENLARGUECER */
   #feed-list article.post {
     padding: 2.2rem 2.4rem 2rem !important;
-    margin: 0 -0.6rem 2.2rem !important;
+    margin: 0 -0.8rem 2.2rem !important; /* Aumentar largura - reduzir margem */
   }
   
-  /* Botões de ação menores no mobile */
+  /* Aumentar conteúdo do card no mobile */
+  .post-content {
+    font-size: 1.15rem !important;
+    line-height: 1.6 !important;
+  }
+  
+  /* Botões de ação MAIORES no mobile (não menores) */
   .post-actions button {
-    padding: .35rem .7rem;
-    font-size: .72rem;
-    gap: .25rem;
+    padding: .5rem .95rem !important;
+    font-size: .85rem !important;
+    gap: .4rem !important;
   }
   
   .post-menu-btn {
-    width: 28px;
-    height: 28px;
-    font-size: .95rem;
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 1rem !important;
+  }
+  
+  /* Post header - aumentar tamanho do username */
+  .post-user {
+    font-size: 1.1rem !important;
   }
 }
 
