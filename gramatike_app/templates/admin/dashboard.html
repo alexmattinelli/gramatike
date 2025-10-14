@@ -994,6 +994,7 @@
                     <dialog id="podcastEditDialog">
                         <form id="podcastEditForm" method="post">
                             <h3>Editar Podcast</h3>
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
                             <input type="hidden" name="content_id" id="pe_id" />
                             <label style="display:block; font-size:.75rem; margin:.4rem 0 .2rem;">Título</label>
                             <input name="titulo" id="pe_titulo" required />
@@ -1104,7 +1105,7 @@
                                 const id = pe_id.value;
                                 const fd = new FormData(form);
                                 try{
-                                    const res = await fetch(`/admin/edu/content/${id}/update`, { method:'POST', body: fd });
+                                    const res = await fetch(`/admin/edu/content/${id}/update`, { method:'POST', body: fd, credentials: 'same-origin' });
                                     if(res.ok){ dlg.close(); buscar(q.value.trim()); } else { alert('Falha ao salvar'); }
                                 }catch(err){ alert('Erro de rede'); }
                             });
