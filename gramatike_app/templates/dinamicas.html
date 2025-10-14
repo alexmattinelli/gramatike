@@ -14,14 +14,52 @@
     .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1rem 1.2rem; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); }
     .muted { color:#666; font-weight:600; }
     .grid { display:grid; gap:1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-  .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-weight:800; letter-spacing:.3px; background:#fff; color:#6233B5; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-weight:800; letter-spacing:.3px; background:#fff; color:#6233B5; transition:all .2s ease; }
+    .btn:hover { background:#f3f4f6; transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.15); }
     .btn.primary { background:#9B5DE5; color:#fff; border:none; }
+    .btn.primary:hover { background:#7d3dc9; }
     .row { display:grid; grid-template-columns: 1fr; gap:.4rem; }
     .builder-card { background:#fff; border:1px solid var(--border); border-radius:16px; padding:.8rem; margin:.4rem 0; }
-    .builder-actions { display:flex; gap:.4rem; }
+    .builder-actions { display:flex; gap:.4rem; flex-wrap:wrap; }
     .muted-sm { font-size:.8rem; color:#666; }
     .opt-row { display:flex; gap:.4rem; align-items:center; margin:.25rem 0; }
     .chip { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .55rem; border-radius:14px; border:1px solid var(--border); background:#fafafa; font-size:.75rem; font-weight:800; color:#6233B5; }
+    
+    /* Form inputs styling */
+    input[type="text"], input[type="email"], input[type="file"], select, textarea { 
+      width:100%; 
+      padding:.65rem .8rem; 
+      border:1px solid var(--border); 
+      border-radius:10px; 
+      font-family:inherit; 
+      font-size:.9rem; 
+      transition:border-color .2s ease, box-shadow .2s ease;
+      box-sizing:border-box;
+    }
+    input[type="text"]:focus, input[type="email"]:focus, select:focus, textarea:focus {
+      outline:none;
+      border-color:#9B5DE5;
+      box-shadow:0 0 0 3px rgba(155,93,229,.1);
+    }
+    
+    label { display:block; margin-bottom:.3rem; font-weight:800; color:#6233B5; font-size:.85rem; }
+    
+    /* Mobile improvements */
+    @media (max-width: 768px) {
+      .logo { font-size:1.8rem; }
+      header.site-head { padding:18px 16px 32px; }
+      main { padding:0 16px; margin:1.5rem auto 2rem; }
+      .card { padding:.9rem; border-radius:16px; }
+      .grid { grid-template-columns:1fr; }
+      .builder-card { padding:.6rem; }
+      .builder-actions { flex-direction:column; }
+      .builder-actions .btn { width:100%; }
+      
+      /* Fix form layout on mobile */
+      #dynCreateForm { gap:.8rem; }
+      #dynCreateForm > div { max-width:100%; overflow-x:hidden; }
+      .opt-row { flex-wrap:wrap; }
+    }
   </style>
 </head>
 <body>
@@ -35,26 +73,32 @@
       </div>
     {% else %}
       <div class="card" style="margin-bottom:1rem;">
-        <h2 style="margin:0 0 .6rem; font-size:1.2rem; color:#6233B5;">Criar dinâmica</h2>
-        <form id="dynCreateForm" method="POST" action="{{ url_for('main.dinamicas_create') }}" enctype="multipart/form-data" style="display:grid; gap:.6rem; grid-template-columns:1fr; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
+        <h2 style="margin:0 0 1rem; font-size:1.3rem; color:#6233B5; font-weight:700;">Criar dinâmica</h2>
+        <form id="dynCreateForm" method="POST" action="{{ url_for('main.dinamicas_create') }}" enctype="multipart/form-data" style="display:grid; gap:.9rem; grid-template-columns:1fr; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
-          <label style="font-weight:800; color:#6233B5;">Tipo</label>
-          <select name="tipo" id="tipo" required>
-            <option value="poll">Enquete</option>
-            <option value="oneword">Nuvem de Palavras</option>
-            <option value="form">Formulário (simples)</option>
-            <option value="quemsoeu">Quem soul eu</option>
-          </select>
-          <label style="font-weight:800; color:#6233B5;">Título</label>
-          <input type="text" name="titulo" required />
-          <label style="font-weight:800; color:#6233B5;">Descrição (opcional)</label>
-          <textarea name="descricao" rows="2"></textarea>
+          <div>
+            <label>Tipo</label>
+            <select name="tipo" id="tipo" required>
+              <option value="poll">Enquete</option>
+              <option value="oneword">Nuvem de Palavras</option>
+              <option value="form">Formulário (simples)</option>
+              <option value="quemsoeu">Quem sou eu</option>
+            </select>
+          </div>
+          <div>
+            <label>Título</label>
+            <input type="text" name="titulo" required />
+          </div>
+          <div>
+            <label>Descrição (opcional)</label>
+            <textarea name="descricao" rows="3"></textarea>
+          </div>
           <div id="poll_opts">
-            <label style="font-weight:800; color:#6233B5;">Opções (1 por linha)</label>
-            <textarea name="opcoes" rows="3" placeholder="Opção A&#10;Opção B"></textarea>
+            <label>Opções (1 por linha)</label>
+            <textarea name="opcoes" rows="4" placeholder="Opção A&#10;Opção B"></textarea>
           </div>
           <div id="form_builder" style="display:none;">
-            <div class="muted-sm">Adicione perguntas como no Google Forms. Tipos: resposta curta, parágrafo, múltipla escolha.</div>
+            <div class="muted-sm" style="margin-bottom:.6rem;">Adicione perguntas como no Google Forms. Tipos: resposta curta, parágrafo, múltipla escolha.</div>
             <div id="q_list"></div>
             <div class="builder-actions">
               <button type="button" class="btn" id="add_q">+ Pergunta</button>
@@ -62,31 +106,35 @@
             <input type="hidden" name="config_json" id="config_json" />
           </div>
           <div id="quemsoeu_builder" style="display:none;">
-            <div class="muted-sm">Adicione frases ou fotos que os participantes terão que responder. Escolha o que eles devem descobrir (gênero, orientação, pronome, etc.).</div>
-            <label style="font-weight:800; color:#6233B5; margin-top:.8rem;">O que a pessoa deve descobrir?</label>
-            <input type="text" name="questao_tipo" id="questao_tipo" placeholder="Ex: gênero, orientação sexual, pronome..." />
-            <label style="font-weight:800; color:#6233B5; margin-top:.8rem;">Moral/Mensagem Final</label>
-            <textarea name="moral" id="moral" rows="3" placeholder="Mensagem que aparecerá ao final da dinâmica..."></textarea>
+            <div class="muted-sm" style="margin-bottom:.6rem;">Adicione frases ou fotos que os participantes terão que responder. Escolha o que eles devem descobrir (gênero, orientação, pronome, etc.).</div>
+            <div>
+              <label style="margin-top:.8rem;">O que a pessoa deve descobrir?</label>
+              <input type="text" name="questao_tipo" id="questao_tipo" placeholder="Ex: gênero, orientação sexual, pronome..." />
+            </div>
+            <div>
+              <label style="margin-top:.8rem;">Moral/Mensagem Final</label>
+              <textarea name="moral" id="moral" rows="3" placeholder="Mensagem que aparecerá ao final da dinâmica..."></textarea>
+            </div>
             <div id="items_list" style="margin-top:1rem;"></div>
             <div class="builder-actions">
               <button type="button" class="btn" id="add_item">+ Item (Frase ou Foto)</button>
             </div>
             <input type="hidden" name="quemsoeu_config_json" id="quemsoeu_config_json" />
           </div>
-          <button type="submit" class="btn primary">Criar</button>
+          <button type="submit" class="btn primary" style="margin-top:.5rem;">Criar Dinâmica</button>
         </form>
       </div>
       <div class="card">
-        <h3 style="margin:.2rem 0 .6rem; color:#6233B5;">Minhas dinâmicas</h3>
+        <h3 style="margin:.2rem 0 .8rem; color:#6233B5; font-weight:700;">Minhas dinâmicas</h3>
         {% if (my_dynamics or [])|length == 0 %}
           <p class="muted">Nenhuma dinâmica criada ainda.</p>
         {% else %}
-          <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+          <div class="grid">
             {% for d in my_dynamics %}
-              <div class="builder-card" style="display:flex; flex-direction:column; gap:.4rem;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:.5rem;">
-                  <div style="font-weight:800; color:#222;">{{ d.titulo }}</div>
-                  <div style="display:flex; gap:.3rem; align-items:center;">
+              <div class="builder-card" style="display:flex; flex-direction:column; gap:.5rem;">
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:.5rem; flex-wrap:wrap;">
+                  <div style="font-weight:800; color:#222; flex:1; min-width:0;">{{ d.titulo }}</div>
+                  <div style="display:flex; gap:.3rem; align-items:center; flex-wrap:wrap;">
                     <span class="chip">{{ d.tipo }}</span>
                     {% if d.active %}
                       <span class="chip" style="background:#d4edda; color:#155724; border-color:#c3e6cb;">Ativa</span>
@@ -95,21 +143,21 @@
                     {% endif %}
                   </div>
                 </div>
-                {% if d.descricao %}<div class="muted-sm">{{ d.descricao }}</div>{% endif %}
-                <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.25rem;">
-                  <a class="btn" href="{{ url_for('main.dinamica_admin', dyn_id=d.id) }}">Ver respostas</a>
-                  <a class="btn" href="{{ url_for('main.dinamica_view', dyn_id=d.id) }}">Abrir</a>
-                  <a class="btn" href="{{ url_for('main.dinamica_export_csv', dyn_id=d.id) }}">Baixar CSV</a>
-                  <a class="btn" href="{{ url_for('main.dinamica_edit', dyn_id=d.id) }}">Editar</a>
-                  <form method="POST" action="{{ url_for('main.dinamica_toggle_active', dyn_id=d.id) }}" style="display:inline;">
+                {% if d.descricao %}<div class="muted-sm" style="word-break:break-word;">{{ d.descricao }}</div>{% endif %}
+                <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.35rem;">
+                  <a class="btn" href="{{ url_for('main.dinamica_admin', dyn_id=d.id) }}" style="font-size:.75rem; padding:.45rem .75rem;">Ver respostas</a>
+                  <a class="btn" href="{{ url_for('main.dinamica_view', dyn_id=d.id) }}" style="font-size:.75rem; padding:.45rem .75rem;">Abrir</a>
+                  <a class="btn" href="{{ url_for('main.dinamica_export_csv', dyn_id=d.id) }}" style="font-size:.75rem; padding:.45rem .75rem;">Baixar CSV</a>
+                  <a class="btn" href="{{ url_for('main.dinamica_edit', dyn_id=d.id) }}" style="font-size:.75rem; padding:.45rem .75rem;">Editar</a>
+                  <form method="POST" action="{{ url_for('main.dinamica_toggle_active', dyn_id=d.id) }}" style="display:inline; margin:0;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
-                    <button type="submit" class="btn" style="{% if d.active %}background:#28a745;color:#fff;{% else %}background:#dc3545;color:#fff;{% endif %}">
+                    <button type="submit" class="btn" style="font-size:.75rem; padding:.45rem .75rem; {% if d.active %}background:#28a745;color:#fff;{% else %}background:#dc3545;color:#fff;{% endif %}">
                       {% if d.active %}Finalizar{% else %}Ativar{% endif %}
                     </button>
                   </form>
-                  <form method="POST" action="{{ url_for('main.dinamica_delete', dyn_id=d.id) }}" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta dinâmica? Esta ação não pode ser desfeita.');">
+                  <form method="POST" action="{{ url_for('main.dinamica_delete', dyn_id=d.id) }}" style="display:inline; margin:0;" onsubmit="return confirm('Tem certeza que deseja excluir esta dinâmica? Esta ação não pode ser desfeita.');">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
-                    <button type="submit" class="btn" style="background:#dc3545;color:#fff;">
+                    <button type="submit" class="btn" style="font-size:.75rem; padding:.45rem .75rem; background:#dc3545;color:#fff;">
                       Excluir
                     </button>
                   </form>
