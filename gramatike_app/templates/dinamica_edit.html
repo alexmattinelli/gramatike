@@ -12,13 +12,21 @@
     .logo { font-family:'Mansalva', cursive; font-size:2.4rem; color:#fff; font-weight:400; margin:0; }
     main { width:100%; max-width:980px; margin:2rem auto 4rem; padding:0 clamp(16px,4vw,40px); }
     .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1rem 1.2rem; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); }
-    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-weight:800; letter-spacing:.3px; background:#fff; color:#6233B5; text-decoration:none; }
-    .btn.primary { background:#9B5DE5; color:#fff; border:none; }
-    .builder-card { background:#fff; border:1px solid var(--border); border-radius:16px; padding:.8rem; margin:.4rem 0; }
-    .builder-actions { display:flex; gap:.4rem; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-weight:800; letter-spacing:.3px; background:#fff; color:#6233B5; text-decoration:none; transition:all .2s; }
+    .btn:hover { background:#f7f2ff; transform:translateY(-1px); }
+    .btn.primary { background:#9B5DE5; color:#fff; border:none; box-shadow:0 4px 12px rgba(155,93,229,.3); }
+    .btn.primary:hover { background:#7d3dc9; transform:translateY(-1px); box-shadow:0 6px 16px rgba(155,93,229,.4); }
+    .btn.danger { background:#fff; color:#d32f2f; border-color:#ffcdd2; }
+    .btn.danger:hover { background:#ffebee; }
+    .builder-card { background:#fff; border:1px solid var(--border); border-radius:16px; padding:1rem; margin:.6rem 0; box-shadow:0 2px 8px rgba(0,0,0,.04); transition:box-shadow .2s; }
+    .builder-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.08); }
+    .builder-actions { display:flex; gap:.6rem; margin-top:1rem; }
     .muted-sm { font-size:.8rem; color:#666; }
     .opt-row { display:flex; gap:.4rem; align-items:center; margin:.25rem 0; }
     .chip { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .55rem; border-radius:14px; border:1px solid var(--border); background:#fafafa; font-size:.75rem; font-weight:800; color:#6233B5; }
+    input[type="text"], textarea, select { border:1px solid var(--border); border-radius:8px; padding:.6rem .75rem; font-family:'Nunito', sans-serif; font-size:.9rem; transition:border .2s; }
+    input[type="text"]:focus, textarea:focus, select:focus { outline:none; border-color:#9B5DE5; box-shadow:0 0 0 3px rgba(155,93,229,.1); }
+    label { display:block; font-weight:700; color:#6233B5; margin-bottom:.4rem; font-size:.85rem; }
   </style>
 </head>
 <body>
@@ -182,7 +190,8 @@
       id: i.id,
       tipo: i.tipo || 'frase',
       conteudo: i.conteudo || '',
-      resposta_correta: i.resposta_correta || ''
+      resposta_correta: i.resposta_correta || '',
+      alternativas: i.alternativas || []
     }));
 
     function renderItems(){
@@ -191,27 +200,38 @@
         const card = document.createElement('div');
         card.className = 'builder-card';
         card.innerHTML = `
-          <div style="display:grid; gap:.4rem;">
-            <div style="display:flex; gap:.5rem; align-items:center;">
-              <span class="chip">Item ${idx+1}</span>
+          <div style="display:grid; gap:.6rem;">
+            <div style="display:flex; gap:.6rem; align-items:center; flex-wrap:wrap;">
+              <span class="chip" style="font-size:.85rem;">Item ${idx+1}</span>
               <select data-k="tipo" style="flex:0 0 auto;">
                 <option value="frase" ${item.tipo==='frase'?'selected':''}>Frase</option>
                 <option value="foto" ${item.tipo==='foto'?'selected':''}>Foto</option>
               </select>
-              <button type="button" class="btn" data-act="del-item">Remover</button>
+              <button type="button" class="btn danger" data-act="del-item" style="margin-left:auto;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                </svg>
+                Remover
+              </button>
             </div>
             <div data-role="frase-input" style="${item.tipo==='frase'?'':'display:none;'}">
-              <label style="font-weight:600; margin-top:.5rem; display:block;">Frase</label>
+              <label>Frase</label>
               <textarea data-k="conteudo" rows="2" style="width:100%;">${item.conteudo||''}</textarea>
             </div>
             <div data-role="foto-input" style="${item.tipo==='foto'?'':'display:none;'}">
-              <label style="font-weight:600; margin-top:.5rem; display:block;">Foto</label>
+              <label>Foto</label>
               <input type="file" data-k="foto" data-item-id="${item.id}" accept="image/*" style="width:100%;" />
-              ${item.conteudo ? `<div class="muted-sm" style="margin-top:.3rem;">Atual: <a href="${item.conteudo}" target="_blank">ver foto</a></div>` : ''}
+              ${item.conteudo ? `<div class="muted-sm" style="margin-top:.3rem;">Atual: <a href="${item.conteudo}" target="_blank" style="color:#9B5DE5;">ver foto</a></div>` : ''}
             </div>
-            <div style="margin-top:.5rem;">
-              <label style="font-weight:600; display:block;">Resposta Correta (opcional - para cálculo de acertos)</label>
-              <input type="text" data-k="resposta_correta" value="${item.resposta_correta||''}" style="width:100%;" placeholder="Ex: masculino, feminino, não-binário..." />
+            <div style="margin-top:.3rem;">
+              <label>Resposta Correta Principal</label>
+              <input type="text" data-k="resposta_correta" value="${item.resposta_correta||''}" style="width:100%;" placeholder="Ex: não-binário" />
+              <div class="muted-sm" style="margin-top:.3rem;">💡 Digite a resposta principal. Variações serão aceitas automaticamente.</div>
+            </div>
+            <div>
+              <label>Respostas Alternativas Aceitas (opcional)</label>
+              <input type="text" data-k="alternativas" value="${(item.alternativas||[]).join(', ')}" style="width:100%;" placeholder="Ex: nb, nao binario, não binaria, enby" />
+              <div class="muted-sm" style="margin-top:.3rem;">💡 Separe com vírgula. Aceita variações de gênero, acentos e abreviações.</div>
             </div>
           </div>`;
         
@@ -227,6 +247,10 @@
             }
             else if(k==='conteudo'){ item.conteudo = el.value; }
             else if(k==='resposta_correta'){ item.resposta_correta = el.value; }
+            else if(k==='alternativas'){ 
+              // Parse comma-separated alternatives
+              item.alternativas = el.value.split(',').map(s => s.trim()).filter(Boolean);
+            }
             else if(k==='foto'){
               // Set name attribute for backend
               el.name = 'foto_' + item.id;
@@ -243,7 +267,7 @@
     }
 
     function addItem(){
-      items.push({ id: itemSeq++, tipo: 'frase', conteudo: '', resposta_correta: '' });
+      items.push({ id: itemSeq++, tipo: 'frase', conteudo: '', resposta_correta: '', alternativas: [] });
       renderItems();
     }
 
@@ -251,7 +275,13 @@
 
     // on submit serialize
     form.addEventListener('submit', ()=>{
-      const cfg = { items: items.map(item=>({ id: item.id, tipo: item.tipo, conteudo: item.conteudo, resposta_correta: item.resposta_correta || '' })) };
+      const cfg = { items: items.map(item=>({ 
+        id: item.id, 
+        tipo: item.tipo, 
+        conteudo: item.conteudo, 
+        resposta_correta: item.resposta_correta || '',
+        alternativas: item.alternativas || []
+      })) };
       quemsouleuCfgEl.value = JSON.stringify(cfg);
     });
 
