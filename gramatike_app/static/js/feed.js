@@ -39,21 +39,70 @@ function parseTextWithLinks(text) {
 
 function loadPosts(params={}) {
   const usp = new URLSearchParams(params);
-  fetch('/api/posts'+(usp.toString()?`?${usp.toString()}`:''))
-    .then(r=>r.json())
-    .then(posts => {
+  
+  // Fetch both posts and divulgacao items
+  Promise.all([
+    fetch('/api/posts'+(usp.toString()?`?${usp.toString()}`:'')).then(r=>r.json()),
+    fetch('/api/divulgacao').then(r=>r.json()).catch(()=>({items:[]}))
+  ])
+    .then(([posts, divulgacaoData]) => {
       const feed = safeGet('feed-list');
       if(!feed) return;
       feed.innerHTML='';
+      
       if(!posts || !posts.length){
         const msg = document.createElement('p');
         msg.textContent='Nenhum post encontrado.';
         msg.style.cssText='text-align:center;color:#666;padding:2rem;';
         feed.appendChild(msg); return;
       }
-      posts.forEach(post => renderPost(post, feed));
+      
+      const divulgacaoItems = divulgacaoData.items || [];
+      const isMobile = window.innerWidth < 980;
+      
+      // Render posts with divulgacao items inserted every 12 posts (mobile only)
+      posts.forEach((post, index) => {
+        renderPost(post, feed);
+        
+        // Insert divulgacao card every 12 posts on mobile
+        if(isMobile && divulgacaoItems.length > 0 && (index + 1) % 12 === 0) {
+          const divIndex = Math.floor(index / 12) % divulgacaoItems.length;
+          const divItem = divulgacaoItems[divIndex];
+          renderDivulgacaoCard(divItem, feed);
+        }
+      });
     })
     .catch(err => console.error('Erro feed', err));
+}
+
+function renderDivulgacaoCard(divItem, feed) {
+  const card = document.createElement('div');
+  card.className = 'divulgacao-feed-card';
+  card.style.cssText = 'background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:1rem 1.1rem 1.05rem; margin-bottom:2rem; box-shadow:0 8px 22px rgba(0,0,0,.1);';
+  
+  let imageHtml = '';
+  if(divItem.imagem) {
+    const imgsrc = divItem.imagem.startsWith('http') ? divItem.imagem : `/static/${divItem.imagem}`;
+    imageHtml = `<img src="${imgsrc}" alt="${divItem.titulo}" style="width:100%; border-radius:14px; margin:0 0 .65rem; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />`;
+  }
+  
+  let linkHtml = '';
+  if(divItem.link) {
+    linkHtml = `<a href="${divItem.link}" target="_blank" rel="noopener" style="display:inline-block; font-size:.68rem; font-weight:700; background:#9B5DE5; color:#fff; padding:.5rem .9rem .45rem; border-radius:14px; text-decoration:none; letter-spacing:.5px; margin-top:.35rem;">Abrir →</a>`;
+  }
+  
+  card.innerHTML = `
+    <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.6rem;">
+      <span style="font-size:1.1rem;">📣</span>
+      <strong style="font-size:.8rem; letter-spacing:.5px; color:#6233B5; font-weight:800;">Novidade</strong>
+    </div>
+    <strong style="display:block; font-size:.78rem; letter-spacing:.4px; color:#333; margin:0 0 .45rem; font-weight:800;">${divItem.titulo}</strong>
+    ${imageHtml}
+    ${divItem.texto ? `<p style="margin:0 0 .4rem; font-size:.7rem; line-height:1.4; color:#555; font-weight:600;">${divItem.texto}</p>` : ''}
+    ${linkHtml}
+  `;
+  
+  feed.appendChild(card);
 }
 
 function renderPost(post, feed){
