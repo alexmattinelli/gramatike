@@ -391,14 +391,14 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       color: var(--primary);
     }
 
-    /* Post media styles for images with 4x4 aspect ratio */
-    .post-media img { width:100%; display:block; border-radius:24px; margin:.6rem 0 1.1rem; object-fit:contain; background:#f3f4f6; max-height:380px; aspect-ratio:1/1; }
+    /* Post media styles for images with cover (Twitter-style) */
+    .post-media img { width:100%; display:block; border-radius:24px; margin:.6rem 0 1.1rem; object-fit:cover; max-height:380px; cursor:pointer; }
     .post-media { position:relative; overflow:hidden; }
     .post-media.multi { display:grid; gap:8px; margin:.6rem 0 1.1rem; }
     .post-media.multi.grid-2 { grid-template-columns:repeat(2,1fr); }
     .post-media.multi.grid-3 { grid-template-columns:repeat(3,1fr); }
     .post-media.multi.grid-4 { grid-template-columns:repeat(2,1fr); }
-    .post-media.multi .pm-item img { margin:0; height:180px; border-radius:16px; object-fit:contain; }
+    .post-media.multi .pm-item img { margin:0; height:180px; border-radius:16px; object-fit:cover; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -527,11 +527,15 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       // Helper: determinar src correto (URL ou path local)
       const getSrc = (path) => /^https?:\/\//i.test(path) ? path : `/static/${path}`;
       if(parts.length === 1){
-        return `<div class="post-media"><img src="${getSrc(parts[0])}" alt="Imagem do post" onerror="this.style.display='none'"/></div>`;
+        const src = getSrc(parts[0]);
+        return `<div class="post-media"><img src="${src}" alt="Imagem do post" onclick="openImageModal('${src}')" onerror="this.style.display='none'"/></div>`;
       }
       // Grid simples para múltiplas
       const cls = parts.length===2? 'grid-2' : (parts.length===3? 'grid-3':'grid-4');
-      const imgs = parts.map(p=>`<div class="pm-item"><img src="${getSrc(p)}" alt="Imagem do post" onerror="this.style.display='none'"/></div>`).join('');
+      const imgs = parts.map(p=>{
+        const src = getSrc(p);
+        return `<div class="pm-item"><img src="${src}" alt="Imagem do post" onclick="openImageModal('${src}')" onerror="this.style.display='none'"/></div>`;
+      }).join('');
       return `<div class="post-media multi ${cls}">${imgs}</div>`;
     }
 
@@ -905,6 +909,36 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       fetch(`/api/seguir/${usuarioId}`, {
         method: seguir ? 'POST' : 'DELETE'
       }).then(() => location.reload());
+    }
+
+    // Image Modal for full-size view
+    function ensureImageModal() {
+      if(document.getElementById('image-modal')) return;
+      const modal = document.createElement('div');
+      modal.id = 'image-modal';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);display:none;align-items:center;justify-content:center;z-index:2000;';
+      modal.innerHTML = `<div style="position:relative;max-width:95vw;max-height:95vh;display:flex;align-items:center;justify-content:center;">
+        <button onclick="closeImageModal()" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.9);border:none;border-radius:50%;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,0.3);z-index:10;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <img id='image-modal-img' src='' alt='Imagem ampliada' style='max-width:100%;max-height:95vh;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.5);'/>
+      </div>`;
+      document.body.appendChild(modal);
+      modal.addEventListener('click', e=>{ if(e.target===modal) closeImageModal(); });
+    }
+    function openImageModal(imageSrc){
+      ensureImageModal();
+      const modal = document.getElementById('image-modal');
+      const img = document.getElementById('image-modal-img');
+      img.src = imageSrc;
+      modal.style.display='flex';
+    }
+    function closeImageModal(){
+      const modal = document.getElementById('image-modal');
+      if(modal) modal.style.display='none';
     }
   </script>
   
