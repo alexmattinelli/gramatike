@@ -113,11 +113,15 @@ function renderPostImages(raw){
   // Helper: determinar src correto (URL ou path local)
   const getSrc = (path) => /^https?:\/\//i.test(path) ? path : `/static/${path}`;
   if(parts.length === 1){
-    return `<div class="post-media"><img src="${getSrc(parts[0])}" alt="Imagem do post" onerror="this.style.display='none'"/></div>`;
+    const src = getSrc(parts[0]);
+    return `<div class="post-media"><img src="${src}" alt="Imagem do post" onclick="openImageModal('${src}')" onerror="this.style.display='none'"/></div>`;
   }
   // Grid simples para múltiplas
   const cls = parts.length===2? 'grid-2' : (parts.length===3? 'grid-3':'grid-4');
-  const imgs = parts.map(p=>`<div class="pm-item"><img src="${getSrc(p)}" alt="Imagem do post" onerror="this.style.display='none'"/></div>`).join('');
+  const imgs = parts.map(p=>{
+    const src = getSrc(p);
+    return `<div class="pm-item"><img src="${src}" alt="Imagem do post" onclick="openImageModal('${src}')" onerror="this.style.display='none'"/></div>`;
+  }).join('');
   return `<div class="post-media multi ${cls}">${imgs}</div>`;
 }
 
