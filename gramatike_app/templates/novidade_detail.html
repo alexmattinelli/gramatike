@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ novidade.titulo }} — Gramátike Edu</title>
+    <title>{{ novidade.titulo }} — Portal Gramátike</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
@@ -63,7 +63,7 @@
 </head>
 <body>
     <header class="site-head">
-        <h1 class="logo">Novidade</h1>
+        <h1 class="logo">Portal Gramátike</h1>
     </header>
     <main>
         <a href="{{ url_for('main.educacao') }}" class="back-link" style="font-size:.85rem; font-weight:700; color:#9B5DE5; padding:.6rem 1.2rem; background:#fff; border:1px solid #e5e7eb; border-radius:14px; display:inline-flex; align-items:center; gap:.5rem; transition:.2s; text-decoration:none; box-shadow:0 4px 12px rgba(155,93,229,.15);">
@@ -114,7 +114,7 @@
     </main>
     
     <footer>
-        Gramátike © 2025. Educação inclusiva e democrática.
+        © 2025 Gramátike • Inclusão e Gênero Neutro
     </footer>
     
     {% if is_admin %}

@@ -413,7 +413,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       
       main {
         margin-bottom: calc(60px + env(safe-area-inset-bottom)) !important;
-        padding: 0 16px !important;
+        padding: 0 12px !important;
       }
       
       .profile-header {
@@ -438,6 +438,14 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
         word-break: break-word !important;
       }
       
+      /* Fix stats display on mobile */
+      .profile-info div[style*="display:flex"] {
+        gap: 0.8rem !important;
+        font-size: 0.85rem !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+      }
+      
       .profile-actions {
         width: 100% !important;
         flex-direction: column !important;
@@ -455,20 +463,22 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       
       .tabs {
         flex-wrap: wrap !important;
-        gap: 0.5rem !important;
+        gap: 0.3rem !important;
         width: 100% !important;
+        justify-content: center !important;
       }
       
-      .tabs button {
-        flex: 1 1 auto !important;
-        min-width: 45% !important;
-        font-size: 0.75rem !important;
-        padding: 0.6rem 0.8rem !important;
+      .tab {
+        flex: 0 1 auto !important;
+        min-width: 30% !important;
+        font-size: 0.7rem !important;
+        padding: 0.5rem 0.6rem !important;
+        text-align: center !important;
       }
       
       .tab-content {
         width: 100% !important;
-        padding: 1rem !important;
+        padding: 0.8rem !important;
         overflow-wrap: break-word !important;
       }
       
