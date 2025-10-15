@@ -499,7 +499,7 @@ button { font-family: var(--font-base); font-weight:600; }
   #mobile-actions-card {
     display: block !important;
     padding: 1rem 1.2rem .9rem !important; /* Card com mais padding */
-    margin: 0 -0.8rem 1.4rem !important; /* Aumentar largura - mesma margem dos posts */
+    margin: 0 -1rem 1.4rem !important; /* Aumentar largura - mesma margem dos posts */
   }
   
   /* Botões do card de ações - mais quadrados e maiores */
@@ -521,6 +521,12 @@ button { font-family: var(--font-base); font-weight:600; }
   /* Garantir que o footer não sobreponha a barra inferior */
   .footer-bar {
     margin-bottom: calc(60px + env(safe-area-inset-bottom));
+  }
+  
+  /* Barra de busca com mesma largura dos cards de post no mobile */
+  .feed-controls {
+    margin: 1.2rem -1rem 2rem !important; /* Mesma largura dos posts */
+    padding: 0 1rem !important; /* Padding interno para compensar */
   }
   
   /* Cards de posts mais largos no mobile (igual educação) - ENLARGUECER */
