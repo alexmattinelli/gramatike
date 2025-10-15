@@ -270,13 +270,13 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
     }
 
     /* Post media styles for images with cover (Twitter-style) */
-    .post-media img { width:100%; display:block; border-radius:24px; margin:.6rem 0 1.1rem; object-fit:cover; max-height:380px; cursor:pointer; }
+    .post-media img { width:100%; display:block; border-radius:24px; margin:.6rem 0 1.1rem; object-fit:contain; background:#f3f4f6; max-height:380px; aspect-ratio:1/1; cursor:pointer; }
     .post-media { position:relative; overflow:hidden; }
     .post-media.multi { display:grid; gap:8px; margin:.6rem 0 1.1rem; }
     .post-media.multi.grid-2 { grid-template-columns:repeat(2,1fr); }
     .post-media.multi.grid-3 { grid-template-columns:repeat(3,1fr); }
     .post-media.multi.grid-4 { grid-template-columns:repeat(2,1fr); }
-    .post-media.multi .pm-item img { margin:0; height:180px; border-radius:16px; object-fit:cover; cursor:pointer; }
+    .post-media.multi .pm-item img { margin:0; height:180px; border-radius:16px; object-fit:contain; background:#f3f4f6; cursor:pointer; }
   </style>
 </head>
 <body>
