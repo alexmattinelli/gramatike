@@ -414,11 +414,14 @@ def get_posts_me():
             data_str = p.data.strftime('%d/%m/%Y %H:%M') if p.data else ''
         except Exception as e:
             data_str = ''
+        imagens_concat = p.imagem or ''
+        imagens_list = [seg for seg in imagens_concat.split('|') if seg]
         result.append({
             'id': p.id,
             'usuario': user.username,
             'conteudo': p.conteudo or '',
-            'imagem': p.imagem or '',
+            'imagem': imagens_concat,
+            'images': imagens_list,
             'data': data_str,
             'foto_perfil': user.foto_perfil or 'img/perfil.png',
             'bio': user.bio or '',
@@ -439,11 +442,14 @@ def get_posts_usuario(user_id):
             data_str = p.data.strftime('%d/%m/%Y %H:%M') if p.data else ''
         except Exception:
             data_str = ''
+        imagens_concat = p.imagem or ''
+        imagens_list = [seg for seg in imagens_concat.split('|') if seg]
         result.append({
             'id': p.id,
             'usuario': user.username,
             'conteudo': p.conteudo or '',
-            'imagem': p.imagem or '',
+            'imagem': imagens_concat,
+            'images': imagens_list,
             'data': data_str,
             'foto_perfil': user.foto_perfil or 'img/perfil.png',
             'bio': user.bio or '',
