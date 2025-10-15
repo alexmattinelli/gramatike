@@ -302,10 +302,6 @@ def edu_publicar():
             flash(f'O artigo excede o limite de 5000 palavras (atual: {word_count} palavras). Por favor, reduza o conteúdo.')
             return redirect(url_for('admin.dashboard', _anchor='edu'))
     
-    # Validação do resumo (2000 caracteres)
-    if resumo and len(resumo) > 2000:
-        flash(f'O resumo excede o limite de 2000 caracteres (atual: {len(resumo)} caracteres). Por favor, reduza o resumo.')
-        return redirect(url_for('admin.dashboard', _anchor='edu'))
     # Upload de apostila (PDF ou URL)
     if tipo == 'apostila':
         pdf_file = request.files.get('pdf')
