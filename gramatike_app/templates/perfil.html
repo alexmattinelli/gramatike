@@ -626,14 +626,14 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
           } else {
             html = posts.map(p => `
               <div class='post' data-post-id='${p.id}' style='position:relative;'>
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem;">
-                  <div>
-                    <strong>@${p.usuario}</strong><br>
-                    <span style='color:#888;font-size:.65rem;'>${p.data}</span>
+                <div class='post-header' style="display:flex;align-items:center;justify-content:space-between;">
+                  <div style="display:flex;align-items:center;gap:0.7rem;">
+                    <img src="${(p.foto_perfil && (p.foto_perfil.startsWith('http://') || p.foto_perfil.startsWith('https://'))) ? p.foto_perfil : ('/static/' + (p.foto_perfil || 'img/perfil.png'))}" alt="Foto de perfil" class="post-avatar" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #eee;cursor:pointer;">
+                    <span style="cursor:pointer;" class="post-username"><strong>@${p.usuario}</strong> <span style='color:#888;'>${p.data}</span></span>
                   </div>
-                  <div style='position:relative;'>
-                    <button class='post-menu-btn' aria-label='Ações' style='background:none;border:none;font-size:1.2rem;cursor:pointer;color:#555;'>⋯</button>
-                    <div class='post-menu' style='display:none; position:absolute; top:22px; right:0; background:#fff; border:1px solid #ddd; border-radius:8px; padding:.35rem 0; box-shadow:0 4px 12px rgba(0,0,0,.15); z-index:40; min-width:140px;'>
+                  <div class='post-menu-container' style='position:relative;'>
+                    <button class='post-menu-btn' aria-label='Ações' style='background:none;border:none;font-size:1.3rem;cursor:pointer;color:#555;line-height:1;'>⋯</button>
+                    <div class='post-menu' style='display:none; position:absolute; top:28px; right:0; background:#fff; border:1px solid #ddd; border-radius:8px; padding:.35rem 0; box-shadow:0 4px 12px rgba(0,0,0,.15); z-index:40; min-width:140px;'>
                       ${p.can_delete ? `<button class='pm-excluir' style='display:block;width:100%;background:none;border:none;text-align:left;padding:.5rem .9rem;font-size:.7rem;cursor:pointer;'>Excluir</button>`:''}
                       <button class='pm-compartilhar' style='display:block;width:100%;background:none;border:none;text-align:left;padding:.5rem .9rem;font-size:.7rem;cursor:pointer;'>Compartilhar</button>
                     </div>
