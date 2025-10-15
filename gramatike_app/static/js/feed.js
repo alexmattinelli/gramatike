@@ -105,6 +105,22 @@ function renderDivulgacaoCard(divItem, feed) {
   feed.appendChild(card);
 }
 
+// Renderiza imagens (uma ou múltiplas) separadas por '|'
+function renderPostImages(raw){
+  if(!raw) return '';
+  const parts = raw.split('|').filter(Boolean);
+  if(!parts.length) return '';
+  // Helper: determinar src correto (URL ou path local)
+  const getSrc = (path) => /^https?:\/\//i.test(path) ? path : `/static/${path}`;
+  if(parts.length === 1){
+    return `<div class="post-media"><img src="${getSrc(parts[0])}" alt="Imagem do post" onerror="this.style.display='none'"/></div>`;
+  }
+  // Grid simples para múltiplas
+  const cls = parts.length===2? 'grid-2' : (parts.length===3? 'grid-3':'grid-4');
+  const imgs = parts.map(p=>`<div class="pm-item"><img src="${getSrc(p)}" alt="Imagem do post" onerror="this.style.display='none'"/></div>`).join('');
+  return `<div class="post-media multi ${cls}">${imgs}</div>`;
+}
+
 function renderPost(post, feed){
   const article = document.createElement('article');
   article.className='post';
@@ -135,6 +151,7 @@ function renderPost(post, feed){
       </div>
     </div>
     <p class="post-content">${parseTextWithLinks(post.conteudo)}</p>
+    ${ (post.images && post.images.length) ? renderPostImages(post.images.join('|')) : (post.imagem ? renderPostImages(post.imagem) : '') }
     <div class="likes-list"></div>
     <div class="post-actions">
       <button class="${likeClass}" onclick="likePost(${post.id}, this)">${likeLabel}</button>
