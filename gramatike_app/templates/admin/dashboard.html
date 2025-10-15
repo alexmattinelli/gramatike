@@ -549,6 +549,7 @@
                 .edu-box h3 { margin:.1rem 0 .7rem; font-size:.9rem; }
                 .edu-box form { display:flex; flex-direction:column; gap:.5rem; }
                 .edu-box input, .edu-box textarea, .edu-box select { padding:.55rem .6rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; background:#f9fbfd; }
+                .edu-box textarea { min-height:150px; resize:vertical; }
                 .edu-box button { padding:.55rem .9rem; border:none; background:#9B5DE5; color:#fff; font-weight:600; border-radius:8px; font-size:.7rem; cursor:pointer; }
                 .edu-box button:hover { background:#7d3dc9; }
                 .muted-inline { font-size:.6rem; color:#6b7785; margin-top:-.3rem; }
@@ -1001,7 +1002,7 @@
                             <label style="display:block; font-size:.75rem; margin:.6rem 0 .2rem;">Autore</label>
                             <input name="autor" id="pe_autor" />
                             <label style="display:block; font-size:.75rem; margin:.6rem 0 .2rem;">Resumo</label>
-                            <textarea name="resumo" id="pe_resumo" rows="3"></textarea>
+                            <textarea name="resumo" id="pe_resumo" rows="8" style="min-height:200px; resize:vertical;"></textarea>
                             <label style="display:block; font-size:.75rem; margin:.6rem 0 .2rem;">URL/iframe do Spotify ou áudio (.mp3)</label>
                             <input name="url" id="pe_url" />
                             <label style="display:block; font-size:.75rem; margin:.6rem 0 .2rem;">Tópico</label>
