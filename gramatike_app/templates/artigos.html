@@ -218,7 +218,7 @@
                                                         <button type="button" data-edit="{{ c.id }}">Editar</button>
                                                         <button type="button" data-share="{{ c.id }}">Compartilhar</button>
                                                         <form method="POST" action="/admin/edu/content/{{ c.id }}/delete" onsubmit="return confirm('Excluir este artigo?');">
-                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                                                             <input type="hidden" name="next" value="{{ request.url }}" />
                                                             <button type="submit" class="danger">Excluir</button>
                                                         </form>
@@ -394,7 +394,7 @@
     <dialog id="editArtigoDialog" style="border:none; border-radius:20px; padding:0; max-width:600px; width:90%;">
         <form id="editArtigoForm" method="post" style="display:grid; gap:.9rem; padding:1.5rem;">
             <h3 style="margin:0; font-size:1.3rem; color:#6233B5;">Editar Artigo</h3>
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <input type="hidden" name="content_id" id="ea_id" />
             
             <label style="display:grid; gap:.3rem;">
