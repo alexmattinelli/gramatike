@@ -390,6 +390,15 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
     .mobile-bottom-nav a:hover svg {
       color: var(--primary);
     }
+
+    /* Post media styles for images with 4x4 aspect ratio */
+    .post-media img { width:100%; display:block; border-radius:24px; margin:.6rem 0 1.1rem; object-fit:cover; background:#f3f4f6; max-height:380px; aspect-ratio:1/1; }
+    .post-media { position:relative; overflow:hidden; }
+    .post-media.multi { display:grid; gap:8px; margin:.6rem 0 1.1rem; }
+    .post-media.multi.grid-2 { grid-template-columns:repeat(2,1fr); }
+    .post-media.multi.grid-3 { grid-template-columns:repeat(3,1fr); }
+    .post-media.multi.grid-4 { grid-template-columns:repeat(2,1fr); }
+    .post-media.multi .pm-item img { margin:0; height:180px; border-radius:16px; object-fit:cover; }
   </style>
 </head>
 <body>
@@ -510,6 +519,22 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
     window.USER_ID = "{{ current_user.id|tojson|safe }}";
   </script>
   <script>
+    // Renderiza imagens (uma ou múltiplas) separadas por '|'
+    function renderPostImages(raw){
+      if(!raw) return '';
+      const parts = raw.split('|').filter(Boolean);
+      if(!parts.length) return '';
+      // Helper: determinar src correto (URL ou path local)
+      const getSrc = (path) => /^https?:\/\//i.test(path) ? path : `/static/${path}`;
+      if(parts.length === 1){
+        return `<div class="post-media"><img src="${getSrc(parts[0])}" alt="Imagem do post" onerror="this.style.display='none'"/></div>`;
+      }
+      // Grid simples para múltiplas
+      const cls = parts.length===2? 'grid-2' : (parts.length===3? 'grid-3':'grid-4');
+      const imgs = parts.map(p=>`<div class="pm-item"><img src="${getSrc(p)}" alt="Imagem do post" onerror="this.style.display='none'"/></div>`).join('');
+      return `<div class="post-media multi ${cls}">${imgs}</div>`;
+    }
+
     function mostrarAba(aba) {
       const tabs = document.querySelectorAll('.tab');
       tabs.forEach(t => t.classList.remove('active'));
@@ -594,6 +619,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
                   </div>
                 </div>
                 <p style="white-space:pre-line;">${post.conteudo}</p>
+                ${ (post.images && post.images.length) ? renderPostImages(post.images.join('|')) : (post.imagem ? renderPostImages(post.imagem) : '') }
                 <div class='likes-list' style='font-size:.9rem;margin:.4rem 0;'></div>
                 <div class='post-actions'>
                   <button class='like-btn-perfil' data-post-id='${post.id}'>❤️ Curtir</button>
