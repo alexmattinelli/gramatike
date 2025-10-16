@@ -29,11 +29,11 @@
             --radius:16px;
             --shadow-sm:0 1px 2px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04);
             --shadow:0 4px 10px -2px rgba(30,41,59,.08),0 2px 4px rgba(30,41,59,.06);
-            --grad:linear-gradient(120deg,#79b6ff,#9a8bff 55%,#ff9ac2);
+            --grad:linear-gradient(120deg,#9B5DE5,#b896e8 55%,#d8b5f0);
         }
         .dark {
             --bg:#0e1621; --bg-alt:#172231; --border:#253242; --border-strong:#334355; --text:#f5f8fc; --text-soft:#a3b2c2;
-            --accent:#6d8dff; --accent-hover:#5477f0; --danger:#ff6b6b; --danger-hover:#e24f4f; --warn:#ffb347; --grad:linear-gradient(120deg,#325f8f,#4b48a3 55%,#a84672);
+            --accent:#9B5DE5; --accent-hover:#7d3dc9; --danger:#ff6b6b; --danger-hover:#e24f4f; --warn:#ffb347; --grad:linear-gradient(120deg,#7d3dc9,#8a5dd4 55%,#9B5DE5);
             --shadow-sm:0 1px 2px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.04);
             --shadow:0 4px 18px -4px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.45);
         }
@@ -43,6 +43,11 @@
         main { flex:1; display:flex; flex-direction:column; }
     /* ===== Cabeçalho unificado (igual páginas públicas) ===== */
     header.site-head { background:#333; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; text-align:center; }
+    /* Mobile: Header mais compacto */
+    @media (max-width: 900px){ 
+      header.site-head { padding:18px clamp(12px,3vw,24px) 28px; }
+      .logo { font-size:1.8rem !important; }
+    }
     .logo { font-family:'Mansalva', cursive; font-size:2.6rem; color:#fff; letter-spacing:1px; font-weight:400; margin:0; text-shadow:0 2px 6px rgba(0,0,0,.35); }
     .admin-badge { position:absolute; top:16px; left:16px; background:#444; border:1px solid #555; color:#fff; padding:6px 12px; font-size:.55rem; font-weight:800; letter-spacing:.6px; border-radius:10px; text-transform:uppercase; box-shadow:0 4px 10px -2px rgba(0,0,0,.4); }
     /* Pills em modo escuro/cinza */
@@ -50,6 +55,11 @@
     .tab-link { text-decoration:none; font-weight:700; font-size:.7rem; letter-spacing:.55px; padding:.65rem 1.05rem .62rem; background:#ffffff14; color:#fff; border:1px solid #ffffff25; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); border-radius:22px; display:inline-flex; align-items:center; gap:.35rem; box-shadow:0 2px 6px rgba(0,0,0,.28); transition:.25s; position:static; top:0; }
     .tab-link:hover { background:#555; color:#fff; }
     .tab-link.active { background:#fff; color:#333; box-shadow:0 6px 18px -4px rgba(0,0,0,.55); }
+    /* Mobile: Smaller tabs, keep in same line */
+    @media (max-width: 900px){ 
+      .tabs { gap:.4rem; margin-top:.8rem; padding:0 12px; }
+      .tab-link { font-size:.6rem; padding:.5rem .75rem .48rem; letter-spacing:.4px; }
+    }
     /* Back button styling */
     .back-btn:hover { background:#ffffff33 !important; }
     /* (Removido hack que ocultava header) */
