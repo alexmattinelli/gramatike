@@ -218,6 +218,35 @@ def create_app():
                 except Exception as e:
                     app.logger.error(f'Falha auto-reparo divulgacao: {e}')
 
+            # Auto-reparo: converter edu_content.resumo de VARCHAR para TEXT (ilimitado)
+            # Isso corrige o erro: StringDataRightTruncation: value too long for type character varying(400)
+            if 'edu_content' in tables and has_column('edu_content', 'resumo'):
+                try:
+                    # Verifica se a coluna resumo ainda é VARCHAR (não TEXT)
+                    resumo_col = next((c for c in insp.get_columns('edu_content') if c['name'] == 'resumo'), None)
+                    if resumo_col:
+                        col_type_str = str(resumo_col['type']).upper()
+                        # Se é VARCHAR, converter para TEXT
+                        if 'VARCHAR' in col_type_str or 'CHARACTER VARYING' in col_type_str:
+                            dialect_name = db.engine.dialect.name
+                            if dialect_name == 'postgresql':
+                                # PostgreSQL: converter VARCHAR para TEXT
+                                db.session.execute(text('ALTER TABLE edu_content ALTER COLUMN resumo TYPE TEXT'))
+                                app.logger.warning('Auto-reparo: convertido edu_content.resumo de VARCHAR para TEXT (PostgreSQL)')
+                            elif dialect_name == 'sqlite':
+                                # SQLite: TEXT e VARCHAR são tratados da mesma forma, mas vamos garantir
+                                # SQLite não tem ALTER COLUMN TYPE, mas VARCHAR já funciona como TEXT
+                                app.logger.info('SQLite: edu_content.resumo já aceita texto ilimitado')
+                            else:
+                                # Outros dialetos: tentar converter
+                                db.session.execute(text('ALTER TABLE edu_content ALTER COLUMN resumo TYPE TEXT'))
+                                app.logger.warning(f'Auto-reparo: convertido edu_content.resumo para TEXT ({dialect_name})')
+                        elif 'TEXT' in col_type_str or 'CLOB' in col_type_str:
+                            # Já é TEXT, tudo OK
+                            app.logger.debug('edu_content.resumo já é TEXT - nenhuma ação necessária')
+                except Exception as e:
+                    app.logger.error(f'Falha auto-reparo edu_content.resumo: {e}')
+
             db.session.commit()
             # exercise_section e exercise_question.section_id
             tables = set(insp.get_table_names())
