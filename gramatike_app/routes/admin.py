@@ -583,10 +583,11 @@ def update_edu_content(content_id: int):
     if topic_id:
         try:
             topic_id = int(topic_id)
-            # Check if topic exists
+            # Check if topic exists - use no_autoflush to prevent premature flush
             from gramatike_app.models import EduTopic
-            if not EduTopic.query.get(topic_id):
-                return {'success': False, 'message': 'Tópico selecionado não existe.'}, 400
+            with db.session.no_autoflush:
+                if not EduTopic.query.get(topic_id):
+                    return {'success': False, 'message': 'Tópico selecionado não existe.'}, 400
             c.topic_id = topic_id
         except (ValueError, TypeError):
             return {'success': False, 'message': 'ID de tópico inválido.'}, 400
@@ -663,6 +664,12 @@ def update_edu_content(content_id: int):
         db.session.rollback()
         from flask import current_app
         current_app.logger.error(f'Erro ao atualizar conteúdo {content_id}: {str(e)}')
+        
+        # Check if it's a VARCHAR truncation error
+        error_str = str(e)
+        if 'StringDataRightTruncation' in error_str or 'value too long' in error_str:
+            return {'success': False, 'message': 'Resumo muito longo. Por favor, reduza o tamanho do resumo ou contate o administrador do sistema.'}, 400
+        
         return {'success': False, 'message': f'Erro ao salvar: {str(e)}'}, 500
 
 @admin_bp.route('/edu/content/<int:content_id>/delete', methods=['POST'])
