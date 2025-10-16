@@ -18,6 +18,20 @@ Mínimo para rodar:
 - SECRET_KEY: string segura (32+ chars)
 - Opcional: DATABASE_URL (Postgres recomendado em produção); sem isso, usa SQLite local (não persiste em serverless)
 
+### Database Migrations
+
+Para aplicar migrações pendentes ao banco de dados:
+
+```bash
+# Aplicar todas as migrações pendentes
+flask db upgrade
+
+# Verificar versão atual da migração
+flask db current
+```
+
+**Nota importante:** Se você encontrar o erro `StringDataRightTruncation` relacionado ao campo `resumo`, consulte [DEPLOY_QUICK_REFERENCE.md](DEPLOY_QUICK_REFERENCE.md) para aplicar a correção que converte o campo de VARCHAR(400) para TEXT (ilimitado).
+
 E-mail (opcional, mas necessário para verificação de e-mail, reset de senha, etc.):
 
 - MAIL_SERVER: host SMTP (ex: smtp.office365.com ou smtp-relay.brevo.com)
