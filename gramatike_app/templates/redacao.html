@@ -12,7 +12,8 @@
     <style>
         :root { --primary:#9B5DE5; --primary-dark:#7d3dc9; --border:#e5e7eb; --bg:#f7f8ff; --card:#ffffff; --text:#222; --dim:#666; --danger:#ff7e5f; }
         * { box-sizing:border-box; }
-        body { margin:0; font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.55; display:flex; flex-direction:column; min-height:100vh; }
+        html, body { margin:0; padding:0; overflow-x:hidden; width:100%; max-width:100vw; }
+        body { font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.55; display:flex; flex-direction:column; min-height:100vh; }
         header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; }
         .logo { font-family:'Mansalva',cursive; font-size:2.6rem; color:#fff; font-weight:400; letter-spacing:1px; margin:0; }
         .edu-nav { margin-top:1.1rem; display:flex; flex-wrap:wrap; gap:.65rem; justify-content:center; }
@@ -39,7 +40,7 @@
     footer { margin-top:4.4rem; background:#9B5DE5; color:#fff; text-align:center; padding:1.4rem 1rem 1.6rem; font-size:.75rem; letter-spacing:.5px; font-weight:700; border-top-left-radius:38px; border-top-right-radius:38px; }
     @media (max-width: 980px){ footer { display:none !important; } }
         @media (max-width:860px){ .a4-wrapper{ flex-direction:row; } .a4-lines{ flex:0 0 38px; } .a4-lines li{ font-size:10px; } .a4-editor textarea{ font-size:15px; line-height:22px; height:calc(22px * 30); } }
-        @media (max-width:720px){ header.site-head{ padding:24px 18px 38px; } .logo{ font-size:2.2rem; } form.redacao-form{ padding:1.4rem 1.2rem 1.8rem; } }
+        @media (max-width:720px){ header.site-head{ padding:12px 18px 18px; } .logo{ font-size:1.5rem; } form.redacao-form{ padding:1.4rem 1.2rem 1.8rem; } }
     </style>
 </head>
 <body>
