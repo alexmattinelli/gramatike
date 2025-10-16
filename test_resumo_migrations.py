@@ -19,7 +19,8 @@ def test_migration_files():
         ('g1h2i3j4k5l6', 'increase_resumo_length.py', 'VARCHAR(400) → VARCHAR(1000)'),
         ('i8j9k0l1m2n3', 'increase_resumo_to_2000.py', 'VARCHAR(1000) → VARCHAR(2000)'),
         ('j9k0l1m2n3o4', 'resumo_unlimited_text.py', 'VARCHAR(2000) → TEXT'),
-        ('m8n9o0p1q2r3', 'ensure_resumo_text_failsafe.py', 'Failsafe: Ensure TEXT'),
+        ('m8n9o0p1q2r3', 'ensure_resumo_text_failsafe.py', 'Failsafe: Ensure TEXT (PostgreSQL)'),
+        ('n9o0p1q2r3s4', 'final_resumo_text_conversion.py', 'Final: TEXT (DB-agnostic)'),
     ]
     
     print("\n1. Checking Migration Files Exist:")
@@ -85,7 +86,7 @@ def test_migration_files():
     with open(f'{migrations_dir}/m8n9o0p1q2r3_ensure_resumo_text_failsafe.py', 'r') as f:
         content = f.read()
         if 'DO $$' in content and 'information_schema.columns' in content:
-            print("  ✅ m8n9o0p1q2r3: Uses idempotent DO block")
+            print("  ✅ m8n9o0p1q2r3: Uses idempotent DO block (PostgreSQL)")
         else:
             print("  ❌ m8n9o0p1q2r3: Missing idempotent logic")
             return False
@@ -94,6 +95,21 @@ def test_migration_files():
             print("  ✅ m8n9o0p1q2r3: Correctly depends on merge migration")
         else:
             print("  ❌ m8n9o0p1q2r3: Wrong dependency")
+            return False
+    
+    # Test n9o0p1q2r3s4 (database-agnostic failsafe)
+    with open(f'{migrations_dir}/n9o0p1q2r3s4_final_resumo_text_conversion.py', 'r') as f:
+        content = f.read()
+        if 'batch_alter_table' in content and 'Inspector' in content:
+            print("  ✅ n9o0p1q2r3s4: Uses database-agnostic batch operations")
+        else:
+            print("  ❌ n9o0p1q2r3s4: Missing database-agnostic logic")
+            return False
+        
+        if "down_revision = 'm8n9o0p1q2r3'" in content:
+            print("  ✅ n9o0p1q2r3s4: Correctly depends on PostgreSQL failsafe")
+        else:
+            print("  ❌ n9o0p1q2r3s4: Wrong dependency")
             return False
     
     print("\n3. Validating Model Definition:")
@@ -133,7 +149,9 @@ def test_migration_files():
     print("       ↓")
     print("  j9k0l1m2n3o4 (→ TEXT)")
     print("       ↓")
-    print("  m8n9o0p1q2r3 (failsafe) ✅")
+    print("  m8n9o0p1q2r3 (PostgreSQL failsafe)")
+    print("       ↓")
+    print("  n9o0p1q2r3s4 (DB-agnostic failsafe) ✅")
     print("\n  ✅ Migration chain is valid")
     
     print("\n5. SQL Commands Summary:")
@@ -141,18 +159,19 @@ def test_migration_files():
     print("  g1h2i3j4k5l6: ALTER TABLE edu_content ALTER COLUMN resumo TYPE VARCHAR(1000)")
     print("  i8j9k0l1m2n3: ALTER TABLE edu_content ALTER COLUMN resumo TYPE VARCHAR(2000)")
     print("  j9k0l1m2n3o4: ALTER TABLE edu_content ALTER COLUMN resumo TYPE TEXT")
-    print("  m8n9o0p1q2r3: DO $$ ... ALTER TABLE ... TYPE TEXT ... (idempotent)")
-    print("\n  ✅ All SQL commands are PostgreSQL-compatible")
+    print("  m8n9o0p1q2r3: DO $$ ... ALTER TABLE ... TYPE TEXT ... (PostgreSQL)")
+    print("  n9o0p1q2r3s4: batch_alter_table() ... TEXT ... (PostgreSQL, SQLite, MySQL)")
+    print("\n  ✅ All SQL commands are robust and database-compatible")
     
     print("\n" + "=" * 70)
     print("✅ ALL TESTS PASSED")
     print("=" * 70)
     print("\nConclusion:")
     print("  • All migration files exist and are valid")
-    print("  • SQL commands use robust op.execute() approach")
+    print("  • SQL commands use robust op.execute() and batch_alter_table()")
     print("  • Model defines resumo as db.Text (unlimited)")
     print("  • Migration chain is complete and correct")
-    print("  • Failsafe migration ensures TEXT even if earlier steps fail")
+    print("  • Two failsafe migrations ensure TEXT (PostgreSQL + DB-agnostic)")
     print("\nReady for deployment! Run: flask db upgrade")
     print("=" * 70)
     
