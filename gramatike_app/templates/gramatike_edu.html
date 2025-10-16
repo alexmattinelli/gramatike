@@ -49,6 +49,13 @@
   .fi-title { font-size:.95rem; font-weight:800; letter-spacing:.45px; color:#6233B5; margin:0 0 .4rem; }
   .fi-meta { font-size:.58rem; letter-spacing:.55px; font-weight:800; text-transform:uppercase; color:#7d3dc9; margin:0 0 .35rem; }
   .fi-body { font-size:.7rem; line-height:1.4; color:var(--text-dim); font-weight:500; margin:0; }
+  /* Preserve HTML formatting in novidade descriptions */
+  .fi-body p { margin:.4rem 0; }
+  .fi-body strong, .fi-body b { font-weight:800; color:var(--text); }
+  .fi-body em, .fi-body i { font-style:italic; }
+  .fi-body ul, .fi-body ol { margin:.4rem 0; padding-left:1.5rem; }
+  .fi-body li { margin:.2rem 0; }
+  .fi-body h1, .fi-body h2, .fi-body h3 { font-size:.85rem; font-weight:800; margin:.6rem 0 .4rem; color:#6233B5; }
   .fi-tags { margin:.55rem 0 0; display:flex; flex-wrap:wrap; gap:.4rem; }
   .fi-tags span { font-size:.55rem; letter-spacing:.55px; font-weight:800; padding:.4rem .65rem .35rem; background:#f1edff; color:#6233B5; border:1px solid #e1d4fb; border-radius:18px; }
   .side-col { display:flex; flex-direction:column; gap:1.4rem; position:sticky; top:12px; }
@@ -467,7 +474,7 @@
         } else {
           node.querySelector('.fi-title').textContent = it.title || '(Sem título)';
         }
-        node.querySelector('.fi-body').textContent = it.snippet || (it.resumo||'');
+        node.querySelector('.fi-body').innerHTML = it.snippet || (it.resumo||'');
         const tags = node.querySelector('.fi-tags');
         // For POST source type, add "Confira" as first tag
         if ((it.source||'').toLowerCase() === 'post') {

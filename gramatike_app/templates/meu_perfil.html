@@ -41,6 +41,11 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
     }
 
   header.site-head { background:#9B5DE5; padding:18px clamp(16px,4vw,40px) 28px; border-bottom-left-radius:35px; border-bottom-right-radius:35px; position:relative; display:flex; flex-direction:column; align-items:center; }
+    /* Mobile: Header mais compacto */
+    @media (max-width: 900px){ 
+      header.site-head { padding:14px clamp(12px,3vw,20px) 22px; }
+      .logo { font-size:1.8rem !important; }
+    }
     .logo { font-family: var(--font-brand) !important; font-size:2.5rem; color:#fff; letter-spacing:1px; font-weight:400; }
   /* Avatar do usuário no cabeçalho */
   .profile-avatar-link { position:absolute; right:24px; top:50%; transform:translateY(-50%); display:inline-flex; align-items:center; justify-content:center; width:58px; height:58px; border-radius:50%; border:3px solid #ffffff55; box-shadow:0 4px 14px rgba(0,0,0,.25); overflow:hidden; background:#ffffff22; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); cursor:pointer; text-decoration:none; transition: box-shadow .25s, transform .18s; }
@@ -172,7 +177,11 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
     .toggle-comments-btn-perfil:hover { background:#9B5DE5; color:#fff; border-color:#9B5DE5; }
 
     @media (max-width: 900px) {
-      .profile-header, .tabs, .tab-content { width: 100%; }
+      .profile-header, .tabs, .tab-content { width: 100%; padding: 1.2rem; }
+      .profile-header { flex-direction: column; text-align: center; }
+      .avatar { width: 80px; height: 80px; font-size: 2rem; }
+      .profile-info h2 { font-size: 1.1rem; }
+      main { padding: 0 16px; margin: 1rem 0; }
     }
 
     .post {
