@@ -28,6 +28,9 @@ class Config:
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))
     # CSRF em formulários; para APIs usamos isenção no app
     WTF_CSRF_ENABLED = True
+    # CSRF token timeout: 8 horas (28800 segundos) para suportar sessões longas de edição
+    # Default do Flask-WTF é 3600 segundos (1 hora)
+    WTF_CSRF_TIME_LIMIT = int(os.environ.get('WTF_CSRF_TIME_LIMIT', 28800))
     # Opções extras do engine para conexões estáveis em ambientes serverless
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_pre_ping': True,
