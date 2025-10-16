@@ -589,12 +589,11 @@ def update_edu_content(content_id: int):
             return {}
     extra = _parse_extra(c.extra)
     # Atualiza autor/canal se enviado
-    autor = request.form.get('autor','').strip() or None
-    if autor is not None:
-        if autor:
-            extra['author'] = autor
-        else:
-            extra.pop('author', None)
+    autor = request.form.get('autor','').strip()
+    if autor:
+        extra['author'] = autor
+    else:
+        extra.pop('author', None)
     if c.tipo == 'podcast' and url_field:
         m_iframe = re.search(r'src=\"https?://open\.spotify\.com/embed/(episode|show)/([A-Za-z0-9]+)[^\"]*\"', url_field, re.I)
         m_link = re.search(r'spotify\.com/(?:[^/]+/)?(episode|show)/([A-Za-z0-9]+)', url_field, re.I)
@@ -644,9 +643,15 @@ def update_edu_content(content_id: int):
                 thumb_file.save(save_path)
                 extra['thumb'] = f"uploads/videos/thumbs/{save_name}"
     c.extra = json.dumps(extra) if extra else None
-    db.session.commit()
-    # Sempre retornar JSON pois esta rota é usada apenas via AJAX
-    return {'success': True, 'message': 'Conteúdo atualizado.'}, 200
+    try:
+        db.session.commit()
+        # Sempre retornar JSON pois esta rota é usada apenas via AJAX
+        return {'success': True, 'message': 'Conteúdo atualizado.'}, 200
+    except Exception as e:
+        db.session.rollback()
+        from flask import current_app
+        current_app.logger.error(f'Erro ao atualizar conteúdo {content_id}: {str(e)}')
+        return {'success': False, 'message': f'Erro ao salvar: {str(e)}'}, 500
 
 @admin_bp.route('/edu/content/<int:content_id>/delete', methods=['POST'])
 @login_required
