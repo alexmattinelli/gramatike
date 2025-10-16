@@ -14,16 +14,12 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
-    # Change resumo field from VARCHAR(2000) to TEXT (unlimited)
-    op.alter_column('edu_content', 'resumo',
-                    existing_type=sa.String(length=2000),
-                    type_=sa.Text(),
-                    existing_nullable=True)
+    # Change resumo field to TEXT (unlimited)
+    # Using direct SQL for PostgreSQL compatibility
+    # Works regardless of current VARCHAR length (400, 1000, or 2000)
+    op.execute("ALTER TABLE edu_content ALTER COLUMN resumo TYPE TEXT")
 
 def downgrade():
     # Revert resumo field back to VARCHAR(2000)
     # Note: This may truncate data if resumo exceeds 2000 characters
-    op.alter_column('edu_content', 'resumo',
-                    existing_type=sa.Text(),
-                    type_=sa.String(length=2000),
-                    existing_nullable=True)
+    op.execute("ALTER TABLE edu_content ALTER COLUMN resumo TYPE VARCHAR(2000)")

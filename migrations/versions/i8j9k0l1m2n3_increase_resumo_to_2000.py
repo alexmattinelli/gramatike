@@ -15,14 +15,9 @@ depends_on = None
 
 def upgrade():
     # Increase resumo field from VARCHAR(1000) to VARCHAR(2000)
-    op.alter_column('edu_content', 'resumo',
-                    existing_type=sa.String(length=1000),
-                    type_=sa.String(length=2000),
-                    existing_nullable=True)
+    # Using direct SQL for PostgreSQL compatibility
+    op.execute("ALTER TABLE edu_content ALTER COLUMN resumo TYPE VARCHAR(2000)")
 
 def downgrade():
     # Revert resumo field back to VARCHAR(1000)
-    op.alter_column('edu_content', 'resumo',
-                    existing_type=sa.String(length=2000),
-                    type_=sa.String(length=1000),
-                    existing_nullable=True)
+    op.execute("ALTER TABLE edu_content ALTER COLUMN resumo TYPE VARCHAR(1000)")
