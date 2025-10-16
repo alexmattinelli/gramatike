@@ -234,7 +234,7 @@
                                                           <div style="font-size:.7rem; color:#5b6a7c;">Autore: {{ extra.author }}</div>
                                                     {% endif %}
                                                     {% if c.resumo %}
-                                                        {% set resumo_limit = 300 %}
+                                                        {% set resumo_limit = 150 %}
                                                         {% if c.resumo|length > resumo_limit %}
                                                             <div class="resumo-container" data-id="{{ c.id }}">
                                                                 <div class="resumo-short" style="font-size:.7rem; color:#666; margin-top:2px;">

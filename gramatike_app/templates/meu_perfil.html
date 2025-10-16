@@ -663,7 +663,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
                 ${ (post.images && post.images.length) ? renderPostImages(post.images.join('|')) : (post.imagem ? renderPostImages(post.imagem) : '') }
                 <div class='likes-list' style='font-size:.9rem;margin:.4rem 0;'></div>
                 <div class='post-actions'>
-                  <button class='like-btn-perfil' data-post-id='${post.id}'>❤️ Curtir</button>
+                  <button class='like-btn-perfil ${post.liked ? 'liked' : ''}' data-post-id='${post.id}'>${post.liked ? '❤️ Curtido' : '❤️ Curtir'}</button>
                   <button class='comment-btn-perfil' data-post-id='${post.id}'>💬 Comentar</button>
                   <button class='toggle-comments-btn-perfil' data-post-id='${post.id}'>↓</button>
                 </div>

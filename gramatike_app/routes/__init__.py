@@ -416,6 +416,13 @@ def get_posts_me():
             data_str = ''
         imagens_concat = p.imagem or ''
         imagens_list = [seg for seg in imagens_concat.split('|') if seg]
+        # Check if current user liked this post
+        liked = False
+        try:
+            if current_user.is_authenticated:
+                liked = current_user in p.likes
+        except Exception:
+            pass
         result.append({
             'id': p.id,
             'usuario': user.username,
@@ -425,7 +432,8 @@ def get_posts_me():
             'data': data_str,
             'foto_perfil': user.foto_perfil or 'img/perfil.png',
             'bio': user.bio or '',
-            'can_delete': True
+            'can_delete': True,
+            'liked': liked
         })
     return jsonify(result)
 
@@ -444,6 +452,13 @@ def get_posts_usuario(user_id):
             data_str = ''
         imagens_concat = p.imagem or ''
         imagens_list = [seg for seg in imagens_concat.split('|') if seg]
+        # Check if current user liked this post
+        liked = False
+        try:
+            if current_user.is_authenticated:
+                liked = current_user in p.likes
+        except Exception:
+            pass
         result.append({
             'id': p.id,
             'usuario': user.username,
@@ -453,7 +468,8 @@ def get_posts_usuario(user_id):
             'data': data_str,
             'foto_perfil': user.foto_perfil or 'img/perfil.png',
             'bio': user.bio or '',
-            'can_delete': (current_user.is_authenticated and (current_user.id == user.id or getattr(current_user,'is_admin',False)))
+            'can_delete': (current_user.is_authenticated and (current_user.id == user.id or getattr(current_user,'is_admin',False))),
+            'liked': liked
         })
     return jsonify(result)
 
