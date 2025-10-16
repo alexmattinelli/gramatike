@@ -579,7 +579,19 @@ def update_edu_content(content_id: int):
     c.titulo = titulo
     c.resumo = resumo
     c.url = url_field
-    c.topic_id = int(topic_id) if topic_id else None
+    # Validate topic_id if provided
+    if topic_id:
+        try:
+            topic_id = int(topic_id)
+            # Check if topic exists
+            from gramatike_app.models import EduTopic
+            if not EduTopic.query.get(topic_id):
+                return {'success': False, 'message': 'Tópico selecionado não existe.'}, 400
+            c.topic_id = topic_id
+        except (ValueError, TypeError):
+            return {'success': False, 'message': 'ID de tópico inválido.'}, 400
+    else:
+        c.topic_id = None
     # Atualiza extras conforme tipo
     import json, re, os, uuid
     def _parse_extra(text):
