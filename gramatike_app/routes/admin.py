@@ -579,7 +579,19 @@ def update_edu_content(content_id: int):
     c.titulo = titulo
     c.resumo = resumo
     c.url = url_field
-    c.topic_id = int(topic_id) if topic_id else None
+    # Validate topic_id if provided
+    if topic_id:
+        try:
+            topic_id = int(topic_id)
+            # Check if topic exists
+            from gramatike_app.models import EduTopic
+            if not EduTopic.query.get(topic_id):
+                return {'success': False, 'message': 'Tópico selecionado não existe.'}, 400
+            c.topic_id = topic_id
+        except (ValueError, TypeError):
+            return {'success': False, 'message': 'ID de tópico inválido.'}, 400
+    else:
+        c.topic_id = None
     # Atualiza extras conforme tipo
     import json, re, os, uuid
     def _parse_extra(text):
@@ -589,12 +601,11 @@ def update_edu_content(content_id: int):
             return {}
     extra = _parse_extra(c.extra)
     # Atualiza autor/canal se enviado
-    autor = request.form.get('autor','').strip() or None
-    if autor is not None:
-        if autor:
-            extra['author'] = autor
-        else:
-            extra.pop('author', None)
+    autor = request.form.get('autor','').strip()
+    if autor:
+        extra['author'] = autor
+    else:
+        extra.pop('author', None)
     if c.tipo == 'podcast' and url_field:
         m_iframe = re.search(r'src=\"https?://open\.spotify\.com/embed/(episode|show)/([A-Za-z0-9]+)[^\"]*\"', url_field, re.I)
         m_link = re.search(r'spotify\.com/(?:[^/]+/)?(episode|show)/([A-Za-z0-9]+)', url_field, re.I)
@@ -644,9 +655,15 @@ def update_edu_content(content_id: int):
                 thumb_file.save(save_path)
                 extra['thumb'] = f"uploads/videos/thumbs/{save_name}"
     c.extra = json.dumps(extra) if extra else None
-    db.session.commit()
-    # Sempre retornar JSON pois esta rota é usada apenas via AJAX
-    return {'success': True, 'message': 'Conteúdo atualizado.'}, 200
+    try:
+        db.session.commit()
+        # Sempre retornar JSON pois esta rota é usada apenas via AJAX
+        return {'success': True, 'message': 'Conteúdo atualizado.'}, 200
+    except Exception as e:
+        db.session.rollback()
+        from flask import current_app
+        current_app.logger.error(f'Erro ao atualizar conteúdo {content_id}: {str(e)}')
+        return {'success': False, 'message': f'Erro ao salvar: {str(e)}'}, 500
 
 @admin_bp.route('/edu/content/<int:content_id>/delete', methods=['POST'])
 @login_required
