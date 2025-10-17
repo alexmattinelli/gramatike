@@ -471,7 +471,6 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       <div class="profile-info">
   <h2 style="font-family: var(--font-brand); font-weight:400; letter-spacing:1px;">@{{ current_user.username }}</h2>
         <div style="display:flex;gap:1rem;margin-bottom:0.7rem;flex-wrap:nowrap;justify-content:center;">
-          <span id="cnt-postagens" style="white-space:nowrap;"><b>0</b> postagens</span>
           <span id="cnt-seguidores" style="white-space:nowrap;"><b>0</b> seguidories</span>
           <span id="cnt-seguindo" style="white-space:nowrap;"><b>0</b> seguindo</span>
         </div>
@@ -623,14 +622,9 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       }
     }
 
-  // Atualiza contadores de postagens, seguidories/seguindo (escopo global)
+  // Atualiza contadores de seguidories/seguindo (escopo global)
     function atualizarContadores() {
-      fetch('/api/posts/me')
-        .then(res => res.json())
-        .then(posts => {
-          const el = document.getElementById('cnt-postagens');
-          if(el) el.innerHTML = `<b>${posts.length}</b> postagens`;
-        }).catch(()=>{});
+      // Postagens counter removed as per user request
       fetch(`/api/seguidores/${window.USER_ID}`)
         .then(res => res.json())
         .then(lista => {
