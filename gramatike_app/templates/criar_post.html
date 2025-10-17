@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Novo Post • Gramátike</title>
 <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<!-- Quill.js for Rich Text Editor -->
-<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <style>
 :root {
   --font-base: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -25,16 +22,9 @@ main { max-width:780px; margin:2.2rem auto 3.2rem; background:var(--card); paddi
 main h1 { margin:0 0 1.8rem; font-size:1.9rem; font-weight:800; letter-spacing:.5px; color:#9B5DE5; }
 .form-group { margin-bottom:1.2rem; }
 .form-group label { display:block; font-weight:700; font-size:.85rem; text-transform:uppercase; letter-spacing:.6px; margin-bottom:.55rem; color:#9B5DE5; }
-/* Quill Editor Styles */
-#editor-container { min-height:180px; background:#fff; border:1px solid var(--border); border-radius:18px; font-family:var(--font-base); font-size:1rem; }
-.ql-toolbar.ql-snow { border-top-left-radius:18px; border-top-right-radius:18px; background:#fafafa; border:1px solid var(--border); border-bottom:none; }
-.ql-container.ql-snow { border-bottom-left-radius:18px; border-bottom-right-radius:18px; border:1px solid var(--border); border-top:none; min-height:180px; }
-.ql-editor { min-height:180px; font-size:1rem; line-height:1.5; }
-.ql-editor:focus { outline:none; }
-#editor-container:focus-within .ql-toolbar { border-color:#9B5DE5; }
-#editor-container:focus-within .ql-container { border-color:#9B5DE5; }
-textarea { width:100%; min-height:180px; resize:vertical; padding:1rem 1.1rem 2.2rem; font-family:var(--font-base); font-size:1rem; line-height:1.5; border:1px solid var(--border); border-radius:18px; background:#fafafa; position:relative; display:none; }
-textarea:focus { outline:2px solid #9B5DE5; outline-offset:2px; background:#fff; }
+/* Simple textarea instead of rich text editor */
+textarea#conteudo { width:100%; min-height:180px; resize:vertical; padding:1rem 1.1rem 2.2rem; font-family:var(--font-base); font-size:1rem; line-height:1.5; border:1px solid var(--border); border-radius:18px; background:#fafafa; position:relative; display:block; box-sizing:border-box; }
+textarea#conteudo:focus { outline:2px solid #9B5DE5; outline-offset:2px; background:#fff; }
 .actions { display:flex; gap:.9rem; justify-content:flex-end; margin-top:1.4rem; }
 button, a.btn { border:none; cursor:pointer; font-family:var(--font-base); font-weight:700; font-size:.9rem; letter-spacing:.5px; padding:.85rem 1.6rem; border-radius:50px; text-decoration:none; display:inline-flex; align-items:center; gap:.4rem; }
 button.primary { background:#9B5DE5; color:#fff; box-shadow:0 8px 24px rgba(155,93,229,.4); }
@@ -83,11 +73,10 @@ footer { text-align:center; font-size:.75rem; padding:2rem 1rem 2.4rem; color:#6
     <div class="form-group">
       <label for="conteudo">Conteúdo</label>
       <div style="position:relative;">
-        <div id="editor-container"></div>
-        <input type="hidden" id="conteudo" name="conteudo" />
+        <textarea id="conteudo" name="conteudo" placeholder="O que você está pensando? Use @ para mencionar usuáries e # para hashtags..." maxlength="1000" required></textarea>
         <span id="char-counter" class="char-counter" aria-live="polite">0 / 1000</span>
       </div>
-      <div id="conteudo-help" class="notice">Use @ para mencionar usuáries e # para hashtags. Formate o texto com <strong>negrito</strong>, <em>itálico</em> e mais! Até 1000 caracteres.</div>
+      <div id="conteudo-help" class="notice">Use @ para mencionar usuáries e # para hashtags. Até 1000 caracteres.</div>
     </div>
     <div class="form-group">
       <label for="imagens">Imagens (opcional)</label>
@@ -236,37 +225,13 @@ footer { text-align:center; font-size:.75rem; padding:2rem 1rem 2.4rem; color:#6
   © 2025 Gramátike • Inclusão e Gênero Neutro
 </footer>
 <script>
-// Initialize Quill Rich Text Editor
-const quill = new Quill('#editor-container', {
-    theme: 'snow',
-    modules: {
-        toolbar: [
-            [{ 'header': [1, 2, 3, false] }],
-            ['bold', 'italic', 'underline'],
-            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            ['link'],
-            ['clean']
-        ]
-    },
-    placeholder: 'Escreva sua ideia, reflexão, pergunta...'
-});
-
-// Character counter for Quill
+// Character counter for textarea
+const conteudoTextarea = document.getElementById('conteudo');
 const charCounter = document.getElementById('char-counter');
-const conteudoInput = document.getElementById('conteudo');
 
-quill.on('text-change', function() {
-    const text = quill.getText().trim();
-    const length = text.length;
+conteudoTextarea.addEventListener('input', function() {
+    const length = this.value.length;
     charCounter.textContent = length + ' / 1000';
-    
-    // Update hidden input with HTML content
-    conteudoInput.value = quill.root.innerHTML;
-    
-    // Enforce character limit
-    if (length > 1000) {
-        quill.deleteText(1000, length);
-    }
 });
 
 const form = document.getElementById('create-post-form');
@@ -278,16 +243,15 @@ const btnSubmit = document.getElementById('btn-submit');
 form.addEventListener('submit', async e => {
   e.preventDefault();
   
-  // Get content from Quill editor
-  const conteudo = quill.getText().trim();
-  const conteudoHTML = quill.root.innerHTML;
+  // Get content from textarea
+  const conteudo = conteudoTextarea.value.trim();
   
   if(!conteudo){ alert('Conteúdo vazio.'); return; }
   if(conteudo.length > 1000){ alert('Conteúdo muito longo. Máximo 1000 caracteres.'); return; }
   
   btnSubmit.classList.add('disabled'); btnSubmit.textContent='Publicando…';
   const fd = new FormData(); 
-  fd.append('conteudo', conteudoHTML);  // Send HTML content
+  fd.append('conteudo', conteudo);  // Send plain text content
   
   const files = Array.from(imagensInput.files||[]).slice(0,4);
   const total = files.length || 1;
