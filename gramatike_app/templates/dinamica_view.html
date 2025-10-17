@@ -14,10 +14,13 @@
   /* Mobile: Header mais compacto */
   @media (max-width:768px){ 
     header.site-head { padding:12px clamp(12px,3vw,24px) 18px; max-width:100%; }
-    .logo { font-size:1.5rem; max-width:100%; } 
+    .logo { font-size:1.8rem; max-width:100%; } 
     main { padding:0 12px; margin:1.5rem auto 2rem; max-width:100%; overflow-x:hidden; }
     .card { padding:.9rem; border-radius:16px; max-width:100%; overflow-x:hidden; box-sizing:border-box; }
-    .poll-label { min-width:70px; font-size:.7rem; overflow-wrap:break-word; }
+    .poll-label { min-width:70px; font-size:.7rem; overflow-wrap:break-word; word-break:break-word; }
+    .poll-row { flex-wrap:wrap; gap:.4rem; }
+    .poll-bar { min-width:120px; flex:1 1 120px; }
+    .poll-pct { width:auto; min-width:50px; }
     .cloud { padding:.8rem; gap:.4rem .6rem; max-width:100%; box-sizing:border-box; }
     .builder-card { max-width:100%; box-sizing:border-box; padding:.6rem; overflow-wrap:break-word; }
     input[type="text"], textarea { font-size:16px; max-width:100%; box-sizing:border-box; } /* Prevent iOS zoom */
