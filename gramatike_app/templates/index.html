@@ -175,8 +175,6 @@ button { font-family: var(--font-base); font-weight:600; }
   .post-content p { margin:.5rem 0; }
   .post-media img { width:100%; display:block; border-radius:24px; margin:.6rem 0 1.1rem; object-fit:contain; background:#f3f4f6; max-height:380px; cursor:pointer; }
   .post-media { position:relative; overflow:hidden; }
-  .post-media img[data-lazy] { filter:blur(18px) brightness(.92); transform:scale(1.02); }
-  .post-media img.is-loaded { filter:blur(0) brightness(1); transform:scale(1); transition:filter .6s ease, transform .6s ease; }
   .post-media.multi { display:grid; gap:8px; margin:.6rem 0 1.1rem; }
   .post-media.multi.grid-2 { grid-template-columns:repeat(2,1fr); }
   .post-media.multi.grid-3 { grid-template-columns:repeat(3,1fr); }
@@ -852,14 +850,14 @@ function renderPostImages(raw){
   const getSrc = (path) => /^https?:\/\//i.test(path) ? path : `/static/${path}`;
   if(parts.length === 1){
     const src = getSrc(parts[0]);
-    return `<div class="post-media"><img data-src="${src}" data-lazy="1" alt="Imagem do post" onclick="openImageModal('${src}')" onerror="this.style.display='none'"/></div>`;
+    return `<div class="post-media"><img src="${src}" alt="Imagem do post" onclick="openImageModal('${src}')" onerror="this.style.display='none'"/></div>`;
   }
   // Grid simples para múltiplas
   const cls = parts.length===2? 'grid-2' : (parts.length===3? 'grid-3':'grid-4');
   // Futuro: detectar thumbs (path com _th) e preferir carregá-las primeiro
   const imgs = parts.map(p=>{
     const src = getSrc(p);
-    return `<div class="pm-item"><img data-src="${src}" data-lazy="1" alt="Imagem do post" onclick="openImageModal('${src}')" onerror="this.style.display='none'"/></div>`;
+    return `<div class="pm-item"><img src="${src}" alt="Imagem do post" onclick="openImageModal('${src}')" onerror="this.style.display='none'"/></div>`;
   }).join('');
   return `<div class="post-media multi ${cls}">${imgs}</div>`;
 }
@@ -1239,39 +1237,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }).catch(()=>{});
 });
 // Lazy loading de imagens de posts (IntersectionObserver)
-const _lazyObserver = 'IntersectionObserver' in window ? new IntersectionObserver((entries, obs)=>{
-  entries.forEach(ent=>{
-    if(ent.isIntersecting){
-      const img = ent.target;
-      const src = img.getAttribute('data-src');
-      if(src){
-        img.src = src;
-        img.addEventListener('load', ()=>{ img.classList.add('is-loaded'); });
-        img.removeAttribute('data-lazy');
-        img.removeAttribute('data-src');
-      }
-      obs.unobserve(img);
-    }
-  });
-}, {rootMargin:'150px 0px'} ) : null;
-
-function hookLazyImages(scope){
-  if(!_lazyObserver) return;
-  scope.querySelectorAll('img[data-lazy]').forEach(img=> _lazyObserver.observe(img));
-}
-
-// Após cada loadPosts concluído, chamaremos hookLazyImages
-const _origLoadPosts = loadPosts;
-loadPosts = function(params={}){
-  _origLoadPosts(params);
-  // polling leve para esperar inserção
-  let tries = 0;
-  const t = setInterval(()=>{
-    tries++;
-    hookLazyImages(document);
-    if(tries>10) clearInterval(t);
-  },120);
-};
 // (Menu removido conforme solicitado)
 
 // (Removido código de pills e trending do layout novo)
