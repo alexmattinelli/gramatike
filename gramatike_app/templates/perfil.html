@@ -631,15 +631,18 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       if(!parts.length) return '';
       // Helper: determinar src correto (URL ou path local)
       const getSrc = (path) => /^https?:\/\//i.test(path) ? path : `/static/${path}`;
+      // Melhor tratamento de erro: mostra placeholder ao invés de esconder
+      const onError = `this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial,sans-serif%22 font-size=%2214%22 fill=%22%23999%22%3EImagem não disponível%3C/text%3E%3C/svg%3E'; this.style.cursor='default'; this.onclick=null; console.warn('Imagem falhou ao carregar:', this.getAttribute('data-original-src'));`;
+      
       if(parts.length === 1){
         const src = getSrc(parts[0]);
-        return `<div class="post-media"><img src="${src}" alt="Imagem do post" onclick="openImageModal('${src}')" onerror="this.style.display='none'"/></div>`;
+        return `<div class="post-media"><img src="${src}" alt="Imagem do post" data-original-src="${src}" onclick="openImageModal('${src}')" onerror="${onError}"/></div>`;
       }
       // Grid simples para múltiplas
       const cls = parts.length===2? 'grid-2' : (parts.length===3? 'grid-3':'grid-4');
       const imgs = parts.map(p=>{
         const src = getSrc(p);
-        return `<div class="pm-item"><img src="${src}" alt="Imagem do post" onclick="openImageModal('${src}')" onerror="this.style.display='none'"/></div>`;
+        return `<div class="pm-item"><img src="${src}" alt="Imagem do post" data-original-src="${src}" onclick="openImageModal('${src}')" onerror="${onError}"/></div>`;
       }).join('');
       return `<div class="post-media multi ${cls}">${imgs}</div>`;
     }
