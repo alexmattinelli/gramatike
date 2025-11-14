@@ -79,10 +79,22 @@ Supabase Storage (necessário para upload de arquivos em ambientes serverless co
 - SUPABASE_SERVICE_ROLE_KEY: chave de serviço do Supabase (encontrada em Settings > API)
 - SUPABASE_BUCKET: nome do bucket de storage (padrão: 'avatars', mas você pode usar qualquer bucket configurado)
 
-**Importante:** No Supabase Storage, você precisa:
+**🚨 IMPORTANTE - Configuração Necessária para Imagens Funcionarem:**
+
+Se as imagens não estiverem aparecendo no site, o problema mais comum é que o bucket do Supabase não está configurado corretamente. Você precisa:
+
 1. Criar um bucket (ex: 'avatars') em Storage
-2. Configurar políticas de acesso público para leitura dos arquivos
-3. Permitir upload/update através da service role key
+2. **Marcar o bucket como "Public bucket"** (ESSENCIAL!)
+3. Configurar políticas RLS de acesso público para leitura dos arquivos
+4. Permitir upload/update através da service role key
+
+**📖 Guia Completo:** Veja [SUPABASE_BUCKET_SETUP.md](SUPABASE_BUCKET_SETUP.md) para instruções detalhadas passo-a-passo.
+
+**🔧 Diagnóstico:** Se as imagens não funcionarem, execute o script de diagnóstico:
+```bash
+python diagnose_images.py
+```
+Este script verifica automaticamente sua configuração e identifica problemas.
 
 RAG/IA (opcional):
 
