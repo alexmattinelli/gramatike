@@ -67,17 +67,16 @@ print("""
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🚀 COMO USAR NA VERCEL:
+🚀 COMO USAR EM PRODUÇÃO:
 
-1. Acesse: Vercel Dashboard → Deployments → [seu deploy]
-2. Clique em: Runtime Logs
-3. Procure: "Erro 500:" nos logs
-4. Analise:
+1. Acesse: Painel de Logs da sua plataforma de hospedagem
+2. Procure: "Erro 500:" nos logs
+3. Analise:
    • Tipo exato do erro
    • Mensagem detalhada
    • Path afetado  
    • Stack trace completo
-5. Corrija o bug rapidamente! 🔧
+4. Corrija o bug rapidamente! 🔧
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

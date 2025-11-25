@@ -1,5 +1,5 @@
 # api/index.py
-# Flask WSGI entrypoint for serverless platforms (Cloudflare Pages/Workers, Vercel, etc.)
+# Flask WSGI entrypoint for serverless platforms (Cloudflare Pages/Workers, etc.)
 # Exposes `app` so the platform can detect and serve the Flask application.
 
 from gramatike_app import create_app

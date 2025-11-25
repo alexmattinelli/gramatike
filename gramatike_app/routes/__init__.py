@@ -6,7 +6,7 @@ import os
 import re
 from werkzeug.utils import secure_filename
 from mimetypes import guess_type
-from gramatike_app.utils.storage import upload_bytes_to_supabase, build_avatar_path, build_post_image_path, build_apostila_path, build_divulgacao_path
+from gramatike_app.utils.storage import upload_to_storage, build_avatar_path, build_post_image_path, build_apostila_path, build_divulgacao_path
 from gramatike_app.models import User, db, Post, Curtida, Comentario, Report, EduContent, EduTopic, ExerciseTopic, ExerciseQuestion, ExerciseSection, SupportTicket, Divulgacao, post_likes, PostImage, Dynamic, DynamicResponse
 from gramatike_app.utils.emailer import send_email, render_welcome_email, render_verify_email, render_reset_email, render_change_email_email
 from gramatike_app.utils.tokens import generate_token, verify_token
@@ -576,15 +576,15 @@ def editar_perfil():
         except Exception:
             user.data_nascimento = None
     if foto and foto.filename:
-        # Upload de avatar: tentaSupabase primeiro; se falhar, tenta salvar localmente.
+        # Upload de avatar: tenta storage primeiro; se falhar, tenta salvar localmente.
         try:
             filename = secure_filename(foto.filename)
-            # Tenta enviar para Supabase Storage
+            # Tenta enviar para storage externo
             foto_bytes = foto.read()
             foto.seek(0)  # reposiciona para fallback local
             ctype, _ = guess_type(filename)
             remote_path = build_avatar_path(user.id, filename)
-            public_url = upload_bytes_to_supabase(remote_path, foto_bytes, content_type=ctype or 'application/octet-stream')
+            public_url = upload_to_storage(remote_path, foto_bytes, content_type=ctype or 'application/octet-stream')
             if public_url:
                 # Guarda URL absoluta; os templates precisam aceitar URL externas
                 user.foto_perfil = public_url
@@ -983,15 +983,15 @@ def admin_divulgacao_upload():
         return redirect(url_for('admin.dashboard') + '#publi')
     fname = f"div_{uuid.uuid4().hex[:10]}.{ext}"
     
-    # Tenta upload para Supabase primeiro
+    # Tenta upload para storage primeiro
     foto_bytes = f.read()
     f.seek(0)
     ctype, _ = guess_type(fname)
     remote_path = build_divulgacao_path(fname)
-    public_url = upload_bytes_to_supabase(remote_path, foto_bytes, content_type=ctype or 'image/jpeg')
+    public_url = upload_to_storage(remote_path, foto_bytes, content_type=ctype or 'image/jpeg')
     
     if public_url:
-        # Sucesso no Supabase - usa URL pública
+        # Sucesso no storage - usa URL pública
         flash('Upload concluído.')
         session['last_divulgacao_image'] = public_url
         return redirect(url_for('admin.dashboard') + '#publi')
@@ -1061,7 +1061,7 @@ def admin_divulgacao_aviso_rapido():
             font_wm = ImageFont.load_default()
         wb = draw.textbbox((0,0), wm, font=font_wm)
         draw.text((W-wb[2]-24, H-wb[3]-20), wm, fill=(240,240,240), font=font_wm)
-        # Salva - tenta Supabase primeiro
+        # Salva - tenta storage primeiro
         fname = f"aviso_{uuid.uuid4().hex[:10]}.png"
         from io import BytesIO
         buffer = BytesIO()
@@ -1069,10 +1069,10 @@ def admin_divulgacao_aviso_rapido():
         buffer.seek(0)
         
         remote_path = build_divulgacao_path(fname)
-        public_url = upload_bytes_to_supabase(remote_path, buffer.read(), content_type='image/png')
+        public_url = upload_to_storage(remote_path, buffer.read(), content_type='image/png')
         
         if public_url:
-            # Sucesso no Supabase - usa URL pública
+            # Sucesso no storage - usa URL pública
             rel = public_url
         else:
             # Fallback: salvar localmente (pode não funcionar em serverless)
@@ -1246,7 +1246,7 @@ def dinamicas_create():
     elif tipo == 'quemsouleu':
         # Quem soul eu - coleta items (frases/fotos), questão_tipo e moral
         try:
-            from gramatike_app.utils.storage import upload_bytes_to_supabase, build_dinamica_image_path
+            from gramatike_app.utils.storage import upload_to_storage, build_dinamica_image_path
             
             cfg_json = request.form.get('quemsouleu_config_json')
             questao_tipo = (request.form.get('questao_tipo') or '').strip()
@@ -1284,7 +1284,7 @@ def dinamicas_create():
                             try:
                                 file_data = file.read()
                                 file_path = build_dinamica_image_path(current_user.id, file.filename)
-                                url = upload_bytes_to_supabase(file_path, file_data, file.content_type)
+                                url = upload_to_storage(file_path, file_data, file.content_type)
                                 if url:
                                     conteudo = url
                                 else:
@@ -1671,7 +1671,7 @@ def dinamica_update(dyn_id: int):
     elif d.tipo == 'quemsouleu':
         # Update quem soul eu config
         try:
-            from gramatike_app.utils.storage import upload_bytes_to_supabase, build_dinamica_image_path
+            from gramatike_app.utils.storage import upload_to_storage, build_dinamica_image_path
             
             cfg_json = request.form.get('quemsouleu_config_json')
             questao_tipo = (request.form.get('questao_tipo') or '').strip()
@@ -1706,7 +1706,7 @@ def dinamica_update(dyn_id: int):
                                 try:
                                     file_data = file.read()
                                     file_path = build_dinamica_image_path(current_user.id, file.filename)
-                                    url = upload_bytes_to_supabase(file_path, file_data, file.content_type)
+                                    url = upload_to_storage(file_path, file_data, file.content_type)
                                     if url:
                                         conteudo = url
                                     else:
@@ -2036,15 +2036,15 @@ def api_posts_multi_create():
         if size > 3 * 1024 * 1024: continue
         fname = f"post_{uuid.uuid4().hex[:10]}.{ext}"
         
-        # Tenta upload para Supabase primeiro
+        # Tenta upload para storage primeiro
         foto_bytes = f.read()
         f.seek(0)
         ctype, _ = guess_type(fname)
         remote_path = build_post_image_path(current_user.id, fname)
-        public_url = upload_bytes_to_supabase(remote_path, foto_bytes, content_type=ctype or 'image/jpeg')
+        public_url = upload_to_storage(remote_path, foto_bytes, content_type=ctype or 'image/jpeg')
         
         if public_url:
-            # Sucesso no Supabase - usa URL pública
+            # Sucesso no storage - usa URL pública
             # Tenta extrair dimensões da imagem
             try:
                 with Image.open(BytesIO(foto_bytes)) as im:
