@@ -19,6 +19,7 @@ requires-python = ">=3.12"
 # - requests: synchronous HTTP (handled with lazy import, use httpx if needed)
 # - flask-migrate: requires Alembic with native dependencies (migrations run externally)
 dependencies = [
+    "webtypy>=0.1.7",
     "flask>=3.0,<3.2",
     "werkzeug>=3.0,<3.2",
     "flask-sqlalchemy>=3.0",
