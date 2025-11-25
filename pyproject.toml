@@ -11,23 +11,23 @@ requires-python = ">=3.12"
 # Note: Not all packages may be available in Pyodide. See:
 # https://developers.cloudflare.com/workers/languages/python/packages/
 #
-# Note: psycopg2-binary is NOT included because it requires native C extensions
-# which are not compatible with Pyodide/WebAssembly. The app uses Cloudflare D1
-# (SQLite on edge) as specified in wrangler.toml for database operations.
+# IMPORTANT: Only include pure Python packages that are supported by Pyodide.
+# The following packages are EXCLUDED because they have C extensions or are
+# not compatible with Pyodide/WebAssembly:
+# - psycopg2-binary: requires native C extensions (use D1/SQLite instead)
+# - Pillow: requires native image processing libraries (handled with lazy import)
+# - requests: synchronous HTTP (handled with lazy import, use httpx if needed)
+# - flask-migrate: requires Alembic with native dependencies (migrations run externally)
 dependencies = [
     "Flask>=3.0,<3.2",
     "Werkzeug>=3.0,<3.2",
     "flask-sqlalchemy>=3.0",
     "flask-login>=0.6",
-    "flask-migrate>=4.0",
     "flask-wtf>=1.2",
     "python-dotenv>=1.0",
     "email-validator>=2.0",
     "itsdangerous>=2.1",
-    "requests>=2.28",
-    "Pillow>=10.0",
     "asgiref>=3.7",
-    "webtypy>=0.1.7",
     "markupsafe",
     "jinja2",
 ]
