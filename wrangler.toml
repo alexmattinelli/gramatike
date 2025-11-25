@@ -1,7 +1,10 @@
-# Cloudflare Pages configuration for Gramátike
-# Documentação: https://developers.cloudflare.com/pages/
+# Cloudflare Workers configuration for Gramátike
+# Documentação: https://developers.cloudflare.com/workers/
 
 name = "gramatike"
+main = "api/index.py"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["python_workers"]
 
 # Variáveis de ambiente (valores reais devem ser configurados via dashboard)
 [vars]
