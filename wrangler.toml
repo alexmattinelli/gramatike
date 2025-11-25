@@ -1,0 +1,29 @@
+# Cloudflare Pages configuration for Gramátike
+# Documentação: https://developers.cloudflare.com/pages/
+
+name = "gramatike"
+
+# Variáveis de ambiente (valores reais devem ser configurados via dashboard)
+[vars]
+ENVIRONMENT = "production"
+
+# Bindings para R2 Storage (quando usar Pages Functions)
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "gramatike"
+
+# Configuração do site para Cloudflare Pages
+# Configure via dashboard ou use pages.toml para configurações específicas
+
+# D1 Database (SQLite na edge - alternativa ao Postgres)
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "gramatike-db"
+# database_id = "seu-database-id"
+
+# Secrets (configure via CLI: wrangler secret put SECRET_KEY)
+# - SECRET_KEY
+# - DATABASE_URL
+# - CLOUDFLARE_R2_ACCESS_KEY_ID
+# - CLOUDFLARE_R2_SECRET_ACCESS_KEY
+# - MAIL_PASSWORD

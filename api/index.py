@@ -1,6 +1,6 @@
 # api/index.py
-# Vercel Python entrypoint for Flask (WSGI)
-# Exposes `app` so Vercel can detect and serve the Flask application.
+# Flask WSGI entrypoint for serverless platforms (Cloudflare Pages/Workers, Vercel, etc.)
+# Exposes `app` so the platform can detect and serve the Flask application.
 
 from gramatike_app import create_app
 

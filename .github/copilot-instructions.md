@@ -10,8 +10,8 @@ Gramátike is a Flask-based web application for Portuguese grammar education. Th
 - **Database**: SQLAlchemy ORM with PostgreSQL (production) or SQLite (development)
 - **Frontend**: Jinja2 templates, vanilla JavaScript, Bootstrap
 - **Authentication**: Flask-Login with email verification
-- **Deployment**: Vercel serverless
-- **Storage**: Supabase for file uploads (avatars, PDFs, images)
+- **Deployment**: Cloudflare Pages (serverless)
+- **Storage**: Cloudflare R2 for file uploads (avatars, PDFs, images)
 - **Migrations**: Flask-Migrate (Alembic)
 
 ## Coding Standards
@@ -65,7 +65,7 @@ Gramátike is a Flask-based web application for Portuguese grammar education. Th
 
 ### File Uploads & Storage
 
-- Use Supabase Storage for file uploads (avatars, PDFs, images)
+- Use Cloudflare R2 Storage for file uploads (avatars, PDFs, images)
 - Generate unique file paths with timestamps: `avatars/{user_id}/{timestamp}_{filename}`
 - Use helper functions from `gramatike_app/utils/storage.py`:
   - `build_avatar_path()` for user avatars
@@ -73,14 +73,14 @@ Gramátike is a Flask-based web application for Portuguese grammar education. Th
   - `build_apostila_path()` for PDF study materials
   - `build_divulgacao_path()` for promotional content
 - Validate file types and sizes before upload
-- Configure Supabase bucket policies for public read access
+- Configure R2 bucket for public read access
 
 ### Environment Variables
 
 Required environment variables (see README.md):
 - `SECRET_KEY`: Flask secret key (32+ chars)
 - `DATABASE_URL`: PostgreSQL connection string (production)
-- `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_BUCKET`: File storage
+- `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_R2_ACCESS_KEY_ID`, `CLOUDFLARE_R2_SECRET_ACCESS_KEY`, `CLOUDFLARE_R2_BUCKET`: File storage
 - `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`: Email configuration
 - `RAG_MODEL`: Optional AI/embeddings model
 
@@ -94,12 +94,12 @@ Always use `os.environ.get()` with sensible defaults where appropriate.
 - Uses `pool_pre_ping=True` for connection health checks
 - SQLite fallback for local development
 
-### Serverless Considerations (Vercel)
+### Serverless Considerations (Cloudflare Pages)
 
 - Keep functions lightweight and stateless
 - Database connections are pooled with small pool size (1-2)
-- Use Supabase or external storage (not local filesystem) for uploads
-- Environment variables set in Vercel dashboard
+- Use Cloudflare R2 or external storage (not local filesystem) for uploads
+- Environment variables set in Cloudflare Pages dashboard
 - Entry point: `api/index.py` exposes Flask app
 
 ### Testing & Validation
@@ -168,7 +168,7 @@ Always use `os.environ.get()` with sensible defaults where appropriate.
    )
    ```
 
-4. **File Upload to Supabase**:
+4. **File Upload to Cloudflare R2**:
    ```python
    from gramatike_app.utils.storage import upload_bytes_to_supabase, build_avatar_path
    
@@ -230,7 +230,7 @@ Use the `tipo` field to filter content by type.
 2. **Follow existing patterns**: Match the style and structure of existing code
 3. **Test thoroughly**: Verify database operations, form submissions, and user flows
 4. **Update documentation**: Keep README.md and feature docs current
-5. **Consider serverless**: Remember the Vercel deployment constraints
+5. **Consider serverless**: Remember the Cloudflare Pages deployment constraints
 6. **Validate security**: Check permissions, CSRF protection, and input validation
 7. **Handle errors**: Add appropriate logging and user-friendly error messages
 8. **Keep it minimal**: Make the smallest necessary changes to achieve the goal
