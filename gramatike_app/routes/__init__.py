@@ -1022,7 +1022,11 @@ def admin_divulgacao_aviso_rapido():
         return redirect(request.referrer or url_for('admin.dashboard'))
     # Gera imagem simples com Pillow
     try:
-        from PIL import Image, ImageDraw, ImageFont
+        # PIL may not be available in Pyodide/serverless environments
+        try:
+            from PIL import Image, ImageDraw, ImageFont
+        except ImportError:
+            raise RuntimeError("Pillow not available in this environment")
         import os, uuid, textwrap
         W, H = 1000, 500
         bg = (155, 93, 229)  # #9B5DE5
@@ -2014,7 +2018,12 @@ def post_detail(post_id: int):
 @login_required
 def api_posts_multi_create():
     import os, uuid
-    from PIL import Image
+    # PIL may not be available in Pyodide/serverless environments
+    try:
+        from PIL import Image
+        PIL_AVAILABLE = True
+    except ImportError:
+        PIL_AVAILABLE = False
     from io import BytesIO
     conteudo = (request.form.get('conteudo') or '').strip()
     if not conteudo:
@@ -2046,11 +2055,14 @@ def api_posts_multi_create():
         if public_url:
             # Sucesso no storage - usa URL pública
             # Tenta extrair dimensões da imagem
-            try:
-                with Image.open(BytesIO(foto_bytes)) as im:
-                    w, h = im.size
-            except Exception:
-                w = h = None
+            w = h = None
+            if PIL_AVAILABLE:
+                try:
+                    with Image.open(BytesIO(foto_bytes)) as im:
+                        w, h = im.size
+                except (IOError, OSError):
+                    # Invalid or corrupted image file
+                    pass
             paths.append(public_url)
             meta.append({'path': public_url, 'w': w, 'h': h})
         else:
@@ -2059,11 +2071,14 @@ def api_posts_multi_create():
             os.makedirs(target_dir, exist_ok=True)
             full_path = os.path.join(target_dir, fname)
             f.save(full_path)
-            try:
-                with Image.open(full_path) as im:
-                    w, h = im.size
-            except Exception:
-                w = h = None
+            w = h = None
+            if PIL_AVAILABLE:
+                try:
+                    with Image.open(full_path) as im:
+                        w, h = im.size
+                except (IOError, OSError):
+                    # Invalid or corrupted image file
+                    pass
             rel = f"uploads/posts/{fname}"
             paths.append(rel)
             meta.append({'path': rel, 'w': w, 'h': h})

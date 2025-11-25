@@ -1,6 +1,7 @@
-import requests
 from typing import Optional, Tuple, List, Dict
 from .web_cache import get as cache_get, set as cache_set
+from gramatike_app.utils import get_requests
+
 
 def wiki_search_summary(term: str, lang: str = 'pt') -> Optional[Tuple[str, str, str]]:
     """
@@ -8,6 +9,9 @@ def wiki_search_summary(term: str, lang: str = 'pt') -> Optional[Tuple[str, str,
     Retorna (title, extract, url) ou None se não encontrado.
     """
     try:
+        requests = get_requests()
+        if requests is None:
+            return None
         ck = f"wiki:{lang}:{term.strip().lower()}"
         cached = cache_get(ck)
         if cached:
@@ -40,6 +44,9 @@ def crossref_search_works(query: str, rows: int = 3) -> List[Dict]:
     Cada item: { 'title': str, 'year': int|None, 'doi': str|None, 'url': str|None, 'source': 'Crossref' }
     """
     try:
+        requests = get_requests()
+        if requests is None:
+            return []
         ck = f"crossref:{query.strip().lower()}:{rows}"
         cached = cache_get(ck)
         if cached:
@@ -117,6 +124,9 @@ def pubmed_search(query: str, retmax: int = 3) -> List[Dict]:
     Cada item: { 'title': str, 'year': int|None, 'url': str, 'source': 'PubMed' }
     """
     try:
+        requests = get_requests()
+        if requests is None:
+            return []
         ck = f"pubmed:{query.strip().lower()}:{retmax}"
         cached = cache_get(ck)
         if cached:

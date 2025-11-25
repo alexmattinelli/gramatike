@@ -325,7 +325,13 @@ def create_app():
     def _ensure_pwa_icons():
         try:
             import os
-            from PIL import Image, ImageDraw, ImageFont
+            # PIL may not be available in Pyodide/serverless environments
+            try:
+                from PIL import Image, ImageDraw, ImageFont
+            except ImportError:
+                # Pillow not available (e.g., Cloudflare Workers/Pyodide)
+                # Icons should already exist in the repo
+                return
             base_dir = os.path.join(app.root_path, 'static', 'img', 'icons')
             # Tenta criar diretório; ignora se falhar (read-only filesystem em serverless)
             try:

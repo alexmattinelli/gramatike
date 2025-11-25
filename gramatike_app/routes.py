@@ -153,7 +153,12 @@ def create_post_multi():
     files = request.files.getlist('imagens') if 'imagens' in request.files else []
     paths = []
     meta = []
-    from PIL import Image
+    # PIL may not be available in Pyodide/serverless environments
+    try:
+        from PIL import Image
+        PIL_AVAILABLE = True
+    except ImportError:
+        PIL_AVAILABLE = False
     for idx, f in enumerate(files[:4]):
         if not f or not f.filename: continue
         ext = f.filename.rsplit('.',1)[-1].lower()
@@ -166,11 +171,14 @@ def create_post_multi():
         full_path = os.path.join(target_dir, fname)
         f.save(full_path)
         # dimensões
-        try:
-            with Image.open(full_path) as im:
-                w, h = im.size
-        except Exception:
-            w = h = None
+        w = h = None
+        if PIL_AVAILABLE:
+            try:
+                with Image.open(full_path) as im:
+                    w, h = im.size
+            except (IOError, OSError):
+                # Invalid or corrupted image file
+                pass
         paths.append(f"uploads/posts/{fname}")
         meta.append({'path': f"uploads/posts/{fname}", 'w': w, 'h': h})
     post = Post(
@@ -194,7 +202,11 @@ def create_post_multi():
 def regenerate_post_thumbs(post_id):
     """Gera thumbnails (largura máx 420) para imagens de um post e salva em uploads/posts/thumbs."""
     import os
-    from PIL import Image
+    # PIL may not be available in Pyodide/serverless environments
+    try:
+        from PIL import Image
+    except ImportError:
+        return jsonify({'error': 'Pillow not available in this environment', 'thumbs': []}), 200
     post = Post.query.get_or_404(post_id)
     if post.usuario_id != current_user.id and not (getattr(current_user,'is_admin',False) or getattr(current_user,'is_superadmin',False)):
         return jsonify({'error':'forbidden'}), 403

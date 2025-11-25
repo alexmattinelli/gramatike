@@ -6,7 +6,7 @@ import hashlib
 from datetime import datetime, timezone
 from typing import Optional
 
-import requests
+from gramatike_app.utils import get_requests
 
 # Configurar logger
 logger = logging.getLogger(__name__)
@@ -151,6 +151,12 @@ def upload_bytes_to_r2(path: str, data: bytes, content_type: Optional[str] = Non
     Nota: Se retornar None, verifique as credenciais e configuração do bucket.
           Veja CLOUDFLARE_R2_SETUP.md para instruções de configuração.
     """
+    # Check if requests is available
+    requests = get_requests()
+    if requests is None:
+        logger.warning("requests library not available (Pyodide/serverless environment)")
+        return None
+    
     account_id = _env('CLOUDFLARE_ACCOUNT_ID')
     access_key_id = _env('CLOUDFLARE_R2_ACCESS_KEY_ID')
     secret_access_key = _env('CLOUDFLARE_R2_SECRET_ACCESS_KEY')
