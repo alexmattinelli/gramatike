@@ -1,0 +1,33 @@
+# Cloudflare Workers Python (Pyodide) configuration
+# Documentação: https://developers.cloudflare.com/workers/languages/python/packages/
+
+[project]
+name = "gramatike"
+version = "1.0.0"
+description = "Gramátike - Flask web application for Portuguese grammar education"
+requires-python = ">=3.12"
+
+# Dependencies for Cloudflare Workers Python (Pyodide environment)
+# Note: Not all packages may be available in Pyodide. See:
+# https://developers.cloudflare.com/workers/languages/python/packages/
+dependencies = [
+    "Flask>=3.0,<3.2",
+    "Werkzeug>=3.0,<3.2",
+    "flask-sqlalchemy",
+    "flask-login",
+    "flask-migrate",
+    "flask-wtf",
+    "python-dotenv>=1.0",
+    "email-validator",
+    "itsdangerous>=2.1",
+    "requests",
+]
+
+[dependency-groups]
+dev = [
+    "workers-py",
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
