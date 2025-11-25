@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Usuáries - Gramátike Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --bg-alt:#ffffff;
+            --border:#dbe2ea;
+            --border-strong:#c2ccd8;
+            --text:#2b3542;
+            --text-soft:#5b6a7c;
+            --accent:#9B5DE5;
+            --accent-hover:#7d3dc9;
+            --danger:#eb5757;
+            --danger-hover:#d04444;
+            --radius:16px;
+            --shadow-sm:0 1px 2px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04);
+            --shadow:0 4px 10px -2px rgba(30,41,59,.08),0 2px 4px rgba(30,41,59,.06);
+        }
+        html,body { margin:0; padding:0; font-family:'Nunito', system-ui, sans-serif !important; background:var(--bg); color:var(--text); }
+        body { min-height:100vh; display:flex; flex-direction:column; }
+        main { flex:1; padding:24px clamp(16px,4vw,40px); }
+        header.site-head { background:#333; padding:28px clamp(16px,4vw,40px) 36px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; display:flex; flex-direction:column; align-items:center; text-align:center; }
+        .logo { font-family:'Mansalva', cursive; font-size:2.2rem; color:#fff; letter-spacing:1px; font-weight:400; margin:0; }
+        .admin-badge { background:#444; border:1px solid #555; color:#fff; padding:6px 12px; font-size:.55rem; font-weight:800; letter-spacing:.6px; border-radius:10px; text-transform:uppercase; margin-top:8px; }
+        .back-link { display:inline-flex; align-items:center; gap:6px; color:var(--accent); text-decoration:none; font-weight:600; font-size:.85rem; margin-bottom:16px; }
+        .back-link:hover { text-decoration:underline; }
+        h2 { font-size:1.4rem; font-weight:700; margin:0 0 20px; }
+        .flash { background:var(--accent); color:#fff; padding:12px 16px; border-radius:12px; margin-bottom:16px; font-size:.85rem; }
+        table.admin-users { width:100%; border-collapse:separate; border-spacing:0; font-size:0.78rem; overflow:hidden; border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow-sm); background:var(--bg-alt); }
+        table.admin-users th, table.admin-users td { padding:12px 14px; text-align:left; }
+        table.admin-users thead th { background:var(--bg); font-weight:600; font-size:.7rem; letter-spacing:.7px; text-transform:uppercase; color:var(--text-soft); border-bottom:1px solid var(--border); }
+        table.admin-users tbody tr { border-bottom:1px solid var(--border); transition:.2s; }
+        table.admin-users tbody tr:last-child { border-bottom:none; }
+        table.admin-users tbody tr:hover { background:rgba(155,93,229,.05); }
+        .badge { display:inline-block; padding:4px 10px; border-radius:14px; font-size:0.6rem; font-weight:600; letter-spacing:.5px; background:var(--bg); color:var(--text-soft); text-transform:uppercase; }
+        .badge-admin { background:var(--accent); color:#fff; }
+        .badge-superadmin { background:linear-gradient(120deg,#ffb347,#ff6b6b); color:#fff; }
+        button.action-btn { cursor:pointer; background:var(--bg-alt); border:1px solid var(--border-strong); padding:6px 12px; border-radius:8px; font-size:0.65rem; font-weight:600; letter-spacing:.5px; color:var(--text-soft); transition:.2s; }
+        button.action-btn:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+        .footer-bar { background:#333; color:#fff; text-align:center; padding:1rem 0; font-size:.9rem; border-top-left-radius:32px; border-top-right-radius:32px; margin-top:auto; }
+        @media (max-width:900px) { 
+            header.site-head { padding:18px 16px 28px; }
+            .logo { font-size:1.8rem; }
+            table.admin-users { font-size:.72rem; }
+            table.admin-users th, table.admin-users td { padding:10px 8px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-head">
+        <h1 class="logo">Gramátike</h1>
+        <span class="admin-badge">Admin</span>
+    </header>
+    
+    <main>
+        <a href="{{ url_for('admin.dashboard') }}" class="back-link">← Voltar ao Painel</a>
+        
+        <h2>Gerenciar Usuáries</h2>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <table class="admin-users">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuárie</th>
+                    <th>E-mail</th>
+                    <th>Status</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in usuarios %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td>{{ u.username }}</td>
+                    <td>{{ u.email }}</td>
+                    <td>
+                        {% if u.is_superadmin %}
+                            <span class="badge badge-superadmin">Superadmin</span>
+                        {% elif u.is_admin %}
+                            <span class="badge badge-admin">Admin</span>
+                        {% else %}
+                            <span class="badge">Usuárie</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not u.is_superadmin %}
+                        <form method="post" style="display:inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="user_id" value="{{ u.id }}">
+                            <button type="submit" class="action-btn">
+                                {% if u.is_admin %}Remover Admin{% else %}Tornar Admin{% endif %}
+                            </button>
+                        </form>
+                        {% else %}
+                            <span style="color:var(--text-soft); font-size:.7rem;">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+    
+    <footer class="footer-bar">
+        © {{ now.year if now else 2025 }} Gramátike
+    </footer>
+</body>
+</html>
