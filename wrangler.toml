@@ -3,8 +3,11 @@
 
 name = "gramatike"
 main = "index.py"
-compatibility_date = "2024-09-23"
-compatibility_flags = ["python_workers"]
+compatibility_date = "2025-11-02"
+compatibility_flags = [
+    "python_workers",
+    "python_dedicated_snapshot"
+]
 
 # Variáveis de ambiente (valores reais devem ser configurados via dashboard)
 [vars]
