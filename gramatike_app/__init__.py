@@ -30,7 +30,13 @@ except Exception:
         raise
 from flask_login import LoginManager
 from gramatike_app.models import db
-from flask_migrate import Migrate
+# flask-migrate is optional (not available in Pyodide/Cloudflare Workers)
+try:
+    from flask_migrate import Migrate
+    _has_migrate = True
+except ImportError:
+    Migrate = None
+    _has_migrate = False
 from gramatike_app.models import User
 import os
 try:
@@ -113,7 +119,9 @@ def create_app():
         except Exception as _e:
             app.logger.warning(f'CSRFProtect indisponível: {_e}')
     login_manager.init_app(app)
-    migrate = Migrate(app, db)
+    # Flask-Migrate is optional (not available in Pyodide/Cloudflare Workers)
+    if _has_migrate and Migrate is not None:
+        migrate = Migrate(app, db)
     with app.app_context():
         try:
             db.create_all()
