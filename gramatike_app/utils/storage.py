@@ -11,6 +11,11 @@ import requests
 # Configurar logger
 logger = logging.getLogger(__name__)
 
+# Constantes para configuração do R2 (compatível com S3)
+R2_REGION = 'auto'
+R2_SERVICE = 's3'
+R2_UPLOAD_TIMEOUT = 25  # segundos
+
 
 def _env(name: str, default: Optional[str] = None) -> Optional[str]:
     try:
@@ -177,13 +182,13 @@ def upload_bytes_to_r2(path: str, data: bytes, content_type: Optional[str] = Non
             payload=data,
             access_key=access_key_id,
             secret_key=secret_access_key,
-            region='auto',
-            service='s3'
+            region=R2_REGION,
+            service=R2_SERVICE
         )
         headers.update(auth_headers)
         
         logger.info(f"Uploading to Cloudflare R2: {path} ({len(data)} bytes)")
-        resp = requests.put(url, headers=headers, data=data, timeout=30)
+        resp = requests.put(url, headers=headers, data=data, timeout=R2_UPLOAD_TIMEOUT)
         
         if resp.status_code in (200, 201):
             # URL pública - usa domínio personalizado se configurado

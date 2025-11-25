@@ -1,31 +1,19 @@
-# Cloudflare Workers/Pages configuration for Gramátike
-# Documentação: https://developers.cloudflare.com/workers/wrangler/configuration/
+# Cloudflare Pages configuration for Gramátike
+# Documentação: https://developers.cloudflare.com/pages/
 
 name = "gramatike"
-main = "cloudflare_worker/index.py"
-compatibility_date = "2024-01-01"
 
-# Python runtime (requer Workers Paid plan ou beta do Python Workers)
-# Nota: Flask tradicional pode exigir adapter ou uso de Pages Functions
-# [build]
-# command = "pip install -r requirements.txt"
-
-# Variáveis de ambiente (valores reais devem ser configurados via dashboard ou wrangler secret)
+# Variáveis de ambiente (valores reais devem ser configurados via dashboard)
 [vars]
 ENVIRONMENT = "production"
 
-# Bindings para R2 Storage
+# Bindings para R2 Storage (quando usar Pages Functions)
 [[r2_buckets]]
 binding = "R2_BUCKET"
 bucket_name = "gramatike"
 
 # Configuração do site para Cloudflare Pages
-# Se usar Pages ao invés de Workers puro, configure via dashboard ou pages.toml
-
-# Rotas customizadas (se necessário)
-# [[routes]]
-# pattern = "gramatike.com.br/*"
-# zone_name = "gramatike.com.br"
+# Configure via dashboard ou use pages.toml para configurações específicas
 
 # D1 Database (SQLite na edge - alternativa ao Postgres)
 # [[d1_databases]]
