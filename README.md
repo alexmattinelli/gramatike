@@ -1,15 +1,18 @@
 # Gramatike
 
-## Vercel (via GitHub)
+## Cloudflare Pages (Recomendado)
+
 1. Tenha este repositório no GitHub (já está em `main`).
-2. No painel da Vercel, importe o projeto a partir deste repositório.
-3. Build & Output Settings:
-- Framework: Other
-- Python Runtime: conforme `vercel.json` (python3.12)
-- Output: não precisa especificar, `api/index.py` expõe o Flask.
-4. Variáveis de ambiente (Project Settings > Environment Variables):
-- `SECRET_KEY`: uma string segura
-- (Opcional) `DATABASE_URL`: use Postgres gerenciado se precisar de persistência real no edge (recomendado para produção). Caso contrário, o SQLite em `instance/app.db` pode não ser persistente no ambiente serverless da Vercel.
+2. No painel do Cloudflare Dashboard, vá em Workers & Pages > Create > Pages.
+3. Conecte ao GitHub e selecione este repositório.
+4. Configure o build:
+   - Framework preset: None
+   - Build command: `pip install -r requirements.txt`
+   - Build output directory: `/`
+5. Variáveis de ambiente (Settings > Environment Variables):
+   - `SECRET_KEY`: uma string segura
+   - `DATABASE_URL`: Postgres gerenciado (recomendado para produção)
+   - Variáveis do Cloudflare R2 (veja abaixo)
 
 ## Variáveis de ambiente necessárias
 
@@ -73,22 +76,24 @@ python3 scripts/send_test_email.py seu_email@exemplo.com \
 
 **Nota:** Os e-mails de teste agora incluem o template completo do Gramátike com logo e botões roxos. Veja [EMAIL_TEST_TEMPLATE_FIX.md](EMAIL_TEST_TEMPLATE_FIX.md) para mais detalhes.
 
-Supabase Storage (necessário para upload de arquivos em ambientes serverless como Vercel):
+Cloudflare R2 Storage (necessário para upload de arquivos em ambientes serverless):
 
-- SUPABASE_URL: URL do projeto Supabase (ex: https://xxxxx.supabase.co)
-- SUPABASE_SERVICE_ROLE_KEY: chave de serviço do Supabase (encontrada em Settings > API)
-- SUPABASE_BUCKET: nome do bucket de storage (padrão: 'avatars', mas você pode usar qualquer bucket configurado)
+- CLOUDFLARE_ACCOUNT_ID: ID da sua conta Cloudflare (encontrado em Overview > Account ID)
+- CLOUDFLARE_R2_ACCESS_KEY_ID: Access Key ID do R2 (criado em R2 > Manage R2 API Tokens)
+- CLOUDFLARE_R2_SECRET_ACCESS_KEY: Secret Access Key do R2
+- CLOUDFLARE_R2_BUCKET: nome do bucket (padrão: 'gramatike')
+- CLOUDFLARE_R2_PUBLIC_URL: URL pública do bucket (domínio personalizado ou r2.dev)
 
 **🚨 IMPORTANTE - Configuração Necessária para Imagens Funcionarem:**
 
-Se as imagens não estiverem aparecendo no site, o problema mais comum é que o bucket do Supabase não está configurado corretamente. Você precisa:
+Se as imagens não estiverem aparecendo no site, você precisa:
 
-1. Criar um bucket (ex: 'avatars') em Storage
-2. **Marcar o bucket como "Public bucket"** (ESSENCIAL!)
-3. Configurar políticas RLS de acesso público para leitura dos arquivos
-4. Permitir upload/update através da service role key
+1. Criar um bucket R2 (ex: 'gramatike') em R2 > Create bucket
+2. **Habilitar acesso público** via R2.dev subdomain ou domínio personalizado
+3. Criar um API Token com permissões de leitura/escrita para o bucket
+4. Configurar as variáveis de ambiente
 
-**📖 Guia Completo:** Veja [SUPABASE_BUCKET_SETUP.md](SUPABASE_BUCKET_SETUP.md) para instruções detalhadas passo-a-passo.
+**📖 Guia Completo:** Veja [CLOUDFLARE_R2_SETUP.md](CLOUDFLARE_R2_SETUP.md) para instruções detalhadas passo-a-passo.
 
 **🔧 Diagnóstico:** Se as imagens não funcionarem, execute o script de diagnóstico:
 ```bash
@@ -100,7 +105,7 @@ RAG/IA (opcional):
 
 - RAG_MODEL: modelo de embeddings (padrão: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2)
 
-Veja `.env.example` para um modelo de configuração local. No Vercel, cadastre as mesmas chaves em Settings → Environment Variables.
+Veja `.env.example` para um modelo de configuração local. No Cloudflare Pages, cadastre as mesmas chaves em Settings → Environment Variables.
 
 ### Executar local
 Ver seção "Development".

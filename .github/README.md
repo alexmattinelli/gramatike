@@ -9,7 +9,7 @@ This directory contains GitHub-specific configuration files for the Gramátike r
 Custom instructions for GitHub Copilot coding agent. This file helps Copilot understand:
 
 - **Project architecture**: Flask-based web app for Portuguese grammar education
-- **Tech stack**: Flask 3.x, Python 3.12, SQLAlchemy, Jinja2, Vercel deployment
+- **Tech stack**: Flask 3.x, Python 3.12, SQLAlchemy, Jinja2, Cloudflare Pages deployment
 - **Coding standards**: Python style, Flask patterns, database conventions
 - **Security practices**: Authentication, CSRF protection, input validation
 - **File organization**: Models, routes, templates, static files, utilities

@@ -331,7 +331,7 @@ def create_app():
             try:
                 os.makedirs(base_dir, exist_ok=True)
             except (OSError, PermissionError):
-                # Filesystem read-only (Vercel/serverless) - ícones devem existir no repo
+                # Filesystem read-only (Cloudflare/serverless) - ícones devem existir no repo
                 return
             targets = [(192, 'icon-192.png'), (512, 'icon-512.png')]
             for size, name in targets:
@@ -407,7 +407,7 @@ def create_app():
                 try:
                     im.convert('RGB').save(path, format='PNG')
                 except (OSError, PermissionError):
-                    # Filesystem read-only (Vercel/serverless)
+                    # Filesystem read-only (Cloudflare/serverless)
                     pass
         except Exception as _e:
             app.logger.warning(f"Falha ao gerar ícones PWA: {_e}")
@@ -425,7 +425,7 @@ def create_app():
         resp.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
         resp.headers.setdefault('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
         # CSP brando para não quebrar inline scripts atuais; ajuste futuramente para remover 'unsafe-inline'
-        # Permitir Google Fonts, Quill.js CDN e imagens externas (ex.: Supabase Storage)
+        # Permitir Google Fonts, Quill.js CDN e imagens externas (ex.: Cloudflare R2 Storage)
         csp = (
             "default-src 'self'; "
             "img-src 'self' https: data: blob:; "
