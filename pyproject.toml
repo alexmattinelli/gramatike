@@ -19,8 +19,8 @@ requires-python = ">=3.12"
 # - requests: synchronous HTTP (handled with lazy import, use httpx if needed)
 # - flask-migrate: requires Alembic with native dependencies (migrations run externally)
 dependencies = [
-    "Flask>=3.0,<3.2",
-    "Werkzeug>=3.0,<3.2",
+    "flask>=3.0,<3.2",
+    "werkzeug>=3.0,<3.2",
     "flask-sqlalchemy>=3.0",
     "flask-login>=0.6",
     "flask-wtf>=1.2",
@@ -30,6 +30,8 @@ dependencies = [
     "asgiref>=3.7",
     "markupsafe",
     "jinja2",
+    "click",
+    "blinker",
 ]
 
 [dependency-groups]
@@ -38,6 +40,5 @@ dev = [
     "workers-runtime-sdk",
 ]
 
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+# Note: [build-system] section is intentionally omitted for Cloudflare Workers Python
+# The Workers runtime uses its own package resolution mechanism via pywrangler/uv
