@@ -36,11 +36,10 @@ def is_r2_configured() -> bool:
     return bool(account_id and access_key_id and secret_access_key and bucket)
 
 
-# Alias para compatibilidade com código existente
-def is_supabase_configured() -> bool:
+# Alias para compatibilidade - use is_r2_configured() ou is_storage_configured()
+def is_storage_configured() -> bool:
     """
-    Verifica se o storage está configurado (agora usa Cloudflare R2).
-    Mantido para compatibilidade com código existente.
+    Verifica se o storage está configurado (usa Cloudflare R2).
     """
     return is_r2_configured()
 
@@ -222,11 +221,10 @@ def upload_bytes_to_r2(path: str, data: bytes, content_type: Optional[str] = Non
         return None
 
 
-# Alias para compatibilidade com código existente
-def upload_bytes_to_supabase(path: str, data: bytes, content_type: Optional[str] = None) -> Optional[str]:
+# Alias para compatibilidade - use upload_bytes_to_r2() ou upload_to_storage()
+def upload_to_storage(path: str, data: bytes, content_type: Optional[str] = None) -> Optional[str]:
     """
-    Envia bytes para o storage (agora usa Cloudflare R2).
-    Mantido para compatibilidade com código existente.
+    Envia bytes para o storage (usa Cloudflare R2).
     """
     return upload_bytes_to_r2(path, data, content_type)
 

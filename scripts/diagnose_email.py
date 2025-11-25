@@ -174,7 +174,7 @@ IMPORTANTE para Brevo:
     print("=" * 70)
     print("\nPróximos passos:")
     print("  1. Verifique se o email chegou em", args.to_email)
-    print("  2. Configure as mesmas variáveis de ambiente no Vercel/produção:")
+    print("  2. Configure as mesmas variáveis de ambiente na produção:")
     print(f"     MAIL_SERVER={args.server}")
     print(f"     MAIL_PORT={args.port}")
     print(f"     MAIL_USE_TLS=true")

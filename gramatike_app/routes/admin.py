@@ -7,7 +7,7 @@ from gramatike_app.models import BlockedWord
 from gramatike_app import db
 # Lune admin/config removido
 from gramatike_app.utils.moderation import refresh_custom_terms_cache
-from gramatike_app.utils.storage import upload_bytes_to_supabase, build_apostila_path
+from gramatike_app.utils.storage import upload_to_storage, build_apostila_path
 from mimetypes import guess_type
 import os
 
@@ -312,18 +312,18 @@ def edu_publicar():
             import uuid
             fname = f"{uuid.uuid4().hex}.pdf"
             
-            # Tenta upload para Supabase primeiro
+            # Tenta upload para storage primeiro
             pdf_bytes = pdf_file.read()
             pdf_file.seek(0)
             ctype, _ = guess_type(fname)
             remote_path = build_apostila_path(fname)
-            public_url = upload_bytes_to_supabase(remote_path, pdf_bytes, content_type=ctype or 'application/pdf')
+            public_url = upload_to_storage(remote_path, pdf_bytes, content_type=ctype or 'application/pdf')
             
             if public_url:
-                # Sucesso no Supabase - usa URL pública
+                # Sucesso no storage - usa URL pública
                 file_path = public_url
-                # Nota: thumbnail generation para PDFs no Supabase requer processamento adicional
-                # Por ora, não geramos thumbnail quando usando Supabase
+                # Nota: thumbnail generation para PDFs no storage requer processamento adicional
+                # Por ora, não geramos thumbnail quando usando storage externo
             else:
                 # Fallback: salvar localmente (pode não funcionar em serverless)
                 upload_dir = os.path.join(os.path.dirname(__file__), '..', 'static', 'uploads', 'apostilas')

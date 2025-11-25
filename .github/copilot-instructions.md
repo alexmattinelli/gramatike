@@ -170,10 +170,10 @@ Always use `os.environ.get()` with sensible defaults where appropriate.
 
 4. **File Upload to Cloudflare R2**:
    ```python
-   from gramatike_app.utils.storage import upload_bytes_to_supabase, build_avatar_path
+   from gramatike_app.utils.storage import upload_to_storage, build_avatar_path
    
    file_path = build_avatar_path(user_id, filename)
-   url = upload_bytes_to_supabase(file_path, file_data, content_type)
+   url = upload_to_storage(file_path, file_data, content_type)
    ```
 
 5. **Database Query with Error Handling**:
