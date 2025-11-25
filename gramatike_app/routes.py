@@ -176,7 +176,8 @@ def create_post_multi():
             try:
                 with Image.open(full_path) as im:
                     w, h = im.size
-            except Exception:
+            except (IOError, OSError):
+                # Invalid or corrupted image file
                 pass
         paths.append(f"uploads/posts/{fname}")
         meta.append({'path': f"uploads/posts/{fname}", 'w': w, 'h': h})

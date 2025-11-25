@@ -2060,7 +2060,8 @@ def api_posts_multi_create():
                 try:
                     with Image.open(BytesIO(foto_bytes)) as im:
                         w, h = im.size
-                except Exception:
+                except (IOError, OSError):
+                    # Invalid or corrupted image file
                     pass
             paths.append(public_url)
             meta.append({'path': public_url, 'w': w, 'h': h})
@@ -2075,7 +2076,8 @@ def api_posts_multi_create():
                 try:
                     with Image.open(full_path) as im:
                         w, h = im.size
-                except Exception:
+                except (IOError, OSError):
+                    # Invalid or corrupted image file
                     pass
             rel = f"uploads/posts/{fname}"
             paths.append(rel)
