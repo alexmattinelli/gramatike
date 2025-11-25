@@ -1,0 +1,14 @@
+{
+	"name": "gramatike",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Gramátike - Portuguese grammar education platform",
+	"scripts": {
+		"deploy": "uv run pywrangler deploy",
+		"dev": "uv run pywrangler dev",
+		"start": "uv run pywrangler dev"
+	},
+	"devDependencies": {
+		"wrangler": "^4.46.0"
+	}
+}

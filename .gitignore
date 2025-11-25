@@ -55,5 +55,4 @@ gramatike/
 instance/app.db
 node_modules/
 package-lock.json
-package.json
 test_profile_url_fix.py
