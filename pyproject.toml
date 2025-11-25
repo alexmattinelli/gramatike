@@ -1,10 +1,14 @@
 # Cloudflare Workers Python (Pyodide) configuration
 # Documentação: https://developers.cloudflare.com/workers/languages/python/packages/
+#
+# NOTE: This file is ONLY for Cloudflare Workers Python deployment (index.py).
+# The Flask application (gramatike_app/) uses requirements.txt for its dependencies.
 
 [project]
 name = "gramatike"
 version = "1.0.0"
 description = "Gramátike - FastAPI web application for Portuguese grammar education"
+readme = "README.md"
 requires-python = ">=3.12"
 
 # Dependencies for Cloudflare Workers Python (Pyodide environment)
@@ -20,12 +24,10 @@ requires-python = ">=3.12"
 # - Pillow: requires native image processing libraries (handled with lazy import)
 # - requests: synchronous HTTP (handled with lazy import, use httpx if needed)
 # - flask-*: Flask is not supported on Cloudflare Workers Python
+# - itsdangerous, python-dotenv, email-validator: used by Flask app (in requirements.txt)
 dependencies = [
     "webtypy>=0.1.7",
     "fastapi",
-    "python-dotenv>=1.0",
-    "email-validator>=2.0",
-    "itsdangerous>=2.1",
     "markupsafe",
     "jinja2",
 ]
