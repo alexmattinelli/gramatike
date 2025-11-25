@@ -4,35 +4,30 @@
 [project]
 name = "gramatike"
 version = "1.0.0"
-description = "Gramátike - Flask web application for Portuguese grammar education"
+description = "Gramátike - FastAPI web application for Portuguese grammar education"
 requires-python = ">=3.12"
 
 # Dependencies for Cloudflare Workers Python (Pyodide environment)
-# Note: Not all packages may be available in Pyodide. See:
-# https://developers.cloudflare.com/workers/languages/python/packages/
+# Note: Only include packages that are supported by Pyodide/Cloudflare Workers.
+# See: https://developers.cloudflare.com/workers/languages/python/packages/
 #
-# IMPORTANT: Only include pure Python packages that are supported by Pyodide.
+# IMPORTANT: Flask is NOT supported on Cloudflare Workers Python (Pyodide).
+# This project uses FastAPI instead, which is officially supported.
+#
 # The following packages are EXCLUDED because they have C extensions or are
 # not compatible with Pyodide/WebAssembly:
 # - psycopg2-binary: requires native C extensions (use D1/SQLite instead)
 # - Pillow: requires native image processing libraries (handled with lazy import)
 # - requests: synchronous HTTP (handled with lazy import, use httpx if needed)
-# - flask-migrate: requires Alembic with native dependencies (migrations run externally)
+# - flask-*: Flask is not supported on Cloudflare Workers Python
 dependencies = [
     "webtypy>=0.1.7",
-    "flask>=3.0,<3.2",
-    "werkzeug>=3.0,<3.2",
-    "flask-sqlalchemy>=3.0",
-    "flask-login>=0.6",
-    "flask-wtf>=1.2",
+    "fastapi",
     "python-dotenv>=1.0",
     "email-validator>=2.0",
     "itsdangerous>=2.1",
-    "asgiref>=3.7",
     "markupsafe",
     "jinja2",
-    "click",
-    "blinker",
 ]
 
 [dependency-groups]
