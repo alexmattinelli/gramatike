@@ -13,16 +13,9 @@ _PROJECT_ROOT = os.path.dirname(_SCRIPT_DIR)
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
-import jinja2
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from workers import WorkerEntrypoint
-
-# Initialize Jinja2 environment for templates
-environment = jinja2.Environment(
-    loader=jinja2.BaseLoader(),
-    autoescape=True
-)
 
 # Create FastAPI app
 app = FastAPI(

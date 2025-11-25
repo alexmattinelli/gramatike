@@ -5,16 +5,9 @@
 # Note: This application was migrated from Flask to FastAPI
 # because Flask is not supported on Cloudflare Workers Python (Pyodide).
 
-import jinja2
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from workers import WorkerEntrypoint
-
-# Initialize Jinja2 environment for templates
-environment = jinja2.Environment(
-    loader=jinja2.BaseLoader(),
-    autoescape=True
-)
 
 # Create FastAPI app
 app = FastAPI(
