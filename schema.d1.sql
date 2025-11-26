@@ -487,3 +487,355 @@ CREATE TABLE IF NOT EXISTS upload (
 
 CREATE INDEX IF NOT EXISTS idx_upload_usuario ON upload(usuario_id);
 CREATE INDEX IF NOT EXISTS idx_upload_tipo ON upload(tipo);
+
+-- ============================================================================
+-- RATE LIMITING
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS rate_limit (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip_address TEXT NOT NULL,
+    endpoint TEXT NOT NULL,
+    attempts INTEGER DEFAULT 1,
+    first_attempt TEXT DEFAULT (datetime('now')),
+    last_attempt TEXT DEFAULT (datetime('now')),
+    blocked_until TEXT,
+    UNIQUE(ip_address, endpoint)
+);
+
+CREATE INDEX IF NOT EXISTS idx_rate_limit_ip ON rate_limit(ip_address);
+CREATE INDEX IF NOT EXISTS idx_rate_limit_endpoint ON rate_limit(endpoint);
+
+-- ============================================================================
+-- LOGS DE ATIVIDADE (Auditoria)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS activity_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER,
+    acao TEXT NOT NULL,  -- 'login', 'logout', 'post_criar', 'post_curtir', etc.
+    descricao TEXT,
+    ip_address TEXT,
+    user_agent TEXT,
+    dados_extra TEXT,  -- JSON com dados adicionais
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (usuario_id) REFERENCES user(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_log_usuario ON activity_log(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_activity_log_acao ON activity_log(acao);
+CREATE INDEX IF NOT EXISTS idx_activity_log_created ON activity_log(created_at);
+
+-- ============================================================================
+-- GAMIFICAÇÃO - PONTOS E BADGES
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS user_points (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL UNIQUE,
+    pontos_total INTEGER DEFAULT 0,
+    pontos_exercicios INTEGER DEFAULT 0,
+    pontos_posts INTEGER DEFAULT 0,
+    pontos_dinamicas INTEGER DEFAULT 0,
+    nivel INTEGER DEFAULT 1,
+    updated_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_points_usuario ON user_points(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_user_points_total ON user_points(pontos_total);
+
+CREATE TABLE IF NOT EXISTS badge (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL UNIQUE,
+    descricao TEXT,
+    icone TEXT,  -- emoji ou URL do ícone
+    categoria TEXT,  -- 'exercicios', 'social', 'engajamento', 'especial'
+    pontos_necessarios INTEGER DEFAULT 0,
+    condicao TEXT,  -- descrição da condição para ganhar
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS user_badge (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    badge_id INTEGER NOT NULL,
+    earned_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(usuario_id, badge_id),
+    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (badge_id) REFERENCES badge(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_badge_usuario ON user_badge(usuario_id);
+
+-- ============================================================================
+-- PROGRESSO EM EXERCÍCIOS (com controle de pontuação)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS exercise_progress (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    question_id INTEGER NOT NULL,
+    resposta_usuarie TEXT,
+    correto INTEGER DEFAULT 0,
+    pontos_ganhos INTEGER DEFAULT 0,  -- 0 se refez após acerto
+    primeira_tentativa INTEGER DEFAULT 1,  -- 1 se é primeira vez
+    tempo_resposta INTEGER,  -- tempo em segundos
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES exercise_question(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_exercise_progress_usuario ON exercise_progress(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_exercise_progress_question ON exercise_progress(question_id);
+
+-- Controle de exercícios já pontuados (não pode ganhar ponto novamente)
+CREATE TABLE IF NOT EXISTS exercise_scored (
+    usuario_id INTEGER NOT NULL,
+    question_id INTEGER NOT NULL,
+    scored_at TEXT DEFAULT (datetime('now')),
+    PRIMARY KEY (usuario_id, question_id),
+    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES exercise_question(id) ON DELETE CASCADE
+);
+
+-- Listas personalizadas de exercícios
+CREATE TABLE IF NOT EXISTS exercise_list (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    nome TEXT NOT NULL,
+    descricao TEXT,
+    modo TEXT DEFAULT 'estudo',  -- 'estudo' ou 'quiz'
+    tempo_limite INTEGER,  -- tempo limite em minutos (para quiz)
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS exercise_list_item (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    list_id INTEGER NOT NULL,
+    question_id INTEGER NOT NULL,
+    ordem INTEGER DEFAULT 0,
+    FOREIGN KEY (list_id) REFERENCES exercise_list(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES exercise_question(id) ON DELETE CASCADE
+);
+
+-- Quiz results
+CREATE TABLE IF NOT EXISTS quiz_result (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    list_id INTEGER,
+    topic_id INTEGER,
+    acertos INTEGER DEFAULT 0,
+    erros INTEGER DEFAULT 0,
+    pontos_ganhos INTEGER DEFAULT 0,
+    tempo_total INTEGER,  -- em segundos
+    completed_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (list_id) REFERENCES exercise_list(id),
+    FOREIGN KEY (topic_id) REFERENCES exercise_topic(id)
+);
+
+-- ============================================================================
+-- FLASHCARDS
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS flashcard_deck (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER,  -- NULL = público
+    titulo TEXT NOT NULL,
+    descricao TEXT,
+    is_public INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (usuario_id) REFERENCES user(id)
+);
+
+CREATE TABLE IF NOT EXISTS flashcard (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    deck_id INTEGER NOT NULL,
+    frente TEXT NOT NULL,  -- pergunta/termo
+    verso TEXT NOT NULL,   -- resposta/definição
+    dica TEXT,
+    ordem INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (deck_id) REFERENCES flashcard_deck(id) ON DELETE CASCADE
+);
+
+-- Progresso de revisão espaçada (Spaced Repetition)
+CREATE TABLE IF NOT EXISTS flashcard_review (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    flashcard_id INTEGER NOT NULL,
+    ease_factor REAL DEFAULT 2.5,  -- Fator de facilidade (algoritmo SM-2)
+    interval_days INTEGER DEFAULT 1,  -- Intervalo para próxima revisão
+    repetitions INTEGER DEFAULT 0,  -- Número de acertos consecutivos
+    next_review TEXT,  -- Data da próxima revisão
+    last_review TEXT,
+    UNIQUE(usuario_id, flashcard_id),
+    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (flashcard_id) REFERENCES flashcard(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_flashcard_review_usuario ON flashcard_review(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_flashcard_review_next ON flashcard_review(next_review);
+
+-- ============================================================================
+-- FAVORITOS/SALVOS
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS favorito (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    tipo TEXT NOT NULL,  -- 'post', 'artigo', 'exercicio', 'flashcard', 'dinamica'
+    item_id INTEGER NOT NULL,
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(usuario_id, tipo, item_id),
+    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_favorito_usuario ON favorito(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_favorito_tipo ON favorito(tipo);
+
+-- ============================================================================
+-- HISTÓRICO DE ATIVIDADES DO USUÁRIE
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS user_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    tipo TEXT NOT NULL,  -- 'view', 'complete', 'interact'
+    item_tipo TEXT NOT NULL,  -- 'artigo', 'exercicio', 'dinamica', etc.
+    item_id INTEGER NOT NULL,
+    dados TEXT,  -- JSON com dados extras
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_history_usuario ON user_history(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_user_history_created ON user_history(created_at);
+
+-- ============================================================================
+-- PREFERÊNCIAS DE USUÁRIE (UX/Acessibilidade)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS user_preferences (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL UNIQUE,
+    -- Tema
+    tema TEXT DEFAULT 'auto',  -- 'auto', 'light', 'dark', 'high-contrast'
+    -- Fonte
+    fonte_tamanho TEXT DEFAULT 'normal',  -- 'small', 'normal', 'large', 'extra-large'
+    fonte_familia TEXT DEFAULT 'default',  -- 'default', 'dyslexic', 'serif', 'mono'
+    -- Acessibilidade
+    alto_contraste INTEGER DEFAULT 0,
+    animacoes_reduzidas INTEGER DEFAULT 0,
+    -- Libras e áudio
+    exibir_libras INTEGER DEFAULT 0,
+    audio_habilitado INTEGER DEFAULT 0,
+    velocidade_audio REAL DEFAULT 1.0,
+    -- Notificações
+    notificacoes_email INTEGER DEFAULT 1,
+    notificacoes_push INTEGER DEFAULT 1,
+    -- Outros
+    idioma TEXT DEFAULT 'pt-BR',
+    updated_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+-- ============================================================================
+-- CONTEÚDO DE ACESSIBILIDADE (Libras e Áudio)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS accessibility_content (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo_conteudo TEXT NOT NULL,  -- 'artigo', 'exercicio', 'dinamica', etc.
+    conteudo_id INTEGER NOT NULL,
+    -- Libras
+    video_libras_url TEXT,
+    -- Áudio
+    audio_url TEXT,
+    audio_duracao INTEGER,  -- duração em segundos
+    transcricao TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(tipo_conteudo, conteudo_id)
+);
+
+-- ============================================================================
+-- MENSAGENS DIRETAS
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS mensagem_direta (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    remetente_id INTEGER NOT NULL,
+    destinatarie_id INTEGER NOT NULL,
+    conteudo TEXT NOT NULL,
+    lida INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (remetente_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (destinatarie_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_mensagem_remetente ON mensagem_direta(remetente_id);
+CREATE INDEX IF NOT EXISTS idx_mensagem_destinatarie ON mensagem_direta(destinatarie_id);
+CREATE INDEX IF NOT EXISTS idx_mensagem_created ON mensagem_direta(created_at);
+
+-- ============================================================================
+-- GRUPOS DE ESTUDO
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS grupo_estudo (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    descricao TEXT,
+    imagem TEXT,
+    criador_id INTEGER NOT NULL,
+    is_public INTEGER DEFAULT 1,
+    max_membros INTEGER DEFAULT 50,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (criador_id) REFERENCES user(id)
+);
+
+CREATE TABLE IF NOT EXISTS grupo_membro (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    grupo_id INTEGER NOT NULL,
+    usuario_id INTEGER NOT NULL,
+    role TEXT DEFAULT 'membro',  -- 'admin', 'moderador', 'membro'
+    joined_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(grupo_id, usuario_id),
+    FOREIGN KEY (grupo_id) REFERENCES grupo_estudo(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS grupo_mensagem (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    grupo_id INTEGER NOT NULL,
+    usuario_id INTEGER NOT NULL,
+    conteudo TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (grupo_id) REFERENCES grupo_estudo(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES user(id)
+);
+
+-- ============================================================================
+-- INSERIR BADGES PADRÃO
+-- ============================================================================
+
+INSERT OR IGNORE INTO badge (nome, descricao, icone, categoria, pontos_necessarios) VALUES
+    ('Iniciante', 'Primeiros passos no Gramátike', '🌱', 'engajamento', 0),
+    ('Estudante', 'Completou 10 exercícios', '📚', 'exercicios', 100),
+    ('Dedicade', 'Completou 50 exercícios', '🎯', 'exercicios', 500),
+    ('Mestre', 'Completou 100 exercícios', '🏆', 'exercicios', 1000),
+    ('Social', 'Fez 5 amigues', '👥', 'social', 50),
+    ('Popular', 'Recebeu 10 curtidas', '❤️', 'social', 100),
+    ('Escritor', 'Criou 5 posts', '✍️', 'engajamento', 50),
+    ('Explorador', 'Visitou todas as seções', '🧭', 'engajamento', 75),
+    ('Flashcard Pro', 'Criou um deck de flashcards', '🃏', 'exercicios', 30),
+    ('Quiz Champion', 'Acertou 10 questões seguidas', '🏅', 'exercicios', 150);
+
+-- ============================================================================
+-- INSERIR PREFERÊNCIAS PADRÃO PARA USUÁRIES EXISTENTES
+-- ============================================================================
+
+INSERT OR IGNORE INTO user_preferences (usuario_id)
+SELECT id FROM user WHERE id NOT IN (SELECT usuario_id FROM user_preferences);

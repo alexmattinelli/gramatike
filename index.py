@@ -46,7 +46,34 @@ try:
         save_upload, get_user_uploads,
         # Admin
         get_all_usuaries, ban_usuarie, unban_usuarie, suspend_usuarie,
-        make_admin, get_admin_stats
+        make_admin, get_admin_stats,
+        # Rate limiting e logs
+        check_rate_limit, log_activity,
+        # Gamificação
+        get_user_points, add_points, get_ranking, get_all_badges,
+        get_user_badges, award_badge, check_and_award_badges,
+        # Exercícios e progresso
+        record_exercise_answer, get_user_exercise_stats, get_questions_not_scored,
+        create_exercise_list, add_to_exercise_list, get_exercise_lists,
+        get_exercise_list_questions, save_quiz_result,
+        # Flashcards
+        create_flashcard_deck, add_flashcard, get_flashcard_decks,
+        get_flashcards, get_cards_to_review, record_flashcard_review,
+        # Favoritos
+        add_favorite, remove_favorite, is_favorite, get_favorites,
+        # Histórico
+        add_to_history, get_user_history,
+        # Preferências
+        get_user_preferences, update_user_preferences,
+        # Mensagens diretas
+        send_direct_message, get_conversations, get_messages_with_user,
+        # Grupos de estudo
+        create_study_group, join_study_group, leave_study_group,
+        get_study_groups, get_group_messages, send_group_message,
+        # Acessibilidade
+        get_accessibility_content, save_accessibility_content,
+        # Validação de senha
+        validate_password_strength
     )
     from workers.auth import (
         get_current_user, login, logout, register,
@@ -1082,6 +1109,393 @@ class Default(WorkerEntrypoint):
                     div_id = body.get('id')
                     await delete_divulgacao(db, div_id)
                     return json_response({"success": True})
+            
+            # ================================================================
+            # GAMIFICAÇÃO E PONTOS
+            # ================================================================
+            
+            if path == '/api/pontos':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                pontos = await get_user_points(db, current_user['id'])
+                badges = await get_user_badges(db, current_user['id'])
+                return json_response({
+                    "pontos": pontos,
+                    "badges": badges
+                })
+            
+            if path == '/api/ranking':
+                tipo = params.get('tipo', [None])[0]
+                limit = int(params.get('limit', ['10'])[0])
+                ranking = await get_ranking(db, limit=limit, tipo=tipo)
+                return json_response({"ranking": ranking})
+            
+            if path == '/api/badges':
+                all_badges = await get_all_badges(db)
+                my_badges = []
+                if current_user:
+                    my_badges = await get_user_badges(db, current_user['id'])
+                return json_response({
+                    "todos": all_badges,
+                    "meus": my_badges
+                })
+            
+            # ================================================================
+            # EXERCÍCIOS COM PROGRESSO E PONTUAÇÃO
+            # ================================================================
+            
+            if path == '/api/exercicios/responder' and method == 'POST':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                body = await request.json()
+                question_id = body.get('question_id')
+                resposta = body.get('resposta')
+                correto = body.get('correto', False)
+                tempo = body.get('tempo_resposta')
+                
+                pontos = await record_exercise_answer(
+                    db, current_user['id'], question_id, 
+                    resposta, correto, tempo
+                )
+                return json_response({
+                    "pontos_ganhos": pontos,
+                    "correto": correto
+                })
+            
+            if path == '/api/exercicios/stats':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                topic_id = params.get('topic_id', [None])[0]
+                stats = await get_user_exercise_stats(db, current_user['id'], topic_id)
+                return json_response(stats)
+            
+            if path == '/api/exercicios/nao-pontuados':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                topic_id = params.get('topic_id', [None])[0]
+                limit = int(params.get('limit', ['10'])[0])
+                questions = await get_questions_not_scored(db, current_user['id'], topic_id, limit)
+                return json_response({"questions": questions})
+            
+            # ================================================================
+            # LISTAS PERSONALIZADAS DE EXERCÍCIOS
+            # ================================================================
+            
+            if path == '/api/listas-exercicios':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                if method == 'GET':
+                    listas = await get_exercise_lists(db, current_user['id'])
+                    return json_response({"listas": listas})
+                
+                if method == 'POST':
+                    body = await request.json()
+                    list_id = await create_exercise_list(
+                        db, current_user['id'],
+                        nome=body.get('nome'),
+                        descricao=body.get('descricao'),
+                        modo=body.get('modo', 'estudo'),
+                        tempo_limite=body.get('tempo_limite')
+                    )
+                    return json_response({"id": list_id}, 201)
+            
+            if path.startswith('/api/listas-exercicios/') and '/questoes' in path:
+                list_id = path.split('/')[3]
+                if method == 'GET':
+                    questions = await get_exercise_list_questions(db, list_id)
+                    return json_response({"questions": questions})
+                
+                if method == 'POST' and current_user:
+                    body = await request.json()
+                    success = await add_to_exercise_list(
+                        db, list_id, 
+                        body.get('question_id'),
+                        body.get('ordem', 0)
+                    )
+                    return json_response({"success": success})
+            
+            if path == '/api/quiz/resultado' and method == 'POST':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                body = await request.json()
+                result_id = await save_quiz_result(
+                    db, current_user['id'],
+                    body.get('acertos', 0),
+                    body.get('erros', 0),
+                    body.get('pontos', 0),
+                    body.get('tempo_total'),
+                    body.get('list_id'),
+                    body.get('topic_id')
+                )
+                return json_response({"id": result_id})
+            
+            # ================================================================
+            # FLASHCARDS
+            # ================================================================
+            
+            if path == '/api/flashcards/decks':
+                if method == 'GET':
+                    user_id = current_user['id'] if current_user else None
+                    decks = await get_flashcard_decks(db, user_id)
+                    return json_response({"decks": decks})
+                
+                if method == 'POST' and current_user:
+                    body = await request.json()
+                    deck_id = await create_flashcard_deck(
+                        db, body.get('titulo'),
+                        current_user['id'],
+                        body.get('descricao'),
+                        body.get('is_public', False)
+                    )
+                    return json_response({"id": deck_id}, 201)
+            
+            if path.startswith('/api/flashcards/decks/') and path.count('/') == 4:
+                deck_id = path.split('/')[4]
+                cards = await get_flashcards(db, deck_id)
+                return json_response({"cards": cards})
+            
+            if path == '/api/flashcards/cards' and method == 'POST':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                body = await request.json()
+                card_id = await add_flashcard(
+                    db, body.get('deck_id'),
+                    body.get('frente'),
+                    body.get('verso'),
+                    body.get('dica'),
+                    body.get('ordem', 0)
+                )
+                return json_response({"id": card_id}, 201)
+            
+            if path == '/api/flashcards/revisar':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                deck_id = params.get('deck_id', [None])[0]
+                limit = int(params.get('limit', ['20'])[0])
+                cards = await get_cards_to_review(db, current_user['id'], deck_id, limit)
+                return json_response({"cards": cards})
+            
+            if path == '/api/flashcards/review' and method == 'POST':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                body = await request.json()
+                result = await record_flashcard_review(
+                    db, current_user['id'],
+                    body.get('flashcard_id'),
+                    body.get('quality', 3)
+                )
+                return json_response(result)
+            
+            # ================================================================
+            # FAVORITOS
+            # ================================================================
+            
+            if path == '/api/favoritos':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                if method == 'GET':
+                    tipo = params.get('tipo', [None])[0]
+                    favs = await get_favorites(db, current_user['id'], tipo)
+                    return json_response({"favoritos": favs})
+                
+                if method == 'POST':
+                    body = await request.json()
+                    success = await add_favorite(
+                        db, current_user['id'],
+                        body.get('tipo'),
+                        body.get('item_id')
+                    )
+                    return json_response({"success": success})
+                
+                if method == 'DELETE':
+                    body = await request.json()
+                    await remove_favorite(
+                        db, current_user['id'],
+                        body.get('tipo'),
+                        body.get('item_id')
+                    )
+                    return json_response({"success": True})
+            
+            # ================================================================
+            # HISTÓRICO
+            # ================================================================
+            
+            if path == '/api/historico':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                item_tipo = params.get('tipo', [None])[0]
+                limit = int(params.get('limit', ['50'])[0])
+                history = await get_user_history(db, current_user['id'], item_tipo, limit)
+                return json_response({"historico": history})
+            
+            # ================================================================
+            # PREFERÊNCIAS DE USUÁRIE (Tema, Acessibilidade)
+            # ================================================================
+            
+            if path == '/api/preferencias':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                if method == 'GET':
+                    prefs = await get_user_preferences(db, current_user['id'])
+                    return json_response(prefs)
+                
+                if method == 'POST' or method == 'PUT':
+                    body = await request.json()
+                    await update_user_preferences(db, current_user['id'], **body)
+                    prefs = await get_user_preferences(db, current_user['id'])
+                    return json_response(prefs)
+            
+            # ================================================================
+            # MENSAGENS DIRETAS
+            # ================================================================
+            
+            if path == '/api/mensagens':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                conversations = await get_conversations(db, current_user['id'])
+                return json_response({"conversations": conversations})
+            
+            if path.startswith('/api/mensagens/') and method == 'GET':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                other_user_id = path.split('/')[3]
+                try:
+                    other_user_id = int(other_user_id)
+                except ValueError:
+                    return json_response({"error": "ID inválido"}, 400)
+                
+                page = int(params.get('page', ['1'])[0])
+                messages = await get_messages_with_user(
+                    db, current_user['id'], other_user_id, page
+                )
+                return json_response({"messages": messages})
+            
+            if path == '/api/mensagens/enviar' and method == 'POST':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                body = await request.json()
+                msg_id = await send_direct_message(
+                    db, current_user['id'],
+                    body.get('destinatarie_id'),
+                    body.get('conteudo')
+                )
+                return json_response({"id": msg_id}, 201)
+            
+            # ================================================================
+            # GRUPOS DE ESTUDO
+            # ================================================================
+            
+            if path == '/api/grupos':
+                if method == 'GET':
+                    apenas_meus = params.get('meus', ['0'])[0] == '1'
+                    user_id = current_user['id'] if current_user else None
+                    grupos = await get_study_groups(db, user_id, apenas_meus)
+                    return json_response({"grupos": grupos})
+                
+                if method == 'POST' and current_user:
+                    body = await request.json()
+                    grupo_id = await create_study_group(
+                        db, body.get('nome'),
+                        current_user['id'],
+                        body.get('descricao'),
+                        body.get('is_public', True),
+                        body.get('max_membros', 50)
+                    )
+                    return json_response({"id": grupo_id}, 201)
+            
+            if path.startswith('/api/grupos/') and '/entrar' in path:
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                grupo_id = path.split('/')[3]
+                success, error = await join_study_group(db, grupo_id, current_user['id'])
+                if error:
+                    return json_response({"error": error}, 400)
+                return json_response({"success": True})
+            
+            if path.startswith('/api/grupos/') and '/sair' in path:
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                grupo_id = path.split('/')[3]
+                await leave_study_group(db, grupo_id, current_user['id'])
+                return json_response({"success": True})
+            
+            if path.startswith('/api/grupos/') and '/mensagens' in path:
+                grupo_id = path.split('/')[3]
+                
+                if method == 'GET':
+                    page = int(params.get('page', ['1'])[0])
+                    messages = await get_group_messages(db, grupo_id, page)
+                    return json_response({"messages": messages})
+                
+                if method == 'POST' and current_user:
+                    body = await request.json()
+                    msg_id = await send_group_message(
+                        db, grupo_id, current_user['id'],
+                        body.get('conteudo')
+                    )
+                    return json_response({"id": msg_id}, 201)
+            
+            # ================================================================
+            # ACESSIBILIDADE (Libras e Áudio)
+            # ================================================================
+            
+            if path == '/api/acessibilidade':
+                tipo = params.get('tipo', [''])[0]
+                item_id = params.get('id', [''])[0]
+                
+                if not tipo or not item_id:
+                    return json_response({"error": "tipo e id são obrigatórios"}, 400)
+                
+                content = await get_accessibility_content(db, tipo, item_id)
+                return json_response(content or {})
+            
+            # Admin: salvar conteúdo de acessibilidade
+            if path == '/api/admin/acessibilidade' and method == 'POST':
+                if not current_user or not current_user.get('is_admin'):
+                    return json_response({"error": "Admin apenas"}, 403)
+                
+                body = await request.json()
+                await save_accessibility_content(
+                    db, body.get('tipo_conteudo'),
+                    body.get('conteudo_id'),
+                    body.get('video_libras_url'),
+                    body.get('audio_url'),
+                    body.get('audio_duracao'),
+                    body.get('transcricao')
+                )
+                return json_response({"success": True})
+            
+            # ================================================================
+            # LOGS DE ATIVIDADE (Admin)
+            # ================================================================
+            
+            if path == '/api/admin/logs':
+                if not current_user or not current_user.get('is_admin'):
+                    return json_response({"error": "Admin apenas"}, 403)
+                
+                usuario_id = params.get('usuario_id', [None])[0]
+                acao = params.get('acao', [None])[0]
+                page = int(params.get('page', ['1'])[0])
+                
+                logs = await get_activity_log(db, usuario_id, acao, page)
+                return json_response({"logs": logs})
             
             return json_response({"error": "Rota não encontrada"}, 404)
             

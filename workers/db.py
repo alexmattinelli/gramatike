@@ -1229,3 +1229,1013 @@ async def get_admin_stats(db):
     stats['tickets_abertos'] = result['count'] if result else 0
     
     return stats
+
+
+# ============================================================================
+# QUERIES - RATE LIMITING
+# ============================================================================
+
+async def check_rate_limit(db, ip_address, endpoint, max_attempts=10, window_minutes=5):
+    """Verifica se IP está bloqueado ou excedeu limite."""
+    now = datetime.utcnow()
+    
+    result = await db.prepare("""
+        SELECT * FROM rate_limit
+        WHERE ip_address = ? AND endpoint = ?
+    """).bind(ip_address, endpoint).first()
+    
+    if not result:
+        # Primeiro acesso
+        await db.prepare("""
+            INSERT INTO rate_limit (ip_address, endpoint, attempts)
+            VALUES (?, ?, 1)
+        """).bind(ip_address, endpoint).run()
+        return True, None
+    
+    rate = dict(result)
+    
+    # Verifica se está bloqueado
+    if rate.get('blocked_until'):
+        blocked_until = datetime.fromisoformat(rate['blocked_until'])
+        if now < blocked_until:
+            return False, f"Bloqueade até {rate['blocked_until']}"
+        else:
+            # Desbloquear
+            await db.prepare("""
+                UPDATE rate_limit SET attempts = 1, blocked_until = NULL, 
+                first_attempt = datetime('now'), last_attempt = datetime('now')
+                WHERE ip_address = ? AND endpoint = ?
+            """).bind(ip_address, endpoint).run()
+            return True, None
+    
+    # Verifica janela de tempo
+    first_attempt = datetime.fromisoformat(rate['first_attempt'])
+    window = timedelta(minutes=window_minutes)
+    
+    if now - first_attempt > window:
+        # Reset contagem
+        await db.prepare("""
+            UPDATE rate_limit SET attempts = 1, 
+            first_attempt = datetime('now'), last_attempt = datetime('now')
+            WHERE ip_address = ? AND endpoint = ?
+        """).bind(ip_address, endpoint).run()
+        return True, None
+    
+    if rate['attempts'] >= max_attempts:
+        # Bloquear
+        block_until = (now + timedelta(minutes=15)).isoformat()
+        await db.prepare("""
+            UPDATE rate_limit SET blocked_until = ?
+            WHERE ip_address = ? AND endpoint = ?
+        """).bind(block_until, ip_address, endpoint).run()
+        return False, f"Muitas tentativas. Bloqueade por 15 minutos."
+    
+    # Incrementar tentativas
+    await db.prepare("""
+        UPDATE rate_limit SET attempts = attempts + 1, last_attempt = datetime('now')
+        WHERE ip_address = ? AND endpoint = ?
+    """).bind(ip_address, endpoint).run()
+    return True, None
+
+
+# ============================================================================
+# QUERIES - LOGS DE ATIVIDADE
+# ============================================================================
+
+async def log_activity(db, acao, usuario_id=None, descricao=None, ip_address=None, 
+                       user_agent=None, dados_extra=None):
+    """Registra uma atividade no log de auditoria."""
+    dados_json = json.dumps(dados_extra) if dados_extra else None
+    
+    await db.prepare("""
+        INSERT INTO activity_log (usuario_id, acao, descricao, ip_address, user_agent, dados_extra)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """).bind(usuario_id, acao, descricao, ip_address, user_agent, dados_json).run()
+
+
+async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
+    """Lista atividades do log."""
+    offset = (page - 1) * per_page
+    
+    if usuario_id and acao:
+        result = await db.prepare("""
+            SELECT a.*, u.username
+            FROM activity_log a
+            LEFT JOIN user u ON a.usuario_id = u.id
+            WHERE a.usuario_id = ? AND a.acao = ?
+            ORDER BY a.created_at DESC
+            LIMIT ? OFFSET ?
+        """).bind(usuario_id, acao, per_page, offset).all()
+    elif usuario_id:
+        result = await db.prepare("""
+            SELECT a.*, u.username
+            FROM activity_log a
+            LEFT JOIN user u ON a.usuario_id = u.id
+            WHERE a.usuario_id = ?
+            ORDER BY a.created_at DESC
+            LIMIT ? OFFSET ?
+        """).bind(usuario_id, per_page, offset).all()
+    elif acao:
+        result = await db.prepare("""
+            SELECT a.*, u.username
+            FROM activity_log a
+            LEFT JOIN user u ON a.usuario_id = u.id
+            WHERE a.acao = ?
+            ORDER BY a.created_at DESC
+            LIMIT ? OFFSET ?
+        """).bind(acao, per_page, offset).all()
+    else:
+        result = await db.prepare("""
+            SELECT a.*, u.username
+            FROM activity_log a
+            LEFT JOIN user u ON a.usuario_id = u.id
+            ORDER BY a.created_at DESC
+            LIMIT ? OFFSET ?
+        """).bind(per_page, offset).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+# ============================================================================
+# QUERIES - GAMIFICAÇÃO (Pontos e Badges)
+# ============================================================================
+
+async def get_user_points(db, usuario_id):
+    """Retorna pontos de usuárie."""
+    result = await db.prepare("""
+        SELECT * FROM user_points WHERE usuario_id = ?
+    """).bind(usuario_id).first()
+    
+    if not result:
+        # Criar registro se não existe
+        await db.prepare("""
+            INSERT INTO user_points (usuario_id) VALUES (?)
+        """).bind(usuario_id).run()
+        return {'usuario_id': usuario_id, 'pontos_total': 0, 'pontos_exercicios': 0,
+                'pontos_posts': 0, 'pontos_dinamicas': 0, 'nivel': 1}
+    
+    return dict(result)
+
+
+async def add_points(db, usuario_id, pontos, tipo='exercicios'):
+    """Adiciona pontos a usuárie."""
+    # Primeiro garante que o registro existe
+    await get_user_points(db, usuario_id)
+    
+    # Map tipo to column name safely
+    column_map = {
+        'exercicios': 'pontos_exercicios',
+        'posts': 'pontos_posts',
+        'dinamicas': 'pontos_dinamicas'
+    }
+    
+    tipo_coluna = column_map.get(tipo, 'pontos_exercicios')
+    
+    await db.prepare(f"""
+        UPDATE user_points 
+        SET pontos_total = pontos_total + ?,
+            {tipo_coluna} = {tipo_coluna} + ?,
+            updated_at = datetime('now')
+        WHERE usuario_id = ?
+    """).bind(pontos, pontos, usuario_id).run()
+    
+    # Atualizar nível baseado em pontos
+    await update_user_level(db, usuario_id)
+
+
+async def update_user_level(db, usuario_id):
+    """Atualiza o nível de usuárie baseado em pontos."""
+    result = await db.prepare("""
+        SELECT pontos_total FROM user_points WHERE usuario_id = ?
+    """).bind(usuario_id).first()
+    
+    if not result:
+        return
+    
+    pontos = result['pontos_total']
+    
+    # Calcular nível (a cada 100 pontos sobe um nível)
+    nivel = max(1, (pontos // 100) + 1)
+    
+    await db.prepare("""
+        UPDATE user_points SET nivel = ? WHERE usuario_id = ?
+    """).bind(nivel, usuario_id).run()
+
+
+async def get_ranking(db, limit=10, tipo=None):
+    """Retorna ranking de usuáries por pontos."""
+    if tipo and tipo in ['exercicios', 'posts', 'dinamicas']:
+        column_map = {
+            'exercicios': 'pontos_exercicios',
+            'posts': 'pontos_posts',
+            'dinamicas': 'pontos_dinamicas'
+        }
+        tipo_coluna = column_map[tipo]
+        result = await db.prepare(f"""
+            SELECT p.*, u.username, u.nome, u.foto_perfil
+            FROM user_points p
+            JOIN user u ON p.usuario_id = u.id
+            WHERE u.is_banned = 0
+            ORDER BY p.{tipo_coluna} DESC
+            LIMIT ?
+        """).bind(limit).all()
+    else:
+        result = await db.prepare("""
+            SELECT p.*, u.username, u.nome, u.foto_perfil
+            FROM user_points p
+            JOIN user u ON p.usuario_id = u.id
+            WHERE u.is_banned = 0
+            ORDER BY p.pontos_total DESC
+            LIMIT ?
+        """).bind(limit).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def get_all_badges(db):
+    """Lista todos os badges disponíveis."""
+    result = await db.prepare("""
+        SELECT * FROM badge ORDER BY categoria, pontos_necessarios
+    """).all()
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def get_user_badges(db, usuario_id):
+    """Lista badges de usuárie."""
+    result = await db.prepare("""
+        SELECT b.*, ub.earned_at
+        FROM user_badge ub
+        JOIN badge b ON ub.badge_id = b.id
+        WHERE ub.usuario_id = ?
+        ORDER BY ub.earned_at DESC
+    """).bind(usuario_id).all()
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def award_badge(db, usuario_id, badge_nome):
+    """Concede um badge a usuárie."""
+    # Buscar badge por nome
+    badge = await db.prepare("""
+        SELECT id FROM badge WHERE nome = ?
+    """).bind(badge_nome).first()
+    
+    if not badge:
+        return False
+    
+    try:
+        await db.prepare("""
+            INSERT INTO user_badge (usuario_id, badge_id) VALUES (?, ?)
+        """).bind(usuario_id, badge['id']).run()
+        
+        # Notificar usuárie
+        await create_notification(db, usuario_id, 'badge',
+                                  titulo=f'Novo badge: {badge_nome}! 🎖️')
+        return True
+    except:
+        return False  # Já tem o badge
+
+
+async def check_and_award_badges(db, usuario_id):
+    """Verifica e concede badges que usuárie merece."""
+    # Buscar estatísticas
+    points = await get_user_points(db, usuario_id)
+    
+    badges_concedidos = []
+    
+    # Badge por pontos de exercícios
+    if points['pontos_exercicios'] >= 100:
+        if await award_badge(db, usuario_id, 'Estudante'):
+            badges_concedidos.append('Estudante')
+    if points['pontos_exercicios'] >= 500:
+        if await award_badge(db, usuario_id, 'Dedicade'):
+            badges_concedidos.append('Dedicade')
+    if points['pontos_exercicios'] >= 1000:
+        if await award_badge(db, usuario_id, 'Mestre'):
+            badges_concedidos.append('Mestre')
+    
+    # Badge por posts
+    post_count = await db.prepare("""
+        SELECT COUNT(*) as count FROM post WHERE usuario_id = ? AND is_deleted = 0
+    """).bind(usuario_id).first()
+    if post_count and post_count['count'] >= 5:
+        if await award_badge(db, usuario_id, 'Escritor'):
+            badges_concedidos.append('Escritor')
+    
+    # Badge por amigues
+    amigues_count = await db.prepare("""
+        SELECT COUNT(*) as count FROM amizade
+        WHERE (usuario1_id = ? OR usuario2_id = ?) AND status = 'aceita'
+    """).bind(usuario_id, usuario_id).first()
+    if amigues_count and amigues_count['count'] >= 5:
+        if await award_badge(db, usuario_id, 'Social'):
+            badges_concedidos.append('Social')
+    
+    return badges_concedidos
+
+
+# ============================================================================
+# QUERIES - PROGRESSO EM EXERCÍCIOS
+# ============================================================================
+
+async def record_exercise_answer(db, usuario_id, question_id, resposta, correto, tempo_resposta=None):
+    """Registra resposta de exercício e retorna pontos ganhos."""
+    pontos = 0
+    primeira_tentativa = 1
+    
+    # Verificar se já respondeu corretamente antes (para não dar pontos novamente)
+    scored = await db.prepare("""
+        SELECT 1 FROM exercise_scored WHERE usuario_id = ? AND question_id = ?
+    """).bind(usuario_id, question_id).first()
+    
+    if scored:
+        primeira_tentativa = 0
+    elif correto:
+        # Primeira vez acertando - dar pontos
+        pontos = 1  # 1 ponto por acerto
+        
+        # Marcar como pontuado
+        await db.prepare("""
+            INSERT INTO exercise_scored (usuario_id, question_id) VALUES (?, ?)
+        """).bind(usuario_id, question_id).run()
+        
+        # Adicionar pontos ao total
+        await add_points(db, usuario_id, pontos, 'exercicios')
+    
+    # Registrar no histórico
+    await db.prepare("""
+        INSERT INTO exercise_progress (usuario_id, question_id, resposta_usuarie, correto, 
+                                        pontos_ganhos, primeira_tentativa, tempo_resposta)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """).bind(usuario_id, question_id, resposta, 1 if correto else 0, 
+              pontos, primeira_tentativa, tempo_resposta).run()
+    
+    # Verificar badges
+    await check_and_award_badges(db, usuario_id)
+    
+    return pontos
+
+
+async def get_user_exercise_stats(db, usuario_id, topic_id=None):
+    """Retorna estatísticas de exercícios de usuárie."""
+    if topic_id:
+        result = await db.prepare("""
+            SELECT 
+                COUNT(*) as total_respostas,
+                SUM(CASE WHEN correto = 1 THEN 1 ELSE 0 END) as acertos,
+                SUM(pontos_ganhos) as pontos
+            FROM exercise_progress ep
+            JOIN exercise_question eq ON ep.question_id = eq.id
+            WHERE ep.usuario_id = ? AND eq.topic_id = ?
+        """).bind(usuario_id, topic_id).first()
+    else:
+        result = await db.prepare("""
+            SELECT 
+                COUNT(*) as total_respostas,
+                SUM(CASE WHEN correto = 1 THEN 1 ELSE 0 END) as acertos,
+                SUM(pontos_ganhos) as pontos
+            FROM exercise_progress
+            WHERE usuario_id = ?
+        """).bind(usuario_id).first()
+    
+    if result:
+        return dict(result)
+    return {'total_respostas': 0, 'acertos': 0, 'pontos': 0}
+
+
+async def get_questions_not_scored(db, usuario_id, topic_id=None, limit=10):
+    """Retorna questões que usuárie ainda não pontuou."""
+    if topic_id:
+        result = await db.prepare("""
+            SELECT eq.*, et.nome as topic_name
+            FROM exercise_question eq
+            JOIN exercise_topic et ON eq.topic_id = et.id
+            LEFT JOIN exercise_scored es ON eq.id = es.question_id AND es.usuario_id = ?
+            WHERE es.question_id IS NULL AND eq.topic_id = ?
+            ORDER BY RANDOM()
+            LIMIT ?
+        """).bind(usuario_id, topic_id, limit).all()
+    else:
+        result = await db.prepare("""
+            SELECT eq.*, et.nome as topic_name
+            FROM exercise_question eq
+            JOIN exercise_topic et ON eq.topic_id = et.id
+            LEFT JOIN exercise_scored es ON eq.id = es.question_id AND es.usuario_id = ?
+            WHERE es.question_id IS NULL
+            ORDER BY RANDOM()
+            LIMIT ?
+        """).bind(usuario_id, limit).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+# ============================================================================
+# QUERIES - LISTAS DE EXERCÍCIOS PERSONALIZADAS
+# ============================================================================
+
+async def create_exercise_list(db, usuario_id, nome, descricao=None, modo='estudo', tempo_limite=None):
+    """Cria uma lista personalizada de exercícios."""
+    result = await db.prepare("""
+        INSERT INTO exercise_list (usuario_id, nome, descricao, modo, tempo_limite)
+        VALUES (?, ?, ?, ?, ?)
+        RETURNING id
+    """).bind(usuario_id, nome, descricao, modo, tempo_limite).first()
+    return result['id'] if result else None
+
+
+async def add_to_exercise_list(db, list_id, question_id, ordem=0):
+    """Adiciona questão à lista de exercícios."""
+    try:
+        await db.prepare("""
+            INSERT INTO exercise_list_item (list_id, question_id, ordem) VALUES (?, ?, ?)
+        """).bind(list_id, question_id, ordem).run()
+        return True
+    except:
+        return False
+
+
+async def get_exercise_lists(db, usuario_id):
+    """Lista as listas de exercícios de usuárie."""
+    result = await db.prepare("""
+        SELECT el.*, 
+               (SELECT COUNT(*) FROM exercise_list_item WHERE list_id = el.id) as question_count
+        FROM exercise_list el
+        WHERE el.usuario_id = ?
+        ORDER BY el.created_at DESC
+    """).bind(usuario_id).all()
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def get_exercise_list_questions(db, list_id):
+    """Retorna questões de uma lista."""
+    result = await db.prepare("""
+        SELECT eq.*, et.nome as topic_name, eli.ordem
+        FROM exercise_list_item eli
+        JOIN exercise_question eq ON eli.question_id = eq.id
+        JOIN exercise_topic et ON eq.topic_id = et.id
+        WHERE eli.list_id = ?
+        ORDER BY eli.ordem
+    """).bind(list_id).all()
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def save_quiz_result(db, usuario_id, acertos, erros, pontos, tempo_total, list_id=None, topic_id=None):
+    """Salva resultado de quiz."""
+    result = await db.prepare("""
+        INSERT INTO quiz_result (usuario_id, list_id, topic_id, acertos, erros, pontos_ganhos, tempo_total)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        RETURNING id
+    """).bind(usuario_id, list_id, topic_id, acertos, erros, pontos, tempo_total).first()
+    return result['id'] if result else None
+
+
+# ============================================================================
+# QUERIES - FLASHCARDS
+# ============================================================================
+
+async def create_flashcard_deck(db, titulo, usuario_id=None, descricao=None, is_public=False):
+    """Cria um deck de flashcards."""
+    result = await db.prepare("""
+        INSERT INTO flashcard_deck (usuario_id, titulo, descricao, is_public)
+        VALUES (?, ?, ?, ?)
+        RETURNING id
+    """).bind(usuario_id, titulo, descricao, 1 if is_public else 0).first()
+    
+    # Dar badge se for o primeiro deck
+    if usuario_id:
+        await award_badge(db, usuario_id, 'Flashcard Pro')
+    
+    return result['id'] if result else None
+
+
+async def add_flashcard(db, deck_id, frente, verso, dica=None, ordem=0):
+    """Adiciona um flashcard ao deck."""
+    result = await db.prepare("""
+        INSERT INTO flashcard (deck_id, frente, verso, dica, ordem)
+        VALUES (?, ?, ?, ?, ?)
+        RETURNING id
+    """).bind(deck_id, frente, verso, dica, ordem).first()
+    return result['id'] if result else None
+
+
+async def get_flashcard_decks(db, usuario_id=None, include_public=True):
+    """Lista decks de flashcards."""
+    if usuario_id and include_public:
+        result = await db.prepare("""
+            SELECT fd.*, u.username as author_name,
+                   (SELECT COUNT(*) FROM flashcard WHERE deck_id = fd.id) as card_count
+            FROM flashcard_deck fd
+            LEFT JOIN user u ON fd.usuario_id = u.id
+            WHERE fd.usuario_id = ? OR fd.is_public = 1
+            ORDER BY fd.created_at DESC
+        """).bind(usuario_id).all()
+    elif usuario_id:
+        result = await db.prepare("""
+            SELECT fd.*, u.username as author_name,
+                   (SELECT COUNT(*) FROM flashcard WHERE deck_id = fd.id) as card_count
+            FROM flashcard_deck fd
+            LEFT JOIN user u ON fd.usuario_id = u.id
+            WHERE fd.usuario_id = ?
+            ORDER BY fd.created_at DESC
+        """).bind(usuario_id).all()
+    else:
+        result = await db.prepare("""
+            SELECT fd.*, u.username as author_name,
+                   (SELECT COUNT(*) FROM flashcard WHERE deck_id = fd.id) as card_count
+            FROM flashcard_deck fd
+            LEFT JOIN user u ON fd.usuario_id = u.id
+            WHERE fd.is_public = 1
+            ORDER BY fd.created_at DESC
+        """).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def get_flashcards(db, deck_id):
+    """Retorna flashcards de um deck."""
+    result = await db.prepare("""
+        SELECT * FROM flashcard WHERE deck_id = ? ORDER BY ordem
+    """).bind(deck_id).all()
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def get_cards_to_review(db, usuario_id, deck_id=None, limit=20):
+    """Retorna flashcards para revisão espaçada."""
+    now = datetime.utcnow().isoformat()
+    
+    if deck_id:
+        result = await db.prepare("""
+            SELECT f.*, fr.ease_factor, fr.interval_days, fr.repetitions, fr.next_review
+            FROM flashcard f
+            LEFT JOIN flashcard_review fr ON f.id = fr.flashcard_id AND fr.usuario_id = ?
+            WHERE f.deck_id = ?
+            AND (fr.next_review IS NULL OR fr.next_review <= ?)
+            ORDER BY fr.next_review NULLS FIRST, RANDOM()
+            LIMIT ?
+        """).bind(usuario_id, deck_id, now, limit).all()
+    else:
+        result = await db.prepare("""
+            SELECT f.*, fd.titulo as deck_titulo, fr.ease_factor, fr.interval_days, 
+                   fr.repetitions, fr.next_review
+            FROM flashcard f
+            JOIN flashcard_deck fd ON f.deck_id = fd.id
+            LEFT JOIN flashcard_review fr ON f.id = fr.flashcard_id AND fr.usuario_id = ?
+            WHERE (fd.usuario_id = ? OR fd.is_public = 1)
+            AND (fr.next_review IS NULL OR fr.next_review <= ?)
+            ORDER BY fr.next_review NULLS FIRST, RANDOM()
+            LIMIT ?
+        """).bind(usuario_id, usuario_id, now, limit).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def record_flashcard_review(db, usuario_id, flashcard_id, quality):
+    """
+    Registra revisão de flashcard usando algoritmo SM-2.
+    quality: 0-5 (0-2 = errou, 3-5 = acertou com diferentes níveis de facilidade)
+    """
+    # Buscar revisão existente
+    existing = await db.prepare("""
+        SELECT * FROM flashcard_review WHERE usuario_id = ? AND flashcard_id = ?
+    """).bind(usuario_id, flashcard_id).first()
+    
+    if existing:
+        ef = existing['ease_factor']
+        reps = existing['repetitions']
+        interval = existing['interval_days']
+    else:
+        ef = 2.5
+        reps = 0
+        interval = 1
+    
+    # Algoritmo SM-2
+    if quality < 3:
+        # Errou - resetar
+        reps = 0
+        interval = 1
+    else:
+        if reps == 0:
+            interval = 1
+        elif reps == 1:
+            interval = 6
+        else:
+            interval = int(interval * ef)
+        
+        reps += 1
+    
+    # Atualizar ease factor
+    ef = max(1.3, ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)))
+    
+    # Calcular próxima revisão
+    next_review = (datetime.utcnow() + timedelta(days=interval)).isoformat()
+    
+    if existing:
+        await db.prepare("""
+            UPDATE flashcard_review 
+            SET ease_factor = ?, interval_days = ?, repetitions = ?, 
+                next_review = ?, last_review = datetime('now')
+            WHERE usuario_id = ? AND flashcard_id = ?
+        """).bind(ef, interval, reps, next_review, usuario_id, flashcard_id).run()
+    else:
+        await db.prepare("""
+            INSERT INTO flashcard_review (usuario_id, flashcard_id, ease_factor, 
+                                          interval_days, repetitions, next_review, last_review)
+            VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+        """).bind(usuario_id, flashcard_id, ef, interval, reps, next_review).run()
+    
+    return {'ease_factor': ef, 'interval_days': interval, 'next_review': next_review}
+
+
+# ============================================================================
+# QUERIES - FAVORITOS
+# ============================================================================
+
+async def add_favorite(db, usuario_id, tipo, item_id):
+    """Adiciona item aos favoritos."""
+    try:
+        await db.prepare("""
+            INSERT INTO favorito (usuario_id, tipo, item_id) VALUES (?, ?, ?)
+        """).bind(usuario_id, tipo, item_id).run()
+        return True
+    except:
+        return False
+
+
+async def remove_favorite(db, usuario_id, tipo, item_id):
+    """Remove item dos favoritos."""
+    await db.prepare("""
+        DELETE FROM favorito WHERE usuario_id = ? AND tipo = ? AND item_id = ?
+    """).bind(usuario_id, tipo, item_id).run()
+
+
+async def is_favorite(db, usuario_id, tipo, item_id):
+    """Verifica se item é favorito."""
+    result = await db.prepare("""
+        SELECT 1 FROM favorito WHERE usuario_id = ? AND tipo = ? AND item_id = ?
+    """).bind(usuario_id, tipo, item_id).first()
+    return result is not None
+
+
+async def get_favorites(db, usuario_id, tipo=None):
+    """Lista favoritos de usuárie."""
+    if tipo:
+        result = await db.prepare("""
+            SELECT * FROM favorito WHERE usuario_id = ? AND tipo = ?
+            ORDER BY created_at DESC
+        """).bind(usuario_id, tipo).all()
+    else:
+        result = await db.prepare("""
+            SELECT * FROM favorito WHERE usuario_id = ?
+            ORDER BY created_at DESC
+        """).bind(usuario_id).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+# ============================================================================
+# QUERIES - HISTÓRICO DE USUÁRIE
+# ============================================================================
+
+async def add_to_history(db, usuario_id, tipo, item_tipo, item_id, dados=None):
+    """Adiciona item ao histórico de usuárie."""
+    dados_json = json.dumps(dados) if dados else None
+    
+    await db.prepare("""
+        INSERT INTO user_history (usuario_id, tipo, item_tipo, item_id, dados)
+        VALUES (?, ?, ?, ?, ?)
+    """).bind(usuario_id, tipo, item_tipo, item_id, dados_json).run()
+
+
+async def get_user_history(db, usuario_id, item_tipo=None, limit=50):
+    """Lista histórico de usuárie."""
+    if item_tipo:
+        result = await db.prepare("""
+            SELECT * FROM user_history 
+            WHERE usuario_id = ? AND item_tipo = ?
+            ORDER BY created_at DESC
+            LIMIT ?
+        """).bind(usuario_id, item_tipo, limit).all()
+    else:
+        result = await db.prepare("""
+            SELECT * FROM user_history 
+            WHERE usuario_id = ?
+            ORDER BY created_at DESC
+            LIMIT ?
+        """).bind(usuario_id, limit).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+# ============================================================================
+# QUERIES - PREFERÊNCIAS DE USUÁRIE
+# ============================================================================
+
+async def get_user_preferences(db, usuario_id):
+    """Retorna preferências de usuárie."""
+    result = await db.prepare("""
+        SELECT * FROM user_preferences WHERE usuario_id = ?
+    """).bind(usuario_id).first()
+    
+    if not result:
+        # Criar preferências padrão
+        await db.prepare("""
+            INSERT INTO user_preferences (usuario_id) VALUES (?)
+        """).bind(usuario_id).run()
+        return await get_user_preferences(db, usuario_id)
+    
+    return dict(result)
+
+
+async def update_user_preferences(db, usuario_id, **kwargs):
+    """Atualiza preferências de usuárie."""
+    # Garantir que registro existe
+    await get_user_preferences(db, usuario_id)
+    
+    allowed = ['tema', 'fonte_tamanho', 'fonte_familia', 'alto_contraste',
+               'animacoes_reduzidas', 'exibir_libras', 'audio_habilitado',
+               'velocidade_audio', 'notificacoes_email', 'notificacoes_push', 'idioma']
+    
+    updates = []
+    values = []
+    
+    for key, value in kwargs.items():
+        if key in allowed:
+            updates.append(f"{key} = ?")
+            values.append(value)
+    
+    if not updates:
+        return False
+    
+    updates.append("updated_at = datetime('now')")
+    values.append(usuario_id)
+    
+    set_clause = ", ".join(updates)
+    
+    await db.prepare(f"""
+        UPDATE user_preferences SET {set_clause} WHERE usuario_id = ?
+    """).bind(*values).run()
+    return True
+
+
+# ============================================================================
+# QUERIES - MENSAGENS DIRETAS
+# ============================================================================
+
+async def send_direct_message(db, remetente_id, destinatarie_id, conteudo):
+    """Envia mensagem direta."""
+    result = await db.prepare("""
+        INSERT INTO mensagem_direta (remetente_id, destinatarie_id, conteudo)
+        VALUES (?, ?, ?)
+        RETURNING id
+    """).bind(remetente_id, destinatarie_id, conteudo).first()
+    
+    # Notificar destinatárie
+    await create_notification(db, destinatarie_id, 'mensagem',
+                              titulo='Nova mensagem!',
+                              from_usuario_id=remetente_id)
+    
+    return result['id'] if result else None
+
+
+async def get_conversations(db, usuario_id):
+    """Lista conversas de usuárie."""
+    result = await db.prepare("""
+        SELECT DISTINCT 
+            CASE 
+                WHEN remetente_id = ? THEN destinatarie_id 
+                ELSE remetente_id 
+            END as other_user_id
+        FROM mensagem_direta
+        WHERE remetente_id = ? OR destinatarie_id = ?
+    """).bind(usuario_id, usuario_id, usuario_id).all()
+    
+    if not result.results:
+        return []
+    
+    # Buscar dados dos usuáries
+    conversations = []
+    for row in result.results:
+        other_id = row['other_user_id']
+        user = await get_user_by_id(db, other_id)
+        
+        # Última mensagem
+        last_msg = await db.prepare("""
+            SELECT * FROM mensagem_direta
+            WHERE (remetente_id = ? AND destinatarie_id = ?)
+               OR (remetente_id = ? AND destinatarie_id = ?)
+            ORDER BY created_at DESC
+            LIMIT 1
+        """).bind(usuario_id, other_id, other_id, usuario_id).first()
+        
+        # Mensagens não lidas
+        unread = await db.prepare("""
+            SELECT COUNT(*) as count FROM mensagem_direta
+            WHERE remetente_id = ? AND destinatarie_id = ? AND lida = 0
+        """).bind(other_id, usuario_id).first()
+        
+        conversations.append({
+            'other_user': user,
+            'last_message': dict(last_msg) if last_msg else None,
+            'unread_count': unread['count'] if unread else 0
+        })
+    
+    return conversations
+
+
+async def get_messages_with_user(db, usuario_id, other_user_id, page=1, per_page=50):
+    """Lista mensagens entre dois usuáries."""
+    offset = (page - 1) * per_page
+    
+    result = await db.prepare("""
+        SELECT m.*, 
+               ur.username as remetente_username, ur.foto_perfil as remetente_foto,
+               ud.username as destinatarie_username
+        FROM mensagem_direta m
+        LEFT JOIN user ur ON m.remetente_id = ur.id
+        LEFT JOIN user ud ON m.destinatarie_id = ud.id
+        WHERE (m.remetente_id = ? AND m.destinatarie_id = ?)
+           OR (m.remetente_id = ? AND m.destinatarie_id = ?)
+        ORDER BY m.created_at DESC
+        LIMIT ? OFFSET ?
+    """).bind(usuario_id, other_user_id, other_user_id, usuario_id, 
+              per_page, offset).all()
+    
+    # Marcar como lidas
+    await db.prepare("""
+        UPDATE mensagem_direta SET lida = 1
+        WHERE remetente_id = ? AND destinatarie_id = ? AND lida = 0
+    """).bind(other_user_id, usuario_id).run()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+# ============================================================================
+# QUERIES - GRUPOS DE ESTUDO
+# ============================================================================
+
+async def create_study_group(db, nome, criador_id, descricao=None, is_public=True, max_membros=50):
+    """Cria um grupo de estudo."""
+    result = await db.prepare("""
+        INSERT INTO grupo_estudo (nome, descricao, criador_id, is_public, max_membros)
+        VALUES (?, ?, ?, ?, ?)
+        RETURNING id
+    """).bind(nome, descricao, criador_id, 1 if is_public else 0, max_membros).first()
+    
+    if result:
+        # Adicionar criador como admin
+        await db.prepare("""
+            INSERT INTO grupo_membro (grupo_id, usuario_id, role) VALUES (?, ?, 'admin')
+        """).bind(result['id'], criador_id).run()
+    
+    return result['id'] if result else None
+
+
+async def join_study_group(db, grupo_id, usuario_id):
+    """Entrar em um grupo de estudo."""
+    # Verificar limite de membros
+    count = await db.prepare("""
+        SELECT COUNT(*) as count FROM grupo_membro WHERE grupo_id = ?
+    """).bind(grupo_id).first()
+    
+    grupo = await db.prepare("""
+        SELECT max_membros FROM grupo_estudo WHERE id = ?
+    """).bind(grupo_id).first()
+    
+    if count and grupo and count['count'] >= grupo['max_membros']:
+        return False, "Grupo cheio"
+    
+    try:
+        await db.prepare("""
+            INSERT INTO grupo_membro (grupo_id, usuario_id) VALUES (?, ?)
+        """).bind(grupo_id, usuario_id).run()
+        return True, None
+    except:
+        return False, "Já é membro do grupo"
+
+
+async def leave_study_group(db, grupo_id, usuario_id):
+    """Sair de um grupo de estudo."""
+    await db.prepare("""
+        DELETE FROM grupo_membro WHERE grupo_id = ? AND usuario_id = ?
+    """).bind(grupo_id, usuario_id).run()
+
+
+async def get_study_groups(db, usuario_id=None, apenas_meus=False):
+    """Lista grupos de estudo."""
+    if apenas_meus and usuario_id:
+        result = await db.prepare("""
+            SELECT g.*, gm.role,
+                   (SELECT COUNT(*) FROM grupo_membro WHERE grupo_id = g.id) as member_count,
+                   u.username as criador_username
+            FROM grupo_estudo g
+            JOIN grupo_membro gm ON g.id = gm.grupo_id
+            LEFT JOIN user u ON g.criador_id = u.id
+            WHERE gm.usuario_id = ?
+            ORDER BY g.created_at DESC
+        """).bind(usuario_id).all()
+    else:
+        result = await db.prepare("""
+            SELECT g.*,
+                   (SELECT COUNT(*) FROM grupo_membro WHERE grupo_id = g.id) as member_count,
+                   u.username as criador_username
+            FROM grupo_estudo g
+            LEFT JOIN user u ON g.criador_id = u.id
+            WHERE g.is_public = 1
+            ORDER BY g.created_at DESC
+        """).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def get_group_messages(db, grupo_id, page=1, per_page=50):
+    """Lista mensagens de um grupo."""
+    offset = (page - 1) * per_page
+    
+    result = await db.prepare("""
+        SELECT gm.*, u.username, u.foto_perfil
+        FROM grupo_mensagem gm
+        LEFT JOIN user u ON gm.usuario_id = u.id
+        WHERE gm.grupo_id = ?
+        ORDER BY gm.created_at DESC
+        LIMIT ? OFFSET ?
+    """).bind(grupo_id, per_page, offset).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def send_group_message(db, grupo_id, usuario_id, conteudo):
+    """Envia mensagem no grupo."""
+    result = await db.prepare("""
+        INSERT INTO grupo_mensagem (grupo_id, usuario_id, conteudo)
+        VALUES (?, ?, ?)
+        RETURNING id
+    """).bind(grupo_id, usuario_id, conteudo).first()
+    return result['id'] if result else None
+
+
+# ============================================================================
+# QUERIES - CONTEÚDO DE ACESSIBILIDADE
+# ============================================================================
+
+async def get_accessibility_content(db, tipo_conteudo, conteudo_id):
+    """Retorna conteúdo de acessibilidade (Libras/Áudio)."""
+    result = await db.prepare("""
+        SELECT * FROM accessibility_content
+        WHERE tipo_conteudo = ? AND conteudo_id = ?
+    """).bind(tipo_conteudo, conteudo_id).first()
+    
+    if result:
+        return dict(result)
+    return None
+
+
+async def save_accessibility_content(db, tipo_conteudo, conteudo_id, video_libras_url=None,
+                                     audio_url=None, audio_duracao=None, transcricao=None):
+    """Salva ou atualiza conteúdo de acessibilidade."""
+    existing = await get_accessibility_content(db, tipo_conteudo, conteudo_id)
+    
+    if existing:
+        await db.prepare("""
+            UPDATE accessibility_content 
+            SET video_libras_url = COALESCE(?, video_libras_url),
+                audio_url = COALESCE(?, audio_url),
+                audio_duracao = COALESCE(?, audio_duracao),
+                transcricao = COALESCE(?, transcricao),
+                updated_at = datetime('now')
+            WHERE tipo_conteudo = ? AND conteudo_id = ?
+        """).bind(video_libras_url, audio_url, audio_duracao, transcricao,
+                  tipo_conteudo, conteudo_id).run()
+    else:
+        await db.prepare("""
+            INSERT INTO accessibility_content 
+            (tipo_conteudo, conteudo_id, video_libras_url, audio_url, audio_duracao, transcricao)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """).bind(tipo_conteudo, conteudo_id, video_libras_url, audio_url, 
+                  audio_duracao, transcricao).run()
+
+
+# ============================================================================
+# VALIDAÇÃO DE FORÇA DE SENHA
+# ============================================================================
+
+def validate_password_strength(password):
+    """
+    Valida força da senha.
+    Retorna (is_valid, message)
+    """
+    if len(password) < 8:
+        return False, "A senha deve ter pelo menos 8 caracteres"
+    
+    has_lower = any(c.islower() for c in password)
+    has_upper = any(c.isupper() for c in password)
+    has_digit = any(c.isdigit() for c in password)
+    has_special = any(c in '!@#$%^&*()_+-=[]{}|;:,.<>?' for c in password)
+    
+    score = sum([has_lower, has_upper, has_digit, has_special])
+    
+    if score < 2:
+        return False, "A senha deve ter pelo menos 2 dos seguintes: minúsculas, maiúsculas, números, símbolos"
+    
+    if len(password) < 10 and score < 3:
+        return False, "Senhas curtas devem ter pelo menos 3 tipos de caracteres"
+    
+    return True, "Senha válida"
