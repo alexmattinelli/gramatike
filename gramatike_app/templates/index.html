@@ -477,13 +477,13 @@ button { font-family: var(--font-base); font-weight:600; }
 .mobile-bottom-nav {
   display: none;
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #ffffff;
-  border-top: 1px solid #e5e7eb;
-  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
-  box-shadow: 0 -4px 12px rgba(0,0,0,.08);
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: #9B5DE5;
+  border-radius: 24px;
+  padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+  box-shadow: 0 4px 20px rgba(155, 93, 229, 0.4);
   z-index: 1000;
 }
 
@@ -492,6 +492,11 @@ button { font-family: var(--font-base); font-weight:600; }
     display: flex;
     justify-content: space-around;
     align-items: center;
+  }
+  
+  /* Ocultar o cabeçalho em mobile */
+  header.site-head {
+    display: none !important;
   }
   
   /* Mostrar card de ações rápidas no mobile */
@@ -512,14 +517,14 @@ button { font-family: var(--font-base); font-weight:600; }
     height: 24px !important;
   }
   
-  /* Adicionar padding no main (não no body) para compensar a barra inferior */
+  /* Adicionar padding no main (não no body) para compensar a barra inferior flutuante */
   main.site-main {
-    margin-bottom: calc(60px + env(safe-area-inset-bottom)) !important;
+    margin-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
   }
   
   /* Garantir que o footer não sobreponha a barra inferior */
   .footer-bar {
-    margin-bottom: calc(60px + env(safe-area-inset-bottom));
+    margin-bottom: calc(80px + env(safe-area-inset-bottom));
   }
   
   /* Barra de busca com mesma largura dos cards de post no mobile */
@@ -569,11 +574,11 @@ button { font-family: var(--font-base); font-weight:600; }
   gap: 4px;
   padding: 6px 12px;
   cursor: pointer;
-  color: #666;
+  color: #ffffff;
   font-size: 0.65rem;
   font-weight: 600;
   letter-spacing: 0.3px;
-  transition: color 0.2s;
+  transition: opacity 0.2s;
   text-decoration: none;
 }
 
@@ -584,18 +589,18 @@ button { font-family: var(--font-base); font-weight:600; }
 
 .mobile-bottom-nav a svg,
 .mobile-bottom-nav button svg {
-  color: #666;
-  transition: color 0.2s;
+  color: #ffffff;
+  transition: opacity 0.2s;
 }
 
 .mobile-bottom-nav a:hover,
 .mobile-bottom-nav button:hover {
-  color: var(--primary);
+  opacity: 0.85;
 }
 
 .mobile-bottom-nav a:hover svg,
 .mobile-bottom-nav button:hover svg {
-  color: var(--primary);
+  opacity: 0.85;
 }
 
 .mobile-bottom-nav .nav-badge {
@@ -631,8 +636,8 @@ button { font-family: var(--font-base); font-weight:600; }
     <span>Palavras do Dia</span>
   </a>
   
-  <a href="{{ url_for('main.novo_post') }}" aria-label="Criar post" title="Criar post" style="background: var(--primary); color: white; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row;">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <a href="{{ url_for('main.novo_post') }}" aria-label="Criar post" title="Criar post" style="background: #ffffff; color: #9B5DE5; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <line x1="12" y1="5" x2="12" y2="19"></line>
       <line x1="5" y1="12" x2="19" y2="12"></line>
     </svg>
