@@ -22,6 +22,10 @@ bucket_name = "gramatike"
 # Configure via dashboard ou use pages.toml para configurações específicas
 
 # D1 Database (SQLite na edge)
+# IMPORTANTE: Se você criou um novo banco D1, atualize o database_id abaixo.
+# Comando: wrangler d1 create gramatike
+# Para criar as tabelas: wrangler d1 execute gramatike --file=./schema.d1.sql
+# Veja CLOUDFLARE_D1_SETUP.md para instruções completas.
 [[d1_databases]]
 binding = "DB"
 database_name = "gramatike"

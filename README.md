@@ -35,14 +35,43 @@ Configure um workflow do GitHub Actions com:
    - `DATABASE_URL`: Postgres gerenciado (recomendado para producao)
    - Variaveis do Cloudflare R2 (veja abaixo)
 
+## Banco de Dados
+
+### Cloudflare D1 (Recomendado para Workers)
+
+O Gramátike usa **Cloudflare D1** (SQLite na edge) para o deploy em Cloudflare Workers. Se você está vendo o erro **"Sistema temporariamente indisponível"**, provavelmente o D1 não está configurado.
+
+**📖 Guia Completo:** Veja [CLOUDFLARE_D1_SETUP.md](CLOUDFLARE_D1_SETUP.md) para instruções detalhadas de como:
+- Criar o banco de dados D1
+- Aplicar o schema (`schema.d1.sql`)
+- Configurar o `wrangler.toml`
+- Fazer troubleshooting
+
+**Comandos rápidos:**
+```bash
+# Criar banco D1
+wrangler d1 create gramatike
+
+# Criar tabelas
+wrangler d1 execute gramatike --file=./schema.d1.sql
+
+# Deploy
+npm run deploy
+```
+
+### PostgreSQL (Flask tradicional)
+
+Para deploy Flask tradicional (Heroku, Railway, etc.), use PostgreSQL via `DATABASE_URL`.
+
 ## Variáveis de ambiente necessárias
 
 Mínimo para rodar:
 
 - SECRET_KEY: string segura (32+ chars)
-- Opcional: DATABASE_URL (Postgres recomendado em produção); sem isso, usa SQLite local (não persiste em serverless)
+- Para Cloudflare Workers: D1 configurado no `wrangler.toml`
+- Para Flask tradicional: DATABASE_URL (Postgres recomendado)
 
-### Database Migrations
+### Database Migrations (PostgreSQL)
 
 Para aplicar migrações pendentes ao banco de dados:
 
