@@ -26,7 +26,7 @@ Configure um workflow do GitHub Actions com:
 
 ### Notas Importantes
 
-- **NÃO use Cloudflare Pages** para este projeto - use Cloudflare Workers Python
+- **NÃO use Cloudflare Pages** para este projeto - use Cloudflare Workers Python. O Pages não suporta Python runtime com FastAPI, que requer bundling via `pywrangler`.
 - O arquivo `uv.lock` garante que as dependências (FastAPI, etc.) sejam resolvidas corretamente
 - Variáveis de ambiente (Settings > Environment Variables):
    - `SECRET_KEY`: uma string segura
