@@ -71,6 +71,8 @@ ROUTE_MAP = {
     'main.suporte': '/suporte',
     'main.configuracoes': '/configuracoes',
     'main.novo_post': '/novo_post',
+    'main.post_detail': '/post/<int:post_id>',
+    'main.perfil_publico': '/perfil/<username>',
     'admin.dashboard': '/admin',
     'static': '/static',
 }
@@ -406,6 +408,155 @@ async def novo_post(session: Optional[str] = Cookie(None)):
     return HTMLResponse(content=html)
 
 
+@app.post("/novo_post")
+async def criar_post_submit(
+    request: Request,
+    conteudo: str = Form(...),
+    session: Optional[str] = Cookie(None)
+):
+    """Handle new post submission."""
+    global _db
+    user = get_current_user(session)
+    
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    if not _db:
+        flash("Erro de banco de dados", "error", session)
+        return RedirectResponse(url="/", status_code=302)
+    
+    # Create post
+    await _db.run(
+        """INSERT INTO post (usuario, usuario_id, conteudo, data, is_deleted) 
+           VALUES (?, ?, ?, ?, 0)""",
+        (user['username'], user['user_id'], conteudo, datetime.now(timezone.utc).isoformat())
+    )
+    
+    flash("Post publicado com sucesso!", "success", session)
+    return RedirectResponse(url="/", status_code=302)
+
+
+@app.get("/post/{post_id}", response_class=HTMLResponse)
+async def view_post(post_id: int, session: Optional[str] = Cookie(None)):
+    """View a single post with comments."""
+    global _db
+    user = get_current_user(session)
+    
+    if not _db:
+        return HTMLResponse(content="<h1>Database not available</h1>", status_code=500)
+    
+    # Get post
+    posts = await _db.execute(
+        """SELECT p.*, u.foto_perfil, u.username as author_username
+           FROM post p
+           LEFT JOIN user u ON p.usuario_id = u.id
+           WHERE p.id = ? AND (p.is_deleted = 0 OR p.is_deleted IS NULL)""",
+        (post_id,)
+    )
+    
+    if not posts or len(posts) == 0:
+        return HTMLResponse(content="<h1>Post não encontrado</h1>", status_code=404)
+    
+    post = posts[0]
+    
+    # Get comments
+    comments = await _db.execute(
+        """SELECT c.*, u.username, u.foto_perfil
+           FROM comentario c
+           LEFT JOIN user u ON c.usuario_id = u.id
+           WHERE c.post_id = ?
+           ORDER BY c.data ASC""",
+        (post_id,)
+    )
+    
+    # Check if user liked this post
+    liked = False
+    if user:
+        likes = await _db.execute(
+            "SELECT 1 FROM post_likes WHERE user_id = ? AND post_id = ?",
+            (user['user_id'], post_id)
+        )
+        liked = likes and len(likes) > 0
+    
+    # Get like count
+    like_count_result = await _db.execute(
+        "SELECT COUNT(*) as count FROM post_likes WHERE post_id = ?",
+        (post_id,)
+    )
+    like_count = like_count_result[0]['count'] if like_count_result else 0
+    
+    html = render_template("post_detail.html",
+        session_id=session,
+        current_user=user,
+        post=post,
+        comments=comments or [],
+        liked=liked,
+        like_count=like_count
+    )
+    return HTMLResponse(content=html)
+
+
+@app.post("/post/{post_id}/comment")
+async def add_comment(
+    post_id: int,
+    conteudo: str = Form(...),
+    session: Optional[str] = Cookie(None)
+):
+    """Add a comment to a post."""
+    global _db
+    user = get_current_user(session)
+    
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    if not _db:
+        return RedirectResponse(url=f"/post/{post_id}", status_code=302)
+    
+    await _db.run(
+        """INSERT INTO comentario (usuario_id, conteudo, post_id, data) 
+           VALUES (?, ?, ?, ?)""",
+        (user['user_id'], conteudo, post_id, datetime.now(timezone.utc).isoformat())
+    )
+    
+    return RedirectResponse(url=f"/post/{post_id}", status_code=302)
+
+
+@app.post("/post/{post_id}/delete")
+async def delete_post(post_id: int, session: Optional[str] = Cookie(None)):
+    """Delete a post (soft delete)."""
+    global _db
+    user = get_current_user(session)
+    
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    if not _db:
+        return RedirectResponse(url="/", status_code=302)
+    
+    # Check if user owns the post or is admin
+    posts = await _db.execute(
+        "SELECT usuario_id FROM post WHERE id = ?",
+        (post_id,)
+    )
+    
+    if not posts or len(posts) == 0:
+        return RedirectResponse(url="/", status_code=302)
+    
+    post = posts[0]
+    if post['usuario_id'] != user['user_id'] and not user.get('is_admin', False):
+        flash("Você não tem permissão para excluir este post", "error", session)
+        return RedirectResponse(url="/", status_code=302)
+    
+    # Soft delete
+    await _db.run(
+        "UPDATE post SET is_deleted = 1, deleted_at = ?, deleted_by = ? WHERE id = ?",
+        (datetime.now(timezone.utc).isoformat(), user['user_id'], post_id)
+    )
+    
+    flash("Post excluído com sucesso", "success", session)
+    return RedirectResponse(url="/", status_code=302)
+
+
 # ============================================================================
 # API Endpoints
 # ============================================================================
@@ -438,7 +589,7 @@ async def get_posts(session: Optional[str] = Cookie(None)):
         return {"posts": [], "error": "Database not available"}
     
     posts = await _db.execute(
-        """SELECT p.id, p.usuario, p.conteudo, p.imagem, p.data, u.foto_perfil
+        """SELECT p.id, p.usuario, p.usuario_id, p.conteudo, p.imagem, p.data, u.foto_perfil
            FROM post p
            LEFT JOIN user u ON p.usuario_id = u.id
            WHERE p.is_deleted = 0 OR p.is_deleted IS NULL
@@ -448,17 +599,212 @@ async def get_posts(session: Optional[str] = Cookie(None)):
     
     result = []
     for p in (posts or []):
+        # Check if user liked this post
+        liked = False
+        if user and _db:
+            likes = await _db.execute(
+                "SELECT 1 FROM post_likes WHERE user_id = ? AND post_id = ?",
+                (user['user_id'], p.get('id'))
+            )
+            liked = likes and len(likes) > 0
+        
+        # Get like count
+        like_count = 0
+        if _db:
+            like_result = await _db.execute(
+                "SELECT COUNT(*) as count FROM post_likes WHERE post_id = ?",
+                (p.get('id'),)
+            )
+            like_count = like_result[0]['count'] if like_result else 0
+        
+        # Get comment count
+        comment_count = 0
+        if _db:
+            comment_result = await _db.execute(
+                "SELECT COUNT(*) as count FROM comentario WHERE post_id = ?",
+                (p.get('id'),)
+            )
+            comment_count = comment_result[0]['count'] if comment_result else 0
+        
         result.append({
             "id": p.get("id"),
             "usuario": p.get("usuario", "Usuárie"),
+            "usuario_id": p.get("usuario_id"),
             "conteudo": p.get("conteudo", ""),
             "imagem": p.get("imagem", ""),
             "data": p.get("data", ""),
             "foto_perfil": p.get("foto_perfil", "img/perfil.png"),
-            "liked": False
+            "liked": liked,
+            "like_count": like_count,
+            "comment_count": comment_count
         })
     
     return {"posts": result}
+
+
+@app.post("/api/posts/{post_id}/like")
+async def like_post(post_id: int, session: Optional[str] = Cookie(None)):
+    """Like or unlike a post."""
+    global _db
+    user = get_current_user(session)
+    
+    if not user:
+        return JSONResponse({"error": "Not authenticated"}, status_code=401)
+    
+    if not _db:
+        return JSONResponse({"error": "Database not available"}, status_code=500)
+    
+    # Check if already liked
+    existing = await _db.execute(
+        "SELECT 1 FROM post_likes WHERE user_id = ? AND post_id = ?",
+        (user['user_id'], post_id)
+    )
+    
+    if existing and len(existing) > 0:
+        # Unlike
+        await _db.run(
+            "DELETE FROM post_likes WHERE user_id = ? AND post_id = ?",
+            (user['user_id'], post_id)
+        )
+        liked = False
+    else:
+        # Like
+        await _db.run(
+            "INSERT INTO post_likes (user_id, post_id) VALUES (?, ?)",
+            (user['user_id'], post_id)
+        )
+        liked = True
+    
+    # Get new count
+    count_result = await _db.execute(
+        "SELECT COUNT(*) as count FROM post_likes WHERE post_id = ?",
+        (post_id,)
+    )
+    count = count_result[0]['count'] if count_result else 0
+    
+    return {"liked": liked, "count": count}
+
+
+@app.get("/api/posts/{post_id}/comments")
+async def get_comments(post_id: int, session: Optional[str] = Cookie(None)):
+    """Get comments for a post."""
+    global _db
+    
+    if not _db:
+        return {"comments": [], "error": "Database not available"}
+    
+    comments = await _db.execute(
+        """SELECT c.id, c.conteudo, c.data, u.username, u.foto_perfil
+           FROM comentario c
+           LEFT JOIN user u ON c.usuario_id = u.id
+           WHERE c.post_id = ?
+           ORDER BY c.data ASC""",
+        (post_id,)
+    )
+    
+    result = []
+    for c in (comments or []):
+        result.append({
+            "id": c.get("id"),
+            "conteudo": c.get("conteudo", ""),
+            "data": c.get("data", ""),
+            "username": c.get("username", "Usuárie"),
+            "foto_perfil": c.get("foto_perfil", "img/perfil.png")
+        })
+    
+    return {"comments": result}
+
+
+@app.post("/api/posts/{post_id}/comments")
+async def create_comment_api(
+    post_id: int,
+    request: Request,
+    session: Optional[str] = Cookie(None)
+):
+    """Create a comment via API."""
+    global _db
+    user = get_current_user(session)
+    
+    if not user:
+        return JSONResponse({"error": "Not authenticated"}, status_code=401)
+    
+    if not _db:
+        return JSONResponse({"error": "Database not available"}, status_code=500)
+    
+    body = await request.json()
+    conteudo = body.get("conteudo", "").strip()
+    
+    if not conteudo:
+        return JSONResponse({"error": "Comment content required"}, status_code=400)
+    
+    await _db.run(
+        """INSERT INTO comentario (usuario_id, conteudo, post_id, data) 
+           VALUES (?, ?, ?, ?)""",
+        (user['user_id'], conteudo, post_id, datetime.now(timezone.utc).isoformat())
+    )
+    
+    return {"success": True, "message": "Comment created"}
+
+
+@app.post("/api/posts")
+async def create_post_api(request: Request, session: Optional[str] = Cookie(None)):
+    """Create a post via API."""
+    global _db
+    user = get_current_user(session)
+    
+    if not user:
+        return JSONResponse({"error": "Not authenticated"}, status_code=401)
+    
+    if not _db:
+        return JSONResponse({"error": "Database not available"}, status_code=500)
+    
+    body = await request.json()
+    conteudo = body.get("conteudo", "").strip()
+    
+    if not conteudo:
+        return JSONResponse({"error": "Post content required"}, status_code=400)
+    
+    await _db.run(
+        """INSERT INTO post (usuario, usuario_id, conteudo, data, is_deleted) 
+           VALUES (?, ?, ?, ?, 0)""",
+        (user['username'], user['user_id'], conteudo, datetime.now(timezone.utc).isoformat())
+    )
+    
+    return {"success": True, "message": "Post created"}
+
+
+@app.delete("/api/posts/{post_id}")
+async def delete_post_api(post_id: int, session: Optional[str] = Cookie(None)):
+    """Delete a post via API."""
+    global _db
+    user = get_current_user(session)
+    
+    if not user:
+        return JSONResponse({"error": "Not authenticated"}, status_code=401)
+    
+    if not _db:
+        return JSONResponse({"error": "Database not available"}, status_code=500)
+    
+    # Check ownership
+    posts = await _db.execute(
+        "SELECT usuario_id FROM post WHERE id = ?",
+        (post_id,)
+    )
+    
+    if not posts or len(posts) == 0:
+        return JSONResponse({"error": "Post not found"}, status_code=404)
+    
+    post = posts[0]
+    if post['usuario_id'] != user['user_id'] and not user.get('is_admin', False):
+        return JSONResponse({"error": "Not authorized"}, status_code=403)
+    
+    # Soft delete
+    await _db.run(
+        "UPDATE post SET is_deleted = 1, deleted_at = ?, deleted_by = ? WHERE id = ?",
+        (datetime.now(timezone.utc).isoformat(), user['user_id'], post_id)
+    )
+    
+    return {"success": True, "message": "Post deleted"}
 
 
 # ============================================================================
