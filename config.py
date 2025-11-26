@@ -3,7 +3,11 @@ from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me')
-    # Use DATABASE_URL se fornecido; senão SQLite local na pasta instance (caminho absoluto)
+    # Database configuration:
+    # - Cloudflare D1: Use o binding "DB" configurado no wrangler.toml (para Cloudflare Workers)
+    #   O D1 usa SQLite na edge e as queries estão em workers/db.py
+    # - Development: SQLite local na pasta instance
+    # - PostgreSQL: Suportado via DATABASE_URL para ambientes que não usam D1
     _ROOT = os.path.dirname(os.path.abspath(__file__))
     _DEFAULT_SQLITE_PATH = os.path.join(_ROOT, 'instance', 'app.db')
     # Normaliza para formato URI (barras) para evitar problemas de escape no Windows
@@ -23,6 +27,7 @@ class Config:
             pass
         SQLALCHEMY_DATABASE_URI = _RAW_DB_URL
     else:
+        # Default: SQLite local (D1 usa SQLite na edge, compatível com este schema)
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{_SQLITE_POSIX}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))
