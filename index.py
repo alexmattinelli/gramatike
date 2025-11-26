@@ -1882,7 +1882,8 @@ class Default(WorkerEntrypoint):
                     else:
                         error_msg = "Preencha todos os campos"
                 except Exception as e:
-                    error_msg = f"Erro ao processar login: {str(e)}"
+                    # Log error internally but don't expose details to user
+                    error_msg = "Erro ao processar login. Tente novamente."
         
         error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
         
@@ -1957,7 +1958,8 @@ class Default(WorkerEntrypoint):
                     else:
                         error_msg = "Preencha todos os campos obrigatórios"
                 except Exception as e:
-                    error_msg = f"Erro ao processar cadastro: {str(e)}"
+                    # Log error internally but don't expose details to user
+                    error_msg = "Erro ao processar cadastro. Tente novamente."
         
         error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
         success_html = f'<div class="success-msg" style="background:#e8f5e9;color:#2e7d32;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{success_msg}</div>' if success_msg else ""
