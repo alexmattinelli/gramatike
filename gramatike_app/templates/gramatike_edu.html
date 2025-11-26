@@ -4,13 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gramátike Edu</title>
+  <!-- Fonts preload for faster loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <meta name="theme-color" content="#9B5DE5">
   <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root { --primary:#9B5DE5; --primary-dark:#7d3dc9; --bg:#f7f8ff; --card:#ffffff; --border:#e5e7eb; --text:#222; --text-dim:#666; }
     * { box-sizing:border-box; }
@@ -184,9 +187,9 @@
         Exercícios
       </a>
   {# Temporariamente desabilitados: Podcasts, Redação e Vídeos
-  <a href="{{ url_for('main.podcasts') }}">🎧 Podcasts</a>
-  <a href="{{ url_for('main.redacao') }}">✍️ Redação</a>
-  <a href="{{ url_for('main.videos') }}">🎬 Vídeos</a>
+  <a href="{{ url_for('main.podcasts') }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>Podcasts</a>
+  <a href="{{ url_for('main.redacao') }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Redação</a>
+  <a href="{{ url_for('main.videos') }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Vídeos</a>
   #}
       <a href="{{ url_for('main.artigos') }}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -264,7 +267,7 @@
           </a>
         </div>
         <div class="side-card" id="palavra-do-dia-card">
-          <h3>💡 Palavras do Dia</h3>
+          <h3 style="display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6233B5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Palavras do Dia</h3>
           <div id="palavra-do-dia-content">
             <div style="text-align:center; padding:1rem;">
               <div style="font-size:.65rem; color:#999;">Carregando...</div>
@@ -272,7 +275,7 @@
           </div>
         </div>
         <div class="side-card">
-          <h3>📣 Novidades</h3>
+          <h3 style="display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6233B5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 13v-2Z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg> Novidades</h3>
           {% set tem_conteudo = (divulgacoes and divulgacoes|length>0) %}
           {% if tem_conteudo %}
             <div style="display:flex; flex-direction:column; gap:.9rem;">
@@ -521,7 +524,7 @@
             <div style="padding:.8rem; background:#f1edff; border-radius:16px; text-align:center;">
               <div style="font-size:1.1rem; font-weight:800; color:#6233B5; margin-bottom:.5rem;">${palavra}</div>
               <div style="font-size:.65rem; color:#666; margin-bottom:.8rem;">${significado}</div>
-              <div style="font-size:.65rem; font-weight:700; color:#9B5DE5;">✨ Incrível! Hoje você aprendeu uma nova forma de incluir todes 💜</div>
+              <div style="font-size:.65rem; font-weight:700; color:#9B5DE5;">Incrível! Hoje você aprendeu uma nova forma de incluir todes</div>
             </div>
           `;
         } else {
@@ -531,10 +534,10 @@
               <div style="font-size:1.1rem; font-weight:800; color:#6233B5; margin-bottom:.5rem; text-align:center;">${palavra}</div>
               <div style="display:flex; flex-direction:column; gap:.6rem; margin-top:.8rem;">
                 <button onclick="mostrarFormularioFrase(${id}, '${palavra}')" style="padding:.65rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; font-size:.7rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:.4rem; transition:.2s;">
-                  ✍️ Quero criar uma frase
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Quero criar uma frase
                 </button>
                 <button onclick="mostrarSignificado(${id}, '${significado}')" style="padding:.65rem; background:#fff; color:#6233B5; border:1.5px solid #6233B5; border-radius:14px; font-size:.7rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:.4rem; transition:.2s;">
-                  🔍 Quero saber o significado
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Quero saber o significado
                 </button>
               </div>
             </div>
@@ -568,7 +571,7 @@
         <div style="padding:.8rem; background:#f1edff; border-radius:14px; margin-bottom:.8rem;">
           <div style="font-size:.65rem; line-height:1.5; color:#333;">${significado}</div>
         </div>
-        <button onclick="registrarVisualizacao(${palavraId})" style="width:100%; padding:.65rem; background:#9B5DE5; color:#fff; border:none; border-radius:12px; font-size:.65rem; font-weight:700; cursor:pointer;">Entendi! 💜</button>
+        <button onclick="registrarVisualizacao(${palavraId})" style="width:100%; padding:.65rem; background:#9B5DE5; color:#fff; border:none; border-radius:12px; font-size:.65rem; font-weight:700; cursor:pointer;">Entendi!</button>
       </div>
     `;
   };
@@ -596,7 +599,7 @@
       const container = document.getElementById('palavra-do-dia-content');
       container.innerHTML = `
         <div style="padding:.8rem; text-align:center;">
-          <div style="font-size:.8rem; font-weight:700; color:#9B5DE5; margin-bottom:.5rem;">✨ ${data.mensagem}</div>
+          <div style="font-size:.8rem; font-weight:700; color:#9B5DE5; margin-bottom:.5rem;">${data.mensagem}</div>
           <div style="padding:.7rem; background:#f9fafb; border-radius:12px; margin-top:.6rem;">
             <div style="font-size:.6rem; color:#666; font-style:italic;">"${frase}"</div>
           </div>
@@ -621,7 +624,7 @@
       const container = document.getElementById('palavra-do-dia-content');
       container.innerHTML = `
         <div style="padding:.8rem; text-align:center;">
-          <div style="font-size:.8rem; font-weight:700; color:#9B5DE5;">✨ ${data.mensagem}</div>
+          <div style="font-size:.8rem; font-weight:700; color:#9B5DE5;">${data.mensagem}</div>
         </div>
       `;
     })
@@ -755,7 +758,7 @@
     {% endif %}
   </nav>
 
-  <footer>© 2025 Gramátike • Inclusão e Gênero Neutro</footer>
+  <footer>© 2025 Gramátike • Linguagem Viva e de Todes</footer>
 </body>
 </html>
 

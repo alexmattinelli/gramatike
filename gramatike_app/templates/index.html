@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gramátike</title>
+<!-- Fonts preload for faster loading -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <!-- Tipografia unificada: altere --font-brand para mudar a fonte do título/logo -->
 <style>
 :root {
@@ -13,16 +20,11 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-base); font-weight:800; line-he
 button { font-family: var(--font-base); font-weight:600; }
 .nunito-font { font-family: var(--font-base) !important; }
 </style>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Gramátike</title>
 <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
 <meta name="theme-color" content="#9B5DE5">
-<!-- Fonts restauradas -->
-<link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <!-- iOS Home Screen icon -->
 <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
 <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
@@ -419,7 +421,7 @@ button { font-family: var(--font-base); font-weight:600; }
       <div id="amigues-empty" style="display:none; font-size:.7rem; opacity:.7; line-height:1.3;">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
     </div>
     <div id="divulgacao-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.1rem 1.15rem .95rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:1.1rem;">
-    <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary);">📣 Novidades</h3>
+    <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 13v-2Z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg> Novidades</h3>
     {% set tem_conteudo = (div_edu and div_edu|length>0) %}
       {% if tem_conteudo %}
         <div style="display:flex; flex-direction:column; gap:.9rem;">
@@ -665,7 +667,7 @@ button { font-family: var(--font-base); font-weight:600; }
 </nav>
 
 <div class="footer-bar" style="background:#9B5DE5; color:#ffffff; text-align:center; padding:1.2rem 0 1.2rem; font-size:1.05rem; border-top-left-radius:32px; border-top-right-radius:32px; margin-top:auto; letter-spacing:.5px;">
-  © 2025 Gramátike • Inclusão e Gênero Neutro
+  © 2025 Gramátike • Linguagem Viva e de Todes
   <script src="{{ url_for('static', filename='js/feed.js') }}"></script>
 </div>
 <script>
@@ -740,7 +742,7 @@ function loadPosts(params={}) {
         msg.style.textAlign = 'center';
         msg.style.color = '#666';
         msg.style.padding = '2rem';
-        msg.textContent = 'Nenhum post encontrado. Seja ê primeire a postar! 🌟';
+        msg.textContent = 'Nenhum post encontrado. Seja ê primeire a postar!';
   feed.appendChild(msg);
         return;
       }
@@ -756,7 +758,7 @@ function loadPosts(params={}) {
         // Adiciona a foto de perfil do autor do post
   const fotoPerfil = (post.foto_perfil && String(post.foto_perfil).trim()) ? String(post.foto_perfil).trim() : 'img/perfil.png';
   const avatarSrc = /^https?:\/\//i.test(fotoPerfil) ? fotoPerfil : (`/static/${fotoPerfil}`);
-  const likeLabel = post.liked ? '❤️ Curtido' : '❤️ Curtir';
+  const likeLabel = post.liked ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="#9B5DE5" stroke="#9B5DE5" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Curtido' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Curtir';
     const likeClass = post.liked ? 'like-btn liked' : 'like-btn';
   article.innerHTML = `
           <div class="post-header" style="display:flex;align-items:center;justify-content:space-between;">
@@ -781,7 +783,7 @@ function loadPosts(params={}) {
           <div class="likes-list"></div>
           <div class="post-actions">
             <button class="${likeClass}" onclick="likePost(${post.id}, this)">${likeLabel}</button>
-            <button class="comment-btn" onclick="showCommentBox(this)">💬 Comentar</button>
+            <button class="comment-btn" onclick="showCommentBox(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Comentar</button>
             <button class="toggle-comments-btn" data-post-id="${post.id}" data-loaded="0" onclick="toggleComments(this, ${post.id})" title="Ver comentários" aria-label="Ver comentários">↓</button>
           </div>
           <div class="comments-list" data-post-id="${post.id}"></div>
@@ -832,10 +834,10 @@ function likePost(postId, btn) {
       // Atualiza aparência do botão
       if (data.liked) {
         btn.classList.add('liked');
-  btn.textContent = '❤️ Curtido';
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#9B5DE5" stroke="#9B5DE5" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Curtido';
       } else {
         btn.classList.remove('liked');
-  btn.textContent = '❤️ Curtir';
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Curtir';
       }
       updateLikesDisplay(postId, btn.closest('.post'));
     });
@@ -1576,7 +1578,7 @@ function initMentionAutocomplete(ta, box, scope){
   }
   function endIfNeeded(){
     var w = winner(board);
-    if(w){ gameOver=true; setStatus(w===HUMAN ? 'Você venceu! 🎉' : 'Robo venceu! 🤖'); render(); return true; }
+    if(w){ gameOver=true; setStatus(w===HUMAN ? 'Você venceu!' : 'Robo venceu!'); render(); return true; }
     if(isDraw(board)){ gameOver=true; setStatus('Empate.'); render(); return true; }
     return false;
   }
@@ -1812,10 +1814,10 @@ function initMobileTicTacToe() {
       state[move] = 'O';
       render();
       if (checkWin('O')) {
-        status.textContent = 'Robo venceu! 🤖';
+        status.textContent = 'Robo venceu!';
         gameOver = true;
       } else if (checkDraw()) {
-        status.textContent = 'Empate! 🤝';
+        status.textContent = 'Empate!';
         gameOver = true;
       } else {
         turn = 'X';
@@ -1829,12 +1831,12 @@ function initMobileTicTacToe() {
     state[i] = 'X';
     render();
     if (checkWin('X')) {
-      status.textContent = 'Você venceu! 🎉';
+      status.textContent = 'Você venceu!';
       gameOver = true;
       return;
     }
     if (checkDraw()) {
-      status.textContent = 'Empate! 🤝';
+      status.textContent = 'Empate!';
       gameOver = true;
       return;
     }

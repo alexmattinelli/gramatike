@@ -551,7 +551,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
   </main>
 
   <footer>
-  © 2025 Gramátike • Inclusão e Gênero Neutro
+  © 2025 Gramátike • Linguagem Viva e de Todes
   </footer>
 
   <script>
@@ -669,8 +669,8 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
                 ${ (post.images && post.images.length) ? renderPostImages(post.images.join('|')) : (post.imagem ? renderPostImages(post.imagem) : '') }
                 <div class='likes-list' style='font-size:.9rem;margin:.4rem 0;'></div>
                 <div class='post-actions'>
-                  <button class='like-btn-perfil ${post.liked ? 'liked' : ''}' data-post-id='${post.id}'>${post.liked ? '❤️ Curtido' : '❤️ Curtir'}</button>
-                  <button class='comment-btn-perfil' data-post-id='${post.id}'>💬 Comentar</button>
+                  <button class='like-btn-perfil ${post.liked ? 'liked' : ''}' data-post-id='${post.id}'>${post.liked ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="#9B5DE5" stroke="#9B5DE5" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Curtido' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Curtir'}</button>
+                  <button class='comment-btn-perfil' data-post-id='${post.id}'><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Comentar</button>
                   <button class='toggle-comments-btn-perfil' data-post-id='${post.id}'>↓</button>
                 </div>
                 <div class='comments-list' data-post-id='${post.id}' style='display:none;margin-top:.6rem;'></div>
@@ -736,10 +736,10 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
             .then(data => {
               if (data.liked) {
                 btn.classList.add('liked');
-                btn.textContent = '❤️ Curtido';
+                btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#9B5DE5" stroke="#9B5DE5" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Curtido';
               } else {
                 btn.classList.remove('liked');
-                btn.textContent = '❤️ Curtir';
+                btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Curtir';
               }
               updateLikesDisplayPerfil(postId, btn.closest('.post'));
             });
