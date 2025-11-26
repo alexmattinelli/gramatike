@@ -1128,6 +1128,562 @@ async def search_users(q: str = "", session: Optional[str] = Cookie(None)):
 
 
 # ============================================================================
+# Phase 4: Admin Panel
+# ============================================================================
+
+def require_admin(user: Optional[dict]) -> bool:
+    """Check if user is admin."""
+    return user and user.get('is_admin', False)
+
+
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_dashboard(session: Optional[str] = Cookie(None)):
+    """Admin dashboard - requires admin access."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        flash("Acesso restrito a administradories", "error", session)
+        return RedirectResponse(url="/", status_code=302)
+    
+    if not _db:
+        return HTMLResponse(content="<h1>Banco de dados indisponível</h1>", status_code=500)
+    
+    # Get stats
+    user_count_result = await _db.execute("SELECT COUNT(*) as count FROM user")
+    user_count = user_count_result[0]['count'] if user_count_result else 0
+    
+    post_count_result = await _db.execute(
+        "SELECT COUNT(*) as count FROM post WHERE is_deleted = 0 OR is_deleted IS NULL"
+    )
+    post_count = post_count_result[0]['count'] if post_count_result else 0
+    
+    comment_count_result = await _db.execute("SELECT COUNT(*) as count FROM comentario")
+    comment_count = comment_count_result[0]['count'] if comment_count_result else 0
+    
+    edu_count_result = await _db.execute("SELECT COUNT(*) as count FROM edu_content")
+    edu_count = edu_count_result[0]['count'] if edu_count_result else 0
+    
+    # Get recent users
+    recent_users = await _db.execute(
+        """SELECT id, username, email, nome, is_admin, is_banned, created_at
+           FROM user
+           ORDER BY created_at DESC
+           LIMIT 10"""
+    )
+    
+    # Get pending reports
+    reports = await _db.execute(
+        """SELECT r.id, r.post_id, r.motivo, r.category, r.data, r.resolved,
+                  u.username as reporter_username
+           FROM report r
+           LEFT JOIN user u ON r.usuario_id = u.id
+           WHERE r.resolved = 0
+           ORDER BY r.data DESC
+           LIMIT 20"""
+    )
+    
+    # Get recent edu content
+    edu_latest = await _db.execute(
+        """SELECT id, tipo, titulo, created_at
+           FROM edu_content
+           ORDER BY created_at DESC
+           LIMIT 10"""
+    )
+    
+    html = render_template("admin/dashboard.html",
+        session_id=session,
+        current_user=user,
+        admin=True,
+        user_count=user_count,
+        post_count=post_count,
+        comment_count=comment_count,
+        edu_count=edu_count,
+        usuaries=recent_users or [],
+        reports=reports or [],
+        edu_latest=edu_latest or [],
+        now=datetime.now(timezone.utc),
+        current_year=datetime.now(timezone.utc).year
+    )
+    return HTMLResponse(content=html)
+
+
+@app.get("/api/admin/stats")
+async def admin_stats(session: Optional[str] = Cookie(None)):
+    """Get admin statistics."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    # Get various stats
+    user_count = (await _db.execute("SELECT COUNT(*) as count FROM user"))[0]['count']
+    post_count = (await _db.execute("SELECT COUNT(*) as count FROM post WHERE is_deleted = 0 OR is_deleted IS NULL"))[0]['count']
+    comment_count = (await _db.execute("SELECT COUNT(*) as count FROM comentario"))[0]['count']
+    edu_count = (await _db.execute("SELECT COUNT(*) as count FROM edu_content"))[0]['count']
+    report_count = (await _db.execute("SELECT COUNT(*) as count FROM report WHERE resolved = 0"))[0]['count']
+    
+    return {
+        "users": user_count,
+        "posts": post_count,
+        "comments": comment_count,
+        "edu_content": edu_count,
+        "pending_reports": report_count
+    }
+
+
+@app.get("/api/admin/users")
+async def admin_list_users(
+    page: int = 1,
+    per_page: int = 20,
+    session: Optional[str] = Cookie(None)
+):
+    """List all users for admin."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    offset = (page - 1) * per_page
+    
+    users = await _db.execute(
+        """SELECT id, username, email, nome, is_admin, is_superadmin, is_banned, 
+                  banned_at, ban_reason, suspended_until, created_at
+           FROM user
+           ORDER BY created_at DESC
+           LIMIT ? OFFSET ?""",
+        (per_page, offset)
+    )
+    
+    total_result = await _db.execute("SELECT COUNT(*) as count FROM user")
+    total = total_result[0]['count'] if total_result else 0
+    
+    return {
+        "users": users or [],
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": (total + per_page - 1) // per_page
+    }
+
+
+@app.post("/api/admin/users/{user_id}/promote")
+async def admin_promote_user(user_id: int, session: Optional[str] = Cookie(None)):
+    """Promote a user to admin."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    # Check target user exists
+    target = await _db.execute("SELECT id, is_superadmin FROM user WHERE id = ?", (user_id,))
+    if not target or len(target) == 0:
+        return JSONResponse({"error": "Usuárie não encontrade"}, status_code=404)
+    
+    if target[0].get('is_superadmin'):
+        return JSONResponse({"error": "Não é possível alterar superadmin"}, status_code=400)
+    
+    await _db.run("UPDATE user SET is_admin = 1 WHERE id = ?", (user_id,))
+    
+    return {"success": True, "message": "Usuárie promovide a admin"}
+
+
+@app.post("/api/admin/users/{user_id}/demote")
+async def admin_demote_user(user_id: int, session: Optional[str] = Cookie(None)):
+    """Remove admin from a user."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    # Check target user exists
+    target = await _db.execute("SELECT id, is_superadmin FROM user WHERE id = ?", (user_id,))
+    if not target or len(target) == 0:
+        return JSONResponse({"error": "Usuárie não encontrade"}, status_code=404)
+    
+    if target[0].get('is_superadmin'):
+        return JSONResponse({"error": "Não é possível alterar superadmin"}, status_code=400)
+    
+    await _db.run("UPDATE user SET is_admin = 0 WHERE id = ?", (user_id,))
+    
+    return {"success": True, "message": "Admin removide de usuárie"}
+
+
+@app.post("/api/admin/users/{user_id}/ban")
+async def admin_ban_user(user_id: int, request: Request, session: Optional[str] = Cookie(None)):
+    """Ban a user."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    # Get ban reason from body
+    try:
+        body = await request.json()
+        reason = body.get("reason", "")
+    except Exception:
+        reason = ""
+    
+    # Check target user exists
+    target = await _db.execute("SELECT id, is_superadmin FROM user WHERE id = ?", (user_id,))
+    if not target or len(target) == 0:
+        return JSONResponse({"error": "Usuárie não encontrade"}, status_code=404)
+    
+    if target[0].get('is_superadmin'):
+        return JSONResponse({"error": "Não é possível banir superadmin"}, status_code=400)
+    
+    await _db.run(
+        "UPDATE user SET is_banned = 1, banned_at = ?, ban_reason = ? WHERE id = ?",
+        (datetime.now(timezone.utc).isoformat(), reason, user_id)
+    )
+    
+    return {"success": True, "message": "Usuárie banide"}
+
+
+@app.post("/api/admin/users/{user_id}/unban")
+async def admin_unban_user(user_id: int, session: Optional[str] = Cookie(None)):
+    """Unban a user."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    await _db.run(
+        "UPDATE user SET is_banned = 0, banned_at = NULL, ban_reason = NULL WHERE id = ?",
+        (user_id,)
+    )
+    
+    return {"success": True, "message": "Ban removide"}
+
+
+@app.post("/api/admin/users/{user_id}/suspend")
+async def admin_suspend_user(user_id: int, request: Request, session: Optional[str] = Cookie(None)):
+    """Suspend a user for a specified number of hours."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    try:
+        body = await request.json()
+        hours = int(body.get("hours", 24))
+    except Exception:
+        hours = 24
+    
+    if hours <= 0:
+        return JSONResponse({"error": "Horas devem ser > 0"}, status_code=400)
+    
+    # Check target user exists
+    target = await _db.execute("SELECT id, is_superadmin FROM user WHERE id = ?", (user_id,))
+    if not target or len(target) == 0:
+        return JSONResponse({"error": "Usuárie não encontrade"}, status_code=404)
+    
+    if target[0].get('is_superadmin'):
+        return JSONResponse({"error": "Não é possível suspender superadmin"}, status_code=400)
+    
+    suspended_until = datetime.now(timezone.utc) + timedelta(hours=hours)
+    
+    await _db.run(
+        "UPDATE user SET suspended_until = ? WHERE id = ?",
+        (suspended_until.isoformat(), user_id)
+    )
+    
+    return {"success": True, "message": f"Usuárie suspense por {hours} horas"}
+
+
+@app.post("/api/admin/users/{user_id}/unsuspend")
+async def admin_unsuspend_user(user_id: int, session: Optional[str] = Cookie(None)):
+    """Remove suspension from a user."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    await _db.run("UPDATE user SET suspended_until = NULL WHERE id = ?", (user_id,))
+    
+    return {"success": True, "message": "Suspensão removida"}
+
+
+@app.delete("/api/admin/users/{user_id}")
+async def admin_delete_user(user_id: int, session: Optional[str] = Cookie(None)):
+    """Delete a user (permanent)."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    # Check target user exists
+    target = await _db.execute("SELECT id, is_superadmin FROM user WHERE id = ?", (user_id,))
+    if not target or len(target) == 0:
+        return JSONResponse({"error": "Usuárie não encontrade"}, status_code=404)
+    
+    if target[0].get('is_superadmin'):
+        return JSONResponse({"error": "Não é possível excluir superadmin"}, status_code=400)
+    
+    # Can't delete yourself
+    if user_id == user['user_id']:
+        return JSONResponse({"error": "Você não pode excluir a si mesme"}, status_code=400)
+    
+    # Delete user's data first
+    await _db.run("DELETE FROM seguidores WHERE seguidor_id = ? OR seguido_id = ?", (user_id, user_id))
+    await _db.run("DELETE FROM post_likes WHERE user_id = ?", (user_id,))
+    await _db.run("DELETE FROM comentario WHERE usuario_id = ?", (user_id,))
+    await _db.run("UPDATE post SET is_deleted = 1 WHERE usuario_id = ?", (user_id,))
+    await _db.run("DELETE FROM user WHERE id = ?", (user_id,))
+    
+    return {"success": True, "message": "Usuárie excluíde"}
+
+
+# --- Reports Management ---
+
+@app.get("/api/admin/reports")
+async def admin_list_reports(
+    resolved: bool = False,
+    page: int = 1,
+    per_page: int = 20,
+    session: Optional[str] = Cookie(None)
+):
+    """List reports for admin review."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    offset = (page - 1) * per_page
+    resolved_int = 1 if resolved else 0
+    
+    reports = await _db.execute(
+        """SELECT r.id, r.post_id, r.motivo, r.category, r.data, r.resolved, r.resolved_at,
+                  u.username as reporter_username,
+                  p.conteudo as post_conteudo, p.usuario as post_author
+           FROM report r
+           LEFT JOIN user u ON r.usuario_id = u.id
+           LEFT JOIN post p ON r.post_id = p.id
+           WHERE r.resolved = ?
+           ORDER BY r.data DESC
+           LIMIT ? OFFSET ?""",
+        (resolved_int, per_page, offset)
+    )
+    
+    return {"reports": reports or []}
+
+
+@app.post("/api/admin/reports/{report_id}/resolve")
+async def admin_resolve_report(report_id: int, session: Optional[str] = Cookie(None)):
+    """Mark a report as resolved."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    await _db.run(
+        "UPDATE report SET resolved = 1, resolved_at = ? WHERE id = ?",
+        (datetime.now(timezone.utc).isoformat(), report_id)
+    )
+    
+    return {"success": True, "message": "Denúncia resolvida"}
+
+
+@app.post("/api/admin/reports/{report_id}/delete-post")
+async def admin_delete_reported_post(report_id: int, session: Optional[str] = Cookie(None)):
+    """Delete the post associated with a report and resolve the report."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    # Get report
+    reports = await _db.execute("SELECT post_id FROM report WHERE id = ?", (report_id,))
+    if not reports or len(reports) == 0:
+        return JSONResponse({"error": "Denúncia não encontrada"}, status_code=404)
+    
+    post_id = reports[0]['post_id']
+    
+    # Soft delete the post
+    await _db.run(
+        "UPDATE post SET is_deleted = 1, deleted_at = ?, deleted_by = ? WHERE id = ?",
+        (datetime.now(timezone.utc).isoformat(), user['user_id'], post_id)
+    )
+    
+    # Resolve the report
+    await _db.run(
+        "UPDATE report SET resolved = 1, resolved_at = ? WHERE id = ?",
+        (datetime.now(timezone.utc).isoformat(), report_id)
+    )
+    
+    return {"success": True, "message": "Post excluíde e denúncia resolvida"}
+
+
+# --- Edu Content Management ---
+
+@app.get("/api/admin/edu")
+async def admin_list_edu_content(
+    tipo: str = "",
+    page: int = 1,
+    per_page: int = 20,
+    session: Optional[str] = Cookie(None)
+):
+    """List educational content for admin."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    offset = (page - 1) * per_page
+    
+    if tipo:
+        content = await _db.execute(
+            """SELECT id, tipo, titulo, resumo, url, created_at
+               FROM edu_content
+               WHERE tipo = ?
+               ORDER BY created_at DESC
+               LIMIT ? OFFSET ?""",
+            (tipo, per_page, offset)
+        )
+    else:
+        content = await _db.execute(
+            """SELECT id, tipo, titulo, resumo, url, created_at
+               FROM edu_content
+               ORDER BY created_at DESC
+               LIMIT ? OFFSET ?""",
+            (per_page, offset)
+        )
+    
+    return {"content": content or []}
+
+
+@app.post("/api/admin/edu")
+async def admin_create_edu_content(request: Request, session: Optional[str] = Cookie(None)):
+    """Create new educational content."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    body = await request.json()
+    
+    tipo = body.get("tipo", "").strip()
+    titulo = body.get("titulo", "").strip()
+    resumo = body.get("resumo", "").strip()
+    corpo = body.get("corpo", "").strip()
+    url = body.get("url", "").strip()
+    
+    if not tipo or not titulo:
+        return JSONResponse({"error": "Tipo e título são obrigatórios"}, status_code=400)
+    
+    await _db.run(
+        """INSERT INTO edu_content (tipo, titulo, resumo, corpo, url, author_id, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        (tipo, titulo, resumo, corpo, url, user['user_id'], datetime.now(timezone.utc).isoformat())
+    )
+    
+    return {"success": True, "message": "Conteúdo educacional criade"}
+
+
+@app.put("/api/admin/edu/{content_id}")
+async def admin_update_edu_content(content_id: int, request: Request, session: Optional[str] = Cookie(None)):
+    """Update educational content."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    body = await request.json()
+    
+    titulo = body.get("titulo", "").strip()
+    resumo = body.get("resumo", "").strip()
+    corpo = body.get("corpo", "").strip()
+    url = body.get("url", "").strip()
+    
+    if not titulo:
+        return JSONResponse({"error": "Título é obrigatório"}, status_code=400)
+    
+    await _db.run(
+        "UPDATE edu_content SET titulo = ?, resumo = ?, corpo = ?, url = ? WHERE id = ?",
+        (titulo, resumo, corpo, url, content_id)
+    )
+    
+    return {"success": True, "message": "Conteúdo atualizade"}
+
+
+@app.delete("/api/admin/edu/{content_id}")
+async def admin_delete_edu_content(content_id: int, session: Optional[str] = Cookie(None)):
+    """Delete educational content."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    await _db.run("DELETE FROM edu_content WHERE id = ?", (content_id,))
+    
+    return {"success": True, "message": "Conteúdo excluíde"}
+
+
+# ============================================================================
 # Static Files (for local development)
 # ============================================================================
 
