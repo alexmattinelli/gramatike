@@ -11,7 +11,7 @@ import hashlib
 import secrets
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Optional, List, Tuple
 
 from fastapi import FastAPI, Request, Form, Depends, HTTPException, Cookie
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
@@ -48,9 +48,77 @@ jinja_env = Environment(
 # Format: {session_id: {"user_id": int, "username": str, "expires": datetime}}
 sessions = {}
 
+# Flash messages storage (per-session)
+# Format: {session_id: [(category, message), ...]}
+flash_messages = {}
+
+# Route name to URL mapping for url_for compatibility
+ROUTE_MAP = {
+    'main.index': '/',
+    'main.login': '/login',
+    'main.logout': '/logout',
+    'main.cadastro': '/cadastro',
+    'main.educacao': '/educacao',
+    'main.perfil': '/perfil',
+    'main.meu_perfil': '/perfil',
+    'main.esqueci_senha': '/esqueci-senha',
+    'main.exercicios': '/exercicios',
+    'main.artigos': '/artigos',
+    'main.apostilas': '/apostilas',
+    'main.podcasts': '/podcasts',
+    'main.videos': '/videos',
+    'main.dinamicas_home': '/dinamicas',
+    'main.suporte': '/suporte',
+    'main.configuracoes': '/configuracoes',
+    'main.novo_post': '/novo_post',
+    'admin.dashboard': '/admin',
+    'static': '/static',
+}
+
 # ============================================================================
 # Helper Functions
 # ============================================================================
+
+def url_for(endpoint: str, **kwargs) -> str:
+    """Flask-compatible url_for function for templates."""
+    if endpoint == 'static':
+        filename = kwargs.get('filename', '')
+        return f"/static/{filename}"
+    
+    base_url = ROUTE_MAP.get(endpoint, '/')
+    
+    # Handle dynamic route parameters
+    if '<' in base_url or kwargs:
+        for key, value in kwargs.items():
+            if key != '_external':
+                # Replace placeholder or append as query param
+                placeholder = f"<{key}>" 
+                if placeholder in base_url:
+                    base_url = base_url.replace(placeholder, str(value))
+                elif f"<int:{key}>" in base_url:
+                    base_url = base_url.replace(f"<int:{key}>", str(value))
+    
+    return base_url
+
+def flash(message: str, category: str = "info", session_id: Optional[str] = None):
+    """Add a flash message (Flask-compatible)."""
+    if session_id:
+        if session_id not in flash_messages:
+            flash_messages[session_id] = []
+        flash_messages[session_id].append((category, message))
+
+def get_flashed_messages(with_categories: bool = False, session_id: Optional[str] = None) -> List:
+    """Get and clear flash messages (Flask-compatible)."""
+    if not session_id or session_id not in flash_messages:
+        return []
+    messages = flash_messages.pop(session_id, [])
+    if with_categories:
+        return messages
+    return [msg for _, msg in messages]
+
+def csrf_token() -> str:
+    """Generate a CSRF token (simplified for Workers)."""
+    return secrets.token_urlsafe(32)
 
 def hash_password(password: str) -> str:
     """Hash password using SHA256 with salt.
@@ -71,12 +139,14 @@ def verify_password(password: str, stored_hash: str) -> bool:
     salt, hashed = stored_hash.split(':', 1)
     return hashlib.sha256((salt + password).encode()).hexdigest() == hashed
 
-def create_session(user_id: int, username: str) -> str:
+def create_session(user_id: int, username: str, is_admin: bool = False) -> str:
     """Create a new session and return session ID."""
     session_id = secrets.token_urlsafe(32)
     sessions[session_id] = {
         "user_id": user_id,
         "username": username,
+        "is_admin": is_admin,
+        "is_authenticated": True,
         "expires": datetime.now(timezone.utc) + timedelta(days=7)
     }
     return session_id
@@ -91,8 +161,23 @@ def get_current_user(session_id: Optional[str] = Cookie(None, alias="session")) 
         return None
     return session
 
-def render_template(template_name: str, **context) -> str:
-    """Render a Jinja2 template with context."""
+# Simple request mock for templates
+class MockRequest:
+    def __init__(self):
+        self.form = {}
+
+def render_template(template_name: str, session_id: Optional[str] = None, **context) -> str:
+    """Render a Jinja2 template with Flask-compatible context."""
+    # Add Flask-compatible functions to context
+    context['url_for'] = url_for
+    context['csrf_token'] = csrf_token
+    context['request'] = context.get('request', MockRequest())
+    
+    # Add get_flashed_messages as a callable
+    def _get_flashed_messages(with_categories=False):
+        return get_flashed_messages(with_categories=with_categories, session_id=session_id)
+    context['get_flashed_messages'] = _get_flashed_messages
+    
     template = jinja_env.get_template(template_name)
     return template.render(**context)
 
@@ -146,7 +231,8 @@ async def home(request: Request, session: Optional[str] = Cookie(None)):
         return RedirectResponse(url="/login", status_code=302)
     
     html = render_template("index.html", 
-        admin=False,  # TODO: check if user is admin
+        session_id=session,
+        admin=user.get('is_admin', False),
         current_user=user,
         div_edu=[],
         delu_trending=[],
@@ -162,7 +248,7 @@ async def login_page(request: Request, session: Optional[str] = Cookie(None)):
     if user:
         return RedirectResponse(url="/", status_code=302)
     
-    html = render_template("login.html")
+    html = render_template("login.html", session_id=session)
     return HTMLResponse(content=html)
 
 
@@ -176,9 +262,9 @@ async def login_submit(
     global _db
     
     if not _db:
-        # Fallback: demo user for testing
+        # Fallback: demo user for testing without D1
         if email == "demo@gramatike.com" and password == "demo123":
-            session_id = create_session(1, "demo")
+            session_id = create_session(1, "demo", is_admin=True)
             response = RedirectResponse(url="/", status_code=302)
             response.set_cookie(key="session", value=session_id, httponly=True, secure=True, samesite="lax", max_age=604800)
             return response
@@ -186,7 +272,7 @@ async def login_submit(
     
     # Query user from D1
     users = await _db.execute(
-        "SELECT id, username, password FROM user WHERE email = ? OR username = ?",
+        "SELECT id, username, password, is_admin FROM user WHERE email = ? OR username = ?",
         (email, email)
     )
     
@@ -198,7 +284,7 @@ async def login_submit(
         return RedirectResponse(url="/login?error=invalid", status_code=302)
     
     # Create session
-    session_id = create_session(user['id'], user['username'])
+    session_id = create_session(user['id'], user['username'], is_admin=user.get('is_admin', False))
     response = RedirectResponse(url="/", status_code=302)
     response.set_cookie(key="session", value=session_id, httponly=True, secure=True, samesite="lax", max_age=604800)
     return response
@@ -209,15 +295,17 @@ async def logout(session: Optional[str] = Cookie(None)):
     """Logout and clear session."""
     if session and session in sessions:
         del sessions[session]
+    if session and session in flash_messages:
+        del flash_messages[session]
     response = RedirectResponse(url="/login", status_code=302)
     response.delete_cookie(key="session")
     return response
 
 
 @app.get("/cadastro", response_class=HTMLResponse)
-async def cadastro_page():
+async def cadastro_page(session: Optional[str] = Cookie(None)):
     """Registration page."""
-    html = render_template("cadastro.html")
+    html = render_template("cadastro.html", session_id=session)
     return HTMLResponse(content=html)
 
 
@@ -261,6 +349,7 @@ async def educacao(session: Optional[str] = Cookie(None)):
     """Education hub page."""
     user = get_current_user(session)
     html = render_template("gramatike_edu.html",
+        session_id=session,
         current_user=user,
         generated_at=datetime.now(timezone.utc),
         novidades=[],
@@ -276,7 +365,44 @@ async def meu_perfil(session: Optional[str] = Cookie(None)):
     if not user:
         return RedirectResponse(url="/login", status_code=302)
     
-    html = render_template("meu_perfil.html", usuario=user)
+    html = render_template("meu_perfil.html", session_id=session, usuario=user, current_user=user)
+    return HTMLResponse(content=html)
+
+
+@app.get("/esqueci-senha", response_class=HTMLResponse)
+async def esqueci_senha(session: Optional[str] = Cookie(None)):
+    """Password recovery page."""
+    html = render_template("esqueci_senha.html", session_id=session)
+    return HTMLResponse(content=html)
+
+
+@app.get("/configuracoes", response_class=HTMLResponse)
+async def configuracoes(session: Optional[str] = Cookie(None)):
+    """User settings page."""
+    user = get_current_user(session)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    html = render_template("configuracoes.html", session_id=session, user=user, current_user=user)
+    return HTMLResponse(content=html)
+
+
+@app.get("/suporte", response_class=HTMLResponse)
+async def suporte(session: Optional[str] = Cookie(None)):
+    """Support page."""
+    user = get_current_user(session)
+    html = render_template("suporte.html", session_id=session, current_user=user)
+    return HTMLResponse(content=html)
+
+
+@app.get("/novo_post", response_class=HTMLResponse)
+async def novo_post(session: Optional[str] = Cookie(None)):
+    """Create new post page."""
+    user = get_current_user(session)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    html = render_template("criar_post.html", session_id=session, current_user=user)
     return HTMLResponse(content=html)
 
 
