@@ -9,7 +9,7 @@ name = "gramatike"
 version = "1.0.0"
 description = "Gramátike - FastAPI web application for Portuguese grammar education"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 
 # Dependencies for Cloudflare Workers Python (Pyodide environment)
 # Note: Only include packages that are supported by Pyodide/Cloudflare Workers.
