@@ -655,3 +655,545 @@ async def get_novidades(db, limit=5):
     """).bind(limit).all()
     
     return [dict(row) for row in result.results] if result.results else []
+
+
+# ============================================================================
+# QUERIES - TOKENS DE EMAIL (Verificação e Recuperação de Senha)
+# ============================================================================
+
+def generate_email_token():
+    """Gera um token de email seguro."""
+    return secrets.token_urlsafe(32)
+
+
+async def create_email_token(db, usuario_id, tipo, expires_hours=24, novo_email=None):
+    """Cria um token de verificação/recuperação."""
+    token = generate_email_token()
+    expires_at = (datetime.utcnow() + timedelta(hours=expires_hours)).isoformat()
+    
+    if novo_email:
+        await db.prepare("""
+            INSERT INTO email_token (usuario_id, token, tipo, novo_email, expires_at)
+            VALUES (?, ?, ?, ?, ?)
+        """).bind(usuario_id, token, tipo, novo_email, expires_at).run()
+    else:
+        await db.prepare("""
+            INSERT INTO email_token (usuario_id, token, tipo, expires_at)
+            VALUES (?, ?, ?, ?)
+        """).bind(usuario_id, token, tipo, expires_at).run()
+    
+    return token
+
+
+async def verify_email_token(db, token, tipo):
+    """Verifica e retorna dados do token se válido."""
+    result = await db.prepare("""
+        SELECT * FROM email_token
+        WHERE token = ? AND tipo = ? AND used = 0 AND expires_at > datetime('now')
+    """).bind(token, tipo).first()
+    
+    if result:
+        return dict(result)
+    return None
+
+
+async def use_email_token(db, token):
+    """Marca token como usado."""
+    await db.prepare("""
+        UPDATE email_token SET used = 1, used_at = datetime('now')
+        WHERE token = ?
+    """).bind(token).run()
+
+
+async def confirm_user_email(db, usuario_id):
+    """Confirma o email de usuárie."""
+    await db.prepare("""
+        UPDATE user SET email_confirmed = 1, email_confirmed_at = datetime('now')
+        WHERE id = ?
+    """).bind(usuario_id).run()
+
+
+async def update_user_password(db, usuario_id, new_password):
+    """Atualiza a senha de usuárie."""
+    hashed = hash_password(new_password)
+    await db.prepare("""
+        UPDATE user SET password = ?
+        WHERE id = ?
+    """).bind(hashed, usuario_id).run()
+
+
+async def update_user_email(db, usuario_id, new_email):
+    """Atualiza o email de usuárie."""
+    await db.prepare("""
+        UPDATE user SET email = ?, email_confirmed = 0
+        WHERE id = ?
+    """).bind(new_email, usuario_id).run()
+
+
+# ============================================================================
+# QUERIES - NOTIFICAÇÕES
+# ============================================================================
+
+async def create_notification(db, usuario_id, tipo, titulo=None, mensagem=None, link=None,
+                              from_usuario_id=None, post_id=None, comentario_id=None):
+    """Cria uma notificação para usuárie."""
+    result = await db.prepare("""
+        INSERT INTO notification 
+        (usuario_id, tipo, titulo, mensagem, link, from_usuario_id, post_id, comentario_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING id
+    """).bind(usuario_id, tipo, titulo, mensagem, link, 
+              from_usuario_id, post_id, comentario_id).first()
+    return result['id'] if result else None
+
+
+async def get_notifications(db, usuario_id, apenas_nao_lidas=False, page=1, per_page=20):
+    """Lista notificações de usuárie."""
+    offset = (page - 1) * per_page
+    
+    if apenas_nao_lidas:
+        result = await db.prepare("""
+            SELECT n.*, u.username as from_username, u.foto_perfil as from_foto
+            FROM notification n
+            LEFT JOIN user u ON n.from_usuario_id = u.id
+            WHERE n.usuario_id = ? AND n.lida = 0
+            ORDER BY n.created_at DESC
+            LIMIT ? OFFSET ?
+        """).bind(usuario_id, per_page, offset).all()
+    else:
+        result = await db.prepare("""
+            SELECT n.*, u.username as from_username, u.foto_perfil as from_foto
+            FROM notification n
+            LEFT JOIN user u ON n.from_usuario_id = u.id
+            WHERE n.usuario_id = ?
+            ORDER BY n.created_at DESC
+            LIMIT ? OFFSET ?
+        """).bind(usuario_id, per_page, offset).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def count_unread_notifications(db, usuario_id):
+    """Conta notificações não lidas de usuárie."""
+    result = await db.prepare("""
+        SELECT COUNT(*) as count FROM notification
+        WHERE usuario_id = ? AND lida = 0
+    """).bind(usuario_id).first()
+    return result['count'] if result else 0
+
+
+async def mark_notification_read(db, notification_id, usuario_id):
+    """Marca notificação como lida."""
+    await db.prepare("""
+        UPDATE notification SET lida = 1
+        WHERE id = ? AND usuario_id = ?
+    """).bind(notification_id, usuario_id).run()
+
+
+async def mark_all_notifications_read(db, usuario_id):
+    """Marca todas as notificações como lidas."""
+    await db.prepare("""
+        UPDATE notification SET lida = 1
+        WHERE usuario_id = ? AND lida = 0
+    """).bind(usuario_id).run()
+
+
+# ============================================================================
+# QUERIES - AMIGUES
+# ============================================================================
+
+async def send_friend_request(db, solicitante_id, destinatarie_id):
+    """Envia pedido de amizade."""
+    # Verifica se já existe relação
+    existing = await db.prepare("""
+        SELECT * FROM amizade
+        WHERE (usuario1_id = ? AND usuario2_id = ?)
+           OR (usuario1_id = ? AND usuario2_id = ?)
+    """).bind(solicitante_id, destinatarie_id, destinatarie_id, solicitante_id).first()
+    
+    if existing:
+        return None, "Já existe uma solicitação de amizade"
+    
+    # Cria solicitação
+    result = await db.prepare("""
+        INSERT INTO amizade (usuario1_id, usuario2_id, solicitante_id, status)
+        VALUES (?, ?, ?, 'pendente')
+        RETURNING id
+    """).bind(solicitante_id, destinatarie_id, solicitante_id).first()
+    
+    # Notifica destinatárie
+    await create_notification(db, destinatarie_id, 'amizade_pedido',
+                              titulo='Novo pedido de amizade',
+                              from_usuario_id=solicitante_id)
+    
+    return result['id'] if result else None, None
+
+
+async def respond_friend_request(db, amizade_id, usuario_id, aceitar=True):
+    """Responde a pedido de amizade."""
+    # Verifica se o pedido existe e é para este usuárie
+    amizade = await db.prepare("""
+        SELECT * FROM amizade
+        WHERE id = ? AND status = 'pendente'
+        AND (usuario1_id = ? OR usuario2_id = ?)
+        AND solicitante_id != ?
+    """).bind(amizade_id, usuario_id, usuario_id, usuario_id).first()
+    
+    if not amizade:
+        return False, "Pedido não encontrado"
+    
+    status = 'aceita' if aceitar else 'recusada'
+    await db.prepare("""
+        UPDATE amizade SET status = ?, updated_at = datetime('now')
+        WHERE id = ?
+    """).bind(status, amizade_id).run()
+    
+    # Notifica solicitante
+    solicitante_id = amizade['solicitante_id']
+    if aceitar:
+        await create_notification(db, solicitante_id, 'amizade_aceita',
+                                  titulo='Pedido de amizade aceito!',
+                                  from_usuario_id=usuario_id)
+    
+    return True, None
+
+
+async def get_amigues(db, usuario_id):
+    """Lista amigues de usuárie (amizades aceitas)."""
+    result = await db.prepare("""
+        SELECT u.id, u.username, u.nome, u.foto_perfil, a.created_at as amigues_desde
+        FROM amizade a
+        JOIN user u ON (
+            (a.usuario1_id = ? AND a.usuario2_id = u.id)
+            OR (a.usuario2_id = ? AND a.usuario1_id = u.id)
+        )
+        WHERE a.status = 'aceita'
+        ORDER BY u.nome, u.username
+    """).bind(usuario_id, usuario_id).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def get_pending_friend_requests(db, usuario_id):
+    """Lista pedidos de amizade pendentes recebidos."""
+    result = await db.prepare("""
+        SELECT a.*, u.username, u.nome, u.foto_perfil
+        FROM amizade a
+        JOIN user u ON a.solicitante_id = u.id
+        WHERE (a.usuario1_id = ? OR a.usuario2_id = ?)
+        AND a.status = 'pendente'
+        AND a.solicitante_id != ?
+        ORDER BY a.created_at DESC
+    """).bind(usuario_id, usuario_id, usuario_id).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def are_amigues(db, usuario1_id, usuario2_id):
+    """Verifica se dois usuáries são amigues."""
+    result = await db.prepare("""
+        SELECT 1 FROM amizade
+        WHERE ((usuario1_id = ? AND usuario2_id = ?)
+            OR (usuario1_id = ? AND usuario2_id = ?))
+        AND status = 'aceita'
+    """).bind(usuario1_id, usuario2_id, usuario2_id, usuario1_id).first()
+    return result is not None
+
+
+async def remove_amizade(db, usuario_id, amigue_id):
+    """Remove amizade."""
+    await db.prepare("""
+        DELETE FROM amizade
+        WHERE ((usuario1_id = ? AND usuario2_id = ?)
+            OR (usuario1_id = ? AND usuario2_id = ?))
+        AND status = 'aceita'
+    """).bind(usuario_id, amigue_id, amigue_id, usuario_id).run()
+
+
+# ============================================================================
+# QUERIES - DENÚNCIAS
+# ============================================================================
+
+async def create_report(db, post_id, usuario_id, motivo, category=None):
+    """Cria uma denúncia de post."""
+    result = await db.prepare("""
+        INSERT INTO report (post_id, usuario_id, motivo, category)
+        VALUES (?, ?, ?, ?)
+        RETURNING id
+    """).bind(post_id, usuario_id, motivo, category).first()
+    return result['id'] if result else None
+
+
+async def get_reports(db, apenas_pendentes=True, page=1, per_page=20):
+    """Lista denúncias (para admin)."""
+    offset = (page - 1) * per_page
+    
+    if apenas_pendentes:
+        result = await db.prepare("""
+            SELECT r.*, p.conteudo as post_conteudo, u.username as reporter_username
+            FROM report r
+            LEFT JOIN post p ON r.post_id = p.id
+            LEFT JOIN user u ON r.usuario_id = u.id
+            WHERE r.resolved = 0
+            ORDER BY r.data DESC
+            LIMIT ? OFFSET ?
+        """).bind(per_page, offset).all()
+    else:
+        result = await db.prepare("""
+            SELECT r.*, p.conteudo as post_conteudo, u.username as reporter_username
+            FROM report r
+            LEFT JOIN post p ON r.post_id = p.id
+            LEFT JOIN user u ON r.usuario_id = u.id
+            ORDER BY r.data DESC
+            LIMIT ? OFFSET ?
+        """).bind(per_page, offset).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def resolve_report(db, report_id, resolver_id=None):
+    """Resolve uma denúncia."""
+    await db.prepare("""
+        UPDATE report SET resolved = 1, resolved_at = datetime('now')
+        WHERE id = ?
+    """).bind(report_id).run()
+
+
+async def count_pending_reports(db):
+    """Conta denúncias pendentes."""
+    result = await db.prepare("""
+        SELECT COUNT(*) as count FROM report WHERE resolved = 0
+    """).first()
+    return result['count'] if result else 0
+
+
+# ============================================================================
+# QUERIES - SUPORTE/TICKETS
+# ============================================================================
+
+async def create_support_ticket(db, mensagem, usuario_id=None, nome=None, email=None):
+    """Cria um ticket de suporte."""
+    result = await db.prepare("""
+        INSERT INTO support_ticket (usuario_id, nome, email, mensagem)
+        VALUES (?, ?, ?, ?)
+        RETURNING id
+    """).bind(usuario_id, nome, email, mensagem).first()
+    return result['id'] if result else None
+
+
+async def get_support_tickets(db, status=None, page=1, per_page=20):
+    """Lista tickets de suporte (para admin)."""
+    offset = (page - 1) * per_page
+    
+    if status:
+        result = await db.prepare("""
+            SELECT t.*, u.username
+            FROM support_ticket t
+            LEFT JOIN user u ON t.usuario_id = u.id
+            WHERE t.status = ?
+            ORDER BY t.created_at DESC
+            LIMIT ? OFFSET ?
+        """).bind(status, per_page, offset).all()
+    else:
+        result = await db.prepare("""
+            SELECT t.*, u.username
+            FROM support_ticket t
+            LEFT JOIN user u ON t.usuario_id = u.id
+            ORDER BY t.created_at DESC
+            LIMIT ? OFFSET ?
+        """).bind(per_page, offset).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def get_user_tickets(db, usuario_id):
+    """Lista tickets de usuárie."""
+    result = await db.prepare("""
+        SELECT * FROM support_ticket
+        WHERE usuario_id = ?
+        ORDER BY created_at DESC
+    """).bind(usuario_id).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def respond_ticket(db, ticket_id, resposta):
+    """Responde a um ticket de suporte."""
+    await db.prepare("""
+        UPDATE support_ticket 
+        SET resposta = ?, status = 'respondido', updated_at = datetime('now')
+        WHERE id = ?
+    """).bind(resposta, ticket_id).run()
+
+
+async def close_ticket(db, ticket_id):
+    """Fecha um ticket de suporte."""
+    await db.prepare("""
+        UPDATE support_ticket 
+        SET status = 'fechado', updated_at = datetime('now')
+        WHERE id = ?
+    """).bind(ticket_id).run()
+
+
+# ============================================================================
+# QUERIES - DIVULGAÇÃO/PROMOÇÕES
+# ============================================================================
+
+async def create_divulgacao(db, area, titulo, texto=None, link=None, imagem=None, 
+                            show_on_edu=True, show_on_index=True, author_id=None):
+    """Cria uma divulgação."""
+    result = await db.prepare("""
+        INSERT INTO divulgacao (area, titulo, texto, link, imagem, show_on_edu, show_on_index)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        RETURNING id
+    """).bind(area, titulo, texto, link, imagem, 
+              1 if show_on_edu else 0, 1 if show_on_index else 0).first()
+    return result['id'] if result else None
+
+
+async def update_divulgacao(db, divulgacao_id, **kwargs):
+    """Atualiza uma divulgação."""
+    allowed = ['titulo', 'texto', 'link', 'imagem', 'ativo', 'ordem', 'show_on_edu', 'show_on_index']
+    updates = {k: v for k, v in kwargs.items() if k in allowed and v is not None}
+    
+    if not updates:
+        return False
+    
+    set_clause = ', '.join(f"{k} = ?" for k in updates.keys())
+    values = list(updates.values()) + [divulgacao_id]
+    
+    await db.prepare(f"""
+        UPDATE divulgacao SET {set_clause}, updated_at = datetime('now')
+        WHERE id = ?
+    """).bind(*values).run()
+    return True
+
+
+async def delete_divulgacao(db, divulgacao_id):
+    """Remove uma divulgação."""
+    await db.prepare("""
+        DELETE FROM divulgacao WHERE id = ?
+    """).bind(divulgacao_id).run()
+
+
+# ============================================================================
+# QUERIES - UPLOAD DE IMAGENS
+# ============================================================================
+
+async def save_upload(db, usuario_id, tipo, path, filename=None, content_type=None, size=None):
+    """Registra um upload de imagem."""
+    result = await db.prepare("""
+        INSERT INTO upload (usuario_id, tipo, path, filename, content_type, size)
+        VALUES (?, ?, ?, ?, ?, ?)
+        RETURNING id
+    """).bind(usuario_id, tipo, path, filename, content_type, size).first()
+    return result['id'] if result else None
+
+
+async def get_user_uploads(db, usuario_id, tipo=None):
+    """Lista uploads de usuárie."""
+    if tipo:
+        result = await db.prepare("""
+            SELECT * FROM upload
+            WHERE usuario_id = ? AND tipo = ?
+            ORDER BY created_at DESC
+        """).bind(usuario_id, tipo).all()
+    else:
+        result = await db.prepare("""
+            SELECT * FROM upload
+            WHERE usuario_id = ?
+            ORDER BY created_at DESC
+        """).bind(usuario_id).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+# ============================================================================
+# QUERIES - ADMIN
+# ============================================================================
+
+async def get_all_usuaries(db, page=1, per_page=20, search=None):
+    """Lista todes usuáries (para admin)."""
+    offset = (page - 1) * per_page
+    
+    if search:
+        search_term = f"%{search}%"
+        result = await db.prepare("""
+            SELECT id, username, nome, email, foto_perfil, is_admin, is_superadmin, 
+                   is_banned, created_at, email_confirmed
+            FROM user
+            WHERE username LIKE ? OR nome LIKE ? OR email LIKE ?
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
+        """).bind(search_term, search_term, search_term, per_page, offset).all()
+    else:
+        result = await db.prepare("""
+            SELECT id, username, nome, email, foto_perfil, is_admin, is_superadmin, 
+                   is_banned, created_at, email_confirmed
+            FROM user
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
+        """).bind(per_page, offset).all()
+    
+    return [dict(row) for row in result.results] if result.results else []
+
+
+async def ban_usuarie(db, usuario_id, reason=None, admin_id=None):
+    """Bane usuárie."""
+    await db.prepare("""
+        UPDATE user SET is_banned = 1, banned_at = datetime('now'), ban_reason = ?
+        WHERE id = ?
+    """).bind(reason, usuario_id).run()
+
+
+async def unban_usuarie(db, usuario_id):
+    """Remove ban de usuárie."""
+    await db.prepare("""
+        UPDATE user SET is_banned = 0, banned_at = NULL, ban_reason = NULL
+        WHERE id = ?
+    """).bind(usuario_id).run()
+
+
+async def suspend_usuarie(db, usuario_id, until_date):
+    """Suspende usuárie temporariamente."""
+    await db.prepare("""
+        UPDATE user SET suspended_until = ?
+        WHERE id = ?
+    """).bind(until_date, usuario_id).run()
+
+
+async def make_admin(db, usuario_id, is_admin=True):
+    """Torna usuárie admin ou remove permissão."""
+    await db.prepare("""
+        UPDATE user SET is_admin = ?
+        WHERE id = ?
+    """).bind(1 if is_admin else 0, usuario_id).run()
+
+
+async def get_admin_stats(db):
+    """Estatísticas para painel admin."""
+    stats = {}
+    
+    # Total de usuáries
+    result = await db.prepare("SELECT COUNT(*) as count FROM user").first()
+    stats['total_usuaries'] = result['count'] if result else 0
+    
+    # Usuáries ativos (últimos 7 dias)
+    result = await db.prepare("""
+        SELECT COUNT(DISTINCT user_id) as count FROM user_session
+        WHERE created_at > datetime('now', '-7 days')
+    """).first()
+    stats['usuaries_ativos'] = result['count'] if result else 0
+    
+    # Total de posts
+    result = await db.prepare("SELECT COUNT(*) as count FROM post WHERE is_deleted = 0").first()
+    stats['total_posts'] = result['count'] if result else 0
+    
+    # Denúncias pendentes
+    stats['denuncias_pendentes'] = await count_pending_reports(db)
+    
+    # Tickets abertos
+    result = await db.prepare("SELECT COUNT(*) as count FROM support_ticket WHERE status = 'aberto'").first()
+    stats['tickets_abertos'] = result['count'] if result else 0
+    
+    return stats

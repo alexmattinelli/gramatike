@@ -398,3 +398,92 @@ CREATE TABLE IF NOT EXISTS outro_recurso (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT
 );
+
+-- ============================================================================
+-- TOKENS DE VERIFICAÇÃO E RECUPERAÇÃO DE SENHA
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS email_token (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    token TEXT UNIQUE NOT NULL,
+    tipo TEXT NOT NULL,  -- 'verify_email', 'reset_password', 'change_email'
+    novo_email TEXT,  -- usado para change_email
+    created_at TEXT DEFAULT (datetime('now')),
+    expires_at TEXT NOT NULL,
+    used INTEGER DEFAULT 0,
+    used_at TEXT,
+    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_token_token ON email_token(token);
+CREATE INDEX IF NOT EXISTS idx_email_token_usuario ON email_token(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_email_token_tipo ON email_token(tipo);
+
+-- ============================================================================
+-- NOTIFICAÇÕES
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS notification (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    tipo TEXT NOT NULL,  -- 'curtida', 'comentario', 'seguir', 'mencao', 'sistema'
+    titulo TEXT,
+    mensagem TEXT,
+    link TEXT,
+    lida INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    -- Referências opcionais
+    from_usuario_id INTEGER,
+    post_id INTEGER,
+    comentario_id INTEGER,
+    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (from_usuario_id) REFERENCES user(id),
+    FOREIGN KEY (post_id) REFERENCES post(id),
+    FOREIGN KEY (comentario_id) REFERENCES comentario(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_notification_usuario ON notification(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_notification_lida ON notification(lida);
+CREATE INDEX IF NOT EXISTS idx_notification_created ON notification(created_at);
+
+-- ============================================================================
+-- AMIGUES (relacionamento bidirecional)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS amizade (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario1_id INTEGER NOT NULL,
+    usuario2_id INTEGER NOT NULL,
+    status TEXT DEFAULT 'pendente',  -- 'pendente', 'aceita', 'recusada'
+    solicitante_id INTEGER NOT NULL,  -- quem enviou o pedido
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT,
+    FOREIGN KEY (usuario1_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario2_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (solicitante_id) REFERENCES user(id),
+    UNIQUE(usuario1_id, usuario2_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_amizade_usuario1 ON amizade(usuario1_id);
+CREATE INDEX IF NOT EXISTS idx_amizade_usuario2 ON amizade(usuario2_id);
+CREATE INDEX IF NOT EXISTS idx_amizade_status ON amizade(status);
+
+-- ============================================================================
+-- UPLOAD DE IMAGENS (para R2)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS upload (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    tipo TEXT NOT NULL,  -- 'avatar', 'post', 'divulgacao'
+    path TEXT NOT NULL,
+    filename TEXT,
+    content_type TEXT,
+    size INTEGER,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (usuario_id) REFERENCES user(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_upload_usuario ON upload(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_upload_tipo ON upload(tipo);

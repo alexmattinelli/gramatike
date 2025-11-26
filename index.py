@@ -5,6 +5,7 @@
 #
 # Este arquivo serve as páginas HTML com a mesma estética e funcionalidades
 # da aplicação Flask original, usando Cloudflare D1 como banco de dados.
+# Usa linguagem neutra (usuáries, seguidories, amigues).
 
 import json
 from urllib.parse import urlparse, parse_qs
@@ -13,15 +14,39 @@ from workers import WorkerEntrypoint, Response
 # Importar módulos de banco de dados e autenticação
 try:
     from workers.db import (
+        # Posts e interações
         get_posts, get_post_by_id, create_post, delete_post, like_post, unlike_post, has_liked,
         get_comments, create_comment,
+        # Usuáries
         get_user_by_id, get_user_by_username, update_user_profile,
         follow_user, unfollow_user, is_following, get_followers, get_following,
+        # Educação
         get_edu_contents, search_edu_contents,
         get_exercise_topics, get_exercise_questions,
         get_dynamics, get_dynamic_by_id, get_dynamic_responses, submit_dynamic_response,
         get_palavra_do_dia_atual, get_palavras_do_dia,
-        get_divulgacoes, get_novidades
+        get_divulgacoes, get_novidades,
+        # Notificações
+        create_notification, get_notifications, count_unread_notifications,
+        mark_notification_read, mark_all_notifications_read,
+        # Amigues
+        send_friend_request, respond_friend_request, get_amigues,
+        get_pending_friend_requests, are_amigues, remove_amizade,
+        # Tokens de email
+        create_email_token, verify_email_token, use_email_token,
+        confirm_user_email, update_user_password, update_user_email,
+        # Denúncias
+        create_report, get_reports, resolve_report, count_pending_reports,
+        # Suporte
+        create_support_ticket, get_support_tickets, get_user_tickets,
+        respond_ticket, close_ticket,
+        # Divulgação
+        create_divulgacao, update_divulgacao, delete_divulgacao,
+        # Upload
+        save_upload, get_user_uploads,
+        # Admin
+        get_all_usuaries, ban_usuarie, unban_usuarie, suspend_usuarie,
+        make_admin, get_admin_stats
     )
     from workers.auth import (
         get_current_user, login, logout, register,
@@ -826,7 +851,7 @@ class Default(WorkerEntrypoint):
                 username = path.split('/')[3]
                 target = await get_user_by_username(db, username)
                 if not target:
-                    return json_response({"error": "Usuário não encontrado"}, 404)
+                    return json_response({"error": "Usuárie não encontrade"}, 404)
                 
                 already = await is_following(db, current_user['id'], target['id'])
                 
@@ -836,6 +861,227 @@ class Default(WorkerEntrypoint):
                 else:
                     await follow_user(db, current_user['id'], target['id'])
                     return json_response({"following": True})
+            
+            # ================================================================
+            # NOTIFICAÇÕES
+            # ================================================================
+            
+            if path == '/api/notificacoes':
+                if not current_user:
+                    return json_response({"error": "Não autenticado"}, 401)
+                
+                apenas_nao_lidas = params.get('nao_lidas', ['0'])[0] == '1'
+                notifications = await get_notifications(db, current_user['id'], apenas_nao_lidas)
+                unread_count = await count_unread_notifications(db, current_user['id'])
+                
+                return json_response({
+                    "notificacoes": notifications,
+                    "nao_lidas": unread_count
+                })
+            
+            if path == '/api/notificacoes/marcar-lida' and method == 'POST':
+                if not current_user:
+                    return json_response({"error": "Não autenticado"}, 401)
+                
+                body = await request.json()
+                notification_id = body.get('id')
+                
+                if notification_id:
+                    await mark_notification_read(db, notification_id, current_user['id'])
+                else:
+                    await mark_all_notifications_read(db, current_user['id'])
+                
+                return json_response({"success": True})
+            
+            # ================================================================
+            # AMIGUES
+            # ================================================================
+            
+            if path == '/api/amigues':
+                if not current_user:
+                    return json_response({"error": "Não autenticado"}, 401)
+                
+                amigues = await get_amigues(db, current_user['id'])
+                return json_response({"amigues": amigues})
+            
+            if path == '/api/amigues/pedidos':
+                if not current_user:
+                    return json_response({"error": "Não autenticado"}, 401)
+                
+                pedidos = await get_pending_friend_requests(db, current_user['id'])
+                return json_response({"pedidos": pedidos})
+            
+            if path == '/api/amigues/solicitar' and method == 'POST':
+                if not current_user:
+                    return json_response({"error": "Não autenticado"}, 401)
+                
+                body = await request.json()
+                destinatarie_id = body.get('usuario_id')
+                
+                if not destinatarie_id:
+                    return json_response({"error": "ID de usuárie é obrigatório"}, 400)
+                
+                amizade_id, error = await send_friend_request(db, current_user['id'], destinatarie_id)
+                if error:
+                    return json_response({"error": error}, 400)
+                
+                return json_response({"id": amizade_id}, 201)
+            
+            if path == '/api/amigues/responder' and method == 'POST':
+                if not current_user:
+                    return json_response({"error": "Não autenticado"}, 401)
+                
+                body = await request.json()
+                amizade_id = body.get('amizade_id')
+                aceitar = body.get('aceitar', True)
+                
+                success, error = await respond_friend_request(db, amizade_id, current_user['id'], aceitar)
+                if error:
+                    return json_response({"error": error}, 400)
+                
+                return json_response({"success": True, "aceito": aceitar})
+            
+            if path == '/api/amigues/remover' and method == 'POST':
+                if not current_user:
+                    return json_response({"error": "Não autenticado"}, 401)
+                
+                body = await request.json()
+                amigue_id = body.get('usuario_id')
+                
+                await remove_amizade(db, current_user['id'], amigue_id)
+                return json_response({"success": True})
+            
+            # ================================================================
+            # DENÚNCIAS
+            # ================================================================
+            
+            if path == '/api/denunciar' and method == 'POST':
+                if not current_user:
+                    return json_response({"error": "Não autenticado"}, 401)
+                
+                body = await request.json()
+                post_id = body.get('post_id')
+                motivo = body.get('motivo', '').strip()
+                category = body.get('categoria')
+                
+                if not post_id or not motivo:
+                    return json_response({"error": "Post e motivo são obrigatórios"}, 400)
+                
+                report_id = await create_report(db, post_id, current_user['id'], motivo, category)
+                return json_response({"id": report_id}, 201)
+            
+            # ================================================================
+            # SUPORTE
+            # ================================================================
+            
+            if path == '/api/suporte' and method == 'POST':
+                body = await request.json()
+                mensagem = body.get('mensagem', '').strip()
+                nome = body.get('nome')
+                email = body.get('email')
+                
+                if not mensagem:
+                    return json_response({"error": "Mensagem é obrigatória"}, 400)
+                
+                usuario_id = current_user['id'] if current_user else None
+                ticket_id = await create_support_ticket(db, mensagem, usuario_id, nome, email)
+                
+                return json_response({"id": ticket_id, "message": "Ticket criado com sucesso!"}, 201)
+            
+            if path == '/api/suporte/meus-tickets':
+                if not current_user:
+                    return json_response({"error": "Não autenticado"}, 401)
+                
+                tickets = await get_user_tickets(db, current_user['id'])
+                return json_response({"tickets": tickets})
+            
+            # ================================================================
+            # ADMIN ROUTES
+            # ================================================================
+            
+            if path.startswith('/api/admin/'):
+                if not current_user:
+                    return json_response({"error": "Não autenticado"}, 401)
+                
+                if not current_user.get('is_admin') and not current_user.get('is_superadmin'):
+                    return json_response({"error": "Acesso negado"}, 403)
+                
+                # Dashboard stats
+                if path == '/api/admin/stats':
+                    stats = await get_admin_stats(db)
+                    return json_response({"stats": stats})
+                
+                # Lista usuáries
+                if path == '/api/admin/usuaries':
+                    page = int(params.get('page', [1])[0])
+                    search = params.get('q', [None])[0]
+                    usuaries = await get_all_usuaries(db, page=page, search=search)
+                    return json_response({"usuaries": usuaries})
+                
+                # Ban/Unban usuárie
+                if path == '/api/admin/ban' and method == 'POST':
+                    body = await request.json()
+                    usuario_id = body.get('usuario_id')
+                    reason = body.get('motivo')
+                    action = body.get('action', 'ban')
+                    
+                    if action == 'ban':
+                        await ban_usuarie(db, usuario_id, reason, current_user['id'])
+                    else:
+                        await unban_usuarie(db, usuario_id)
+                    
+                    return json_response({"success": True})
+                
+                # Denúncias
+                if path == '/api/admin/denuncias':
+                    apenas_pendentes = params.get('pendentes', ['1'])[0] == '1'
+                    reports = await get_reports(db, apenas_pendentes)
+                    return json_response({"denuncias": reports})
+                
+                if path == '/api/admin/denuncias/resolver' and method == 'POST':
+                    body = await request.json()
+                    report_id = body.get('report_id')
+                    await resolve_report(db, report_id, current_user['id'])
+                    return json_response({"success": True})
+                
+                # Tickets de suporte
+                if path == '/api/admin/tickets':
+                    status = params.get('status', [None])[0]
+                    tickets = await get_support_tickets(db, status)
+                    return json_response({"tickets": tickets})
+                
+                if path == '/api/admin/tickets/responder' and method == 'POST':
+                    body = await request.json()
+                    ticket_id = body.get('ticket_id')
+                    resposta = body.get('resposta')
+                    await respond_ticket(db, ticket_id, resposta)
+                    return json_response({"success": True})
+                
+                if path == '/api/admin/tickets/fechar' and method == 'POST':
+                    body = await request.json()
+                    ticket_id = body.get('ticket_id')
+                    await close_ticket(db, ticket_id)
+                    return json_response({"success": True})
+                
+                # Divulgação
+                if path == '/api/admin/divulgacao' and method == 'POST':
+                    body = await request.json()
+                    div_id = await create_divulgacao(
+                        db,
+                        area=body.get('area', 'geral'),
+                        titulo=body.get('titulo'),
+                        texto=body.get('texto'),
+                        link=body.get('link'),
+                        imagem=body.get('imagem'),
+                        author_id=current_user['id']
+                    )
+                    return json_response({"id": div_id}, 201)
+                
+                if path == '/api/admin/divulgacao/remover' and method == 'POST':
+                    body = await request.json()
+                    div_id = body.get('id')
+                    await delete_divulgacao(db, div_id)
+                    return json_response({"success": True})
             
             return json_response({"error": "Rota não encontrada"}, 404)
             
@@ -1380,14 +1626,14 @@ class Default(WorkerEntrypoint):
             if not user:
                 return self._not_found_page(f'/u/{username}')
             
-            # Buscar posts do usuário
+            # Buscar posts de usuárie
             posts = await get_posts(db, user_id=user['id'], per_page=20)
             
-            # Buscar seguidores/seguindo
+            # Buscar seguidories/seguindo
             followers = await get_followers(db, user['id'])
             following = await get_following(db, user['id'])
             
-            # Verificar se usuário logado segue
+            # Verificar se usuárie logade segue
             is_following_user = False
             is_own_profile = False
             if current_user:
@@ -1433,7 +1679,7 @@ class Default(WorkerEntrypoint):
             <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.8rem;">@{username}</p>
             {f'<p style="margin-bottom: 1rem;">{user.get("bio", "")}</p>' if user.get('bio') else ''}
             <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 1rem; font-size: 0.85rem;">
-                <span><strong>{len(followers)}</strong> seguidores</span>
+                <span><strong>{len(followers)}</strong> seguidories</span>
                 <span><strong>{len(following)}</strong> seguindo</span>
             </div>
             {action_btn}
