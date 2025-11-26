@@ -1042,6 +1042,8 @@ async def close_ticket(db, ticket_id):
 async def create_divulgacao(db, area, titulo, texto=None, link=None, imagem=None, 
                             show_on_edu=True, show_on_index=True, author_id=None):
     """Cria uma divulgação."""
+    # Nota: A tabela divulgacao não tem coluna author_id diretamente, 
+    # mas podemos vincular via edu_content_id ou post_id se necessário
     result = await db.prepare("""
         INSERT INTO divulgacao (area, titulo, texto, link, imagem, show_on_edu, show_on_index)
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -1051,19 +1053,49 @@ async def create_divulgacao(db, area, titulo, texto=None, link=None, imagem=None
     return result['id'] if result else None
 
 
-async def update_divulgacao(db, divulgacao_id, **kwargs):
-    """Atualiza uma divulgação."""
-    allowed = ['titulo', 'texto', 'link', 'imagem', 'ativo', 'ordem', 'show_on_edu', 'show_on_index']
-    updates = {k: v for k, v in kwargs.items() if k in allowed and v is not None}
+async def update_divulgacao(db, divulgacao_id, titulo=None, texto=None, link=None, 
+                            imagem=None, ativo=None, ordem=None, 
+                            show_on_edu=None, show_on_index=None):
+    """Atualiza uma divulgação com parâmetros explícitos (evita SQL injection)."""
+    # Construir updates de forma segura
+    updates = []
+    values = []
+    
+    if titulo is not None:
+        updates.append("titulo = ?")
+        values.append(titulo)
+    if texto is not None:
+        updates.append("texto = ?")
+        values.append(texto)
+    if link is not None:
+        updates.append("link = ?")
+        values.append(link)
+    if imagem is not None:
+        updates.append("imagem = ?")
+        values.append(imagem)
+    if ativo is not None:
+        updates.append("ativo = ?")
+        values.append(1 if ativo else 0)
+    if ordem is not None:
+        updates.append("ordem = ?")
+        values.append(ordem)
+    if show_on_edu is not None:
+        updates.append("show_on_edu = ?")
+        values.append(1 if show_on_edu else 0)
+    if show_on_index is not None:
+        updates.append("show_on_index = ?")
+        values.append(1 if show_on_index else 0)
     
     if not updates:
         return False
     
-    set_clause = ', '.join(f"{k} = ?" for k in updates.keys())
-    values = list(updates.values()) + [divulgacao_id]
+    updates.append("updated_at = datetime('now')")
+    values.append(divulgacao_id)
+    
+    set_clause = ", ".join(updates)
     
     await db.prepare(f"""
-        UPDATE divulgacao SET {set_clause}, updated_at = datetime('now')
+        UPDATE divulgacao SET {set_clause}
         WHERE id = ?
     """).bind(*values).run()
     return True
