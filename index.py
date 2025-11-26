@@ -1725,7 +1725,7 @@ class Default(WorkerEntrypoint):
             <a href="/educacao" class="module-card">
                 <div class="icon">📚</div>
                 <h3>Palavras do Dia</h3>
-                <p>Hub educacional completo</p>
+                <p>Aprenda palavras novas diariamente</p>
             </a>
             <a href="/dinamicas" class="module-card">
                 <div class="icon">🎮</div>
