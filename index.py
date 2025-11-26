@@ -1724,8 +1724,8 @@ class Default(WorkerEntrypoint):
         <div class="modules-grid">
             <a href="/educacao" class="module-card">
                 <div class="icon">📚</div>
-                <h3>Educação</h3>
-                <p>Hub educacional completo</p>
+                <h3>Palavras do Dia</h3>
+                <p>Aprenda palavras novas diariamente</p>
             </a>
             <a href="/dinamicas" class="module-card">
                 <div class="icon">🎮</div>
@@ -1747,10 +1747,10 @@ class Default(WorkerEntrypoint):
                 <h3>Apostilas</h3>
                 <p>Material de estudo</p>
             </a>
-            <a href="/podcasts" class="module-card">
+            <a href="/" class="module-card">
                 <div class="icon">🎧</div>
-                <h3>Podcasts</h3>
-                <p>Aprenda ouvindo</p>
+                <h3>Portal Gramátike</h3>
+                <p>Acesse a comunidade</p>
             </a>
         </div>
     </main>
