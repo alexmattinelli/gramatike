@@ -687,7 +687,10 @@ class Default(WorkerEntrypoint):
         
         # Se DB não disponível, retorna erro
         if not db or not DB_AVAILABLE:
-            return json_response({"error": "Database não disponível"}, 503)
+            return json_response({
+                "error": "Database D1 não disponível",
+                "help": "Verifique se o banco D1 está configurado no wrangler.toml e se as tabelas foram criadas. Consulte CLOUDFLARE_D1_SETUP.md"
+            }, 503)
         
         try:
             # ================================================================
@@ -1863,7 +1866,7 @@ class Default(WorkerEntrypoint):
         # Processar form de login
         if method == 'POST':
             if not db or not DB_AVAILABLE:
-                error_msg = "Sistema temporariamente indisponível. Tente novamente mais tarde."
+                error_msg = "Banco de dados não disponível. Verifique a configuração do Cloudflare D1."
             else:
                 try:
                     # Ler form data
@@ -1934,7 +1937,7 @@ class Default(WorkerEntrypoint):
         # Processar form de cadastro
         if method == 'POST':
             if not db or not DB_AVAILABLE:
-                error_msg = "Sistema temporariamente indisponível. Tente novamente mais tarde."
+                error_msg = "Banco de dados não disponível. Verifique a configuração do Cloudflare D1."
             else:
                 try:
                     body_text = await request.text()
