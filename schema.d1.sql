@@ -818,6 +818,97 @@ CREATE TABLE IF NOT EXISTS grupo_mensagem (
 );
 
 -- ============================================================================
+-- MENÇÕES (@) EM POSTS E COMENTÁRIOS
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS mencao (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,  -- quem foi mencionade
+    autor_id INTEGER NOT NULL,    -- quem mencionou
+    tipo TEXT NOT NULL,           -- 'post' ou 'comentario'
+    item_id INTEGER NOT NULL,     -- id do post ou comentário
+    lida INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (autor_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_mencao_usuario ON mencao(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_mencao_autor ON mencao(autor_id);
+CREATE INDEX IF NOT EXISTS idx_mencao_tipo ON mencao(tipo);
+
+-- ============================================================================
+-- HASHTAGS (#) EM POSTS E COMENTÁRIOS
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS hashtag (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tag TEXT NOT NULL UNIQUE,
+    count_uso INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_hashtag_tag ON hashtag(tag);
+CREATE INDEX IF NOT EXISTS idx_hashtag_count ON hashtag(count_uso DESC);
+
+CREATE TABLE IF NOT EXISTS hashtag_item (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hashtag_id INTEGER NOT NULL,
+    tipo TEXT NOT NULL,           -- 'post' ou 'comentario'
+    item_id INTEGER NOT NULL,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (hashtag_id) REFERENCES hashtag(id) ON DELETE CASCADE,
+    UNIQUE(hashtag_id, tipo, item_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_hashtag_item_hashtag ON hashtag_item(hashtag_id);
+CREATE INDEX IF NOT EXISTS idx_hashtag_item_tipo ON hashtag_item(tipo);
+
+-- ============================================================================
+-- EMOJIS PERSONALIZADOS NÃO-BINÁRIOS
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS emoji_custom (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo TEXT NOT NULL UNIQUE,        -- código para usar: :gramatike_feliz:
+    nome TEXT NOT NULL,                  -- nome para exibição
+    descricao TEXT,
+    imagem_url TEXT NOT NULL,           -- URL da imagem no R2
+    categoria TEXT DEFAULT 'geral',     -- categoria para organizar
+    ordem INTEGER DEFAULT 0,
+    ativo INTEGER DEFAULT 1,
+    created_at TEXT DEFAULT (datetime('now')),
+    created_by INTEGER,
+    FOREIGN KEY (created_by) REFERENCES user(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_emoji_codigo ON emoji_custom(codigo);
+CREATE INDEX IF NOT EXISTS idx_emoji_categoria ON emoji_custom(categoria);
+CREATE INDEX IF NOT EXISTS idx_emoji_ativo ON emoji_custom(ativo);
+
+-- ============================================================================
+-- CONFIGURAÇÃO DE FUNCIONALIDADES (para desativar temporariamente)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS feature_flag (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL UNIQUE,
+    ativo INTEGER DEFAULT 1,
+    descricao TEXT,
+    updated_at TEXT DEFAULT (datetime('now')),
+    updated_by INTEGER,
+    FOREIGN KEY (updated_by) REFERENCES user(id)
+);
+
+-- Inserir feature flags padrão
+INSERT OR IGNORE INTO feature_flag (nome, ativo, descricao) VALUES
+    ('mensagens_diretas', 0, 'Mensagens diretas entre usuáries - desativado para lançamento futuro'),
+    ('grupos_estudo', 0, 'Grupos de estudo - desativado para lançamento futuro'),
+    ('emojis_custom', 1, 'Emojis personalizados não-binários'),
+    ('mencoes', 1, 'Menções @usuarie em posts e comentários'),
+    ('hashtags', 1, 'Hashtags # em posts e comentários');
+
+-- ============================================================================
 -- INSERIR BADGES PADRÃO
 -- ============================================================================
 

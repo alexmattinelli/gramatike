@@ -65,15 +65,23 @@ try:
         add_to_history, get_user_history,
         # Preferências
         get_user_preferences, update_user_preferences,
-        # Mensagens diretas
+        # Mensagens diretas (desativado por padrão)
         send_direct_message, get_conversations, get_messages_with_user,
-        # Grupos de estudo
+        # Grupos de estudo (desativado por padrão)
         create_study_group, join_study_group, leave_study_group,
         get_study_groups, get_group_messages, send_group_message,
         # Acessibilidade
         get_accessibility_content, save_accessibility_content,
         # Validação de senha
-        validate_password_strength
+        validate_password_strength,
+        # Menções (@) e Hashtags (#)
+        extract_mentions, process_mentions, get_user_mentions,
+        extract_hashtags, process_hashtags, get_trending_hashtags, search_by_hashtag,
+        # Emojis personalizados
+        create_emoji_custom, get_emojis_custom, get_emoji_by_codigo,
+        update_emoji_custom, delete_emoji_custom, get_emoji_categories, render_emojis_in_text,
+        # Feature flags
+        get_feature_flag, get_all_feature_flags, update_feature_flag
     )
     from workers.auth import (
         get_current_user, login, logout, register,
@@ -758,6 +766,13 @@ class Default(WorkerEntrypoint):
                         return json_response({"error": "Conteúdo é obrigatório"}, 400)
                     
                     post_id = await create_post(db, current_user['id'], conteudo, imagem)
+                    
+                    # Processar menções (@username)
+                    await process_mentions(db, conteudo, current_user['id'], 'post', post_id)
+                    
+                    # Processar hashtags (#tag)
+                    await process_hashtags(db, conteudo, 'post', post_id)
+                    
                     post = await get_post_by_id(db, post_id)
                     return json_response({"post": post}, 201)
             
@@ -802,6 +817,13 @@ class Default(WorkerEntrypoint):
                         return json_response({"error": "Conteúdo é obrigatório"}, 400)
                     
                     comment_id = await create_comment(db, post_id, current_user['id'], conteudo)
+                    
+                    # Processar menções (@username) no comentário
+                    await process_mentions(db, conteudo, current_user['id'], 'comentario', comment_id)
+                    
+                    # Processar hashtags (#tag) no comentário
+                    await process_hashtags(db, conteudo, 'comentario', comment_id)
+                    
                     return json_response({"id": comment_id}, 201)
             
             # ================================================================
@@ -1358,12 +1380,133 @@ class Default(WorkerEntrypoint):
                     return json_response(prefs)
             
             # ================================================================
-            # MENSAGENS DIRETAS
+            # MENÇÕES (@) E HASHTAGS (#)
+            # ================================================================
+            
+            # Hashtags em tendência
+            if path == '/api/hashtags/trending':
+                limit = int(params.get('limit', ['10'])[0])
+                tags = await get_trending_hashtags(db, limit)
+                return json_response({"hashtags": tags})
+            
+            # Buscar por hashtag
+            if path.startswith('/api/hashtags/') and '/search' not in path:
+                tag = path.split('/')[3]
+                page = int(params.get('page', ['1'])[0])
+                limit = 20
+                offset = (page - 1) * limit
+                posts = await search_by_hashtag(db, tag, 'post', limit, offset)
+                return json_response({"posts": posts, "tag": tag})
+            
+            # Menções do usuárie
+            if path == '/api/mencoes':
+                if not current_user:
+                    return json_response({"error": "Autenticação necessária"}, 401)
+                
+                page = int(params.get('page', ['1'])[0])
+                limit = 20
+                offset = (page - 1) * limit
+                mencoes = await get_user_mentions(db, current_user['id'], limit, offset)
+                return json_response({"mencoes": mencoes})
+            
+            # ================================================================
+            # EMOJIS PERSONALIZADOS NÃO-BINÁRIOS
+            # ================================================================
+            
+            # Listar emojis
+            if path == '/api/emojis' and method == 'GET':
+                categoria = params.get('categoria', [None])[0]
+                emojis = await get_emojis_custom(db, categoria)
+                return json_response({"emojis": emojis})
+            
+            # Categorias de emojis
+            if path == '/api/emojis/categorias':
+                categorias = await get_emoji_categories(db)
+                return json_response({"categorias": categorias})
+            
+            # Admin: criar emoji
+            if path == '/api/admin/emojis' and method == 'POST':
+                if not current_user or not current_user.get('is_admin'):
+                    return json_response({"error": "Admin apenas"}, 403)
+                
+                body = await request.json()
+                emoji_id = await create_emoji_custom(
+                    db, body.get('codigo'),
+                    body.get('nome'),
+                    body.get('imagem_url'),
+                    body.get('descricao'),
+                    body.get('categoria', 'geral'),
+                    current_user['id']
+                )
+                if emoji_id:
+                    return json_response({"id": emoji_id}, 201)
+                return json_response({"error": "Código já existe"}, 400)
+            
+            # Admin: atualizar emoji
+            if path.startswith('/api/admin/emojis/') and method in ['PUT', 'PATCH']:
+                if not current_user or not current_user.get('is_admin'):
+                    return json_response({"error": "Admin apenas"}, 403)
+                
+                emoji_id = path.split('/')[4]
+                try:
+                    emoji_id = int(emoji_id)
+                except ValueError:
+                    return json_response({"error": "ID inválido"}, 400)
+                
+                body = await request.json()
+                await update_emoji_custom(db, emoji_id, **body)
+                return json_response({"success": True})
+            
+            # Admin: deletar emoji
+            if path.startswith('/api/admin/emojis/') and method == 'DELETE':
+                if not current_user or not current_user.get('is_admin'):
+                    return json_response({"error": "Admin apenas"}, 403)
+                
+                emoji_id = path.split('/')[4]
+                try:
+                    emoji_id = int(emoji_id)
+                except ValueError:
+                    return json_response({"error": "ID inválido"}, 400)
+                
+                await delete_emoji_custom(db, emoji_id)
+                return json_response({"success": True})
+            
+            # ================================================================
+            # FEATURE FLAGS (Admin)
+            # ================================================================
+            
+            if path == '/api/admin/features':
+                if not current_user or not current_user.get('is_admin'):
+                    return json_response({"error": "Admin apenas"}, 403)
+                
+                if method == 'GET':
+                    flags = await get_all_feature_flags(db)
+                    return json_response({"features": flags})
+                
+                if method == 'PUT':
+                    body = await request.json()
+                    await update_feature_flag(
+                        db, body.get('nome'),
+                        body.get('ativo'),
+                        current_user['id']
+                    )
+                    return json_response({"success": True})
+            
+            # ================================================================
+            # MENSAGENS DIRETAS (desativado por padrão - verificar feature flag)
             # ================================================================
             
             if path == '/api/mensagens':
                 if not current_user:
                     return json_response({"error": "Autenticação necessária"}, 401)
+                
+                # Verificar se funcionalidade está ativa
+                is_active = await get_feature_flag(db, 'mensagens_diretas')
+                if not is_active:
+                    return json_response({
+                        "error": "Esta funcionalidade será lançada em breve!",
+                        "disabled": True
+                    }, 503)
                 
                 conversations = await get_conversations(db, current_user['id'])
                 return json_response({"conversations": conversations})
@@ -1371,6 +1514,14 @@ class Default(WorkerEntrypoint):
             if path.startswith('/api/mensagens/') and method == 'GET':
                 if not current_user:
                     return json_response({"error": "Autenticação necessária"}, 401)
+                
+                # Verificar se funcionalidade está ativa
+                is_active = await get_feature_flag(db, 'mensagens_diretas')
+                if not is_active:
+                    return json_response({
+                        "error": "Esta funcionalidade será lançada em breve!",
+                        "disabled": True
+                    }, 503)
                 
                 other_user_id = path.split('/')[3]
                 try:
@@ -1388,6 +1539,14 @@ class Default(WorkerEntrypoint):
                 if not current_user:
                     return json_response({"error": "Autenticação necessária"}, 401)
                 
+                # Verificar se funcionalidade está ativa
+                is_active = await get_feature_flag(db, 'mensagens_diretas')
+                if not is_active:
+                    return json_response({
+                        "error": "Esta funcionalidade será lançada em breve!",
+                        "disabled": True
+                    }, 503)
+                
                 body = await request.json()
                 msg_id = await send_direct_message(
                     db, current_user['id'],
@@ -1397,10 +1556,18 @@ class Default(WorkerEntrypoint):
                 return json_response({"id": msg_id}, 201)
             
             # ================================================================
-            # GRUPOS DE ESTUDO
+            # GRUPOS DE ESTUDO (desativado por padrão - verificar feature flag)
             # ================================================================
             
             if path == '/api/grupos':
+                # Verificar se funcionalidade está ativa
+                is_active = await get_feature_flag(db, 'grupos_estudo')
+                if not is_active:
+                    return json_response({
+                        "error": "Esta funcionalidade será lançada em breve!",
+                        "disabled": True
+                    }, 503)
+                
                 if method == 'GET':
                     apenas_meus = params.get('meus', ['0'])[0] == '1'
                     user_id = current_user['id'] if current_user else None
@@ -1422,6 +1589,14 @@ class Default(WorkerEntrypoint):
                 if not current_user:
                     return json_response({"error": "Autenticação necessária"}, 401)
                 
+                # Verificar se funcionalidade está ativa
+                is_active = await get_feature_flag(db, 'grupos_estudo')
+                if not is_active:
+                    return json_response({
+                        "error": "Esta funcionalidade será lançada em breve!",
+                        "disabled": True
+                    }, 503)
+                
                 grupo_id = path.split('/')[3]
                 success, error = await join_study_group(db, grupo_id, current_user['id'])
                 if error:
@@ -1432,11 +1607,27 @@ class Default(WorkerEntrypoint):
                 if not current_user:
                     return json_response({"error": "Autenticação necessária"}, 401)
                 
+                # Verificar se funcionalidade está ativa
+                is_active = await get_feature_flag(db, 'grupos_estudo')
+                if not is_active:
+                    return json_response({
+                        "error": "Esta funcionalidade será lançada em breve!",
+                        "disabled": True
+                    }, 503)
+                
                 grupo_id = path.split('/')[3]
                 await leave_study_group(db, grupo_id, current_user['id'])
                 return json_response({"success": True})
             
             if path.startswith('/api/grupos/') and '/mensagens' in path:
+                # Verificar se funcionalidade está ativa
+                is_active = await get_feature_flag(db, 'grupos_estudo')
+                if not is_active:
+                    return json_response({
+                        "error": "Esta funcionalidade será lançada em breve!",
+                        "disabled": True
+                    }, 503)
+                
                 grupo_id = path.split('/')[3]
                 
                 if method == 'GET':

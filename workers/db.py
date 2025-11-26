@@ -2295,3 +2295,324 @@ def validate_password_strength(password):
         return False, "Senhas curtas devem ter pelo menos 3 tipos de caracteres"
     
     return True, "Senha válida"
+
+
+# ============================================================================
+# MENÇÕES (@)
+# ============================================================================
+
+import re
+
+
+def extract_mentions(text):
+    """Extrai menções @username do texto."""
+    if not text:
+        return []
+    # Encontra todas as menções @username
+    pattern = r'@([a-zA-Z0-9_]+)'
+    matches = re.findall(pattern, text)
+    # Remove duplicatas mantendo ordem
+    seen = set()
+    result = []
+    for m in matches:
+        if m.lower() not in seen:
+            seen.add(m.lower())
+            result.append(m)
+    return result
+
+
+async def create_mencao(db, usuario_id, autor_id, tipo, item_id):
+    """Cria uma menção."""
+    try:
+        await db.prepare("""
+            INSERT INTO mencao (usuario_id, autor_id, tipo, item_id, created_at)
+            VALUES (?, ?, ?, ?, datetime('now'))
+        """).bind(usuario_id, autor_id, tipo, item_id).run()
+        return True
+    except Exception:
+        return False
+
+
+async def process_mentions(db, text, autor_id, tipo, item_id):
+    """Processa menções em um texto, cria registros e notificações."""
+    usernames = extract_mentions(text)
+    for username in usernames:
+        # Buscar usuárie por username
+        user = await get_user_by_username(db, username)
+        if user and user['id'] != autor_id:
+            # Criar menção
+            await create_mencao(db, user['id'], autor_id, tipo, item_id)
+            # Criar notificação
+            autor = await get_user_by_id(db, autor_id)
+            autor_nome = autor['nome'] or autor['username'] if autor else 'Alguém'
+            await create_notification(
+                db,
+                user['id'],
+                'mencao',
+                'Você foi mencionade!',
+                f'{autor_nome} mencionou você em um {tipo}',
+                f'/{tipo}/{item_id}',
+                autor_id,
+                item_id if tipo == 'post' else None,
+                item_id if tipo == 'comentario' else None
+            )
+    return usernames
+
+
+async def get_user_mentions(db, usuario_id, limit=50, offset=0):
+    """Busca menções de um usuárie."""
+    results = await db.prepare("""
+        SELECT m.*, u.nome as autor_nome, u.username as autor_username, u.foto_perfil as autor_foto
+        FROM mencao m
+        LEFT JOIN user u ON m.autor_id = u.id
+        WHERE m.usuario_id = ?
+        ORDER BY m.created_at DESC
+        LIMIT ? OFFSET ?
+    """).bind(usuario_id, limit, offset).all()
+    return [dict(r) for r in results.results] if results.results else []
+
+
+# ============================================================================
+# HASHTAGS (#)
+# ============================================================================
+
+def extract_hashtags(text):
+    """Extrai hashtags do texto."""
+    if not text:
+        return []
+    # Encontra todas as hashtags (aceita acentos e caracteres especiais em português)
+    pattern = r'#([a-zA-ZÀ-ÿ0-9_]+)'
+    matches = re.findall(pattern, text)
+    # Remove duplicatas mantendo ordem e converte para minúsculas
+    seen = set()
+    result = []
+    for m in matches:
+        lower = m.lower()
+        if lower not in seen:
+            seen.add(lower)
+            result.append(lower)
+    return result
+
+
+async def get_or_create_hashtag(db, tag):
+    """Busca ou cria uma hashtag."""
+    tag = tag.lower()
+    result = await db.prepare(
+        "SELECT * FROM hashtag WHERE tag = ?"
+    ).bind(tag).first()
+    if result:
+        return dict(result)
+    # Criar nova
+    new_result = await db.prepare("""
+        INSERT INTO hashtag (tag, count_uso, created_at)
+        VALUES (?, 1, datetime('now'))
+        RETURNING id
+    """).bind(tag).first()
+    if new_result:
+        return {'id': new_result['id'], 'tag': tag, 'count_uso': 1}
+    return None
+
+
+async def process_hashtags(db, text, tipo, item_id):
+    """Processa hashtags em um texto e cria registros."""
+    tags = extract_hashtags(text)
+    for tag in tags:
+        hashtag = await get_or_create_hashtag(db, tag)
+        if hashtag:
+            try:
+                # Adicionar item à hashtag
+                await db.prepare("""
+                    INSERT OR IGNORE INTO hashtag_item (hashtag_id, tipo, item_id, created_at)
+                    VALUES (?, ?, ?, datetime('now'))
+                """).bind(hashtag['id'], tipo, item_id).run()
+                # Incrementar contador
+                await db.prepare(
+                    "UPDATE hashtag SET count_uso = count_uso + 1 WHERE id = ?"
+                ).bind(hashtag['id']).run()
+            except Exception:
+                pass
+    return tags
+
+
+async def get_trending_hashtags(db, limit=10):
+    """Busca hashtags mais populares."""
+    results = await db.prepare("""
+        SELECT * FROM hashtag
+        ORDER BY count_uso DESC
+        LIMIT ?
+    """).bind(limit).all()
+    return [dict(r) for r in results.results] if results.results else []
+
+
+async def search_by_hashtag(db, tag, tipo=None, limit=50, offset=0):
+    """Busca posts/comentários por hashtag."""
+    tag = tag.lower().replace('#', '')
+    
+    if tipo and tipo == 'post':
+        results = await db.prepare("""
+            SELECT p.*, u.nome as autor_nome, u.username as autor_username, u.foto_perfil as autor_foto
+            FROM hashtag_item hi
+            JOIN hashtag h ON hi.hashtag_id = h.id
+            JOIN post p ON hi.item_id = p.id AND hi.tipo = 'post'
+            LEFT JOIN user u ON p.usuario_id = u.id
+            WHERE h.tag = ? AND p.is_deleted = 0
+            ORDER BY p.data DESC
+            LIMIT ? OFFSET ?
+        """).bind(tag, limit, offset).all()
+    else:
+        results = await db.prepare("""
+            SELECT p.*, u.nome as autor_nome, u.username as autor_username, u.foto_perfil as autor_foto
+            FROM hashtag_item hi
+            JOIN hashtag h ON hi.hashtag_id = h.id
+            JOIN post p ON hi.item_id = p.id AND hi.tipo = 'post'
+            LEFT JOIN user u ON p.usuario_id = u.id
+            WHERE h.tag = ? AND p.is_deleted = 0
+            ORDER BY p.data DESC
+            LIMIT ? OFFSET ?
+        """).bind(tag, limit, offset).all()
+    
+    return [dict(r) for r in results.results] if results.results else []
+
+
+# ============================================================================
+# EMOJIS PERSONALIZADOS NÃO-BINÁRIOS
+# ============================================================================
+
+async def create_emoji_custom(db, codigo, nome, imagem_url, descricao=None, categoria='geral', created_by=None):
+    """Cria um emoji personalizado."""
+    # Formatar código: remover espaços, adicionar colons se não tiver
+    codigo = codigo.strip().lower().replace(' ', '_')
+    if not codigo.startswith(':'):
+        codigo = f':{codigo}:'
+    elif not codigo.endswith(':'):
+        codigo = f'{codigo}:'
+    
+    try:
+        result = await db.prepare("""
+            INSERT INTO emoji_custom (codigo, nome, imagem_url, descricao, categoria, created_at, created_by)
+            VALUES (?, ?, ?, ?, ?, datetime('now'), ?)
+            RETURNING id
+        """).bind(codigo, nome, imagem_url, descricao, categoria, created_by).first()
+        return result['id'] if result else None
+    except Exception:
+        return None
+
+
+async def get_emojis_custom(db, categoria=None, ativo_only=True):
+    """Busca emojis personalizados."""
+    if categoria and ativo_only:
+        results = await db.prepare("""
+            SELECT * FROM emoji_custom
+            WHERE categoria = ? AND ativo = 1
+            ORDER BY ordem, nome
+        """).bind(categoria).all()
+    elif categoria:
+        results = await db.prepare("""
+            SELECT * FROM emoji_custom
+            WHERE categoria = ?
+            ORDER BY ordem, nome
+        """).bind(categoria).all()
+    elif ativo_only:
+        results = await db.prepare("""
+            SELECT * FROM emoji_custom
+            WHERE ativo = 1
+            ORDER BY categoria, ordem, nome
+        """).all()
+    else:
+        results = await db.prepare("""
+            SELECT * FROM emoji_custom
+            ORDER BY categoria, ordem, nome
+        """).all()
+    
+    return [dict(r) for r in results.results] if results.results else []
+
+
+async def get_emoji_by_codigo(db, codigo):
+    """Busca emoji por código."""
+    result = await db.prepare(
+        "SELECT * FROM emoji_custom WHERE codigo = ? AND ativo = 1"
+    ).bind(codigo).first()
+    return dict(result) if result else None
+
+
+async def update_emoji_custom(db, emoji_id, **kwargs):
+    """Atualiza um emoji."""
+    allowed = ['nome', 'descricao', 'imagem_url', 'categoria', 'ordem', 'ativo']
+    updates = {k: v for k, v in kwargs.items() if k in allowed and v is not None}
+    
+    if not updates:
+        return False
+    
+    # Construir query com placeholders
+    set_parts = []
+    values = []
+    for key, value in updates.items():
+        set_parts.append(f"{key} = ?")
+        values.append(value)
+    
+    values.append(emoji_id)
+    
+    query = f"UPDATE emoji_custom SET {', '.join(set_parts)} WHERE id = ?"
+    await db.prepare(query).bind(*values).run()
+    return True
+
+
+async def delete_emoji_custom(db, emoji_id):
+    """Deleta um emoji."""
+    await db.prepare("DELETE FROM emoji_custom WHERE id = ?").bind(emoji_id).run()
+    return True
+
+
+async def get_emoji_categories(db):
+    """Busca categorias de emojis."""
+    results = await db.prepare("""
+        SELECT DISTINCT categoria, COUNT(*) as count
+        FROM emoji_custom
+        WHERE ativo = 1
+        GROUP BY categoria
+        ORDER BY categoria
+    """).all()
+    return [dict(r) for r in results.results] if results.results else []
+
+
+def render_emojis_in_text(text, emojis_list):
+    """Substitui códigos de emoji por imagens."""
+    if not text or not emojis_list:
+        return text
+    
+    for emoji in emojis_list:
+        codigo = emoji['codigo']
+        img_tag = f'<img src="{emoji["imagem_url"]}" alt="{emoji["nome"]}" class="emoji-custom" style="width: 1.2em; height: 1.2em; vertical-align: middle;">'
+        text = text.replace(codigo, img_tag)
+    
+    return text
+
+
+# ============================================================================
+# FEATURE FLAGS (para desativar funcionalidades temporariamente)
+# ============================================================================
+
+async def get_feature_flag(db, nome):
+    """Verifica se uma funcionalidade está ativa."""
+    result = await db.prepare(
+        "SELECT ativo FROM feature_flag WHERE nome = ?"
+    ).bind(nome).first()
+    return bool(result['ativo']) if result else True
+
+
+async def get_all_feature_flags(db):
+    """Busca todas as feature flags."""
+    results = await db.prepare(
+        "SELECT * FROM feature_flag ORDER BY nome"
+    ).all()
+    return [dict(r) for r in results.results] if results.results else []
+
+
+async def update_feature_flag(db, nome, ativo, updated_by=None):
+    """Atualiza uma feature flag."""
+    await db.prepare("""
+        UPDATE feature_flag 
+        SET ativo = ?, updated_at = datetime('now'), updated_by = ?
+        WHERE nome = ?
+    """).bind(ativo, updated_by, nome).run()
+    return True
