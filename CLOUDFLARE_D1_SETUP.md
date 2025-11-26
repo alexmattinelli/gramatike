@@ -4,7 +4,7 @@ Este guia explica como configurar o Cloudflare D1 (banco de dados SQLite na edge
 
 ## Por que este erro aparece?
 
-Se você está vendo o erro **"Sistema temporariamente indisponível. Tente novamente mais tarde"** na página de login ou cadastro, isso significa que:
+Se você está vendo o erro **"Banco de dados não disponível. Verifique a configuração do Cloudflare D1."** na página de login ou cadastro, isso significa que:
 
 1. O banco de dados D1 não está configurado corretamente
 2. O binding do D1 não está acessível no worker
@@ -114,7 +114,7 @@ O modo `--local` cria um banco SQLite local em `.wrangler/state/v3/d1/miniflare-
 
 ## Troubleshooting
 
-### Erro: "Sistema temporariamente indisponível"
+### Erro: "Banco de dados não disponível. Verifique a configuração do Cloudflare D1."
 
 Este erro aparece quando:
 
@@ -129,7 +129,7 @@ Este erro aparece quando:
    - O binding deve ser `"DB"` (como configurado no `wrangler.toml`)
    - No código, acessamos via `self.env.DB`
 
-### Erro: "Database não disponível" (API)
+### Erro: "Database D1 não disponível" (API)
 
 Se a API retorna este erro, significa que:
 
