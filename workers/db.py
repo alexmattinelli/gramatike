@@ -1288,7 +1288,7 @@ async def check_rate_limit(db, ip_address, endpoint, max_attempts=10, window_min
             UPDATE rate_limit SET blocked_until = ?
             WHERE ip_address = ? AND endpoint = ?
         """).bind(block_until, ip_address, endpoint).run()
-        return False, f"Muitas tentativas. Bloqueade por 15 minutos."
+        return False, "Muitas tentativas. Bloqueade por 15 minutos."
     
     # Incrementar tentativas
     await db.prepare("""
@@ -1382,7 +1382,8 @@ async def add_points(db, usuario_id, pontos, tipo='exercicios'):
     # Primeiro garante que o registro existe
     await get_user_points(db, usuario_id)
     
-    # Map tipo to column name safely
+    # Map tipo to column name safely - apenas colunas da whitelist são usadas
+    # Isso é seguro porque tipo_coluna só pode ser um dos valores do dict
     column_map = {
         'exercicios': 'pontos_exercicios',
         'posts': 'pontos_posts',
@@ -1391,13 +1392,31 @@ async def add_points(db, usuario_id, pontos, tipo='exercicios'):
     
     tipo_coluna = column_map.get(tipo, 'pontos_exercicios')
     
-    await db.prepare(f"""
-        UPDATE user_points 
-        SET pontos_total = pontos_total + ?,
-            {tipo_coluna} = {tipo_coluna} + ?,
-            updated_at = datetime('now')
-        WHERE usuario_id = ?
-    """).bind(pontos, pontos, usuario_id).run()
+    # Usar queries separadas para cada tipo para evitar f-string SQL
+    if tipo_coluna == 'pontos_exercicios':
+        await db.prepare("""
+            UPDATE user_points 
+            SET pontos_total = pontos_total + ?,
+                pontos_exercicios = pontos_exercicios + ?,
+                updated_at = datetime('now')
+            WHERE usuario_id = ?
+        """).bind(pontos, pontos, usuario_id).run()
+    elif tipo_coluna == 'pontos_posts':
+        await db.prepare("""
+            UPDATE user_points 
+            SET pontos_total = pontos_total + ?,
+                pontos_posts = pontos_posts + ?,
+                updated_at = datetime('now')
+            WHERE usuario_id = ?
+        """).bind(pontos, pontos, usuario_id).run()
+    elif tipo_coluna == 'pontos_dinamicas':
+        await db.prepare("""
+            UPDATE user_points 
+            SET pontos_total = pontos_total + ?,
+                pontos_dinamicas = pontos_dinamicas + ?,
+                updated_at = datetime('now')
+            WHERE usuario_id = ?
+        """).bind(pontos, pontos, usuario_id).run()
     
     # Atualizar nível baseado em pontos
     await update_user_level(db, usuario_id)
@@ -1424,19 +1443,32 @@ async def update_user_level(db, usuario_id):
 
 async def get_ranking(db, limit=10, tipo=None):
     """Retorna ranking de usuáries por pontos."""
-    if tipo and tipo in ['exercicios', 'posts', 'dinamicas']:
-        column_map = {
-            'exercicios': 'pontos_exercicios',
-            'posts': 'pontos_posts',
-            'dinamicas': 'pontos_dinamicas'
-        }
-        tipo_coluna = column_map[tipo]
-        result = await db.prepare(f"""
+    # Usar queries separadas para cada tipo para evitar f-string SQL
+    if tipo == 'exercicios':
+        result = await db.prepare("""
             SELECT p.*, u.username, u.nome, u.foto_perfil
             FROM user_points p
             JOIN user u ON p.usuario_id = u.id
             WHERE u.is_banned = 0
-            ORDER BY p.{tipo_coluna} DESC
+            ORDER BY p.pontos_exercicios DESC
+            LIMIT ?
+        """).bind(limit).all()
+    elif tipo == 'posts':
+        result = await db.prepare("""
+            SELECT p.*, u.username, u.nome, u.foto_perfil
+            FROM user_points p
+            JOIN user u ON p.usuario_id = u.id
+            WHERE u.is_banned = 0
+            ORDER BY p.pontos_posts DESC
+            LIMIT ?
+        """).bind(limit).all()
+    elif tipo == 'dinamicas':
+        result = await db.prepare("""
+            SELECT p.*, u.username, u.nome, u.foto_perfil
+            FROM user_points p
+            JOIN user u ON p.usuario_id = u.id
+            WHERE u.is_banned = 0
+            ORDER BY p.pontos_dinamicas DESC
             LIMIT ?
         """).bind(limit).all()
     else:
@@ -1491,8 +1523,8 @@ async def award_badge(db, usuario_id, badge_nome):
         await create_notification(db, usuario_id, 'badge',
                                   titulo=f'Novo badge: {badge_nome}! 🎖️')
         return True
-    except:
-        return False  # Já tem o badge
+    except Exception:
+        return False  # Já tem o badge ou erro de constraint
 
 
 async def check_and_award_badges(db, usuario_id):
@@ -1649,8 +1681,8 @@ async def add_to_exercise_list(db, list_id, question_id, ordem=0):
             INSERT INTO exercise_list_item (list_id, question_id, ordem) VALUES (?, ?, ?)
         """).bind(list_id, question_id, ordem).run()
         return True
-    except:
-        return False
+    except Exception:
+        return False  # Questão já está na lista
 
 
 async def get_exercise_lists(db, usuario_id):
@@ -1856,8 +1888,8 @@ async def add_favorite(db, usuario_id, tipo, item_id):
             INSERT INTO favorito (usuario_id, tipo, item_id) VALUES (?, ?, ?)
         """).bind(usuario_id, tipo, item_id).run()
         return True
-    except:
-        return False
+    except Exception:
+        return False  # Já é favorito
 
 
 async def remove_favorite(db, usuario_id, tipo, item_id):
@@ -1950,29 +1982,53 @@ async def update_user_preferences(db, usuario_id, **kwargs):
     # Garantir que registro existe
     await get_user_preferences(db, usuario_id)
     
-    allowed = ['tema', 'fonte_tamanho', 'fonte_familia', 'alto_contraste',
-               'animacoes_reduzidas', 'exibir_libras', 'audio_habilitado',
-               'velocidade_audio', 'notificacoes_email', 'notificacoes_push', 'idioma']
+    # Apenas colunas da whitelist são atualizadas - isso é seguro
+    allowed_columns = {
+        'tema': 'tema',
+        'fonte_tamanho': 'fonte_tamanho', 
+        'fonte_familia': 'fonte_familia',
+        'alto_contraste': 'alto_contraste',
+        'animacoes_reduzidas': 'animacoes_reduzidas',
+        'exibir_libras': 'exibir_libras',
+        'audio_habilitado': 'audio_habilitado',
+        'velocidade_audio': 'velocidade_audio',
+        'notificacoes_email': 'notificacoes_email',
+        'notificacoes_push': 'notificacoes_push',
+        'idioma': 'idioma'
+    }
     
-    updates = []
-    values = []
+    # Filtrar apenas chaves permitidas
+    filtered_kwargs = {k: v for k, v in kwargs.items() if k in allowed_columns}
     
-    for key, value in kwargs.items():
-        if key in allowed:
-            updates.append(f"{key} = ?")
-            values.append(value)
-    
-    if not updates:
+    if not filtered_kwargs:
         return False
     
-    updates.append("updated_at = datetime('now')")
-    values.append(usuario_id)
+    # Atualizar cada campo individualmente para evitar SQL dinâmico
+    for key, value in filtered_kwargs.items():
+        # Os nomes de colunas são validados pela whitelist acima
+        if key == 'tema':
+            await db.prepare("UPDATE user_preferences SET tema = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+        elif key == 'fonte_tamanho':
+            await db.prepare("UPDATE user_preferences SET fonte_tamanho = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+        elif key == 'fonte_familia':
+            await db.prepare("UPDATE user_preferences SET fonte_familia = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+        elif key == 'alto_contraste':
+            await db.prepare("UPDATE user_preferences SET alto_contraste = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+        elif key == 'animacoes_reduzidas':
+            await db.prepare("UPDATE user_preferences SET animacoes_reduzidas = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+        elif key == 'exibir_libras':
+            await db.prepare("UPDATE user_preferences SET exibir_libras = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+        elif key == 'audio_habilitado':
+            await db.prepare("UPDATE user_preferences SET audio_habilitado = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+        elif key == 'velocidade_audio':
+            await db.prepare("UPDATE user_preferences SET velocidade_audio = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+        elif key == 'notificacoes_email':
+            await db.prepare("UPDATE user_preferences SET notificacoes_email = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+        elif key == 'notificacoes_push':
+            await db.prepare("UPDATE user_preferences SET notificacoes_push = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+        elif key == 'idioma':
+            await db.prepare("UPDATE user_preferences SET idioma = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
     
-    set_clause = ", ".join(updates)
-    
-    await db.prepare(f"""
-        UPDATE user_preferences SET {set_clause} WHERE usuario_id = ?
-    """).bind(*values).run()
     return True
 
 
@@ -2108,7 +2164,7 @@ async def join_study_group(db, grupo_id, usuario_id):
             INSERT INTO grupo_membro (grupo_id, usuario_id) VALUES (?, ?)
         """).bind(grupo_id, usuario_id).run()
         return True, None
-    except:
+    except Exception:
         return False, "Já é membro do grupo"
 
 
