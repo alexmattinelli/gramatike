@@ -9,7 +9,8 @@ import os
 import json
 import hashlib
 import secrets
-from datetime import datetime, timedelta
+import logging
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import FastAPI, Request, Form, Depends, HTTPException, Cookie
@@ -17,6 +18,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from workers import WorkerEntrypoint
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 # ============================================================================
 # FastAPI App Setup
@@ -39,7 +43,8 @@ jinja_env = Environment(
     enable_async=True
 )
 
-# Simple in-memory session store (for Workers, use KV or D1 in production)
+# NOTE: In-memory session store - not persistent across Worker invocations.
+# For production, migrate to Cloudflare KV or D1 for session storage.
 # Format: {session_id: {"user_id": int, "username": str, "expires": datetime}}
 sessions = {}
 
@@ -48,12 +53,23 @@ sessions = {}
 # ============================================================================
 
 def hash_password(password: str) -> str:
-    """Hash password using SHA256 (simple, for demo - use bcrypt in production)."""
-    return hashlib.sha256(password.encode()).hexdigest()
+    """Hash password using SHA256 with salt.
+    
+    NOTE: For production, use a proper password hashing library like bcrypt.
+    SHA256 is used here for Pyodide compatibility where bcrypt is not available.
+    A random salt is prepended to provide some protection against rainbow tables.
+    """
+    salt = secrets.token_hex(16)
+    hashed = hashlib.sha256((salt + password).encode()).hexdigest()
+    return f"{salt}:{hashed}"
 
-def verify_password(password: str, hashed: str) -> bool:
-    """Verify password against hash."""
-    return hash_password(password) == hashed
+def verify_password(password: str, stored_hash: str) -> bool:
+    """Verify password against stored hash with salt."""
+    if ':' not in stored_hash:
+        # Legacy hash without salt - simple comparison
+        return hashlib.sha256(password.encode()).hexdigest() == stored_hash
+    salt, hashed = stored_hash.split(':', 1)
+    return hashlib.sha256((salt + password).encode()).hexdigest() == hashed
 
 def create_session(user_id: int, username: str) -> str:
     """Create a new session and return session ID."""
@@ -61,7 +77,7 @@ def create_session(user_id: int, username: str) -> str:
     sessions[session_id] = {
         "user_id": user_id,
         "username": username,
-        "expires": datetime.utcnow() + timedelta(days=7)
+        "expires": datetime.now(timezone.utc) + timedelta(days=7)
     }
     return session_id
 
@@ -70,7 +86,7 @@ def get_current_user(session_id: Optional[str] = Cookie(None, alias="session")) 
     if not session_id or session_id not in sessions:
         return None
     session = sessions[session_id]
-    if datetime.utcnow() > session["expires"]:
+    if datetime.now(timezone.utc) > session["expires"]:
         del sessions[session_id]
         return None
     return session
@@ -85,7 +101,11 @@ def render_template(template_name: str, **context) -> str:
 # ============================================================================
 
 class D1Database:
-    """Wrapper for Cloudflare D1 database operations."""
+    """Wrapper for Cloudflare D1 database operations.
+    
+    NOTE: The global _db instance is set per-request in the Worker entry point.
+    This is acceptable for Cloudflare Workers where each request runs in isolation.
+    """
     
     def __init__(self, env):
         self.db = getattr(env, 'DB', None)
@@ -98,7 +118,7 @@ class D1Database:
             result = await self.db.prepare(query).bind(*params).all()
             return result.results if hasattr(result, 'results') else result
         except Exception as e:
-            print(f"D1 Error: {e}")
+            logger.error(f"D1 execute error: {e}")
             return None
     
     async def run(self, query: str, params: tuple = ()):
@@ -108,7 +128,7 @@ class D1Database:
         try:
             return await self.db.prepare(query).bind(*params).run()
         except Exception as e:
-            print(f"D1 Error: {e}")
+            logger.error(f"D1 run error: {e}")
             return None
 
 # Global database instance (set per-request in Worker)
@@ -160,7 +180,7 @@ async def login_submit(
         if email == "demo@gramatike.com" and password == "demo123":
             session_id = create_session(1, "demo")
             response = RedirectResponse(url="/", status_code=302)
-            response.set_cookie(key="session", value=session_id, httponly=True, max_age=604800)
+            response.set_cookie(key="session", value=session_id, httponly=True, secure=True, samesite="lax", max_age=604800)
             return response
         return RedirectResponse(url="/login?error=invalid", status_code=302)
     
@@ -180,7 +200,7 @@ async def login_submit(
     # Create session
     session_id = create_session(user['id'], user['username'])
     response = RedirectResponse(url="/", status_code=302)
-    response.set_cookie(key="session", value=session_id, httponly=True, max_age=604800)
+    response.set_cookie(key="session", value=session_id, httponly=True, secure=True, samesite="lax", max_age=604800)
     return response
 
 
@@ -230,7 +250,7 @@ async def cadastro_submit(
     await _db.run(
         """INSERT INTO user (username, email, password, genero, pronome, created_at) 
            VALUES (?, ?, ?, ?, ?, ?)""",
-        (username, email, hashed, genero, pronome, datetime.utcnow().isoformat())
+        (username, email, hashed, genero, pronome, datetime.now(timezone.utc).isoformat())
     )
     
     return RedirectResponse(url="/login?success=registered", status_code=302)
@@ -242,7 +262,7 @@ async def educacao(session: Optional[str] = Cookie(None)):
     user = get_current_user(session)
     html = render_template("gramatike_edu.html",
         current_user=user,
-        generated_at=datetime.utcnow(),
+        generated_at=datetime.now(timezone.utc),
         novidades=[],
         divulgacoes=[]
     )
