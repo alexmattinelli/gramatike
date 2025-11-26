@@ -1,32 +1,67 @@
 # index.py
-# Cloudflare Workers Python entry point
-# Uses native WorkerEntrypoint pattern
+# Cloudflare Workers Python entry point with D1 Database
+# Uses native WorkerEntrypoint pattern + D1 SQLite
 # Docs: https://developers.cloudflare.com/workers/languages/python/
 #
-# Este arquivo serve as páginas HTML com a mesma estética da aplicação Flask original.
-# Todas as páginas são renderizadas com o visual idêntico ao Gramátike.
+# Este arquivo serve as páginas HTML com a mesma estética e funcionalidades
+# da aplicação Flask original, usando Cloudflare D1 como banco de dados.
 
 import json
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 from workers import WorkerEntrypoint, Response
 
+# Importar módulos de banco de dados e autenticação
+try:
+    from workers.db import (
+        get_posts, get_post_by_id, create_post, delete_post, like_post, unlike_post, has_liked,
+        get_comments, create_comment,
+        get_user_by_id, get_user_by_username, update_user_profile,
+        follow_user, unfollow_user, is_following, get_followers, get_following,
+        get_edu_contents, search_edu_contents,
+        get_exercise_topics, get_exercise_questions,
+        get_dynamics, get_dynamic_by_id, get_dynamic_responses, submit_dynamic_response,
+        get_palavra_do_dia_atual, get_palavras_do_dia,
+        get_divulgacoes, get_novidades
+    )
+    from workers.auth import (
+        get_current_user, login, logout, register,
+        set_session_cookie, clear_session_cookie
+    )
+    DB_AVAILABLE = True
+except ImportError:
+    DB_AVAILABLE = False
 
-def json_response(data, status=200):
+
+def json_response(data, status=200, headers=None):
     """Create a JSON response."""
+    resp_headers = {"Content-Type": "application/json; charset=utf-8"}
+    if headers:
+        resp_headers.update(headers)
     return Response(
         json.dumps(data, ensure_ascii=False),
         status=status,
-        headers={"Content-Type": "application/json; charset=utf-8"}
+        headers=resp_headers
     )
 
 
-def html_response(content, status=200):
+def html_response(content, status=200, headers=None):
     """Create an HTML response."""
+    resp_headers = {"Content-Type": "text/html; charset=utf-8"}
+    if headers:
+        resp_headers.update(headers)
     return Response(
         content,
         status=status,
-        headers={"Content-Type": "text/html; charset=utf-8"}
+        headers=resp_headers
     )
+
+
+def redirect(url, status=302, headers=None):
+    """Create a redirect response."""
+    resp_headers = {"Location": url}
+    if headers:
+        resp_headers.update(headers)
+    return Response("", status=status, headers=resp_headers)
 
 
 # ============================================================================
@@ -490,42 +525,322 @@ def page_footer():
 
 
 class Default(WorkerEntrypoint):
-    """Cloudflare Worker entry point."""
+    """Cloudflare Worker entry point with D1 Database support."""
 
     async def fetch(self, request):
         """Handle incoming HTTP requests."""
         url = request.url
         path = "/"
+        query_params = {}
+        
         if url:
             parsed = urlparse(url)
             path = parsed.path or "/"
-
+            query_params = parse_qs(parsed.query)
+        
+        method = request.method
+        
+        # Obter banco de dados D1
+        db = getattr(self.env, 'DB', None)
+        
+        # Obter usuário atual se DB disponível
+        current_user = None
+        if db and DB_AVAILABLE:
+            try:
+                current_user = await get_current_user(db, request)
+            except:
+                pass
+        
+        # ====================================================================
+        # API ROUTES
+        # ====================================================================
+        
+        if path.startswith('/api/'):
+            return await self._handle_api(request, path, method, query_params, db, current_user)
+        
+        # ====================================================================
+        # PAGE ROUTES
+        # ====================================================================
+        
+        # Rotas que requerem autenticação
+        if path == '/' and not current_user:
+            # Redireciona para login se não autenticado na página principal
+            pass  # Permite ver a página inicial sem login
+        
         # Route handling
-        routes = {
-            "/": self._index_page,
-            "": self._index_page,
-            "/educacao": self._educacao_page,
-            "/login": self._login_page,
-            "/cadastro": self._cadastro_page,
-            "/dinamicas": self._dinamicas_page,
-            "/exercicios": self._exercicios_page,
-            "/artigos": self._artigos_page,
-            "/apostilas": self._apostilas_page,
-            "/podcasts": self._podcasts_page,
-            "/api/health": lambda: json_response({"status": "ok", "platform": "Cloudflare Workers"}),
-            "/api/info": lambda: json_response({"name": "Gramátike", "version": "1.0.0"}),
+        page_routes = {
+            "/": lambda: self._index_page(db, current_user),
+            "": lambda: self._index_page(db, current_user),
+            "/educacao": lambda: self._educacao_page(db, current_user),
+            "/login": lambda: self._login_page(db, current_user, request, method),
+            "/cadastro": lambda: self._cadastro_page(db, current_user, request, method),
+            "/dinamicas": lambda: self._dinamicas_page(db, current_user),
+            "/exercicios": lambda: self._exercicios_page(db, current_user),
+            "/artigos": lambda: self._artigos_page(db, current_user),
+            "/apostilas": lambda: self._apostilas_page(db, current_user),
+            "/podcasts": lambda: self._podcasts_page(db, current_user),
+            "/logout": lambda: self._logout(db, request),
         }
 
-        handler = routes.get(path)
+        handler = page_routes.get(path)
         if handler:
-            result = handler()
+            result = await self._safe_call(handler)
             if isinstance(result, Response):
                 return result
             return html_response(result)
         
+        # Rotas dinâmicas (perfil de usuário)
+        if path.startswith('/u/'):
+            username = path[3:]
+            result = await self._profile_page(db, current_user, username)
+            return html_response(result) if not isinstance(result, Response) else result
+        
         return html_response(self._not_found_page(path), status=404)
 
-    def _index_page(self):
+    async def _safe_call(self, handler):
+        """Chama handler de forma segura."""
+        try:
+            result = handler()
+            if hasattr(result, '__await__'):
+                result = await result
+            return result
+        except Exception as e:
+            return f"<h1>Erro</h1><p>{str(e)}</p>"
+
+    async def _handle_api(self, request, path, method, params, db, current_user):
+        """Handle API routes."""
+        
+        # Health check (não precisa de DB)
+        if path == '/api/health':
+            return json_response({
+                "status": "ok",
+                "platform": "Cloudflare Workers + D1",
+                "db_available": db is not None and DB_AVAILABLE
+            })
+        
+        if path == '/api/info':
+            return json_response({
+                "name": "Gramátike",
+                "version": "2.0.0",
+                "features": ["D1 Database", "Auth", "Posts", "Education"]
+            })
+        
+        # Se DB não disponível, retorna erro
+        if not db or not DB_AVAILABLE:
+            return json_response({"error": "Database não disponível"}, 503)
+        
+        try:
+            # ================================================================
+            # AUTH ROUTES
+            # ================================================================
+            
+            if path == '/api/login' and method == 'POST':
+                body = await request.json()
+                email = body.get('email', '').strip()
+                password = body.get('password', '')
+                
+                token, error = await login(db, request, email, password)
+                if error:
+                    return json_response({"error": error}, 401)
+                
+                return json_response(
+                    {"success": True},
+                    headers={"Set-Cookie": set_session_cookie(token)}
+                )
+            
+            if path == '/api/logout' and method == 'POST':
+                await logout(db, request)
+                return json_response(
+                    {"success": True},
+                    headers={"Set-Cookie": clear_session_cookie()}
+                )
+            
+            if path == '/api/cadastro' and method == 'POST':
+                body = await request.json()
+                username = body.get('username', '').strip()
+                email = body.get('email', '').strip()
+                password = body.get('password', '')
+                nome = body.get('nome', '').strip() or None
+                
+                user_id, error = await register(db, username, email, password, nome)
+                if error:
+                    return json_response({"error": error}, 400)
+                
+                token, _ = await login(db, request, email, password)
+                return json_response(
+                    {"success": True, "user_id": user_id},
+                    status=201,
+                    headers={"Set-Cookie": set_session_cookie(token)}
+                )
+            
+            if path == '/api/me':
+                if not current_user:
+                    return json_response({"error": "Não autenticado"}, 401)
+                return json_response({"user": current_user})
+            
+            # ================================================================
+            # POSTS ROUTES
+            # ================================================================
+            
+            if path == '/api/posts':
+                if method == 'GET':
+                    page = int(params.get('page', [1])[0])
+                    posts = await get_posts(db, page=page)
+                    
+                    # Verifica likes do usuário atual
+                    if current_user:
+                        for post in posts:
+                            post['liked'] = await has_liked(db, current_user['id'], post['id'])
+                    
+                    return json_response({"posts": posts, "page": page})
+                
+                elif method == 'POST':
+                    if not current_user:
+                        return json_response({"error": "Não autenticado"}, 401)
+                    
+                    body = await request.json()
+                    conteudo = body.get('conteudo', '').strip()
+                    imagem = body.get('imagem')
+                    
+                    if not conteudo:
+                        return json_response({"error": "Conteúdo é obrigatório"}, 400)
+                    
+                    post_id = await create_post(db, current_user['id'], conteudo, imagem)
+                    post = await get_post_by_id(db, post_id)
+                    return json_response({"post": post}, 201)
+            
+            # Like/Unlike post
+            if path.startswith('/api/posts/') and path.endswith('/like') and method == 'POST':
+                if not current_user:
+                    return json_response({"error": "Não autenticado"}, 401)
+                
+                post_id = int(path.split('/')[3])
+                already_liked = await has_liked(db, current_user['id'], post_id)
+                
+                if already_liked:
+                    await unlike_post(db, current_user['id'], post_id)
+                    return json_response({"liked": False})
+                else:
+                    await like_post(db, current_user['id'], post_id)
+                    return json_response({"liked": True})
+            
+            # Comentários
+            if '/comentarios' in path:
+                post_id = int(path.split('/')[3])
+                
+                if method == 'GET':
+                    comments = await get_comments(db, post_id)
+                    return json_response({"comentarios": comments})
+                
+                elif method == 'POST':
+                    if not current_user:
+                        return json_response({"error": "Não autenticado"}, 401)
+                    
+                    body = await request.json()
+                    conteudo = body.get('conteudo', '').strip()
+                    
+                    if not conteudo:
+                        return json_response({"error": "Conteúdo é obrigatório"}, 400)
+                    
+                    comment_id = await create_comment(db, post_id, current_user['id'], conteudo)
+                    return json_response({"id": comment_id}, 201)
+            
+            # ================================================================
+            # EDUCATION ROUTES
+            # ================================================================
+            
+            if path == '/api/gramatike/search':
+                query = params.get('q', [''])[0]
+                tipo = params.get('tipo', [None])[0]
+                
+                if len(query) < 2:
+                    return json_response({"error": "Pesquisa muito curta"}, 400)
+                
+                results = await search_edu_contents(db, query, tipo)
+                return json_response({"results": results})
+            
+            if path == '/api/edu':
+                tipo = params.get('tipo', [None])[0]
+                page = int(params.get('page', [1])[0])
+                contents = await get_edu_contents(db, tipo=tipo, page=page)
+                return json_response({"contents": contents})
+            
+            # ================================================================
+            # DYNAMICS ROUTES
+            # ================================================================
+            
+            if path == '/api/dinamicas':
+                dynamics = await get_dynamics(db)
+                return json_response({"dinamicas": dynamics})
+            
+            if path.startswith('/api/dinamicas/') and '/responder' in path and method == 'POST':
+                if not current_user:
+                    return json_response({"error": "Não autenticado"}, 401)
+                
+                dynamic_id = int(path.split('/')[3])
+                body = await request.json()
+                
+                response_id = await submit_dynamic_response(db, dynamic_id, current_user['id'], body)
+                return json_response({"id": response_id}, 201)
+            
+            # ================================================================
+            # PALAVRA DO DIA
+            # ================================================================
+            
+            if path == '/api/palavra-do-dia':
+                palavra = await get_palavra_do_dia_atual(db)
+                return json_response({"palavra": palavra})
+            
+            # ================================================================
+            # DIVULGAÇÃO / NOVIDADES
+            # ================================================================
+            
+            if path == '/api/divulgacao':
+                area = params.get('area', [None])[0]
+                divulgacoes = await get_divulgacoes(db, area=area)
+                return json_response({"divulgacoes": divulgacoes})
+            
+            if path == '/api/novidades':
+                novidades = await get_novidades(db)
+                return json_response({"novidades": novidades})
+            
+            # ================================================================
+            # FOLLOW/UNFOLLOW
+            # ================================================================
+            
+            if path.startswith('/api/usuario/') and '/seguir' in path and method == 'POST':
+                if not current_user:
+                    return json_response({"error": "Não autenticado"}, 401)
+                
+                username = path.split('/')[3]
+                target = await get_user_by_username(db, username)
+                if not target:
+                    return json_response({"error": "Usuário não encontrado"}, 404)
+                
+                already = await is_following(db, current_user['id'], target['id'])
+                
+                if already:
+                    await unfollow_user(db, current_user['id'], target['id'])
+                    return json_response({"following": False})
+                else:
+                    await follow_user(db, current_user['id'], target['id'])
+                    return json_response({"following": True})
+            
+            return json_response({"error": "Rota não encontrada"}, 404)
+            
+        except Exception as e:
+            return json_response({"error": str(e)}, 500)
+
+    async def _logout(self, db, request):
+        """Faz logout e redireciona."""
+        if db and DB_AVAILABLE:
+            try:
+                await logout(db, request)
+            except:
+                pass
+        return redirect('/login', headers={"Set-Cookie": clear_session_cookie()})
+
+    async def _index_page(self, db, current_user):
         """Página inicial - Feed/Rede Social."""
         return f"""{page_head("Gramátike")}
     <header class="site-head">
@@ -579,8 +894,59 @@ class Default(WorkerEntrypoint):
     </main>
 {page_footer()}"""
 
-    def _educacao_page(self):
+    async def _educacao_page(self, db, current_user):
         """Página Educação - Hub educacional."""
+        # Buscar dados do banco se disponível
+        palavras = []
+        novidades = []
+        contents = []
+        
+        if db and DB_AVAILABLE:
+            try:
+                palavra = await get_palavra_do_dia_atual(db)
+                if palavra:
+                    palavras = [palavra]
+                novidades = await get_novidades(db, limit=3)
+                contents = await get_edu_contents(db, page=1, per_page=10)
+            except:
+                pass
+        
+        # Renderizar conteúdos
+        contents_html = ""
+        if contents:
+            for c in contents:
+                contents_html += f"""
+                <div class="feed-item">
+                    <div class="fi-meta">{c.get('tipo', 'artigo').upper()}</div>
+                    <h3 class="fi-title">{c.get('titulo', '')}</h3>
+                    <p class="fi-body">{(c.get('resumo') or '')[:200]}...</p>
+                </div>"""
+        else:
+            contents_html = '<div class="empty">Nenhum conteúdo encontrado.</div>'
+        
+        # Palavras do dia
+        palavras_html = ""
+        if palavras:
+            for p in palavras:
+                palavras_html += f"""
+                <div style="padding: 0.5rem 0;">
+                    <strong style="color: var(--primary);">{p.get('palavra', '')}</strong>
+                    <p style="font-size: 0.75rem; color: var(--text-dim);">{p.get('significado', '')[:100]}...</p>
+                </div>"""
+        else:
+            palavras_html = '<div class="placeholder">Nenhuma palavra disponível</div>'
+        
+        # Novidades
+        novidades_html = ""
+        if novidades:
+            for n in novidades:
+                novidades_html += f"""
+                <div style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                    <strong style="font-size: 0.8rem;">{n.get('titulo', '')}</strong>
+                </div>"""
+        else:
+            novidades_html = '<div class="placeholder">Nenhuma novidade.</div>'
+        
         return f"""{page_head("Gramátike Edu")}
     <header class="site-head">
         <h1 class="logo">Gramátike Edu</h1>
@@ -604,7 +970,7 @@ class Default(WorkerEntrypoint):
         
         <div class="layout">
             <div>
-                <div class="empty">Nada encontrado.</div>
+                {contents_html}
             </div>
             <aside class="side-col">
                 <div class="quick-nav">
@@ -613,19 +979,48 @@ class Default(WorkerEntrypoint):
                 </div>
                 <div class="side-card">
                     <h3>💡 Palavras do Dia</h3>
-                    <div class="placeholder">Nenhuma palavra disponível</div>
+                    {palavras_html}
                 </div>
                 <div class="side-card">
                     <h3>📣 Novidades</h3>
-                    <div class="placeholder">Nenhuma divulgação ativa.</div>
+                    {novidades_html}
                 </div>
             </aside>
         </div>
     </main>
 {page_footer()}"""
 
-    def _login_page(self):
+    async def _login_page(self, db, current_user, request, method):
         """Página de Login."""
+        # Se já logado, redireciona
+        if current_user:
+            return redirect('/')
+        
+        error_msg = ""
+        
+        # Processar form de login
+        if method == 'POST' and db and DB_AVAILABLE:
+            try:
+                # Ler form data
+                body_text = await request.text()
+                form_data = parse_qs(body_text)
+                
+                email = form_data.get('email', [''])[0].strip()
+                password = form_data.get('password', [''])[0]
+                
+                if email and password:
+                    token, err = await login(db, request, email, password)
+                    if token:
+                        return redirect('/', headers={"Set-Cookie": set_session_cookie(token)})
+                    else:
+                        error_msg = err or "Credenciais inválidas"
+                else:
+                    error_msg = "Preencha todos os campos"
+            except Exception as e:
+                error_msg = f"Erro ao processar login"
+        
+        error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
+        
         extra_css = """
         .login-wrapper { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:2.2rem 1.2rem 3.5rem; }
         .login-card { width:100%; max-width:380px; background:#fff; border-radius:18px; padding:2.2rem 2rem 2.4rem; box-shadow:0 10px 26px -4px rgba(0,0,0,.12); }
@@ -639,15 +1034,16 @@ class Default(WorkerEntrypoint):
         return f"""{page_head("Entrar • Gramátike", extra_css)}
     <div class="login-wrapper">
         <div class="login-card">
+            {error_html}
             <h2>Entrar</h2>
-            <form>
+            <form method="POST" action="/login">
                 <div class="form-group">
                     <label>Usuárie / Email</label>
-                    <input type="text" placeholder="Usuárie ou email">
+                    <input type="text" name="email" placeholder="Usuárie ou email" required>
                 </div>
                 <div class="form-group">
                     <label>Senha</label>
-                    <input type="password" placeholder="••••••••">
+                    <input type="password" name="password" placeholder="••••••••" required>
                 </div>
                 <button type="submit" class="button-primary" style="margin-top: 1rem;">Entrar</button>
             </form>
@@ -660,8 +1056,44 @@ class Default(WorkerEntrypoint):
 </body>
 </html>"""
 
-    def _cadastro_page(self):
+    async def _cadastro_page(self, db, current_user, request, method):
         """Página de Cadastro."""
+        # Se já logado, redireciona
+        if current_user:
+            return redirect('/')
+        
+        error_msg = ""
+        success_msg = ""
+        
+        # Processar form de cadastro
+        if method == 'POST' and db and DB_AVAILABLE:
+            try:
+                body_text = await request.text()
+                form_data = parse_qs(body_text)
+                
+                username = form_data.get('username', [''])[0].strip()
+                email = form_data.get('email', [''])[0].strip()
+                password = form_data.get('password', [''])[0]
+                nome = form_data.get('nome', [''])[0].strip() or None
+                
+                if username and email and password:
+                    user_id, err = await register(db, username, email, password, nome)
+                    if user_id:
+                        # Auto-login
+                        token, _ = await login(db, request, email, password)
+                        if token:
+                            return redirect('/', headers={"Set-Cookie": set_session_cookie(token)})
+                        success_msg = "Conta criada! Faça login."
+                    else:
+                        error_msg = err or "Erro ao criar conta"
+                else:
+                    error_msg = "Preencha todos os campos obrigatórios"
+            except Exception as e:
+                error_msg = "Erro ao processar cadastro"
+        
+        error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
+        success_html = f'<div class="success-msg" style="background:#e8f5e9;color:#2e7d32;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{success_msg}</div>' if success_msg else ""
+        
         extra_css = """
         .login-wrapper { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:2.2rem 1.2rem 3.5rem; }
         .login-card { width:100%; max-width:380px; background:#fff; border-radius:18px; padding:2.2rem 2rem 2.4rem; box-shadow:0 10px 26px -4px rgba(0,0,0,.12); }
@@ -674,19 +1106,25 @@ class Default(WorkerEntrypoint):
         return f"""{page_head("Cadastro • Gramátike", extra_css)}
     <div class="login-wrapper">
         <div class="login-card">
+            {error_html}
+            {success_html}
             <h2>Criar Conta</h2>
-            <form>
+            <form method="POST" action="/cadastro">
                 <div class="form-group">
-                    <label>Nome de Usuárie</label>
-                    <input type="text" placeholder="seu_usuario">
+                    <label>Nome (opcional)</label>
+                    <input type="text" name="nome" placeholder="Seu nome">
                 </div>
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" placeholder="seu@email.com">
+                    <label>Nome de Usuárie *</label>
+                    <input type="text" name="username" placeholder="seu_usuario" required>
                 </div>
                 <div class="form-group">
-                    <label>Senha</label>
-                    <input type="password" placeholder="••••••••">
+                    <label>Email *</label>
+                    <input type="email" name="email" placeholder="seu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha *</label>
+                    <input type="password" name="password" placeholder="••••••••" required minlength="6">
                 </div>
                 <button type="submit" class="button-primary" style="margin-top: 1rem;">Criar Conta</button>
             </form>
@@ -699,21 +1137,67 @@ class Default(WorkerEntrypoint):
 </body>
 </html>"""
 
-    def _dinamicas_page(self):
+    async def _dinamicas_page(self, db, current_user):
         """Página de Dinâmicas."""
+        dynamics_html = ""
+        
+        if db and DB_AVAILABLE:
+            try:
+                dynamics = await get_dynamics(db)
+                if dynamics:
+                    for d in dynamics:
+                        tipo_emoji = {"poll": "📊", "form": "📝", "oneword": "💬"}.get(d.get('tipo'), '🎮')
+                        dynamics_html += f"""
+                        <div class="feed-item">
+                            <div class="fi-meta">{tipo_emoji} {d.get('tipo', 'dinâmica').upper()}</div>
+                            <h3 class="fi-title">{d.get('titulo', '')}</h3>
+                            <p class="fi-body">{d.get('descricao') or 'Participe desta dinâmica!'}</p>
+                            <div style="margin-top: 1rem;">
+                                <span style="font-size: 0.7rem; color: var(--text-dim);">
+                                    {d.get('response_count', 0)} participações
+                                </span>
+                            </div>
+                        </div>"""
+            except:
+                pass
+        
+        if not dynamics_html:
+            dynamics_html = '<div class="empty">Nenhuma dinâmica disponível no momento.</div>'
+        
         return f"""{page_head("Dinâmicas — Gramátike Edu")}
     <header class="site-head">
         <h1 class="logo">Dinâmicas</h1>
     </header>
     <main>
-        <div class="card">
-            <p class="muted">Recurso em beta — disponível apenas para administradores no momento.</p>
-        </div>
+        {dynamics_html}
     </main>
 {page_footer()}"""
 
-    def _exercicios_page(self):
+    async def _exercicios_page(self, db, current_user):
         """Página de Exercícios."""
+        topics_html = ""
+        
+        if db and DB_AVAILABLE:
+            try:
+                topics = await get_exercise_topics(db)
+                if topics:
+                    for t in topics:
+                        topics_html += f"""
+                        <div class="feed-item">
+                            <h3 class="fi-title">{t.get('nome', '')}</h3>
+                            <p class="fi-body">{t.get('descricao') or 'Tópico de exercícios'}</p>
+                            <div style="margin-top: 0.8rem;">
+                                <span style="font-size: 0.7rem; color: var(--text-dim); background: #f1edff; padding: 0.3rem 0.6rem; border-radius: 10px;">
+                                    {t.get('question_count', 0)} questões
+                                </span>
+                            </div>
+                        </div>"""
+            except:
+                pass
+        
+        if not topics_html:
+            topics_html = '<div class="empty">Nenhum exercício disponível.</div>'
+        
         return f"""{page_head("Gramátike Edu — Exercícios")}
     <header class="site-head">
         <h1 class="logo">Gramátike Edu</h1>
@@ -726,7 +1210,7 @@ class Default(WorkerEntrypoint):
     </header>
     <main>
         <div class="search-box">
-            <input type="text" placeholder="Pesquisar título ou descrição...">
+            <input type="text" placeholder="Pesquisar exercícios...">
             <button class="search-btn">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
                     <circle cx="11" cy="11" r="7"></circle>
@@ -734,12 +1218,31 @@ class Default(WorkerEntrypoint):
                 </svg>
             </button>
         </div>
-        <p class="empty">Nenhum exercício.</p>
+        {topics_html}
     </main>
 {page_footer()}"""
 
-    def _artigos_page(self):
+    async def _artigos_page(self, db, current_user):
         """Página de Artigos."""
+        artigos_html = ""
+        
+        if db and DB_AVAILABLE:
+            try:
+                artigos = await get_edu_contents(db, tipo='artigo', page=1, per_page=20)
+                if artigos:
+                    for a in artigos:
+                        artigos_html += f"""
+                        <div class="feed-item">
+                            <div class="fi-meta">ARTIGO</div>
+                            <h3 class="fi-title">{a.get('titulo', '')}</h3>
+                            <p class="fi-body">{(a.get('resumo') or '')[:200]}...</p>
+                        </div>"""
+            except:
+                pass
+        
+        if not artigos_html:
+            artigos_html = '<div class="empty">Nenhum artigo disponível.</div>'
+        
         return f"""{page_head("Gramátike Edu — Artigos")}
     <header class="site-head">
         <h1 class="logo">Gramátike Edu</h1>
@@ -760,12 +1263,32 @@ class Default(WorkerEntrypoint):
                 </svg>
             </button>
         </div>
-        <p class="empty">Nenhum artigo.</p>
+        {artigos_html}
     </main>
 {page_footer()}"""
 
-    def _apostilas_page(self):
+    async def _apostilas_page(self, db, current_user):
         """Página de Apostilas."""
+        apostilas_html = ""
+        
+        if db and DB_AVAILABLE:
+            try:
+                apostilas = await get_edu_contents(db, tipo='apostila', page=1, per_page=20)
+                if apostilas:
+                    for a in apostilas:
+                        apostilas_html += f"""
+                        <div class="feed-item">
+                            <div class="fi-meta">📖 APOSTILA</div>
+                            <h3 class="fi-title">{a.get('titulo', '')}</h3>
+                            <p class="fi-body">{(a.get('resumo') or '')[:200]}...</p>
+                            {'<a href="' + a.get("url", "") + '" class="btn btn-primary" style="margin-top: 0.8rem; font-size: 0.75rem;">Baixar PDF</a>' if a.get("url") else ''}
+                        </div>"""
+            except:
+                pass
+        
+        if not apostilas_html:
+            apostilas_html = '<div class="empty">Nenhuma apostila disponível.</div>'
+        
         return f"""{page_head("Gramátike Edu — Apostilas")}
     <header class="site-head">
         <h1 class="logo">Gramátike Edu</h1>
@@ -786,12 +1309,32 @@ class Default(WorkerEntrypoint):
                 </svg>
             </button>
         </div>
-        <p class="empty">Nenhuma apostila.</p>
+        {apostilas_html}
     </main>
 {page_footer()}"""
 
-    def _podcasts_page(self):
+    async def _podcasts_page(self, db, current_user):
         """Página de Podcasts."""
+        podcasts_html = ""
+        
+        if db and DB_AVAILABLE:
+            try:
+                podcasts = await get_edu_contents(db, tipo='podcast', page=1, per_page=20)
+                if podcasts:
+                    for p in podcasts:
+                        podcasts_html += f"""
+                        <div class="feed-item">
+                            <div class="fi-meta">🎧 PODCAST</div>
+                            <h3 class="fi-title">{p.get('titulo', '')}</h3>
+                            <p class="fi-body">{(p.get('resumo') or '')[:200]}...</p>
+                            {'<a href="' + p.get("url", "") + '" class="btn btn-primary" style="margin-top: 0.8rem; font-size: 0.75rem;" target="_blank">Ouvir</a>' if p.get("url") else ''}
+                        </div>"""
+            except:
+                pass
+        
+        if not podcasts_html:
+            podcasts_html = '<div class="empty">Nenhum podcast disponível.</div>'
+        
         return f"""{page_head("Gramátike Edu — Podcasts")}
     <header class="site-head">
         <h1 class="logo">Gramátike Edu</h1>
@@ -812,9 +1355,97 @@ class Default(WorkerEntrypoint):
                 </svg>
             </button>
         </div>
-        <p class="empty">Nenhum podcast.</p>
+        {podcasts_html}
     </main>
 {page_footer()}"""
+
+    async def _profile_page(self, db, current_user, username):
+        """Página de perfil de usuário."""
+        if not db or not DB_AVAILABLE:
+            return self._not_found_page(f'/u/{username}')
+        
+        try:
+            user = await get_user_by_username(db, username)
+            if not user:
+                return self._not_found_page(f'/u/{username}')
+            
+            # Buscar posts do usuário
+            posts = await get_posts(db, user_id=user['id'], per_page=20)
+            
+            # Buscar seguidores/seguindo
+            followers = await get_followers(db, user['id'])
+            following = await get_following(db, user['id'])
+            
+            # Verificar se usuário logado segue
+            is_following_user = False
+            is_own_profile = False
+            if current_user:
+                is_own_profile = current_user['id'] == user['id']
+                if not is_own_profile:
+                    is_following_user = await is_following(db, current_user['id'], user['id'])
+            
+            # Gerar HTML dos posts
+            posts_html = ""
+            if posts:
+                for p in posts:
+                    posts_html += f"""
+                    <div class="feed-item">
+                        <p class="fi-body">{p.get('conteudo', '')}</p>
+                        <div style="margin-top: 0.8rem; font-size: 0.7rem; color: var(--text-dim);">
+                            ❤️ {p.get('like_count', 0)} • 💬 {p.get('comment_count', 0)}
+                        </div>
+                    </div>"""
+            else:
+                posts_html = '<div class="empty">Nenhum post ainda.</div>'
+            
+            # Botão de seguir/editar
+            action_btn = ""
+            if current_user:
+                if is_own_profile:
+                    action_btn = '<a href="/editar-perfil" class="btn btn-primary">Editar Perfil</a>'
+                else:
+                    btn_text = "Deixar de Seguir" if is_following_user else "Seguir"
+                    action_btn = f'<button onclick="toggleFollow(\'{username}\')" class="btn btn-primary" id="follow-btn">{btn_text}</button>'
+            
+            return f"""{page_head(f"@{username} — Gramátike")}
+    <header class="site-head">
+        <h1 class="logo">Gramátike</h1>
+    </header>
+    <main>
+        <div class="card" style="text-align: center; margin-bottom: 1.5rem;">
+            <img src="{user.get('foto_perfil', '/static/img/perfil.png')}" 
+                 alt="@{username}" 
+                 style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1rem; object-fit: cover;">
+            <h2 style="color: var(--primary); margin-bottom: 0.3rem;">
+                {user.get('nome') or '@' + username}
+            </h2>
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.8rem;">@{username}</p>
+            {f'<p style="margin-bottom: 1rem;">{user.get("bio", "")}</p>' if user.get('bio') else ''}
+            <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 1rem; font-size: 0.85rem;">
+                <span><strong>{len(followers)}</strong> seguidores</span>
+                <span><strong>{len(following)}</strong> seguindo</span>
+            </div>
+            {action_btn}
+        </div>
+        
+        <h3 style="color: var(--primary); margin-bottom: 1rem;">Posts</h3>
+        {posts_html}
+    </main>
+    <script>
+    async function toggleFollow(username) {{
+        const btn = document.getElementById('follow-btn');
+        try {{
+            const res = await fetch('/api/usuario/' + username + '/seguir', {{method: 'POST'}});
+            const data = await res.json();
+            btn.textContent = data.following ? 'Deixar de Seguir' : 'Seguir';
+        }} catch(e) {{
+            console.error(e);
+        }}
+    }}
+    </script>
+{page_footer()}"""
+        except Exception as e:
+            return self._not_found_page(f'/u/{username}')
 
     def _not_found_page(self, path):
         """Página 404."""
