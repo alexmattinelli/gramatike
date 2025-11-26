@@ -1,15 +1,34 @@
 # Gramatike
 
-## Cloudflare Pages (Recomendado)
+## Cloudflare Workers Python (Recomendado)
 
-1. Tenha este repositório no GitHub (já está em `main`).
-2. No painel do Cloudflare Dashboard, vá em Workers & Pages > Create > Pages.
-3. Conecte ao GitHub e selecione este repositório.
-4. Configure o build:
-   - Framework preset: None
-   - Build command: `pip install -r requirements.txt`
-   - Build output directory: `/`
-5. Variáveis de ambiente (Settings > Environment Variables):
+Esta aplicação usa FastAPI no Cloudflare Workers Python (Pyodide). O deploy deve ser feito usando `pywrangler`.
+
+### Deploy via CLI (Recomendado)
+
+1. Instale [uv](https://docs.astral.sh/uv/getting-started/installation/) (gerenciador de pacotes Python)
+2. Instale as dependências: `uv sync`
+3. Deploy: `npm run deploy` (ou `uv run pywrangler deploy`)
+
+### Deploy via GitHub Actions
+
+Configure um workflow do GitHub Actions com:
+```yaml
+- name: Deploy to Cloudflare Workers
+  run: |
+    npm install
+    uv sync
+    npm run deploy
+  env:
+    CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+```
+
+### Notas Importantes
+
+- **NÃO use Cloudflare Pages** para este projeto - use Cloudflare Workers Python
+- O arquivo `uv.lock` garante que as dependências (FastAPI, etc.) sejam resolvidas corretamente
+- Variáveis de ambiente (Settings > Environment Variables):
    - `SECRET_KEY`: uma string segura
    - `DATABASE_URL`: Postgres gerenciado (recomendado para produção)
    - Variáveis do Cloudflare R2 (veja abaixo)
