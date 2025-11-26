@@ -1684,6 +1684,607 @@ async def admin_delete_edu_content(content_id: int, session: Optional[str] = Coo
 
 
 # ============================================================================
+# Phase 5: Dinâmicas (Polls, Forms, Word Games)
+# ============================================================================
+
+@app.get("/dinamicas", response_class=HTMLResponse)
+async def dinamicas_home(session: Optional[str] = Cookie(None)):
+    """Dynamics hub page - polls, forms, games."""
+    global _db
+    user = get_current_user(session)
+    
+    if not _db:
+        return HTMLResponse(content="<h1>Banco de dados indisponível</h1>", status_code=500)
+    
+    # Get active dynamics
+    dynamics = await _db.execute(
+        """SELECT id, tipo, titulo, descricao, created_at
+           FROM dynamic
+           WHERE active = 1
+           ORDER BY created_at DESC
+           LIMIT 20"""
+    )
+    
+    # Get word of the day
+    palavra_do_dia = await _db.execute(
+        """SELECT id, palavra, significado
+           FROM palavra_do_dia
+           WHERE ativo = 1
+           ORDER BY ordem DESC
+           LIMIT 1"""
+    )
+    
+    html = render_template("dinamicas.html",
+        session_id=session,
+        current_user=user,
+        dynamics=dynamics or [],
+        palavra_do_dia=palavra_do_dia[0] if palavra_do_dia else None
+    )
+    return HTMLResponse(content=html)
+
+
+@app.get("/dinamica/{dynamic_id}", response_class=HTMLResponse)
+async def view_dynamic(dynamic_id: int, session: Optional[str] = Cookie(None)):
+    """View and participate in a dynamic activity."""
+    global _db
+    user = get_current_user(session)
+    
+    if not _db:
+        return HTMLResponse(content="<h1>Banco de dados indisponível</h1>", status_code=500)
+    
+    # Get dynamic
+    dynamics = await _db.execute(
+        "SELECT * FROM dynamic WHERE id = ? AND active = 1",
+        (dynamic_id,)
+    )
+    
+    if not dynamics or len(dynamics) == 0:
+        return HTMLResponse(content="<h1>Dinâmica não encontrada</h1>", status_code=404)
+    
+    dynamic = dynamics[0]
+    
+    # Parse config JSON
+    config = {}
+    if dynamic.get('config'):
+        try:
+            config = json.loads(dynamic['config'])
+        except Exception:
+            pass
+    
+    # Check if user already responded
+    user_response = None
+    if user:
+        responses = await _db.execute(
+            "SELECT * FROM dynamic_response WHERE dynamic_id = ? AND usuario_id = ?",
+            (dynamic_id, user['user_id'])
+        )
+        if responses and len(responses) > 0:
+            user_response = responses[0]
+            if user_response.get('payload'):
+                try:
+                    user_response['payload'] = json.loads(user_response['payload'])
+                except Exception:
+                    pass
+    
+    # Get response stats for polls
+    stats = None
+    if dynamic.get('tipo') == 'enquete':
+        all_responses = await _db.execute(
+            "SELECT payload FROM dynamic_response WHERE dynamic_id = ?",
+            (dynamic_id,)
+        )
+        if all_responses:
+            stats = {}
+            for resp in all_responses:
+                try:
+                    payload = json.loads(resp['payload']) if resp.get('payload') else {}
+                    choice = payload.get('choice', '')
+                    if choice:
+                        stats[choice] = stats.get(choice, 0) + 1
+                except Exception:
+                    pass
+    
+    html = render_template("dinamica_view.html",
+        session_id=session,
+        current_user=user,
+        dynamic=dynamic,
+        config=config,
+        user_response=user_response,
+        stats=stats
+    )
+    return HTMLResponse(content=html)
+
+
+@app.post("/api/dinamicas/{dynamic_id}/respond")
+async def respond_to_dynamic(dynamic_id: int, request: Request, session: Optional[str] = Cookie(None)):
+    """Submit a response to a dynamic activity."""
+    global _db
+    user = get_current_user(session)
+    
+    if not user:
+        return JSONResponse({"error": "Não autenticade"}, status_code=401)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    # Check dynamic exists
+    dynamics = await _db.execute(
+        "SELECT * FROM dynamic WHERE id = ? AND active = 1",
+        (dynamic_id,)
+    )
+    
+    if not dynamics or len(dynamics) == 0:
+        return JSONResponse({"error": "Dinâmica não encontrada"}, status_code=404)
+    
+    # Check if already responded
+    existing = await _db.execute(
+        "SELECT id FROM dynamic_response WHERE dynamic_id = ? AND usuario_id = ?",
+        (dynamic_id, user['user_id'])
+    )
+    
+    if existing and len(existing) > 0:
+        return JSONResponse({"error": "Você já respondeu a esta dinâmica"}, status_code=400)
+    
+    body = await request.json()
+    payload = json.dumps(body)
+    
+    await _db.run(
+        """INSERT INTO dynamic_response (dynamic_id, usuario_id, payload, created_at)
+           VALUES (?, ?, ?, ?)""",
+        (dynamic_id, user['user_id'], payload, datetime.now(timezone.utc).isoformat())
+    )
+    
+    return {"success": True, "message": "Resposta enviada"}
+
+
+@app.get("/api/dinamicas")
+async def list_dynamics(
+    tipo: str = "",
+    page: int = 1,
+    per_page: int = 20,
+    session: Optional[str] = Cookie(None)
+):
+    """List active dynamic activities."""
+    global _db
+    
+    if not _db:
+        return {"dynamics": [], "error": "Banco de dados indisponível"}
+    
+    offset = (page - 1) * per_page
+    
+    if tipo:
+        dynamics = await _db.execute(
+            """SELECT id, tipo, titulo, descricao, created_at
+               FROM dynamic
+               WHERE active = 1 AND tipo = ?
+               ORDER BY created_at DESC
+               LIMIT ? OFFSET ?""",
+            (tipo, per_page, offset)
+        )
+    else:
+        dynamics = await _db.execute(
+            """SELECT id, tipo, titulo, descricao, created_at
+               FROM dynamic
+               WHERE active = 1
+               ORDER BY created_at DESC
+               LIMIT ? OFFSET ?""",
+            (per_page, offset)
+        )
+    
+    return {"dynamics": dynamics or []}
+
+
+@app.get("/api/dinamicas/{dynamic_id}")
+async def get_dynamic(dynamic_id: int, session: Optional[str] = Cookie(None)):
+    """Get a specific dynamic activity."""
+    global _db
+    user = get_current_user(session)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    dynamics = await _db.execute(
+        "SELECT * FROM dynamic WHERE id = ?",
+        (dynamic_id,)
+    )
+    
+    if not dynamics or len(dynamics) == 0:
+        return JSONResponse({"error": "Dinâmica não encontrada"}, status_code=404)
+    
+    dynamic = dynamics[0]
+    
+    # Parse config
+    config = {}
+    if dynamic.get('config'):
+        try:
+            config = json.loads(dynamic['config'])
+        except Exception:
+            pass
+    
+    # Get response count
+    count_result = await _db.execute(
+        "SELECT COUNT(*) as count FROM dynamic_response WHERE dynamic_id = ?",
+        (dynamic_id,)
+    )
+    response_count = count_result[0]['count'] if count_result else 0
+    
+    # Check if user responded
+    user_responded = False
+    if user:
+        existing = await _db.execute(
+            "SELECT 1 FROM dynamic_response WHERE dynamic_id = ? AND usuario_id = ?",
+            (dynamic_id, user['user_id'])
+        )
+        user_responded = existing and len(existing) > 0
+    
+    return {
+        "id": dynamic['id'],
+        "tipo": dynamic.get('tipo', ''),
+        "titulo": dynamic.get('titulo', ''),
+        "descricao": dynamic.get('descricao', ''),
+        "config": config,
+        "active": dynamic.get('active', 1),
+        "response_count": response_count,
+        "user_responded": user_responded,
+        "created_at": dynamic.get('created_at', '')
+    }
+
+
+@app.get("/api/dinamicas/{dynamic_id}/results")
+async def get_dynamic_results(dynamic_id: int, session: Optional[str] = Cookie(None)):
+    """Get results/stats for a dynamic activity."""
+    global _db
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    # Get dynamic
+    dynamics = await _db.execute(
+        "SELECT tipo FROM dynamic WHERE id = ?",
+        (dynamic_id,)
+    )
+    
+    if not dynamics or len(dynamics) == 0:
+        return JSONResponse({"error": "Dinâmica não encontrada"}, status_code=404)
+    
+    dynamic = dynamics[0]
+    
+    # Get all responses
+    responses = await _db.execute(
+        "SELECT payload, created_at FROM dynamic_response WHERE dynamic_id = ? ORDER BY created_at ASC",
+        (dynamic_id,)
+    )
+    
+    # Calculate stats based on type
+    stats = {}
+    total = len(responses) if responses else 0
+    
+    if dynamic.get('tipo') == 'enquete':
+        # Count votes per option
+        for resp in (responses or []):
+            try:
+                payload = json.loads(resp['payload']) if resp.get('payload') else {}
+                choice = payload.get('choice', '')
+                if choice:
+                    stats[choice] = stats.get(choice, 0) + 1
+            except Exception:
+                pass
+    
+    return {
+        "total_responses": total,
+        "stats": stats,
+        "tipo": dynamic.get('tipo', '')
+    }
+
+
+# --- Palavra do Dia (Word of the Day) ---
+
+@app.get("/api/palavra-do-dia")
+async def get_palavra_do_dia(session: Optional[str] = Cookie(None)):
+    """Get current word of the day."""
+    global _db
+    user = get_current_user(session)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    palavra = await _db.execute(
+        """SELECT id, palavra, significado
+           FROM palavra_do_dia
+           WHERE ativo = 1
+           ORDER BY ordem DESC
+           LIMIT 1"""
+    )
+    
+    if not palavra or len(palavra) == 0:
+        return {"palavra": None}
+    
+    p = palavra[0]
+    
+    # Check user interactions
+    conhecia = False
+    frase = None
+    if user:
+        interactions = await _db.execute(
+            "SELECT tipo, frase FROM palavra_do_dia_interacao WHERE palavra_id = ? AND usuario_id = ?",
+            (p['id'], user['user_id'])
+        )
+        if interactions:
+            for i in interactions:
+                if i.get('tipo') == 'conhecia':
+                    conhecia = True
+                if i.get('tipo') == 'frase':
+                    frase = i.get('frase')
+    
+    return {
+        "id": p['id'],
+        "palavra": p['palavra'],
+        "significado": p['significado'],
+        "conhecia": conhecia,
+        "frase": frase
+    }
+
+
+@app.post("/api/palavra-do-dia/{palavra_id}/conhecia")
+async def mark_palavra_conhecida(palavra_id: int, session: Optional[str] = Cookie(None)):
+    """Mark that user already knew the word."""
+    global _db
+    user = get_current_user(session)
+    
+    if not user:
+        return JSONResponse({"error": "Não autenticade"}, status_code=401)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    # Check if already marked
+    existing = await _db.execute(
+        "SELECT id FROM palavra_do_dia_interacao WHERE palavra_id = ? AND usuario_id = ? AND tipo = 'conhecia'",
+        (palavra_id, user['user_id'])
+    )
+    
+    if existing and len(existing) > 0:
+        return {"success": True, "message": "Já marcade"}
+    
+    await _db.run(
+        """INSERT INTO palavra_do_dia_interacao (palavra_id, usuario_id, tipo, created_at)
+           VALUES (?, ?, 'conhecia', ?)""",
+        (palavra_id, user['user_id'], datetime.now(timezone.utc).isoformat())
+    )
+    
+    return {"success": True, "message": "Palavra marcada como conhecida"}
+
+
+@app.post("/api/palavra-do-dia/{palavra_id}/frase")
+async def submit_frase_palavra(palavra_id: int, request: Request, session: Optional[str] = Cookie(None)):
+    """Submit a sentence using the word of the day."""
+    global _db
+    user = get_current_user(session)
+    
+    if not user:
+        return JSONResponse({"error": "Não autenticade"}, status_code=401)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    body = await request.json()
+    frase = body.get("frase", "").strip()
+    
+    if not frase:
+        return JSONResponse({"error": "Frase é obrigatória"}, status_code=400)
+    
+    # Check if already submitted
+    existing = await _db.execute(
+        "SELECT id FROM palavra_do_dia_interacao WHERE palavra_id = ? AND usuario_id = ? AND tipo = 'frase'",
+        (palavra_id, user['user_id'])
+    )
+    
+    if existing and len(existing) > 0:
+        # Update existing
+        await _db.run(
+            "UPDATE palavra_do_dia_interacao SET frase = ? WHERE id = ?",
+            (frase, existing[0]['id'])
+        )
+    else:
+        await _db.run(
+            """INSERT INTO palavra_do_dia_interacao (palavra_id, usuario_id, tipo, frase, created_at)
+               VALUES (?, ?, 'frase', ?, ?)""",
+            (palavra_id, user['user_id'], frase, datetime.now(timezone.utc).isoformat())
+        )
+    
+    return {"success": True, "message": "Frase enviada"}
+
+
+@app.get("/api/palavra-do-dia/{palavra_id}/frases")
+async def get_frases_palavra(palavra_id: int, session: Optional[str] = Cookie(None)):
+    """Get sentences submitted for a word."""
+    global _db
+    
+    if not _db:
+        return {"frases": [], "error": "Banco de dados indisponível"}
+    
+    frases = await _db.execute(
+        """SELECT i.frase, i.created_at, u.username, u.foto_perfil
+           FROM palavra_do_dia_interacao i
+           LEFT JOIN user u ON i.usuario_id = u.id
+           WHERE i.palavra_id = ? AND i.tipo = 'frase' AND i.frase IS NOT NULL
+           ORDER BY i.created_at DESC
+           LIMIT 50""",
+        (palavra_id,)
+    )
+    
+    result = []
+    for f in (frases or []):
+        result.append({
+            "frase": f.get('frase', ''),
+            "username": f.get('username', 'Anônime'),
+            "foto_perfil": f.get('foto_perfil', 'img/perfil.png'),
+            "created_at": f.get('created_at', '')
+        })
+    
+    return {"frases": result}
+
+
+# --- Admin: Dynamic Management ---
+
+@app.post("/api/admin/dinamicas")
+async def admin_create_dynamic(request: Request, session: Optional[str] = Cookie(None)):
+    """Create a new dynamic activity (admin only)."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    body = await request.json()
+    
+    tipo = body.get("tipo", "").strip()
+    titulo = body.get("titulo", "").strip()
+    descricao = body.get("descricao", "").strip()
+    config = body.get("config", {})
+    
+    if not tipo or not titulo:
+        return JSONResponse({"error": "Tipo e título são obrigatórios"}, status_code=400)
+    
+    config_json = json.dumps(config) if config else "{}"
+    
+    await _db.run(
+        """INSERT INTO dynamic (tipo, titulo, descricao, config, active, created_at, created_by)
+           VALUES (?, ?, ?, ?, 1, ?, ?)""",
+        (tipo, titulo, descricao, config_json, datetime.now(timezone.utc).isoformat(), user['user_id'])
+    )
+    
+    return {"success": True, "message": "Dinâmica criada"}
+
+
+@app.put("/api/admin/dinamicas/{dynamic_id}")
+async def admin_update_dynamic(dynamic_id: int, request: Request, session: Optional[str] = Cookie(None)):
+    """Update a dynamic activity (admin only)."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    body = await request.json()
+    
+    titulo = body.get("titulo", "").strip()
+    descricao = body.get("descricao", "").strip()
+    config = body.get("config", {})
+    active = body.get("active", 1)
+    
+    config_json = json.dumps(config) if config else "{}"
+    
+    await _db.run(
+        "UPDATE dynamic SET titulo = ?, descricao = ?, config = ?, active = ? WHERE id = ?",
+        (titulo, descricao, config_json, active, dynamic_id)
+    )
+    
+    return {"success": True, "message": "Dinâmica atualizada"}
+
+
+@app.delete("/api/admin/dinamicas/{dynamic_id}")
+async def admin_delete_dynamic(dynamic_id: int, session: Optional[str] = Cookie(None)):
+    """Delete a dynamic activity (admin only)."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    # Delete responses first
+    await _db.run("DELETE FROM dynamic_response WHERE dynamic_id = ?", (dynamic_id,))
+    await _db.run("DELETE FROM dynamic WHERE id = ?", (dynamic_id,))
+    
+    return {"success": True, "message": "Dinâmica excluída"}
+
+
+@app.post("/api/admin/palavra-do-dia")
+async def admin_create_palavra(request: Request, session: Optional[str] = Cookie(None)):
+    """Create a new word of the day (admin only)."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    body = await request.json()
+    
+    palavra = body.get("palavra", "").strip()
+    significado = body.get("significado", "").strip()
+    ordem = body.get("ordem", 0)
+    
+    if not palavra or not significado:
+        return JSONResponse({"error": "Palavra e significado são obrigatórios"}, status_code=400)
+    
+    await _db.run(
+        """INSERT INTO palavra_do_dia (palavra, significado, ordem, ativo, created_at, created_by)
+           VALUES (?, ?, ?, 1, ?, ?)""",
+        (palavra, significado, ordem, datetime.now(timezone.utc).isoformat(), user['user_id'])
+    )
+    
+    return {"success": True, "message": "Palavra criada"}
+
+
+@app.put("/api/admin/palavra-do-dia/{palavra_id}")
+async def admin_update_palavra(palavra_id: int, request: Request, session: Optional[str] = Cookie(None)):
+    """Update a word of the day (admin only)."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    body = await request.json()
+    
+    palavra = body.get("palavra", "").strip()
+    significado = body.get("significado", "").strip()
+    ordem = body.get("ordem", 0)
+    ativo = body.get("ativo", 1)
+    
+    await _db.run(
+        "UPDATE palavra_do_dia SET palavra = ?, significado = ?, ordem = ?, ativo = ? WHERE id = ?",
+        (palavra, significado, ordem, ativo, palavra_id)
+    )
+    
+    return {"success": True, "message": "Palavra atualizada"}
+
+
+@app.delete("/api/admin/palavra-do-dia/{palavra_id}")
+async def admin_delete_palavra(palavra_id: int, session: Optional[str] = Cookie(None)):
+    """Delete a word of the day (admin only)."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    # Delete interactions first
+    await _db.run("DELETE FROM palavra_do_dia_interacao WHERE palavra_id = ?", (palavra_id,))
+    await _db.run("DELETE FROM palavra_do_dia WHERE id = ?", (palavra_id,))
+    
+    return {"success": True, "message": "Palavra excluída"}
+
+
+# ============================================================================
 # Static Files (for local development)
 # ============================================================================
 
