@@ -1,13 +1,15 @@
 # Gramatike
 
-## Cloudflare Workers Python (Recomendado)
+## Cloudflare Workers Python
 
-Esta aplicação usa FastAPI no Cloudflare Workers Python (Pyodide). O deploy deve ser feito usando `pywrangler`.
+Esta aplicacao usa Cloudflare Workers Python (Pyodide) com o padrao nativo WorkerEntrypoint. O deploy deve ser feito usando `pywrangler`.
+
+**NOTA:** FastAPI nao pode ser implantado no Cloudflare Workers Python. Veja: https://github.com/cloudflare/workers-sdk/issues/5608
 
 ### Deploy via CLI (Recomendado)
 
 1. Instale [uv](https://docs.astral.sh/uv/getting-started/installation/) (gerenciador de pacotes Python)
-2. Instale as dependências: `uv sync`
+2. Instale as dependencias: `uv sync`
 3. Deploy: `npm run deploy` (ou `uv run pywrangler deploy`)
 
 ### Deploy via GitHub Actions
@@ -26,12 +28,12 @@ Configure um workflow do GitHub Actions com:
 
 ### Notas Importantes
 
-- **NÃO use Cloudflare Pages** para este projeto - use Cloudflare Workers Python. O Pages não suporta Python runtime com FastAPI, que requer bundling via `pywrangler`.
-- O arquivo `uv.lock` garante que as dependências (FastAPI, etc.) sejam resolvidas corretamente
-- Variáveis de ambiente (Settings > Environment Variables):
+- O Cloudflare Workers Python usa o padrao nativo WorkerEntrypoint (sem FastAPI)
+- O arquivo `uv.lock` garante que as dependencias sejam resolvidas corretamente
+- Variaveis de ambiente (Settings > Environment Variables):
    - `SECRET_KEY`: uma string segura
-   - `DATABASE_URL`: Postgres gerenciado (recomendado para produção)
-   - Variáveis do Cloudflare R2 (veja abaixo)
+   - `DATABASE_URL`: Postgres gerenciado (recomendado para producao)
+   - Variaveis do Cloudflare R2 (veja abaixo)
 
 ## Variáveis de ambiente necessárias
 
