@@ -7,7 +7,7 @@
 [project]
 name = "gramatike"
 version = "1.0.0"
-description = "Gramátike - FastAPI web application for Portuguese grammar education"
+description = "Gramatike - Web application for Portuguese grammar education"
 readme = "README.md"
 requires-python = ">=3.13"
 
@@ -15,8 +15,9 @@ requires-python = ">=3.13"
 # Note: Only include packages that are supported by Pyodide/Cloudflare Workers.
 # See: https://developers.cloudflare.com/workers/languages/python/packages/
 #
-# IMPORTANT: Flask is NOT supported on Cloudflare Workers Python (Pyodide).
-# This project uses FastAPI instead, which is officially supported.
+# IMPORTANT: FastAPI cannot be deployed to Cloudflare Workers Python.
+# See: https://github.com/cloudflare/workers-sdk/issues/5608
+# The Workers entry point uses native WorkerEntrypoint pattern instead.
 #
 # The following packages are EXCLUDED because they have C extensions or are
 # not compatible with Pyodide/WebAssembly:
@@ -24,12 +25,10 @@ requires-python = ">=3.13"
 # - Pillow: requires native image processing libraries (handled with lazy import)
 # - requests: synchronous HTTP (handled with lazy import, use httpx if needed)
 # - flask-*: Flask is not supported on Cloudflare Workers Python
+# - fastapi: Cannot be deployed, use native WorkerEntrypoint instead
 # - itsdangerous, python-dotenv, email-validator: used by Flask app (in requirements.txt)
 dependencies = [
     "webtypy>=0.1.7",
-    "fastapi",
-    "markupsafe",
-    "jinja2",
 ]
 
 [dependency-groups]
