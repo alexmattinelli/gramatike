@@ -24,13 +24,13 @@
         main { width:100%; max-width:900px; margin:2rem auto 4rem; padding:0 clamp(16px,4vw,40px); flex:1; }
         .back-link:hover { background:#f7f2ff; border-color:#d4c5ef; box-shadow:0 6px 16px rgba(155,93,229,.25); transform:translateY(-1px); }
         .article-header { background:var(--card); border:1px solid var(--border); border-radius:28px; padding:2rem 2.5rem; box-shadow:0 10px 32px -8px rgba(0,0,0,.12); margin-bottom:2rem; }
-        .article-title { font-size:2.2rem; color:#6233B5; margin-bottom:.8rem; line-height:1.2; }
+        .article-title { font-size:2.2rem; color:#9B5DE5; margin-bottom:.8rem; line-height:1.2; }
         .article-meta { font-size:.8rem; color:var(--text-dim); font-weight:600; margin-bottom:1.2rem; }
         .article-meta time { color:#9B5DE5; }
         .article-body { background:var(--card); border:1px solid var(--border); border-radius:28px; padding:2rem 2.5rem; box-shadow:0 10px 32px -8px rgba(0,0,0,.12); }
         .article-body p { margin:0 0 1.2rem; font-size:1rem; line-height:1.75; color:#333; }
         .article-body .content { font-size:1.05rem; line-height:1.8; color:#2d3748; }
-        .article-body .content h1, .article-body .content h2, .article-body .content h3 { color:#6233B5; margin-top:1.5rem; margin-bottom:1rem; }
+        .article-body .content h1, .article-body .content h2, .article-body .content h3 { color:#9B5DE5; margin-top:1.5rem; margin-bottom:1rem; }
         .article-body .content h1 { font-size:1.8rem; }
         .article-body .content h2 { font-size:1.5rem; }
         .article-body .content h3 { font-size:1.25rem; }
@@ -122,7 +122,7 @@
         <form method="POST" action="{{ url_for('admin.novidades_edit', nid=novidade.id) }}" style="padding:2rem;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
             <input type="hidden" name="descricao" id="descricao-input" />
-            <h3 style="margin:0 0 1.5rem; color:#6233B5;">Editar Novidade</h3>
+            <h3 style="margin:0 0 1.5rem; color:#9B5DE5;">Editar Novidade</h3>
             
             <label style="display:block; margin-bottom:1rem;">
                 <span style="display:block; font-size:.8rem; font-weight:700; color:#666; margin-bottom:.3rem;">Título</span>

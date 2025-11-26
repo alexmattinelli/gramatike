@@ -94,7 +94,7 @@ function renderDivulgacaoCard(divItem, feed) {
   card.innerHTML = `
     <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.6rem;">
       <span style="font-size:1.1rem;">📣</span>
-      <strong style="font-size:.8rem; letter-spacing:.5px; color:#6233B5; font-weight:800;">Novidade</strong>
+      <strong style="font-size:.8rem; letter-spacing:.5px; color:#9B5DE5; font-weight:800;">Novidade</strong>
     </div>
     <strong style="display:block; font-size:.78rem; letter-spacing:.4px; color:#333; margin:0 0 .45rem; font-weight:800;">${divItem.titulo}</strong>
     ${imageHtml}

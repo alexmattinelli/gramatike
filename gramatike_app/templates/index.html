@@ -164,11 +164,11 @@ button { font-family: var(--font-base); font-weight:600; }
 
   .post-content { font-size:1.05rem; margin-bottom:1rem; line-height:1.5; color: var(--text); }
   /* Rich text formatting in posts */
-  .post-content h1, .post-content h2, .post-content h3 { font-weight:800; color:#6233B5; margin:.8rem 0 .5rem; }
+  .post-content h1, .post-content h2, .post-content h3 { font-weight:800; color:#9B5DE5; margin:.8rem 0 .5rem; }
   .post-content h1 { font-size:1.5rem; }
   .post-content h2 { font-size:1.3rem; }
   .post-content h3 { font-size:1.15rem; }
-  .post-content strong { font-weight:800; color:#6233B5; }
+  .post-content strong { font-weight:800; color:#9B5DE5; }
   .post-content em { font-style:italic; }
   .post-content u { text-decoration:underline; }
   .post-content ul, .post-content ol { margin:.5rem 0 .5rem 1.5rem; padding:0; }
@@ -312,10 +312,10 @@ button { font-family: var(--font-base); font-weight:600; }
     <div id="mobile-ttt-panel" style="display:none; margin-top:.8rem; border-top:1px solid var(--border); padding-top:.8rem;">
       <h3 style="margin:0 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary); text-align:center;"># Jogo da Velha</h3>
       <p style="margin:.2rem 0 .7rem; font-size:.7rem; color:#555; font-weight:600; text-align:center;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
-      <div id="mobile_ttt_status" style="font-size:.72rem; font-weight:800; color:#6233B5; letter-spacing:.4px; margin:0 0 .6rem; text-align:center;">Sua vez: você é X</div>
+      <div id="mobile_ttt_status" style="font-size:.72rem; font-weight:800; color:#9B5DE5; letter-spacing:.4px; margin:0 0 .6rem; text-align:center;">Sua vez: você é X</div>
       <div id="mobile_ttt_board" role="grid" aria-label="Tabuleiro do Jogo da Velha" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:.5rem;">
         {% for i in range(9) %}
-        <button type="button" data-i="{{ i }}" role="gridcell" aria-label="casa {{ i+1 }} vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#6233B5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+        <button type="button" data-i="{{ i }}" role="gridcell" aria-label="casa {{ i+1 }} vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
         {% endfor %}
       </div>
       <button id="mobile_ttt_reset" type="button" style="margin-top:.8rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; padding:.5rem .9rem; font-size:.7rem; font-weight:800; letter-spacing:.4px; cursor:pointer; width:100%;">Reiniciar</button>
@@ -357,7 +357,7 @@ button { font-family: var(--font-base); font-weight:600; }
             <defs>
               <linearGradient id="palavrasGrad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
                 <stop offset="0%" stop-color="#9B5DE5"/>
-                <stop offset="100%" stop-color="#6233B5"/>
+                <stop offset="100%" stop-color="#9B5DE5"/>
               </linearGradient>
             </defs>
           </svg>
@@ -427,7 +427,7 @@ button { font-family: var(--font-base); font-weight:600; }
           {# Divulgações (inclui Aviso Rápido com imagem gerada) #}
           {% for d in (div_edu or []) %}
           <div class="promo-card" style="background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
-            <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#6233B5; margin:0 0 .35rem;">{{ d.titulo }}</strong>
+            <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#9B5DE5; margin:0 0 .35rem;">{{ d.titulo }}</strong>
             {% if d.imagem %}
               {% set imgsrc = d.imagem if d.imagem.startswith('http') else url_for('static', filename=d.imagem) %}
               <img src="{{ imgsrc }}" alt="{{ d.titulo }}" style="width:100%; border-radius:14px; margin:0 0 .5rem; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />
@@ -444,10 +444,10 @@ button { font-family: var(--font-base); font-weight:600; }
     <div id="ttt-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.1rem 1.15rem .95rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:1.1rem;">
       <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary);"># Jogo da Velha</h3>
       <p style="margin:.2rem 0 .7rem; font-size:.7rem; color:#555; font-weight:600;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
-      <div id="ttt_status" style="font-size:.72rem; font-weight:800; color:#6233B5; letter-spacing:.4px; margin:0 0 .6rem;">Sua vez: você é X</div>
+      <div id="ttt_status" style="font-size:.72rem; font-weight:800; color:#9B5DE5; letter-spacing:.4px; margin:0 0 .6rem;">Sua vez: você é X</div>
       <div id="ttt_board" role="grid" aria-label="Tabuleiro do Jogo da Velha" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:.5rem;">
         {% for i in range(9) %}
-        <button type="button" data-i="{{ i }}" role="gridcell" aria-label="casa {{ i+1 }} vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#6233B5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+        <button type="button" data-i="{{ i }}" role="gridcell" aria-label="casa {{ i+1 }} vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
         {% endfor %}
       </div>
       <button id="ttt_reset" type="button" style="margin-top:.8rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; padding:.5rem .9rem; font-size:.7rem; font-weight:800; letter-spacing:.4px; cursor:pointer; width:100%;">Reiniciar</button>

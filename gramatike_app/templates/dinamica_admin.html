@@ -15,12 +15,12 @@
     main { width:100%; max-width:980px; margin:2rem auto 4rem; padding:0 clamp(16px,4vw,40px); }
     .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1rem 1.2rem; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); }
     .muted { color:#666; font-weight:600; }
-    .chip { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .55rem; border-radius:14px; border:1px solid var(--border); background:#fafafa; font-size:.75rem; font-weight:800; color:#6233B5; }
+    .chip { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .55rem; border-radius:14px; border:1px solid var(--border); background:#fafafa; font-size:.75rem; font-weight:800; color:#9B5DE5; }
     .row { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
     .table { width:100%; border-collapse: collapse; }
     .table th, .table td { text-align:left; padding:.5rem .6rem; border-bottom:1px solid var(--border); }
-    .badge { font-size:.75rem; color:#6233B5; font-weight:800; }
-    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.45rem .8rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito'; font-weight:800; letter-spacing:.3px; background:#fff; color:#6233B5; }
+    .badge { font-size:.75rem; color:#9B5DE5; font-weight:800; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.45rem .8rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito'; font-weight:800; letter-spacing:.3px; background:#fff; color:#9B5DE5; }
     .btn.primary { background:#9B5DE5; color:#fff; border:none; }
     .pill { padding:.2rem .5rem; border:1px solid var(--border); border-radius:999px; font-size:.75rem; }
     @media (max-width: 768px) {
@@ -97,12 +97,12 @@
       <div class="card" style="margin-bottom:1rem;">
         <h3 style="margin-top:0;">Taxa de Acertos</h3>
         <div style="padding:1rem; background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; margin-bottom:1rem;">
-          <div style="font-size:1.8rem; font-weight:800; color:#6233B5; text-align:center;">
+          <div style="font-size:1.8rem; font-weight:800; color:#9B5DE5; text-align:center;">
             {{ '%.1f' % agg.overall_accuracy }}%
           </div>
           <div style="text-align:center; color:#666; font-size:.85rem; margin-top:.3rem;">Taxa de Acertos Geral</div>
         </div>
-        <h4 style="margin-top:1.2rem; margin-bottom:.8rem; color:#6233B5;">Por Item:</h4>
+        <h4 style="margin-top:1.2rem; margin-bottom:.8rem; color:#9B5DE5;">Por Item:</h4>
         {% for stat in agg.item_stats %}
           <div style="margin-bottom:1rem; padding:.8rem; background:#f9f9f9; border-radius:8px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem;">
@@ -110,7 +110,7 @@
                 <strong>Item {{ loop.index }}</strong>
                 <span class="chip" style="margin-left:.4rem;">{{ stat.tipo }}</span>
               </div>
-              <div style="font-size:1.2rem; font-weight:800; color:#6233B5;">{{ '%.1f' % stat.accuracy }}%</div>
+              <div style="font-size:1.2rem; font-weight:800; color:#9B5DE5;">{{ '%.1f' % stat.accuracy }}%</div>
             </div>
             {% if stat.tipo == 'frase' %}
               <div style="font-style:italic; color:#666; margin-bottom:.3rem;">"{{ stat.conteudo[:80] }}{{ '...' if stat.conteudo|length > 80 else '' }}"</div>
