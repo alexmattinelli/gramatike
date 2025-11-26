@@ -1861,25 +1861,29 @@ class Default(WorkerEntrypoint):
         error_msg = ""
         
         # Processar form de login
-        if method == 'POST' and db and DB_AVAILABLE:
-            try:
-                # Ler form data
-                body_text = await request.text()
-                form_data = parse_qs(body_text)
-                
-                email = form_data.get('email', [''])[0].strip()
-                password = form_data.get('password', [''])[0]
-                
-                if email and password:
-                    token, err = await login(db, request, email, password)
-                    if token:
-                        return redirect('/', headers={"Set-Cookie": set_session_cookie(token)})
+        if method == 'POST':
+            if not db or not DB_AVAILABLE:
+                error_msg = "Sistema temporariamente indisponível. Tente novamente mais tarde."
+            else:
+                try:
+                    # Ler form data
+                    body_text = await request.text()
+                    form_data = parse_qs(body_text)
+                    
+                    email = form_data.get('email', [''])[0].strip()
+                    password = form_data.get('password', [''])[0]
+                    
+                    if email and password:
+                        token, err = await login(db, request, email, password)
+                        if token:
+                            return redirect('/', headers={"Set-Cookie": set_session_cookie(token)})
+                        else:
+                            error_msg = err or "Credenciais inválidas"
                     else:
-                        error_msg = err or "Credenciais inválidas"
-                else:
-                    error_msg = "Preencha todos os campos"
-            except Exception as e:
-                error_msg = f"Erro ao processar login"
+                        error_msg = "Preencha todos os campos"
+                except Exception as e:
+                    # Log error internally but don't expose details to user
+                    error_msg = "Erro ao processar login. Tente novamente."
         
         error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
         
@@ -1928,30 +1932,34 @@ class Default(WorkerEntrypoint):
         success_msg = ""
         
         # Processar form de cadastro
-        if method == 'POST' and db and DB_AVAILABLE:
-            try:
-                body_text = await request.text()
-                form_data = parse_qs(body_text)
-                
-                username = form_data.get('username', [''])[0].strip()
-                email = form_data.get('email', [''])[0].strip()
-                password = form_data.get('password', [''])[0]
-                nome = form_data.get('nome', [''])[0].strip() or None
-                
-                if username and email and password:
-                    user_id, err = await register(db, username, email, password, nome)
-                    if user_id:
-                        # Auto-login
-                        token, _ = await login(db, request, email, password)
-                        if token:
-                            return redirect('/', headers={"Set-Cookie": set_session_cookie(token)})
-                        success_msg = "Conta criada! Faça login."
+        if method == 'POST':
+            if not db or not DB_AVAILABLE:
+                error_msg = "Sistema temporariamente indisponível. Tente novamente mais tarde."
+            else:
+                try:
+                    body_text = await request.text()
+                    form_data = parse_qs(body_text)
+                    
+                    username = form_data.get('username', [''])[0].strip()
+                    email = form_data.get('email', [''])[0].strip()
+                    password = form_data.get('password', [''])[0]
+                    nome = form_data.get('nome', [''])[0].strip() or None
+                    
+                    if username and email and password:
+                        user_id, err = await register(db, username, email, password, nome)
+                        if user_id:
+                            # Auto-login
+                            token, _ = await login(db, request, email, password)
+                            if token:
+                                return redirect('/', headers={"Set-Cookie": set_session_cookie(token)})
+                            success_msg = "Conta criada! Faça login."
+                        else:
+                            error_msg = err or "Erro ao criar conta"
                     else:
-                        error_msg = err or "Erro ao criar conta"
-                else:
-                    error_msg = "Preencha todos os campos obrigatórios"
-            except Exception as e:
-                error_msg = "Erro ao processar cadastro"
+                        error_msg = "Preencha todos os campos obrigatórios"
+                except Exception as e:
+                    # Log error internally but don't expose details to user
+                    error_msg = "Erro ao processar cadastro. Tente novamente."
         
         error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
         success_html = f'<div class="success-msg" style="background:#e8f5e9;color:#2e7d32;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{success_msg}</div>' if success_msg else ""
