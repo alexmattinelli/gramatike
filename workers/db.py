@@ -2448,28 +2448,17 @@ async def search_by_hashtag(db, tag, tipo=None, limit=50, offset=0):
     """Busca posts/comentários por hashtag."""
     tag = tag.lower().replace('#', '')
     
-    if tipo and tipo == 'post':
-        results = await db.prepare("""
-            SELECT p.*, u.nome as autor_nome, u.username as autor_username, u.foto_perfil as autor_foto
-            FROM hashtag_item hi
-            JOIN hashtag h ON hi.hashtag_id = h.id
-            JOIN post p ON hi.item_id = p.id AND hi.tipo = 'post'
-            LEFT JOIN user u ON p.usuario_id = u.id
-            WHERE h.tag = ? AND p.is_deleted = 0
-            ORDER BY p.data DESC
-            LIMIT ? OFFSET ?
-        """).bind(tag, limit, offset).all()
-    else:
-        results = await db.prepare("""
-            SELECT p.*, u.nome as autor_nome, u.username as autor_username, u.foto_perfil as autor_foto
-            FROM hashtag_item hi
-            JOIN hashtag h ON hi.hashtag_id = h.id
-            JOIN post p ON hi.item_id = p.id AND hi.tipo = 'post'
-            LEFT JOIN user u ON p.usuario_id = u.id
-            WHERE h.tag = ? AND p.is_deleted = 0
-            ORDER BY p.data DESC
-            LIMIT ? OFFSET ?
-        """).bind(tag, limit, offset).all()
+    # Query é a mesma para qualquer tipo (busca posts por padrão)
+    results = await db.prepare("""
+        SELECT p.*, u.nome as autor_nome, u.username as autor_username, u.foto_perfil as autor_foto
+        FROM hashtag_item hi
+        JOIN hashtag h ON hi.hashtag_id = h.id
+        JOIN post p ON hi.item_id = p.id AND hi.tipo = 'post'
+        LEFT JOIN user u ON p.usuario_id = u.id
+        WHERE h.tag = ? AND p.is_deleted = 0
+        ORDER BY p.data DESC
+        LIMIT ? OFFSET ?
+    """).bind(tag, limit, offset).all()
     
     return [dict(r) for r in results.results] if results.results else []
 
@@ -2575,6 +2564,18 @@ async def get_emoji_categories(db):
     return [dict(r) for r in results.results] if results.results else []
 
 
+def escape_html(text):
+    """Escapa caracteres HTML para prevenir XSS."""
+    if not text:
+        return text
+    return (text
+        .replace('&', '&amp;')
+        .replace('<', '&lt;')
+        .replace('>', '&gt;')
+        .replace('"', '&quot;')
+        .replace("'", '&#39;'))
+
+
 def render_emojis_in_text(text, emojis_list):
     """Substitui códigos de emoji por imagens."""
     if not text or not emojis_list:
@@ -2582,7 +2583,10 @@ def render_emojis_in_text(text, emojis_list):
     
     for emoji in emojis_list:
         codigo = emoji['codigo']
-        img_tag = f'<img src="{emoji["imagem_url"]}" alt="{emoji["nome"]}" class="emoji-custom" style="width: 1.2em; height: 1.2em; vertical-align: middle;">'
+        # Escapar valores para prevenir HTML injection
+        safe_url = escape_html(emoji.get('imagem_url', ''))
+        safe_nome = escape_html(emoji.get('nome', ''))
+        img_tag = f'<img src="{safe_url}" alt="{safe_nome}" class="emoji-custom" style="width: 1.2em; height: 1.2em; vertical-align: middle;">'
         text = text.replace(codigo, img_tag)
     
     return text
