@@ -808,6 +808,326 @@ async def delete_post_api(post_id: int, session: Optional[str] = Cookie(None)):
 
 
 # ============================================================================
+# Phase 3: Public Profiles & Followers (Seguidories)
+# ============================================================================
+
+@app.get("/perfil/{username}", response_class=HTMLResponse)
+async def perfil_publico(username: str, session: Optional[str] = Cookie(None)):
+    """View a user's public profile."""
+    global _db
+    current_user = get_current_user(session)
+    
+    if not _db:
+        return HTMLResponse(content="<h1>Banco de dados indisponível</h1>", status_code=500)
+    
+    # Get profile user
+    users = await _db.execute(
+        """SELECT id, username, nome, bio, foto_perfil, genero, pronome, created_at
+           FROM user WHERE username = ?""",
+        (username,)
+    )
+    
+    if not users or len(users) == 0:
+        return HTMLResponse(content="<h1>Usuárie não encontrade</h1>", status_code=404)
+    
+    profile_user = users[0]
+    
+    # Get follower count (seguidories)
+    seguidories_result = await _db.execute(
+        "SELECT COUNT(*) as count FROM seguidores WHERE seguido_id = ?",
+        (profile_user['id'],)
+    )
+    seguidories_count = seguidories_result[0]['count'] if seguidories_result else 0
+    
+    # Get following count (seguindo)
+    seguindo_result = await _db.execute(
+        "SELECT COUNT(*) as count FROM seguidores WHERE seguidor_id = ?",
+        (profile_user['id'],)
+    )
+    seguindo_count = seguindo_result[0]['count'] if seguindo_result else 0
+    
+    # Check if current user follows this profile
+    is_following = False
+    if current_user:
+        follow_check = await _db.execute(
+            "SELECT 1 FROM seguidores WHERE seguidor_id = ? AND seguido_id = ?",
+            (current_user['user_id'], profile_user['id'])
+        )
+        is_following = follow_check and len(follow_check) > 0
+    
+    # Get user's posts
+    posts = await _db.execute(
+        """SELECT p.id, p.usuario, p.conteudo, p.imagem, p.data
+           FROM post p
+           WHERE p.usuario_id = ? AND (p.is_deleted = 0 OR p.is_deleted IS NULL)
+           ORDER BY p.data DESC
+           LIMIT 20""",
+        (profile_user['id'],)
+    )
+    
+    # Get post count
+    post_count_result = await _db.execute(
+        "SELECT COUNT(*) as count FROM post WHERE usuario_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)",
+        (profile_user['id'],)
+    )
+    post_count = post_count_result[0]['count'] if post_count_result else 0
+    
+    # Check if viewing own profile
+    is_own_profile = current_user and current_user['user_id'] == profile_user['id']
+    
+    html = render_template("perfil.html",
+        session_id=session,
+        current_user=current_user,
+        usuario=profile_user,
+        posts=posts or [],
+        seguidories_count=seguidories_count,
+        seguindo_count=seguindo_count,
+        post_count=post_count,
+        is_following=is_following,
+        is_own_profile=is_own_profile
+    )
+    return HTMLResponse(content=html)
+
+
+@app.post("/api/users/{username}/follow")
+async def toggle_follow(username: str, session: Optional[str] = Cookie(None)):
+    """Follow or unfollow a user (seguir/deixar de seguir)."""
+    global _db
+    current_user = get_current_user(session)
+    
+    if not current_user:
+        return JSONResponse({"error": "Não autenticade"}, status_code=401)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    # Get target user
+    users = await _db.execute(
+        "SELECT id FROM user WHERE username = ?",
+        (username,)
+    )
+    
+    if not users or len(users) == 0:
+        return JSONResponse({"error": "Usuárie não encontrade"}, status_code=404)
+    
+    target_user_id = users[0]['id']
+    
+    # Can't follow yourself
+    if target_user_id == current_user['user_id']:
+        return JSONResponse({"error": "Você não pode seguir a si mesme"}, status_code=400)
+    
+    # Check if already following
+    existing = await _db.execute(
+        "SELECT 1 FROM seguidores WHERE seguidor_id = ? AND seguido_id = ?",
+        (current_user['user_id'], target_user_id)
+    )
+    
+    if existing and len(existing) > 0:
+        # Unfollow
+        await _db.run(
+            "DELETE FROM seguidores WHERE seguidor_id = ? AND seguido_id = ?",
+            (current_user['user_id'], target_user_id)
+        )
+        is_following = False
+    else:
+        # Follow
+        await _db.run(
+            "INSERT INTO seguidores (seguidor_id, seguido_id) VALUES (?, ?)",
+            (current_user['user_id'], target_user_id)
+        )
+        is_following = True
+    
+    # Get new follower count
+    count_result = await _db.execute(
+        "SELECT COUNT(*) as count FROM seguidores WHERE seguido_id = ?",
+        (target_user_id,)
+    )
+    count = count_result[0]['count'] if count_result else 0
+    
+    return {"is_following": is_following, "seguidories_count": count}
+
+
+@app.get("/api/users/{username}/seguidories")
+async def get_seguidories(username: str, session: Optional[str] = Cookie(None)):
+    """Get list of followers (seguidories) for a user."""
+    global _db
+    
+    if not _db:
+        return {"seguidories": [], "error": "Banco de dados indisponível"}
+    
+    # Get user
+    users = await _db.execute(
+        "SELECT id FROM user WHERE username = ?",
+        (username,)
+    )
+    
+    if not users or len(users) == 0:
+        return JSONResponse({"error": "Usuárie não encontrade"}, status_code=404)
+    
+    user_id = users[0]['id']
+    
+    # Get followers
+    seguidories = await _db.execute(
+        """SELECT u.id, u.username, u.nome, u.foto_perfil
+           FROM seguidores s
+           JOIN user u ON s.seguidor_id = u.id
+           WHERE s.seguido_id = ?
+           ORDER BY u.username ASC""",
+        (user_id,)
+    )
+    
+    result = []
+    for s in (seguidories or []):
+        result.append({
+            "id": s.get("id"),
+            "username": s.get("username", ""),
+            "nome": s.get("nome", ""),
+            "foto_perfil": s.get("foto_perfil", "img/perfil.png")
+        })
+    
+    return {"seguidories": result}
+
+
+@app.get("/api/users/{username}/seguindo")
+async def get_seguindo(username: str, session: Optional[str] = Cookie(None)):
+    """Get list of users that this user follows (seguindo)."""
+    global _db
+    
+    if not _db:
+        return {"seguindo": [], "error": "Banco de dados indisponível"}
+    
+    # Get user
+    users = await _db.execute(
+        "SELECT id FROM user WHERE username = ?",
+        (username,)
+    )
+    
+    if not users or len(users) == 0:
+        return JSONResponse({"error": "Usuárie não encontrade"}, status_code=404)
+    
+    user_id = users[0]['id']
+    
+    # Get following
+    seguindo = await _db.execute(
+        """SELECT u.id, u.username, u.nome, u.foto_perfil
+           FROM seguidores s
+           JOIN user u ON s.seguido_id = u.id
+           WHERE s.seguidor_id = ?
+           ORDER BY u.username ASC""",
+        (user_id,)
+    )
+    
+    result = []
+    for s in (seguindo or []):
+        result.append({
+            "id": s.get("id"),
+            "username": s.get("username", ""),
+            "nome": s.get("nome", ""),
+            "foto_perfil": s.get("foto_perfil", "img/perfil.png")
+        })
+    
+    return {"seguindo": result}
+
+
+@app.get("/api/users/{username}")
+async def get_user_profile(username: str, session: Optional[str] = Cookie(None)):
+    """Get user profile data via API."""
+    global _db
+    current_user = get_current_user(session)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    # Get user
+    users = await _db.execute(
+        """SELECT id, username, nome, bio, foto_perfil, genero, pronome, created_at
+           FROM user WHERE username = ?""",
+        (username,)
+    )
+    
+    if not users or len(users) == 0:
+        return JSONResponse({"error": "Usuárie não encontrade"}, status_code=404)
+    
+    profile = users[0]
+    
+    # Get counts
+    seguidories_result = await _db.execute(
+        "SELECT COUNT(*) as count FROM seguidores WHERE seguido_id = ?",
+        (profile['id'],)
+    )
+    seguidories_count = seguidories_result[0]['count'] if seguidories_result else 0
+    
+    seguindo_result = await _db.execute(
+        "SELECT COUNT(*) as count FROM seguidores WHERE seguidor_id = ?",
+        (profile['id'],)
+    )
+    seguindo_count = seguindo_result[0]['count'] if seguindo_result else 0
+    
+    post_count_result = await _db.execute(
+        "SELECT COUNT(*) as count FROM post WHERE usuario_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)",
+        (profile['id'],)
+    )
+    post_count = post_count_result[0]['count'] if post_count_result else 0
+    
+    # Check if current user follows
+    is_following = False
+    if current_user:
+        follow_check = await _db.execute(
+            "SELECT 1 FROM seguidores WHERE seguidor_id = ? AND seguido_id = ?",
+            (current_user['user_id'], profile['id'])
+        )
+        is_following = follow_check and len(follow_check) > 0
+    
+    return {
+        "id": profile['id'],
+        "username": profile['username'],
+        "nome": profile.get('nome', ''),
+        "bio": profile.get('bio', ''),
+        "foto_perfil": profile.get('foto_perfil', 'img/perfil.png'),
+        "genero": profile.get('genero', ''),
+        "pronome": profile.get('pronome', ''),
+        "created_at": profile.get('created_at', ''),
+        "seguidories_count": seguidories_count,
+        "seguindo_count": seguindo_count,
+        "post_count": post_count,
+        "is_following": is_following
+    }
+
+
+@app.get("/api/users/search")
+async def search_users(q: str = "", session: Optional[str] = Cookie(None)):
+    """Search for users by username or name."""
+    global _db
+    
+    if not _db:
+        return {"users": [], "error": "Banco de dados indisponível"}
+    
+    if not q or len(q) < 2:
+        return {"users": [], "message": "Informe ao menos 2 caracteres"}
+    
+    # Search users
+    users = await _db.execute(
+        """SELECT id, username, nome, foto_perfil
+           FROM user
+           WHERE username LIKE ? OR nome LIKE ?
+           ORDER BY username ASC
+           LIMIT 20""",
+        (f"%{q}%", f"%{q}%")
+    )
+    
+    result = []
+    for u in (users or []):
+        result.append({
+            "id": u.get("id"),
+            "username": u.get("username", ""),
+            "nome": u.get("nome", ""),
+            "foto_perfil": u.get("foto_perfil", "img/perfil.png")
+        })
+    
+    return {"users": result}
+
+
+# ============================================================================
 # Static Files (for local development)
 # ============================================================================
 
