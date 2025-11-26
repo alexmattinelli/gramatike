@@ -714,7 +714,11 @@ class Default(WorkerEntrypoint):
                 if not current_user:
                     return json_response({"error": "Não autenticado"}, 401)
                 
-                post_id = int(path.split('/')[3])
+                try:
+                    post_id = int(path.split('/')[3])
+                except (ValueError, IndexError):
+                    return json_response({"error": "ID de post inválido"}, 400)
+                
                 already_liked = await has_liked(db, current_user['id'], post_id)
                 
                 if already_liked:
@@ -726,7 +730,10 @@ class Default(WorkerEntrypoint):
             
             # Comentários
             if '/comentarios' in path:
-                post_id = int(path.split('/')[3])
+                try:
+                    post_id = int(path.split('/')[3])
+                except (ValueError, IndexError):
+                    return json_response({"error": "ID de post inválido"}, 400)
                 
                 if method == 'GET':
                     comments = await get_comments(db, post_id)
@@ -777,7 +784,11 @@ class Default(WorkerEntrypoint):
                 if not current_user:
                     return json_response({"error": "Não autenticado"}, 401)
                 
-                dynamic_id = int(path.split('/')[3])
+                try:
+                    dynamic_id = int(path.split('/')[3])
+                except (ValueError, IndexError):
+                    return json_response({"error": "ID de dinâmica inválido"}, 400)
+                
                 body = await request.json()
                 
                 response_id = await submit_dynamic_response(db, dynamic_id, current_user['id'], body)

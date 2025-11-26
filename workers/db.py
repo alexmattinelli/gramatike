@@ -162,20 +162,50 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
     """Lista posts com paginação."""
     offset = (page - 1) * per_page
     
-    where_clause = "WHERE p.is_deleted = 0" if not include_deleted else ""
-    if user_id:
-        where_clause += f" AND p.usuario_id = {user_id}" if where_clause else f"WHERE p.usuario_id = {user_id}"
-    
-    result = await db.prepare(f"""
-        SELECT p.*, u.username, u.foto_perfil,
-               (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
-               (SELECT COUNT(*) FROM comentario WHERE post_id = p.id) as comment_count
-        FROM post p
-        LEFT JOIN user u ON p.usuario_id = u.id
-        {where_clause}
-        ORDER BY p.data DESC
-        LIMIT ? OFFSET ?
-    """).bind(per_page, offset).all()
+    # Build query with proper parameterization
+    if user_id and not include_deleted:
+        result = await db.prepare("""
+            SELECT p.*, u.username, u.foto_perfil,
+                   (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
+                   (SELECT COUNT(*) FROM comentario WHERE post_id = p.id) as comment_count
+            FROM post p
+            LEFT JOIN user u ON p.usuario_id = u.id
+            WHERE p.is_deleted = 0 AND p.usuario_id = ?
+            ORDER BY p.data DESC
+            LIMIT ? OFFSET ?
+        """).bind(user_id, per_page, offset).all()
+    elif user_id:
+        result = await db.prepare("""
+            SELECT p.*, u.username, u.foto_perfil,
+                   (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
+                   (SELECT COUNT(*) FROM comentario WHERE post_id = p.id) as comment_count
+            FROM post p
+            LEFT JOIN user u ON p.usuario_id = u.id
+            WHERE p.usuario_id = ?
+            ORDER BY p.data DESC
+            LIMIT ? OFFSET ?
+        """).bind(user_id, per_page, offset).all()
+    elif not include_deleted:
+        result = await db.prepare("""
+            SELECT p.*, u.username, u.foto_perfil,
+                   (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
+                   (SELECT COUNT(*) FROM comentario WHERE post_id = p.id) as comment_count
+            FROM post p
+            LEFT JOIN user u ON p.usuario_id = u.id
+            WHERE p.is_deleted = 0
+            ORDER BY p.data DESC
+            LIMIT ? OFFSET ?
+        """).bind(per_page, offset).all()
+    else:
+        result = await db.prepare("""
+            SELECT p.*, u.username, u.foto_perfil,
+                   (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
+                   (SELECT COUNT(*) FROM comentario WHERE post_id = p.id) as comment_count
+            FROM post p
+            LEFT JOIN user u ON p.usuario_id = u.id
+            ORDER BY p.data DESC
+            LIMIT ? OFFSET ?
+        """).bind(per_page, offset).all()
     
     return [dict(row) for row in result.results] if result.results else []
 
@@ -332,17 +362,25 @@ async def get_edu_contents(db, tipo=None, page=1, per_page=20):
     """Lista conteúdos educacionais."""
     offset = (page - 1) * per_page
     
-    where_clause = f"WHERE tipo = '{tipo}'" if tipo else ""
-    
-    result = await db.prepare(f"""
-        SELECT e.*, u.username as author_name, t.nome as topic_name
-        FROM edu_content e
-        LEFT JOIN user u ON e.author_id = u.id
-        LEFT JOIN edu_topic t ON e.topic_id = t.id
-        {where_clause}
-        ORDER BY e.created_at DESC
-        LIMIT ? OFFSET ?
-    """).bind(per_page, offset).all()
+    if tipo:
+        result = await db.prepare("""
+            SELECT e.*, u.username as author_name, t.nome as topic_name
+            FROM edu_content e
+            LEFT JOIN user u ON e.author_id = u.id
+            LEFT JOIN edu_topic t ON e.topic_id = t.id
+            WHERE tipo = ?
+            ORDER BY e.created_at DESC
+            LIMIT ? OFFSET ?
+        """).bind(tipo, per_page, offset).all()
+    else:
+        result = await db.prepare("""
+            SELECT e.*, u.username as author_name, t.nome as topic_name
+            FROM edu_content e
+            LEFT JOIN user u ON e.author_id = u.id
+            LEFT JOIN edu_topic t ON e.topic_id = t.id
+            ORDER BY e.created_at DESC
+            LIMIT ? OFFSET ?
+        """).bind(per_page, offset).all()
     
     return [dict(row) for row in result.results] if result.results else []
 
@@ -365,17 +403,25 @@ async def search_edu_contents(db, query, tipo=None):
     """Pesquisa conteúdos educacionais."""
     search_term = f"%{query}%"
     
-    tipo_clause = f"AND tipo = '{tipo}'" if tipo else ""
-    
-    result = await db.prepare(f"""
-        SELECT e.*, u.username as author_name
-        FROM edu_content e
-        LEFT JOIN user u ON e.author_id = u.id
-        WHERE (e.titulo LIKE ? OR e.resumo LIKE ? OR e.corpo LIKE ?)
-        {tipo_clause}
-        ORDER BY e.created_at DESC
-        LIMIT 50
-    """).bind(search_term, search_term, search_term).all()
+    if tipo:
+        result = await db.prepare("""
+            SELECT e.*, u.username as author_name
+            FROM edu_content e
+            LEFT JOIN user u ON e.author_id = u.id
+            WHERE (e.titulo LIKE ? OR e.resumo LIKE ? OR e.corpo LIKE ?)
+            AND tipo = ?
+            ORDER BY e.created_at DESC
+            LIMIT 50
+        """).bind(search_term, search_term, search_term, tipo).all()
+    else:
+        result = await db.prepare("""
+            SELECT e.*, u.username as author_name
+            FROM edu_content e
+            LEFT JOIN user u ON e.author_id = u.id
+            WHERE (e.titulo LIKE ? OR e.resumo LIKE ? OR e.corpo LIKE ?)
+            ORDER BY e.created_at DESC
+            LIMIT 50
+        """).bind(search_term, search_term, search_term).all()
     
     return [dict(row) for row in result.results] if result.results else []
 
@@ -397,22 +443,41 @@ async def get_exercise_topics(db):
 
 async def get_exercise_questions(db, topic_id=None, section_id=None):
     """Lista questões de exercícios."""
-    where_clauses = []
-    if topic_id:
-        where_clauses.append(f"q.topic_id = {topic_id}")
-    if section_id:
-        where_clauses.append(f"q.section_id = {section_id}")
-    
-    where_clause = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
-    
-    result = await db.prepare(f"""
-        SELECT q.*, t.nome as topic_name, s.nome as section_name
-        FROM exercise_question q
-        LEFT JOIN exercise_topic t ON q.topic_id = t.id
-        LEFT JOIN exercise_section s ON q.section_id = s.id
-        {where_clause}
-        ORDER BY q.created_at DESC
-    """).all()
+    if topic_id and section_id:
+        result = await db.prepare("""
+            SELECT q.*, t.nome as topic_name, s.nome as section_name
+            FROM exercise_question q
+            LEFT JOIN exercise_topic t ON q.topic_id = t.id
+            LEFT JOIN exercise_section s ON q.section_id = s.id
+            WHERE q.topic_id = ? AND q.section_id = ?
+            ORDER BY q.created_at DESC
+        """).bind(topic_id, section_id).all()
+    elif topic_id:
+        result = await db.prepare("""
+            SELECT q.*, t.nome as topic_name, s.nome as section_name
+            FROM exercise_question q
+            LEFT JOIN exercise_topic t ON q.topic_id = t.id
+            LEFT JOIN exercise_section s ON q.section_id = s.id
+            WHERE q.topic_id = ?
+            ORDER BY q.created_at DESC
+        """).bind(topic_id).all()
+    elif section_id:
+        result = await db.prepare("""
+            SELECT q.*, t.nome as topic_name, s.nome as section_name
+            FROM exercise_question q
+            LEFT JOIN exercise_topic t ON q.topic_id = t.id
+            LEFT JOIN exercise_section s ON q.section_id = s.id
+            WHERE q.section_id = ?
+            ORDER BY q.created_at DESC
+        """).bind(section_id).all()
+    else:
+        result = await db.prepare("""
+            SELECT q.*, t.nome as topic_name, s.nome as section_name
+            FROM exercise_question q
+            LEFT JOIN exercise_topic t ON q.topic_id = t.id
+            LEFT JOIN exercise_section s ON q.section_id = s.id
+            ORDER BY q.created_at DESC
+        """).all()
     
     return [dict(row) for row in result.results] if result.results else []
 
@@ -423,16 +488,23 @@ async def get_exercise_questions(db, topic_id=None, section_id=None):
 
 async def get_dynamics(db, active_only=True):
     """Lista dinâmicas."""
-    where_clause = "WHERE active = 1" if active_only else ""
-    
-    result = await db.prepare(f"""
-        SELECT d.*, u.username as author_name,
-               (SELECT COUNT(*) FROM dynamic_response WHERE dynamic_id = d.id) as response_count
-        FROM dynamic d
-        LEFT JOIN user u ON d.created_by = u.id
-        {where_clause}
-        ORDER BY d.created_at DESC
-    """).all()
+    if active_only:
+        result = await db.prepare("""
+            SELECT d.*, u.username as author_name,
+                   (SELECT COUNT(*) FROM dynamic_response WHERE dynamic_id = d.id) as response_count
+            FROM dynamic d
+            LEFT JOIN user u ON d.created_by = u.id
+            WHERE active = 1
+            ORDER BY d.created_at DESC
+        """).all()
+    else:
+        result = await db.prepare("""
+            SELECT d.*, u.username as author_name,
+                   (SELECT COUNT(*) FROM dynamic_response WHERE dynamic_id = d.id) as response_count
+            FROM dynamic d
+            LEFT JOIN user u ON d.created_by = u.id
+            ORDER BY d.created_at DESC
+        """).all()
     
     return [dict(row) for row in result.results] if result.results else []
 
@@ -481,15 +553,21 @@ async def submit_dynamic_response(db, dynamic_id, usuario_id, payload):
 
 async def get_palavras_do_dia(db, ativas_only=True):
     """Lista palavras do dia."""
-    where_clause = "WHERE ativo = 1" if ativas_only else ""
-    
-    result = await db.prepare(f"""
-        SELECT p.*, 
-               (SELECT COUNT(*) FROM palavra_do_dia_interacao WHERE palavra_id = p.id) as interacao_count
-        FROM palavra_do_dia p
-        {where_clause}
-        ORDER BY p.ordem, p.created_at DESC
-    """).all()
+    if ativas_only:
+        result = await db.prepare("""
+            SELECT p.*, 
+                   (SELECT COUNT(*) FROM palavra_do_dia_interacao WHERE palavra_id = p.id) as interacao_count
+            FROM palavra_do_dia p
+            WHERE ativo = 1
+            ORDER BY p.ordem, p.created_at DESC
+        """).all()
+    else:
+        result = await db.prepare("""
+            SELECT p.*, 
+                   (SELECT COUNT(*) FROM palavra_do_dia_interacao WHERE palavra_id = p.id) as interacao_count
+            FROM palavra_do_dia p
+            ORDER BY p.ordem, p.created_at DESC
+        """).all()
     
     return [dict(row) for row in result.results] if result.results else []
 
@@ -513,21 +591,55 @@ async def get_palavra_do_dia_atual(db):
 
 async def get_divulgacoes(db, area=None, show_on_edu=None, show_on_index=None):
     """Lista divulgações."""
-    conditions = ["ativo = 1"]
-    if area:
-        conditions.append(f"area = '{area}'")
-    if show_on_edu:
-        conditions.append("show_on_edu = 1")
-    if show_on_index:
-        conditions.append("show_on_index = 1")
-    
-    where_clause = "WHERE " + " AND ".join(conditions)
-    
-    result = await db.prepare(f"""
-        SELECT * FROM divulgacao
-        {where_clause}
-        ORDER BY ordem, created_at DESC
-    """).all()
+    # Build query based on conditions - using parameterized queries
+    if area and show_on_edu and show_on_index:
+        result = await db.prepare("""
+            SELECT * FROM divulgacao
+            WHERE ativo = 1 AND area = ? AND show_on_edu = 1 AND show_on_index = 1
+            ORDER BY ordem, created_at DESC
+        """).bind(area).all()
+    elif area and show_on_edu:
+        result = await db.prepare("""
+            SELECT * FROM divulgacao
+            WHERE ativo = 1 AND area = ? AND show_on_edu = 1
+            ORDER BY ordem, created_at DESC
+        """).bind(area).all()
+    elif area and show_on_index:
+        result = await db.prepare("""
+            SELECT * FROM divulgacao
+            WHERE ativo = 1 AND area = ? AND show_on_index = 1
+            ORDER BY ordem, created_at DESC
+        """).bind(area).all()
+    elif show_on_edu and show_on_index:
+        result = await db.prepare("""
+            SELECT * FROM divulgacao
+            WHERE ativo = 1 AND show_on_edu = 1 AND show_on_index = 1
+            ORDER BY ordem, created_at DESC
+        """).all()
+    elif area:
+        result = await db.prepare("""
+            SELECT * FROM divulgacao
+            WHERE ativo = 1 AND area = ?
+            ORDER BY ordem, created_at DESC
+        """).bind(area).all()
+    elif show_on_edu:
+        result = await db.prepare("""
+            SELECT * FROM divulgacao
+            WHERE ativo = 1 AND show_on_edu = 1
+            ORDER BY ordem, created_at DESC
+        """).all()
+    elif show_on_index:
+        result = await db.prepare("""
+            SELECT * FROM divulgacao
+            WHERE ativo = 1 AND show_on_index = 1
+            ORDER BY ordem, created_at DESC
+        """).all()
+    else:
+        result = await db.prepare("""
+            SELECT * FROM divulgacao
+            WHERE ativo = 1
+            ORDER BY ordem, created_at DESC
+        """).all()
     
     return [dict(row) for row in result.results] if result.results else []
 
