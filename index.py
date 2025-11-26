@@ -67,13 +67,19 @@ ROUTE_MAP = {
     'main.apostilas': '/apostilas',
     'main.podcasts': '/podcasts',
     'main.videos': '/videos',
+    'main.redacao': '/redacao',
+    'main.variacoes': '/variacoes',
     'main.dinamicas_home': '/dinamicas',
+    'main.dinamica_view': '/dinamica/<int:dyn_id>',
     'main.suporte': '/suporte',
     'main.configuracoes': '/configuracoes',
     'main.novo_post': '/novo_post',
     'main.post_detail': '/post/<int:post_id>',
     'main.perfil_publico': '/perfil/<username>',
+    'main.novidade_detail': '/novidade/<int:novidade_id>',
     'admin.dashboard': '/admin',
+    'admin.denuncias': '/admin/denuncias',
+    'admin.suporte': '/admin/suporte',
     'static': '/static',
 }
 
@@ -2282,6 +2288,696 @@ async def admin_delete_palavra(palavra_id: int, session: Optional[str] = Cookie(
     await _db.run("DELETE FROM palavra_do_dia WHERE id = ?", (palavra_id,))
     
     return {"success": True, "message": "Palavra excluída"}
+
+
+# ============================================================================
+# Additional Routes (Educational Content, Support, etc.)
+# ============================================================================
+
+@app.get("/artigos", response_class=HTMLResponse)
+async def artigos(session: Optional[str] = Cookie(None)):
+    """Articles page."""
+    global _db
+    user = get_current_user(session)
+    
+    articles = []
+    if _db:
+        articles = await _db.execute(
+            """SELECT id, titulo, resumo, url, created_at
+               FROM edu_content
+               WHERE tipo = 'artigo'
+               ORDER BY created_at DESC
+               LIMIT 50"""
+        )
+    
+    html = render_template("artigos.html",
+        session_id=session,
+        current_user=user,
+        artigos=articles or []
+    )
+    return HTMLResponse(content=html)
+
+
+@app.get("/apostilas", response_class=HTMLResponse)
+async def apostilas(session: Optional[str] = Cookie(None)):
+    """Study materials page."""
+    global _db
+    user = get_current_user(session)
+    
+    apostilas_list = []
+    if _db:
+        apostilas_list = await _db.execute(
+            """SELECT id, titulo, resumo, url, file_path, created_at
+               FROM edu_content
+               WHERE tipo = 'apostila'
+               ORDER BY created_at DESC
+               LIMIT 50"""
+        )
+    
+    html = render_template("apostilas.html",
+        session_id=session,
+        current_user=user,
+        apostilas=apostilas_list or []
+    )
+    return HTMLResponse(content=html)
+
+
+@app.get("/podcasts", response_class=HTMLResponse)
+async def podcasts(session: Optional[str] = Cookie(None)):
+    """Podcasts page."""
+    global _db
+    user = get_current_user(session)
+    
+    podcasts_list = []
+    if _db:
+        podcasts_list = await _db.execute(
+            """SELECT id, titulo, resumo, url, created_at
+               FROM edu_content
+               WHERE tipo = 'podcast'
+               ORDER BY created_at DESC
+               LIMIT 50"""
+        )
+    
+    html = render_template("podcasts.html",
+        session_id=session,
+        current_user=user,
+        podcasts=podcasts_list or []
+    )
+    return HTMLResponse(content=html)
+
+
+@app.get("/videos", response_class=HTMLResponse)
+async def videos(session: Optional[str] = Cookie(None)):
+    """Videos page."""
+    global _db
+    user = get_current_user(session)
+    
+    videos_list = []
+    if _db:
+        videos_list = await _db.execute(
+            """SELECT id, titulo, resumo, url, created_at
+               FROM edu_content
+               WHERE tipo = 'video'
+               ORDER BY created_at DESC
+               LIMIT 50"""
+        )
+    
+    html = render_template("videos.html",
+        session_id=session,
+        current_user=user,
+        videos=videos_list or []
+    )
+    return HTMLResponse(content=html)
+
+
+@app.get("/exercicios", response_class=HTMLResponse)
+async def exercicios(session: Optional[str] = Cookie(None)):
+    """Exercises page."""
+    global _db
+    user = get_current_user(session)
+    
+    topics = []
+    if _db:
+        topics = await _db.execute(
+            """SELECT id, nome, descricao, created_at
+               FROM exercise_topic
+               ORDER BY nome ASC"""
+        )
+    
+    html = render_template("exercicios.html",
+        session_id=session,
+        current_user=user,
+        topics=topics or []
+    )
+    return HTMLResponse(content=html)
+
+
+@app.get("/redacao", response_class=HTMLResponse)
+async def redacao(session: Optional[str] = Cookie(None)):
+    """Essay/writing page."""
+    global _db
+    user = get_current_user(session)
+    
+    temas = []
+    if _db:
+        temas = await _db.execute(
+            """SELECT id, titulo, resumo, created_at
+               FROM edu_content
+               WHERE tipo = 'redacao_tema'
+               ORDER BY created_at DESC
+               LIMIT 20"""
+        )
+    
+    html = render_template("redacao.html",
+        session_id=session,
+        current_user=user,
+        temas=temas or []
+    )
+    return HTMLResponse(content=html)
+
+
+@app.get("/variacoes", response_class=HTMLResponse)
+async def variacoes(session: Optional[str] = Cookie(None)):
+    """Linguistic variations page."""
+    global _db
+    user = get_current_user(session)
+    
+    variacoes_list = []
+    if _db:
+        variacoes_list = await _db.execute(
+            """SELECT id, titulo, resumo, corpo, created_at
+               FROM edu_content
+               WHERE tipo = 'variacao'
+               ORDER BY created_at DESC
+               LIMIT 50"""
+        )
+    
+    html = render_template("variacoes.html",
+        session_id=session,
+        current_user=user,
+        variacoes=variacoes_list or []
+    )
+    return HTMLResponse(content=html)
+
+
+# --- Support Tickets ---
+
+@app.post("/suporte")
+async def suporte_submit(
+    request: Request,
+    mensagem: str = Form(...),
+    nome: str = Form(""),
+    email: str = Form(""),
+    session: Optional[str] = Cookie(None)
+):
+    """Submit a support ticket."""
+    global _db
+    user = get_current_user(session)
+    
+    if not _db:
+        flash("Erro de banco de dados", "error", session)
+        return RedirectResponse(url="/suporte", status_code=302)
+    
+    user_id = user['user_id'] if user else None
+    
+    await _db.run(
+        """INSERT INTO support_ticket (usuario_id, nome, email, mensagem, status, created_at)
+           VALUES (?, ?, ?, ?, 'aberto', ?)""",
+        (user_id, nome, email, mensagem, datetime.now(timezone.utc).isoformat())
+    )
+    
+    flash("Mensagem enviada! Responderemos em breve.", "success", session)
+    return RedirectResponse(url="/suporte", status_code=302)
+
+
+@app.get("/api/admin/suporte")
+async def admin_list_tickets(
+    status: str = "aberto",
+    page: int = 1,
+    per_page: int = 20,
+    session: Optional[str] = Cookie(None)
+):
+    """List support tickets (admin only)."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    offset = (page - 1) * per_page
+    
+    tickets = await _db.execute(
+        """SELECT t.id, t.nome, t.email, t.mensagem, t.status, t.resposta, t.created_at, t.updated_at,
+                  u.username
+           FROM support_ticket t
+           LEFT JOIN user u ON t.usuario_id = u.id
+           WHERE t.status = ?
+           ORDER BY t.created_at DESC
+           LIMIT ? OFFSET ?""",
+        (status, per_page, offset)
+    )
+    
+    return {"tickets": tickets or []}
+
+
+@app.post("/api/admin/suporte/{ticket_id}/responder")
+async def admin_respond_ticket(ticket_id: int, request: Request, session: Optional[str] = Cookie(None)):
+    """Respond to a support ticket (admin only)."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    body = await request.json()
+    resposta = body.get("resposta", "").strip()
+    
+    if not resposta:
+        return JSONResponse({"error": "Resposta é obrigatória"}, status_code=400)
+    
+    await _db.run(
+        "UPDATE support_ticket SET resposta = ?, status = 'respondido', updated_at = ? WHERE id = ?",
+        (resposta, datetime.now(timezone.utc).isoformat(), ticket_id)
+    )
+    
+    return {"success": True, "message": "Resposta enviada"}
+
+
+@app.post("/api/admin/suporte/{ticket_id}/fechar")
+async def admin_close_ticket(ticket_id: int, session: Optional[str] = Cookie(None)):
+    """Close a support ticket (admin only)."""
+    global _db
+    user = get_current_user(session)
+    
+    if not require_admin(user):
+        return JSONResponse({"error": "Acesso restrito"}, status_code=403)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    await _db.run(
+        "UPDATE support_ticket SET status = 'fechado', updated_at = ? WHERE id = ?",
+        (datetime.now(timezone.utc).isoformat(), ticket_id)
+    )
+    
+    return {"success": True, "message": "Ticket fechado"}
+
+
+# --- Reports API ---
+
+@app.post("/api/posts/{post_id}/relatar")
+async def relatar_post(post_id: int, request: Request, session: Optional[str] = Cookie(None)):
+    """Report a post."""
+    global _db
+    user = get_current_user(session)
+    
+    if not user:
+        return JSONResponse({"error": "Não autenticade"}, status_code=401)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    body = await request.json()
+    motivo = body.get("motivo", "").strip()
+    category = body.get("category", "outro").strip()
+    
+    if not motivo:
+        return JSONResponse({"error": "Motivo é obrigatório"}, status_code=400)
+    
+    await _db.run(
+        """INSERT INTO report (post_id, usuario_id, motivo, category, data, resolved)
+           VALUES (?, ?, ?, ?, ?, 0)""",
+        (post_id, user['user_id'], motivo, category, datetime.now(timezone.utc).isoformat())
+    )
+    
+    return {"success": True, "message": "Denúncia enviada"}
+
+
+# --- Divulgação (Featured Content) ---
+
+@app.get("/api/divulgacao")
+async def api_divulgacao(area: str = "", session: Optional[str] = Cookie(None)):
+    """Get featured content cards."""
+    global _db
+    
+    if not _db:
+        return {"divulgacoes": []}
+    
+    if area:
+        divulgacoes = await _db.execute(
+            """SELECT id, area, titulo, texto, link, imagem, ordem
+               FROM divulgacao
+               WHERE ativo = 1 AND area = ?
+               ORDER BY ordem ASC, created_at DESC
+               LIMIT 20""",
+            (area,)
+        )
+    else:
+        divulgacoes = await _db.execute(
+            """SELECT id, area, titulo, texto, link, imagem, ordem
+               FROM divulgacao
+               WHERE ativo = 1
+               ORDER BY ordem ASC, created_at DESC
+               LIMIT 20"""
+        )
+    
+    return {"divulgacoes": divulgacoes or []}
+
+
+@app.get("/api/novidades")
+async def api_novidades(session: Optional[str] = Cookie(None)):
+    """Get news/updates."""
+    global _db
+    
+    if not _db:
+        return {"novidades": []}
+    
+    novidades = await _db.execute(
+        """SELECT id, titulo, descricao, link, created_at
+           FROM edu_novidade
+           ORDER BY created_at DESC
+           LIMIT 10"""
+    )
+    
+    return {"novidades": novidades or []}
+
+
+@app.get("/novidade/{novidade_id}", response_class=HTMLResponse)
+async def novidade_detail(novidade_id: int, session: Optional[str] = Cookie(None)):
+    """View a news item detail."""
+    global _db
+    user = get_current_user(session)
+    
+    if not _db:
+        return HTMLResponse(content="<h1>Banco de dados indisponível</h1>", status_code=500)
+    
+    novidades = await _db.execute(
+        "SELECT * FROM edu_novidade WHERE id = ?",
+        (novidade_id,)
+    )
+    
+    if not novidades or len(novidades) == 0:
+        return HTMLResponse(content="<h1>Novidade não encontrada</h1>", status_code=404)
+    
+    html = render_template("novidade_detail.html",
+        session_id=session,
+        current_user=user,
+        novidade=novidades[0]
+    )
+    return HTMLResponse(content=html)
+
+
+# --- Exercise API ---
+
+@app.get("/api/exercicios/topics")
+async def api_exercise_topics(session: Optional[str] = Cookie(None)):
+    """Get exercise topics."""
+    global _db
+    
+    if not _db:
+        return {"topics": []}
+    
+    topics = await _db.execute(
+        """SELECT id, nome, descricao
+           FROM exercise_topic
+           ORDER BY nome ASC"""
+    )
+    
+    return {"topics": topics or []}
+
+
+@app.get("/api/exercicios/topics/{topic_id}/sections")
+async def api_exercise_sections(topic_id: int, session: Optional[str] = Cookie(None)):
+    """Get sections for an exercise topic."""
+    global _db
+    
+    if not _db:
+        return {"sections": []}
+    
+    sections = await _db.execute(
+        """SELECT id, nome, descricao, ordem
+           FROM exercise_section
+           WHERE topic_id = ?
+           ORDER BY ordem ASC, nome ASC""",
+        (topic_id,)
+    )
+    
+    return {"sections": sections or []}
+
+
+@app.get("/api/exercicios/topics/{topic_id}/questions")
+async def api_exercise_questions(
+    topic_id: int,
+    section_id: Optional[int] = None,
+    session: Optional[str] = Cookie(None)
+):
+    """Get questions for an exercise topic/section."""
+    global _db
+    
+    if not _db:
+        return {"questions": []}
+    
+    if section_id:
+        questions = await _db.execute(
+            """SELECT id, enunciado, resposta, dificuldade, tipo, opcoes
+               FROM exercise_question
+               WHERE topic_id = ? AND section_id = ?
+               ORDER BY id ASC""",
+            (topic_id, section_id)
+        )
+    else:
+        questions = await _db.execute(
+            """SELECT id, enunciado, resposta, dificuldade, tipo, opcoes
+               FROM exercise_question
+               WHERE topic_id = ?
+               ORDER BY id ASC""",
+            (topic_id,)
+        )
+    
+    result = []
+    for q in (questions or []):
+        opcoes = []
+        if q.get('opcoes'):
+            try:
+                opcoes = json.loads(q['opcoes'])
+            except Exception:
+                pass
+        result.append({
+            "id": q['id'],
+            "enunciado": q.get('enunciado', ''),
+            "dificuldade": q.get('dificuldade', 'medio'),
+            "tipo": q.get('tipo', 'multipla_escolha'),
+            "opcoes": opcoes
+        })
+    
+    return {"questions": result}
+
+
+@app.post("/api/exercicios/check")
+async def api_exercise_check(request: Request, session: Optional[str] = Cookie(None)):
+    """Check exercise answer."""
+    global _db
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    body = await request.json()
+    question_id = body.get("question_id")
+    answer = body.get("answer", "").strip()
+    
+    if not question_id:
+        return JSONResponse({"error": "ID da questão obrigatório"}, status_code=400)
+    
+    questions = await _db.execute(
+        "SELECT resposta FROM exercise_question WHERE id = ?",
+        (question_id,)
+    )
+    
+    if not questions or len(questions) == 0:
+        return JSONResponse({"error": "Questão não encontrada"}, status_code=404)
+    
+    correct_answer = questions[0].get('resposta', '')
+    is_correct = answer.lower().strip() == correct_answer.lower().strip()
+    
+    return {
+        "correct": is_correct,
+        "correct_answer": correct_answer if not is_correct else None
+    }
+
+
+# --- Search API ---
+
+@app.get("/api/search/suggest")
+async def api_search_suggest(q: str = "", session: Optional[str] = Cookie(None)):
+    """Search suggestions."""
+    global _db
+    
+    if not _db or not q or len(q) < 2:
+        return {"suggestions": []}
+    
+    # Search in posts
+    posts = await _db.execute(
+        """SELECT conteudo FROM post
+           WHERE (is_deleted = 0 OR is_deleted IS NULL)
+           AND conteudo LIKE ?
+           ORDER BY data DESC
+           LIMIT 5""",
+        (f"%{q}%",)
+    )
+    
+    # Search in edu content
+    edu = await _db.execute(
+        """SELECT titulo FROM edu_content
+           WHERE titulo LIKE ?
+           ORDER BY created_at DESC
+           LIMIT 5""",
+        (f"%{q}%",)
+    )
+    
+    suggestions = []
+    for p in (posts or []):
+        text = (p.get('conteudo') or '')[:50]
+        if text and text not in suggestions:
+            suggestions.append(text)
+    for e in (edu or []):
+        title = e.get('titulo', '')
+        if title and title not in suggestions:
+            suggestions.append(title)
+    
+    return {"suggestions": suggestions[:10]}
+
+
+# --- Profile Edit ---
+
+@app.post("/api/editar-perfil")
+async def editar_perfil(request: Request, session: Optional[str] = Cookie(None)):
+    """Edit user profile."""
+    global _db
+    user = get_current_user(session)
+    
+    if not user:
+        return JSONResponse({"error": "Não autenticade"}, status_code=401)
+    
+    if not _db:
+        return JSONResponse({"error": "Banco de dados indisponível"}, status_code=500)
+    
+    body = await request.json()
+    
+    nome = body.get("nome", "").strip()
+    bio = body.get("bio", "").strip()
+    genero = body.get("genero", "").strip()
+    pronome = body.get("pronome", "").strip()
+    
+    await _db.run(
+        "UPDATE user SET nome = ?, bio = ?, genero = ?, pronome = ? WHERE id = ?",
+        (nome, bio, genero, pronome, user['user_id'])
+    )
+    
+    return {"success": True, "message": "Perfil atualizado"}
+
+
+# --- Notifications (simplified) ---
+
+@app.get("/api/notifications")
+async def api_notifications(session: Optional[str] = Cookie(None)):
+    """Get user notifications (simplified - shows recent activity)."""
+    global _db
+    user = get_current_user(session)
+    
+    if not user:
+        return JSONResponse({"error": "Não autenticade"}, status_code=401)
+    
+    if not _db:
+        return {"notifications": []}
+    
+    notifications = []
+    
+    # Get recent likes on user's posts
+    likes = await _db.execute(
+        """SELECT u.username, p.id as post_id, pl.user_id
+           FROM post_likes pl
+           JOIN user u ON pl.user_id = u.id
+           JOIN post p ON pl.post_id = p.id
+           WHERE p.usuario_id = ? AND pl.user_id != ?
+           ORDER BY p.id DESC
+           LIMIT 10""",
+        (user['user_id'], user['user_id'])
+    )
+    
+    for like in (likes or []):
+        notifications.append({
+            "type": "like",
+            "message": f"@{like['username']} curtiu seu post",
+            "post_id": like['post_id']
+        })
+    
+    # Get recent comments on user's posts
+    comments = await _db.execute(
+        """SELECT u.username, c.post_id, c.data
+           FROM comentario c
+           JOIN user u ON c.usuario_id = u.id
+           JOIN post p ON c.post_id = p.id
+           WHERE p.usuario_id = ? AND c.usuario_id != ?
+           ORDER BY c.data DESC
+           LIMIT 10""",
+        (user['user_id'], user['user_id'])
+    )
+    
+    for comment in (comments or []):
+        notifications.append({
+            "type": "comment",
+            "message": f"@{comment['username']} comentou no seu post",
+            "post_id": comment['post_id'],
+            "data": comment['data']
+        })
+    
+    # Get new followers
+    followers = await _db.execute(
+        """SELECT u.username
+           FROM seguidores s
+           JOIN user u ON s.seguidor_id = u.id
+           WHERE s.seguido_id = ?
+           ORDER BY u.id DESC
+           LIMIT 5""",
+        (user['user_id'],)
+    )
+    
+    for follower in (followers or []):
+        notifications.append({
+            "type": "follow",
+            "message": f"@{follower['username']} começou a te seguir"
+        })
+    
+    return {"notifications": notifications[:20]}
+
+
+# --- Amigues (Friends) ---
+
+@app.get("/api/amigues")
+async def api_amigues(session: Optional[str] = Cookie(None)):
+    """Get mutual followers (amigues)."""
+    global _db
+    user = get_current_user(session)
+    
+    if not user:
+        return JSONResponse({"error": "Não autenticade"}, status_code=401)
+    
+    if not _db:
+        return {"amigues": []}
+    
+    # Find mutual followers (user follows them AND they follow user)
+    amigues = await _db.execute(
+        """SELECT u.id, u.username, u.nome, u.foto_perfil
+           FROM user u
+           WHERE EXISTS (
+               SELECT 1 FROM seguidores s1 
+               WHERE s1.seguidor_id = ? AND s1.seguido_id = u.id
+           )
+           AND EXISTS (
+               SELECT 1 FROM seguidores s2
+               WHERE s2.seguidor_id = u.id AND s2.seguido_id = ?
+           )
+           ORDER BY u.username ASC
+           LIMIT 50""",
+        (user['user_id'], user['user_id'])
+    )
+    
+    result = []
+    for a in (amigues or []):
+        result.append({
+            "id": a['id'],
+            "username": a['username'],
+            "nome": a.get('nome', ''),
+            "foto_perfil": a.get('foto_perfil', 'img/perfil.png')
+        })
+    
+    return {"amigues": result}
 
 
 # ============================================================================
