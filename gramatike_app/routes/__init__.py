@@ -732,7 +732,6 @@ def admin_resolve_report(report_id):
     return redirect(url_for('main.admin_denuncias'))
 
 @bp.route('/')
-@login_required
 def index():
     """Página inicial com destaques dinâmicos.
     - Edu: divulgações curadas.
@@ -1171,6 +1170,7 @@ def logout():
     return redirect(url_for('main.login'))
 
 @bp.route('/educacao')
+@login_required
 def educacao():
     # Divulgações EDU ativas (inclui avisos rápidos) — somente marcadas para Educação
     try:

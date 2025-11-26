@@ -14,7 +14,7 @@
     .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1rem 1.2rem; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); max-width:100%; box-sizing:border-box; }
     .muted { color:#666; font-weight:600; }
     .grid { display:grid; gap:1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-weight:800; letter-spacing:.3px; background:#fff; color:#6233B5; transition:all .2s ease; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-weight:800; letter-spacing:.3px; background:#fff; color:#9B5DE5; transition:all .2s ease; }
     .btn:hover { background:#f3f4f6; transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.15); }
     .btn.primary { background:#9B5DE5; color:#fff; border:none; }
     .btn.primary:hover { background:#7d3dc9; }
@@ -23,7 +23,7 @@
     .builder-actions { display:flex; gap:.4rem; flex-wrap:wrap; }
     .muted-sm { font-size:.8rem; color:#666; }
     .opt-row { display:flex; gap:.4rem; align-items:center; margin:.25rem 0; }
-    .chip { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .55rem; border-radius:14px; border:1px solid var(--border); background:#fafafa; font-size:.75rem; font-weight:800; color:#6233B5; }
+    .chip { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .55rem; border-radius:14px; border:1px solid var(--border); background:#fafafa; font-size:.75rem; font-weight:800; color:#9B5DE5; }
     
     /* Form inputs styling */
     input[type="text"], input[type="email"], input[type="file"], select, textarea { 
@@ -42,7 +42,7 @@
       box-shadow:0 0 0 3px rgba(155,93,229,.1);
     }
     
-    label { display:block; margin-bottom:.3rem; font-weight:800; color:#6233B5; font-size:.85rem; }
+    label { display:block; margin-bottom:.3rem; font-weight:800; color:#9B5DE5; font-size:.85rem; }
     
     /* Mobile improvements */
     @media (max-width: 768px) {
@@ -80,7 +80,7 @@
       </div>
     {% else %}
       <div class="card" style="margin-bottom:1rem;">
-        <h2 style="margin:0 0 1rem; font-size:1.3rem; color:#6233B5; font-weight:700;">Criar dinâmica</h2>
+        <h2 style="margin:0 0 1rem; font-size:1.3rem; color:#9B5DE5; font-weight:700;">Criar dinâmica</h2>
         <form id="dynCreateForm" method="POST" action="{{ url_for('main.dinamicas_create') }}" enctype="multipart/form-data" style="display:grid; gap:.9rem; grid-template-columns:1fr; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
           <div>
@@ -132,7 +132,7 @@
         </form>
       </div>
       <div class="card">
-        <h3 style="margin:.2rem 0 .8rem; color:#6233B5; font-weight:700;">Minhas dinâmicas</h3>
+        <h3 style="margin:.2rem 0 .8rem; color:#9B5DE5; font-weight:700;">Minhas dinâmicas</h3>
         {% if (my_dynamics or [])|length == 0 %}
           <p class="muted">Nenhuma dinâmica criada ainda.</p>
         {% else %}
@@ -224,12 +224,12 @@
             <div style="margin-top:.5rem;">
               <label style="font-weight:600; display:block;">Resposta Correta Principal</label>
               <input type="text" data-k="resposta_correta" value="${item.resposta_correta||''}" style="width:100%;" placeholder="Ex: não-binário" />
-              <div class="muted-sm" style="margin-top:.3rem;">💡 Digite a resposta principal. Variações serão aceitas automaticamente.</div>
+              <div class="muted-sm" style="margin-top:.3rem;">Dica: Digite a resposta principal. Variações serão aceitas automaticamente.</div>
             </div>
             <div style="margin-top:.5rem;">
               <label style="font-weight:600; display:block;">Respostas Alternativas (opcional)</label>
               <input type="text" data-k="alternativas" value="${(item.alternativas||[]).join(', ')}" style="width:100%;" placeholder="Ex: nb, nao binario, enby" />
-              <div class="muted-sm" style="margin-top:.3rem;">💡 Separe com vírgula. Aceita variações de gênero, acentos e abreviações.</div>
+              <div class="muted-sm" style="margin-top:.3rem;">Dica: Separe com vírgula. Aceita variações de gênero, acentos e abreviações.</div>
             </div>
           </div>`;
         

@@ -14,7 +14,7 @@
     .logo { font-family:'Mansalva', cursive; font-size:2.4rem; color:#fff; font-weight:400; margin:0; }
     main { width:100%; max-width:980px; margin:2rem auto 4rem; padding:0 clamp(16px,4vw,40px); }
     .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1rem 1.2rem; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); }
-    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-weight:800; letter-spacing:.3px; background:#fff; color:#6233B5; text-decoration:none; transition:all .2s; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-weight:800; letter-spacing:.3px; background:#fff; color:#9B5DE5; text-decoration:none; transition:all .2s; }
     .btn:hover { background:#f7f2ff; transform:translateY(-1px); }
     .btn.primary { background:#9B5DE5; color:#fff; border:none; box-shadow:0 4px 12px rgba(155,93,229,.3); }
     .btn.primary:hover { background:#7d3dc9; transform:translateY(-1px); box-shadow:0 6px 16px rgba(155,93,229,.4); }
@@ -25,10 +25,10 @@
     .builder-actions { display:flex; gap:.6rem; margin-top:1rem; }
     .muted-sm { font-size:.8rem; color:#666; }
     .opt-row { display:flex; gap:.4rem; align-items:center; margin:.25rem 0; }
-    .chip { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .55rem; border-radius:14px; border:1px solid var(--border); background:#fafafa; font-size:.75rem; font-weight:800; color:#6233B5; }
+    .chip { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .55rem; border-radius:14px; border:1px solid var(--border); background:#fafafa; font-size:.75rem; font-weight:800; color:#9B5DE5; }
     input[type="text"], textarea, select { border:1px solid var(--border); border-radius:8px; padding:.6rem .75rem; font-family:'Nunito', sans-serif; font-size:.9rem; transition:border .2s; }
     input[type="text"]:focus, textarea:focus, select:focus { outline:none; border-color:#9B5DE5; box-shadow:0 0 0 3px rgba(155,93,229,.1); }
-    label { display:block; font-weight:700; color:#6233B5; margin-bottom:.4rem; font-size:.85rem; }
+    label { display:block; font-weight:700; color:#9B5DE5; margin-bottom:.4rem; font-size:.85rem; }
     @media (max-width: 768px) {
       header.site-head { padding:12px 16px 18px; }
       .logo { font-size:1.5rem; }
@@ -42,7 +42,7 @@
   </header>
   <main>
     <div class="card">
-      <h2 style="margin:0 0 .6rem; font-size:1.2rem; color:#6233B5;">Editar "{{ d.titulo }}"</h2>
+      <h2 style="margin:0 0 .6rem; font-size:1.2rem; color:#9B5DE5;">Editar "{{ d.titulo }}"</h2>
       <form id="dynEditForm" method="POST" action="{{ url_for('main.dinamica_update', dyn_id=d.id) }}" enctype="multipart/form-data" style="display:grid; gap:.6rem; grid-template-columns:1fr; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
         
@@ -51,15 +51,15 @@
           <div class="muted-sm" style="margin-top:.3rem;">O tipo da dinâmica não pode ser alterado após criação.</div>
         </div>
         
-        <label style="font-weight:800; color:#6233B5;">Título</label>
+        <label style="font-weight:800; color:#9B5DE5;">Título</label>
         <input type="text" name="titulo" value="{{ d.titulo }}" required />
         
-        <label style="font-weight:800; color:#6233B5;">Descrição (opcional)</label>
+        <label style="font-weight:800; color:#9B5DE5;">Descrição (opcional)</label>
         <textarea name="descricao" rows="2">{{ d.descricao or '' }}</textarea>
         
         {% if d.tipo == 'poll' %}
         <div id="poll_opts">
-          <label style="font-weight:800; color:#6233B5;">Opções (1 por linha)</label>
+          <label style="font-weight:800; color:#9B5DE5;">Opções (1 por linha)</label>
           <textarea name="opcoes" rows="3" placeholder="Opção A&#10;Opção B">{{ '\n'.join(cfg.get('options', [])) }}</textarea>
         </div>
         {% elif d.tipo == 'form' %}
@@ -74,9 +74,9 @@
         {% elif d.tipo == 'quemsouleu' %}
         <div id="quemsouleu_builder">
           <div class="muted-sm">Edite os itens da dinâmica "Quem soul eu"</div>
-          <label style="font-weight:800; color:#6233B5; margin-top:.8rem;">O que a pessoa deve descobrir?</label>
+          <label style="font-weight:800; color:#9B5DE5; margin-top:.8rem;">O que a pessoa deve descobrir?</label>
           <input type="text" name="questao_tipo" id="questao_tipo" value="{{ cfg.get('questao_tipo', '') }}" placeholder="Ex: gênero, orientação sexual, pronome..." />
-          <label style="font-weight:800; color:#6233B5; margin-top:.8rem;">Moral/Mensagem Final</label>
+          <label style="font-weight:800; color:#9B5DE5; margin-top:.8rem;">Moral/Mensagem Final</label>
           <textarea name="moral" id="moral" rows="3" placeholder="Mensagem que aparecerá ao final da dinâmica...">{{ cfg.get('moral', '') }}</textarea>
           <div id="items_list" style="margin-top:1rem;"></div>
           <div class="builder-actions">
@@ -233,12 +233,12 @@
             <div style="margin-top:.3rem;">
               <label>Resposta Correta Principal</label>
               <input type="text" data-k="resposta_correta" value="${item.resposta_correta||''}" style="width:100%;" placeholder="Ex: não-binário" />
-              <div class="muted-sm" style="margin-top:.3rem;">💡 Digite a resposta principal. Variações serão aceitas automaticamente.</div>
+              <div class="muted-sm" style="margin-top:.3rem;">Dica: Digite a resposta principal. Variações serão aceitas automaticamente.</div>
             </div>
             <div>
               <label>Respostas Alternativas Aceitas (opcional)</label>
               <input type="text" data-k="alternativas" value="${(item.alternativas||[]).join(', ')}" style="width:100%;" placeholder="Ex: nb, nao binario, não binaria, enby" />
-              <div class="muted-sm" style="margin-top:.3rem;">💡 Separe com vírgula. Aceita variações de gênero, acentos e abreviações.</div>
+              <div class="muted-sm" style="margin-top:.3rem;">Dica: Separe com vírgula. Aceita variações de gênero, acentos e abreviações.</div>
             </div>
           </div>`;
         

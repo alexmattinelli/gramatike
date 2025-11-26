@@ -29,7 +29,7 @@
     .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1rem 1.2rem; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); max-width:100%; box-sizing:border-box; }
     .muted { color:#666; font-weight:600; }
     .options { display:grid; gap:.5rem; }
-    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito'; font-weight:800; letter-spacing:.3px; background:#fff; color:#6233B5; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito'; font-weight:800; letter-spacing:.3px; background:#fff; color:#9B5DE5; }
     .btn.primary { background:#9B5DE5; color:#fff; border:none; }
   /* Word cloud - texto puro, sem pills */
   .cloud { display:flex; flex-wrap:wrap; gap:.5rem .8rem; align-items:flex-end; justify-content:center; margin-top:1rem; padding:1.2rem; background:rgba(155,93,229,0.03); border-radius:16px; border:1px solid rgba(155,93,229,0.1); overflow-wrap:break-word; word-wrap:break-word; max-width:100%; box-sizing:border-box; }
@@ -37,7 +37,7 @@
   /* Poll bars */
   .poll-bars { display:flex; flex-direction:column; gap:.45rem; margin-top:.5rem; max-width:100%; }
   .poll-row { display:flex; align-items:center; gap:.6rem; max-width:100%; flex-wrap:nowrap; }
-  .poll-label { min-width:120px; font-weight:800; color:#6233B5; font-size:.8rem; overflow-wrap:break-word; flex-shrink:0; }
+  .poll-label { min-width:120px; font-weight:800; color:#9B5DE5; font-size:.8rem; overflow-wrap:break-word; flex-shrink:0; }
   .poll-bar { flex:1; min-width:0; height:14px; background:#f1edf9; border:1px solid #e1d4fb; border-radius:999px; overflow:hidden; }
   .poll-fill { height:100%; background:#9B5DE5; border-radius:999px; }
   .poll-pct { width:46px; text-align:right; font-size:.75rem; font-weight:800; color:#555; flex-shrink:0; }
@@ -215,12 +215,12 @@
             <button class="btn primary" id="verRespostasBtn">Ver Minhas Respostas</button>
           </div>
           <div id="respostasDiv" style="display:none; margin-top:1rem;">
-            <h3 style="margin-top:1.5rem; margin-bottom:1rem; color:#6233B5;">Suas Respostas</h3>
+            <h3 style="margin-top:1.5rem; margin-bottom:1rem; color:#9B5DE5;">Suas Respostas</h3>
             {% set items = cfg.get('items', []) %}
             {% set respostas = user_response.respostas %}
             {% for item in items %}
               <div class="builder-card" style="margin-bottom:.8rem;">
-                <div style="font-weight:700; color:#6233B5; margin-bottom:.5rem;">Item {{ loop.index }}</div>
+                <div style="font-weight:700; color:#9B5DE5; margin-bottom:.5rem;">Item {{ loop.index }}</div>
                 {% if item.tipo == 'frase' %}
                   <p style="margin:.3rem 0;"><em>"{{ item.conteudo }}"</em></p>
                 {% else %}
@@ -232,7 +232,7 @@
               </div>
             {% endfor %}
             <div style="background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; padding:1rem; margin-top:1.5rem;">
-              <h4 style="margin:0 0 .5rem; color:#6233B5;">💡 Moral da História</h4>
+              <h4 style="margin:0 0 .5rem; color:#9B5DE5; display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Moral da História</h4>
               <p style="margin:0;">{{ cfg.get('moral', '') }}</p>
             </div>
           </div>
@@ -246,7 +246,7 @@
         {% else %}
           <div id="quemsouleuInstrucoes">
             <div style="background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; padding:1rem; margin-bottom:1rem;">
-              <h3 style="margin:0 0 .5rem; color:#6233B5;">📝 Instruções</h3>
+              <h3 style="margin:0 0 .5rem; color:#9B5DE5;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Instruções</h3>
               <p style="margin:0;">Você verá {{ cfg.get('items', [])|length }} {% if cfg.get('items', [])|length == 1 %}item{% else %}itens{% endif %} (frases ou fotos). Para cada um, digite sua resposta sobre: <strong>{{ cfg.get('questao_tipo', '') }}</strong></p>
             </div>
             <button class="btn primary" id="iniciarBtn">Começar</button>
@@ -276,7 +276,7 @@
               var item = items[idx];
               var div = document.getElementById('itemAtual');
               var html = '<div class="builder-card" style="text-align:center;">';
-              html += '<div style="font-weight:700; color:#6233B5; margin-bottom:.8rem;">Item ' + (idx+1) + ' de ' + items.length + '</div>';
+              html += '<div style="font-weight:700; color:#9B5DE5; margin-bottom:.8rem;">Item ' + (idx+1) + ' de ' + items.length + '</div>';
               
               if(item.tipo === 'frase'){
                 html += '<p style="font-size:1.2rem; margin:1rem 0; font-weight:600;"><em>"' + item.conteudo + '"</em></p>';
@@ -349,7 +349,7 @@
       {% endif %}
     </div>
   </main>
-  <footer style="background:#9B5DE5; color:#fff; text-align:center; padding:1rem 0 1.1rem; font-size:.8rem; border-top-left-radius:28px; border-top-right-radius:28px; margin-top:40px;">© 2025 Gramátike • Inclusão e Gênero Neutro</footer>
+  <footer style="background:#9B5DE5; color:#fff; text-align:center; padding:1rem 0 1.1rem; font-size:.8rem; border-top-left-radius:28px; border-top-right-radius:28px; margin-top:40px;">© 2025 Gramátike • Linguagem Viva e de Todes</footer>
   <style>@media (max-width: 980px){ footer { display:none !important; } }</style>
 </body>
 </html>
