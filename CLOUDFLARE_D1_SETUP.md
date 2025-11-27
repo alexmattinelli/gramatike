@@ -168,11 +168,16 @@ gramatike/
 ├── index.py              # Entry point do Cloudflare Worker
 ├── wrangler.toml         # Configuração do Worker (inclui D1)
 ├── schema.d1.sql         # Schema do banco de dados D1
-├── workers/
+├── gramatike_d1/         # Módulos D1 (renomeado de 'workers/' para evitar conflito)
 │   ├── __init__.py      # Exports dos módulos
 │   ├── db.py            # Funções de banco de dados D1
-│   └── auth.py          # Autenticação com D1
+│   ├── auth.py          # Autenticação com D1
+│   └── routes.py        # Handlers de rotas
 ```
+
+**NOTA**: O diretório foi renomeado de `workers/` para `gramatike_d1/` para evitar
+conflito com o módulo `workers` built-in do Cloudflare Workers Python, que fornece
+`WorkerEntrypoint` e `Response`.
 
 ## Variáveis de Ambiente
 

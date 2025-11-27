@@ -8,12 +8,18 @@
 # Usa linguagem neutra (usuáries, seguidories, amigues).
 
 import json
+import sys
 from urllib.parse import urlparse, parse_qs
+
+# NOTA: Este 'workers' é o módulo built-in do Cloudflare Workers Python,
+# NÃO a pasta local (que foi renomeada para 'gramatike_d1').
 from workers import WorkerEntrypoint, Response
 
 # Importar módulos de banco de dados e autenticação
+# NOTA: Usamos 'gramatike_d1' em vez de 'workers' para evitar conflito com o
+# módulo 'workers' built-in do Cloudflare Workers Python (que fornece WorkerEntrypoint e Response)
 try:
-    from workers.db import (
+    from gramatike_d1.db import (
         # Posts e interações
         get_posts, get_post_by_id, create_post, delete_post, like_post, unlike_post, has_liked,
         get_comments, create_comment,
@@ -83,12 +89,14 @@ try:
         # Feature flags
         get_feature_flag, get_all_feature_flags, update_feature_flag
     )
-    from workers.auth import (
+    from gramatike_d1.auth import (
         get_current_user, login, logout, register,
         set_session_cookie, clear_session_cookie
     )
     DB_AVAILABLE = True
-except ImportError:
+except ImportError as e:
+    # Log the specific import error for debugging
+    print(f"[D1 Import Error] {e}", file=sys.stderr)
     DB_AVAILABLE = False
 
 

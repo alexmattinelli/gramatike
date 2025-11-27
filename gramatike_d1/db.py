@@ -1,6 +1,9 @@
-# workers/db.py
+# gramatike_d1/db.py
 # Database helpers para Cloudflare D1
 # Este módulo fornece funções para interagir com o D1 SQLite
+#
+# NOTA: Renomeado de 'workers/' para 'gramatike_d1/' para evitar conflito
+# com o módulo 'workers' built-in do Cloudflare Workers Python.
 
 import json
 from datetime import datetime, timedelta

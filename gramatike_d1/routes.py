@@ -1,6 +1,9 @@
-# workers/routes.py
+# gramatike_d1/routes.py
 # Rotas da API para Cloudflare Workers
 # Este módulo contém handlers para todas as rotas da aplicação
+#
+# NOTA: Renomeado de 'workers/' para 'gramatike_d1/' para evitar conflito
+# com o módulo 'workers' built-in do Cloudflare Workers Python.
 
 import json
 from urllib.parse import parse_qs
