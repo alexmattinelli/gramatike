@@ -14,7 +14,7 @@ from urllib.parse import urlparse, parse_qs
 
 # Versão do código - usado para tracking de deployment
 # Atualize este valor a cada commit para verificar se o deploy foi feito
-SCRIPT_VERSION = "v2025.11.27.a"
+SCRIPT_VERSION = "v2025.11.27.b"
 
 # NOTA: Este 'workers' é o módulo built-in do Cloudflare Workers Python,
 # NÃO a pasta local (que foi renomeada para 'gramatike_d1').
@@ -734,6 +734,46 @@ class Default(WorkerEntrypoint):
                 "script_version": SCRIPT_VERSION,
                 "features": ["D1 Database", "Auth", "Posts", "Education"]
             })
+        
+        # Endpoint de diagnóstico do banco de dados
+        if path == '/api/db-status':
+            if not db or not DB_AVAILABLE:
+                return json_response({
+                    "status": "unavailable",
+                    "db_available": False,
+                    "script_version": SCRIPT_VERSION
+                }, 503)
+            
+            try:
+                # Contar usuários
+                user_count_result = await db.prepare("SELECT COUNT(*) as count FROM user").first()
+                user_count = user_count_result['count'] if user_count_result else 0
+                
+                # Verificar se superadmin existe
+                superadmin = await db.prepare(
+                    "SELECT id, username FROM user WHERE is_superadmin = 1 LIMIT 1"
+                ).first()
+                
+                # Verificar se usuário 'gramatike' existe
+                gramatike_user = await db.prepare(
+                    "SELECT id, username, is_admin, is_superadmin FROM user WHERE username = 'gramatike' LIMIT 1"
+                ).first()
+                
+                return json_response({
+                    "status": "ok",
+                    "db_available": True,
+                    "script_version": SCRIPT_VERSION,
+                    "user_count": user_count,
+                    "superadmin_exists": superadmin is not None,
+                    "superadmin_username": dict(superadmin)['username'] if superadmin else None,
+                    "gramatike_user": dict(gramatike_user) if gramatike_user else None
+                })
+            except Exception as e:
+                return json_response({
+                    "status": "error",
+                    "error": str(e),
+                    "script_version": SCRIPT_VERSION
+                }, 500)
         
         # Se DB não disponível, retorna erro
         if not db or not DB_AVAILABLE:
