@@ -6,6 +6,8 @@
 # com o módulo 'workers' built-in do Cloudflare Workers Python.
 
 import json
+import sys
+import traceback
 from datetime import datetime, timedelta
 import hashlib
 import secrets
@@ -37,20 +39,23 @@ def safe_dict(result):
     
     try:
         # Standard dict conversion
-        return dict(result)
-    except TypeError:
+        converted = dict(result)
+        return converted
+    except TypeError as te:
+        print(f"[safe_dict] TypeError ao converter resultado: {te}, result type: {type(result)}", file=sys.stderr, flush=True)
         # Fallback: if the result has keys() method, iterate manually
         try:
             if hasattr(result, 'keys'):
                 keys = result.keys()
                 if keys:
                     return {k: result[k] for k in keys}
-        except Exception:
-            pass
-    except Exception:
-        pass
+        except Exception as e2:
+            print(f"[safe_dict] Fallback também falhou: {e2}", file=sys.stderr, flush=True)
+    except Exception as e:
+        print(f"[safe_dict] Exception ao converter resultado: {e}, result type: {type(result)}", file=sys.stderr, flush=True)
     
     # Return None if conversion fails
+    print(f"[safe_dict] Retornando None para result: {result}", file=sys.stderr, flush=True)
     return None
 
 
@@ -69,6 +74,8 @@ async def ensure_database_initialized(db):
     global _db_initialized
     if _db_initialized:
         return True
+    
+    print("[D1 Init] Iniciando verificação do banco de dados...", file=sys.stderr, flush=True)
     
     try:
         # Criar tabela de usuáries se não existir
@@ -288,25 +295,51 @@ async def ensure_database_initialized(db):
             "SELECT id FROM user WHERE is_superadmin = 1 LIMIT 1"
         ).first()
         
+        print(f"[D1 Init] Superadmin check result: {superadmin}", file=sys.stderr, flush=True)
+        
         if not superadmin:
-            # Criar senha hasheada para o superadmin
-            salt = secrets.token_hex(16)
-            password = "GramatikeAdmin2024!"
-            hashed = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
-            password_hash = f"{salt}:{hashed.hex()}"
+            # Verificar se o usuário 'gramatike' já existe (sem ser superadmin)
+            existing_user = await db.prepare(
+                "SELECT id, username, is_superadmin FROM user WHERE username = 'gramatike' LIMIT 1"
+            ).first()
             
-            await db.prepare("""
-                INSERT INTO user (username, email, password, nome, is_admin, is_superadmin, created_at)
-                VALUES (?, ?, ?, ?, 1, 1, datetime('now'))
-            """).bind('gramatike', 'admin@gramatike.com.br', password_hash, 'Gramátike Admin').run()
-            
-            print("[D1] Superadmin 'gramatike' criado automaticamente!")
+            if existing_user:
+                print(f"[D1 Init] Usuário 'gramatike' já existe: {existing_user}", file=sys.stderr, flush=True)
+                # Se existe mas não é superadmin, promover a superadmin
+                await db.prepare("""
+                    UPDATE user SET is_admin = 1, is_superadmin = 1 WHERE username = 'gramatike'
+                """).run()
+                print("[D1 Init] Usuário 'gramatike' promovido a superadmin!", file=sys.stderr, flush=True)
+            else:
+                # Criar senha hasheada para o superadmin
+                salt = secrets.token_hex(16)
+                password = "GramatikeAdmin2024!"
+                hashed = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+                password_hash = f"{salt}:{hashed.hex()}"
+                
+                try:
+                    await db.prepare("""
+                        INSERT INTO user (username, email, password, nome, is_admin, is_superadmin, created_at)
+                        VALUES (?, ?, ?, ?, 1, 1, datetime('now'))
+                    """).bind('gramatike', 'admin@gramatike.com.br', password_hash, 'Gramátike Admin').run()
+                    
+                    print("[D1 Init] Superadmin 'gramatike' criado automaticamente!", file=sys.stderr, flush=True)
+                except Exception as insert_error:
+                    print(f"[D1 Init Error] Falha ao criar superadmin: {insert_error}", file=sys.stderr, flush=True)
+        else:
+            print("[D1 Init] Superadmin já existe, pulando criação.", file=sys.stderr, flush=True)
+        
+        # Verificar quantos usuários existem no banco
+        user_count = await db.prepare("SELECT COUNT(*) as count FROM user").first()
+        print(f"[D1 Init] Total de usuários no banco: {user_count}", file=sys.stderr, flush=True)
         
         _db_initialized = True
+        print("[D1 Init] Inicialização concluída com sucesso!", file=sys.stderr, flush=True)
         return True
         
     except Exception as e:
-        print(f"[D1 Init Error] {e}")
+        print(f"[D1 Init Error] {e}", file=sys.stderr, flush=True)
+        print(f"[D1 Init Traceback] {traceback.format_exc()}", file=sys.stderr, flush=True)
         return False
 
 
@@ -435,12 +468,19 @@ async def get_user_by_id(db, user_id):
 
 async def get_user_by_username(db, username):
     """Busca ê usuárie por username."""
-    result = await db.prepare(
-        "SELECT * FROM user WHERE username = ?"
-    ).bind(username).first()
-    if result:
-        return safe_dict(result)
-    return None
+    try:
+        result = await db.prepare(
+            "SELECT * FROM user WHERE username = ?"
+        ).bind(username).first()
+        print(f"[get_user_by_username] Query result for '{username}': {result}, type: {type(result)}", file=sys.stderr, flush=True)
+        if result:
+            converted = safe_dict(result)
+            print(f"[get_user_by_username] safe_dict result: {converted is not None}", file=sys.stderr, flush=True)
+            return converted
+        return None
+    except Exception as e:
+        print(f"[get_user_by_username] Error: {e}", file=sys.stderr, flush=True)
+        return None
 
 
 async def get_user_by_email(db, email):
