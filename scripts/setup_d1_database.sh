@@ -8,6 +8,10 @@ echo "🗄️  Gramátike - Configuração do Banco de Dados D1"
 echo "================================================="
 echo ""
 
+# Detectar diretório do script e raiz do projeto
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 # Verificar se wrangler está instalado
 if ! command -v wrangler &> /dev/null; then
     echo "❌ Wrangler CLI não encontrado."
@@ -42,14 +46,15 @@ else
     echo ""
 fi
 
-# Verificar se o schema existe
-SCHEMA_FILE="./schema.d1.sql"
+# Encontrar o arquivo schema
+SCHEMA_FILE="$PROJECT_ROOT/schema.d1.sql"
 if [ ! -f "$SCHEMA_FILE" ]; then
-    SCHEMA_FILE="../schema.d1.sql"
+    SCHEMA_FILE="./schema.d1.sql"
 fi
 
 if [ ! -f "$SCHEMA_FILE" ]; then
     echo "❌ Arquivo schema.d1.sql não encontrado!"
+    echo "   Procurado em: $PROJECT_ROOT/schema.d1.sql"
     echo "   Certifique-se de estar no diretório raiz do projeto."
     exit 1
 fi
@@ -68,6 +73,7 @@ echo ""
 
 # Verificar tabelas criadas
 echo "📊 Verificando tabelas criadas..."
+echo "   (Listando tabelas no banco de dados)"
 echo ""
 wrangler d1 execute "$DB_NAME" --command="SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
 
