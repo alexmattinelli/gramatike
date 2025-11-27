@@ -6,6 +6,8 @@
 # com o módulo 'workers' built-in do Cloudflare Workers Python.
 
 import json
+import sys
+import traceback
 from datetime import datetime, timedelta
 import hashlib
 import secrets
@@ -32,8 +34,6 @@ def safe_dict(result):
     Handles potential edge cases where the D1 result object might not
     directly support dict() conversion.
     """
-    import sys
-    
     if result is None:
         return None
     
@@ -75,7 +75,6 @@ async def ensure_database_initialized(db):
     if _db_initialized:
         return True
     
-    import sys
     print("[D1 Init] Iniciando verificação do banco de dados...", file=sys.stderr, flush=True)
     
     try:
@@ -339,7 +338,6 @@ async def ensure_database_initialized(db):
         return True
         
     except Exception as e:
-        import traceback
         print(f"[D1 Init Error] {e}", file=sys.stderr, flush=True)
         print(f"[D1 Init Traceback] {traceback.format_exc()}", file=sys.stderr, flush=True)
         return False
@@ -470,7 +468,6 @@ async def get_user_by_id(db, user_id):
 
 async def get_user_by_username(db, username):
     """Busca ê usuárie por username."""
-    import sys
     try:
         result = await db.prepare(
             "SELECT * FROM user WHERE username = ?"
