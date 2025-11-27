@@ -2514,6 +2514,7 @@ def esqueci_senha():
 @bp.route('/cadastro', methods=['GET', 'POST'])
 def cadastro():
     if request.method == 'POST':
+        nome = request.form.get('nome', '').strip()
         username = request.form['username']
         email = request.form['email']
 
@@ -2555,6 +2556,7 @@ def cadastro():
 
         # Cria o novo usuário
         novo_usuario = User(
+            nome=nome if nome else None,
             username=username,
             email=email,
             genero=genero,

@@ -27,6 +27,262 @@ def rows_to_list(rows, columns):
 
 
 # ============================================================================
+# AUTO-INICIALIZAÇÃO DO BANCO DE DADOS
+# ============================================================================
+
+# Flag para controlar se já inicializamos o banco nesta execução
+_db_initialized = False
+
+async def ensure_database_initialized(db):
+    """
+    Garante que as tabelas do banco existem e cria um superadmin padrão se necessário.
+    Esta função é idempotente - pode ser chamada múltiplas vezes sem problemas.
+    """
+    global _db_initialized
+    if _db_initialized:
+        return True
+    
+    try:
+        # Criar tabela de usuários se não existir
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS user (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome TEXT,
+                username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                email_confirmed INTEGER DEFAULT 0,
+                email_confirmed_at TEXT,
+                foto_perfil TEXT DEFAULT 'img/perfil.png',
+                genero TEXT,
+                pronome TEXT,
+                bio TEXT,
+                data_nascimento TEXT,
+                created_at TEXT DEFAULT (datetime('now')),
+                is_admin INTEGER DEFAULT 0,
+                is_superadmin INTEGER DEFAULT 0,
+                is_banned INTEGER DEFAULT 0,
+                banned_at TEXT,
+                ban_reason TEXT,
+                suspended_until TEXT
+            )
+        """).run()
+        
+        # Criar tabela de sessões
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS user_session (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                token TEXT UNIQUE NOT NULL,
+                created_at TEXT DEFAULT (datetime('now')),
+                expires_at TEXT NOT NULL,
+                user_agent TEXT,
+                ip_address TEXT,
+                FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+            )
+        """).run()
+        
+        # Criar tabela de posts
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS post (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                usuario TEXT,
+                usuario_id INTEGER,
+                conteudo TEXT,
+                imagem TEXT,
+                data TEXT DEFAULT (datetime('now')),
+                is_deleted INTEGER DEFAULT 0,
+                deleted_at TEXT,
+                deleted_by INTEGER,
+                FOREIGN KEY (usuario_id) REFERENCES user(id),
+                FOREIGN KEY (deleted_by) REFERENCES user(id)
+            )
+        """).run()
+        
+        # Criar tabela de likes
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS post_likes (
+                user_id INTEGER NOT NULL,
+                post_id INTEGER NOT NULL,
+                created_at TEXT DEFAULT (datetime('now')),
+                PRIMARY KEY (user_id, post_id),
+                FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
+                FOREIGN KEY (post_id) REFERENCES post(id) ON DELETE CASCADE
+            )
+        """).run()
+        
+        # Criar tabela de comentários
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS comentario (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                usuario_id INTEGER,
+                conteudo TEXT,
+                post_id INTEGER,
+                data TEXT DEFAULT (datetime('now')),
+                FOREIGN KEY (usuario_id) REFERENCES user(id),
+                FOREIGN KEY (post_id) REFERENCES post(id) ON DELETE CASCADE
+            )
+        """).run()
+        
+        # Criar tabela de seguidores
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS seguidores (
+                seguidor_id INTEGER NOT NULL,
+                seguido_id INTEGER NOT NULL,
+                created_at TEXT DEFAULT (datetime('now')),
+                PRIMARY KEY (seguidor_id, seguido_id),
+                FOREIGN KEY (seguidor_id) REFERENCES user(id) ON DELETE CASCADE,
+                FOREIGN KEY (seguido_id) REFERENCES user(id) ON DELETE CASCADE
+            )
+        """).run()
+        
+        # Criar tabela de conteúdo educacional
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS edu_content (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tipo TEXT NOT NULL,
+                titulo TEXT NOT NULL,
+                resumo TEXT,
+                corpo TEXT,
+                url TEXT,
+                file_path TEXT,
+                extra TEXT,
+                created_at TEXT DEFAULT (datetime('now')),
+                author_id INTEGER,
+                topic_id INTEGER,
+                FOREIGN KEY (author_id) REFERENCES user(id)
+            )
+        """).run()
+        
+        # Criar tabela de dinâmicas
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS dynamic (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tipo TEXT NOT NULL,
+                titulo TEXT NOT NULL,
+                descricao TEXT,
+                config TEXT,
+                active INTEGER DEFAULT 1,
+                created_at TEXT DEFAULT (datetime('now')),
+                created_by INTEGER,
+                FOREIGN KEY (created_by) REFERENCES user(id)
+            )
+        """).run()
+        
+        # Criar tabela de respostas de dinâmicas
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS dynamic_response (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                dynamic_id INTEGER NOT NULL,
+                usuario_id INTEGER,
+                payload TEXT,
+                created_at TEXT DEFAULT (datetime('now')),
+                FOREIGN KEY (dynamic_id) REFERENCES dynamic(id) ON DELETE CASCADE,
+                FOREIGN KEY (usuario_id) REFERENCES user(id)
+            )
+        """).run()
+        
+        # Criar tabela de tópicos de exercícios
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS exercise_topic (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome TEXT NOT NULL UNIQUE,
+                descricao TEXT,
+                created_at TEXT DEFAULT (datetime('now'))
+            )
+        """).run()
+        
+        # Criar tabela de questões
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS exercise_question (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                topic_id INTEGER NOT NULL,
+                section_id INTEGER,
+                enunciado TEXT NOT NULL,
+                resposta TEXT,
+                dificuldade TEXT,
+                tipo TEXT,
+                opcoes TEXT,
+                created_at TEXT DEFAULT (datetime('now')),
+                FOREIGN KEY (topic_id) REFERENCES exercise_topic(id)
+            )
+        """).run()
+        
+        # Criar tabela de palavra do dia
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS palavra_do_dia (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                palavra TEXT NOT NULL,
+                significado TEXT NOT NULL,
+                ordem INTEGER DEFAULT 0,
+                ativo INTEGER DEFAULT 1,
+                created_at TEXT DEFAULT (datetime('now')),
+                created_by INTEGER,
+                FOREIGN KEY (created_by) REFERENCES user(id)
+            )
+        """).run()
+        
+        # Criar tabela de divulgação
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS divulgacao (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                area TEXT NOT NULL,
+                titulo TEXT NOT NULL,
+                texto TEXT,
+                link TEXT,
+                imagem TEXT,
+                ordem INTEGER DEFAULT 0,
+                ativo INTEGER DEFAULT 1,
+                show_on_edu INTEGER DEFAULT 1,
+                show_on_index INTEGER DEFAULT 1,
+                edu_content_id INTEGER,
+                post_id INTEGER,
+                created_at TEXT DEFAULT (datetime('now')),
+                updated_at TEXT DEFAULT (datetime('now'))
+            )
+        """).run()
+        
+        # Criar tabela de novidades
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS edu_novidade (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                titulo TEXT NOT NULL,
+                descricao TEXT,
+                link TEXT,
+                created_at TEXT DEFAULT (datetime('now')),
+                author_id INTEGER,
+                FOREIGN KEY (author_id) REFERENCES user(id)
+            )
+        """).run()
+        
+        # Verificar se existe superadmin, se não, criar um
+        superadmin = await db.prepare(
+            "SELECT id FROM user WHERE is_superadmin = 1 LIMIT 1"
+        ).first()
+        
+        if not superadmin:
+            # Criar senha hasheada para o superadmin
+            salt = secrets.token_hex(16)
+            password = "GramatikeAdmin2024!"
+            hashed = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+            password_hash = f"{salt}:{hashed.hex()}"
+            
+            await db.prepare("""
+                INSERT INTO user (username, email, password, nome, is_admin, is_superadmin, created_at)
+                VALUES (?, ?, ?, ?, 1, 1, datetime('now'))
+            """).bind('gramatike', 'admin@gramatike.com.br', password_hash, 'Gramátike Admin').run()
+            
+            print("[D1] Superadmin 'gramatike' criado automaticamente!")
+        
+        _db_initialized = True
+        return True
+        
+    except Exception as e:
+        print(f"[D1 Init Error] {e}")
+        return False
+
+
+# ============================================================================
 # AUTENTICAÇÃO
 # ============================================================================
 
