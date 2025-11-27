@@ -1150,15 +1150,47 @@ def admin_educontent_search():
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        ident = (request.form.get('email') or '').strip()
-        pwd = request.form.get('password') or ''
-        from sqlalchemy import or_
-        user = User.query.filter(or_(User.email == ident, User.username == ident)).first()
-        # Verifica via hash seguro
-        if user and user.check_password(pwd):
-            login_user(user)
-            return redirect(url_for('main.index'))
-        flash('Login inválido.')
+        try:
+            ident = (request.form.get('email') or '').strip()
+            pwd = request.form.get('password') or ''
+            print(f'[Login] Tentativa: {ident}')
+            
+            from sqlalchemy import or_
+            user = User.query.filter(or_(User.email == ident, User.username == ident)).first()
+            
+            if not user:
+                print(f'[Login] Usuário não encontrado: {ident}')
+                flash('Login inválido. Verifique seu usuário/email e senha.', 'error')
+                return render_template('login.html')
+            
+            print(f'[Login] Usuário encontrado: {user.username} (ID: {user.id})')
+            
+            # Verifica se está banido
+            if getattr(user, 'is_banned', False):
+                print(f'[Login] Usuário banido: {user.username}')
+                flash('Conta banida. Entre em contato com o suporte.', 'error')
+                return render_template('login.html')
+            
+            # Verifica senha via hash seguro
+            pwd_ok = user.check_password(pwd)
+            print(f'[Login] Resultado verificação senha: {pwd_ok}')
+            
+            if pwd_ok:
+                login_user(user)
+                print(f'[Login] Login bem-sucedido: {user.username} (ID: {user.id})')
+                return redirect(url_for('main.index'))
+            else:
+                print(f'[Login] Senha incorreta para: {user.username}')
+                flash('Login inválido. Verifique seu usuário/email e senha.', 'error')
+                return render_template('login.html')
+                
+        except Exception as e:
+            import traceback
+            print(f'[Login Error] {type(e).__name__}: {str(e)}')
+            print(f'[Login Traceback]\n{traceback.format_exc()}')
+            flash('Erro ao processar login.', 'error')
+            return render_template('login.html')
+    
     return render_template('login.html')
 
 @bp.route('/logout', methods=['GET', 'POST'])
@@ -2567,17 +2599,20 @@ def cadastro():
         try:
             novo_usuario.set_password(password)
         except Exception as e:
-            current_app.logger.error(f'Erro ao definir senha: {e}')
+            print(f'[Cadastro] Erro ao definir senha: {e}')
             flash('Falha ao definir senha. Tente novamente.', 'error')
             return redirect(url_for('main.cadastro'))
+        
         try:
             db.session.add(novo_usuario)
             db.session.commit()
-            current_app.logger.info(f'Novo usuário cadastrado: {novo_usuario.username} (ID: {novo_usuario.id})')
+            print(f'[Cadastro] Novo usuário cadastrado: {novo_usuario.username} (ID: {novo_usuario.id})')
         except Exception as e:
             db.session.rollback()
-            current_app.logger.error(f'Erro ao salvar usuário no banco: {type(e).__name__}: {e}')
-            flash(f'Erro ao processar cadastro: {type(e).__name__}. Tente novamente.', 'error')
+            import traceback
+            print(f'[Cadastro] Erro ao salvar usuário: {type(e).__name__}: {e}')
+            print(f'[Cadastro Traceback]\n{traceback.format_exc()}')
+            flash('Erro ao processar cadastro. Tente novamente.', 'error')
             return redirect(url_for('main.cadastro'))
         # E-mails pós-cadastro (não bloqueantes)
         try:
