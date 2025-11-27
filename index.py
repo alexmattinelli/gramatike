@@ -1604,7 +1604,7 @@ class Default(WorkerEntrypoint):
                         current_user['id'],
                         body.get('descricao'),
                         body.get('is_public', True),
-                        body.get('max_membros', 50)
+                        body.get('max_membres', 50)
                     )
                     return json_response({"id": grupo_id}, 201)
             
@@ -1905,8 +1905,16 @@ class Default(WorkerEntrypoint):
                     else:
                         error_msg = "Preencha todos os campos"
                 except Exception as e:
-                    # Log error internally but don't expose details to user
-                    error_msg = "Erro ao processar login. Tente novamente."
+                    # Log error type only (avoid exposing sensitive details in logs)
+                    print(f"[Login Error] {type(e).__name__}")
+                    # Show more specific error message to user
+                    error_str = str(e).lower()
+                    if 'no such table' in error_str or 'database' in error_str:
+                        error_msg = "Erro de banco de dados. Contate o suporte."
+                    elif 'timeout' in error_str or 'connection' in error_str:
+                        error_msg = "Erro de conexão. Tente novamente em instantes."
+                    else:
+                        error_msg = "Erro ao processar login. Tente novamente."
         
         error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
         
@@ -1981,8 +1989,18 @@ class Default(WorkerEntrypoint):
                     else:
                         error_msg = "Preencha todos os campos obrigatórios"
                 except Exception as e:
-                    # Log error internally but don't expose details to user
-                    error_msg = "Erro ao processar cadastro. Tente novamente."
+                    # Log error type only (avoid exposing sensitive details in logs)
+                    print(f"[Registration Error] {type(e).__name__}")
+                    # Show more specific error message to user
+                    error_str = str(e).lower()
+                    if 'unique' in error_str or 'duplicate' in error_str:
+                        error_msg = "Este usuário ou email já está cadastrado."
+                    elif 'no such table' in error_str or 'database' in error_str:
+                        error_msg = "Erro de banco de dados. Contate o suporte."
+                    elif 'timeout' in error_str or 'connection' in error_str:
+                        error_msg = "Erro de conexão. Tente novamente em instantes."
+                    else:
+                        error_msg = "Erro ao processar cadastro. Tente novamente."
         
         error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
         success_html = f'<div class="success-msg" style="background:#e8f5e9;color:#2e7d32;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{success_msg}</div>' if success_msg else ""

@@ -294,12 +294,55 @@ def hash_password(password):
 
 
 def verify_password(stored_hash, password):
-    """Verifica se a senha corresponde ao hash armazenado."""
+    """Verifica se a senha corresponde ao hash armazenado.
+    
+    Suporta dois formatos de hash:
+    1. Formato D1 simples: "salt:hash" (usado pelo gramatike_d1)
+    2. Formato Werkzeug: "method:options$salt$hash" (usado pelo Flask/gramatike_app)
+    """
+    if not stored_hash or not password:
+        return False
+    
     try:
-        salt, hashed = stored_hash.split(':')
-        new_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
-        return new_hash.hex() == hashed
-    except:
+        # Tenta formato D1 simples primeiro (salt:hash)
+        if stored_hash.count(':') == 1 and '$' not in stored_hash:
+            salt, hashed = stored_hash.split(':')
+            new_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+            return new_hash.hex() == hashed
+        
+        # Tenta formato Werkzeug (pbkdf2:sha256:iterations$salt$hash ou scrypt:...)
+        # Primeiro verifica se werkzeug está disponível
+        try:
+            from werkzeug.security import check_password_hash as _werkzeug_check
+            werkzeug_available = True
+        except ImportError:
+            werkzeug_available = False
+        
+        if werkzeug_available:
+            try:
+                return _werkzeug_check(stored_hash, password)
+            except Exception:
+                # Werkzeug falhou ao verificar, tenta fallback manual
+                pass
+        
+        # Fallback: parse manual do formato pbkdf2 quando werkzeug não está disponível
+        if stored_hash.startswith('pbkdf2:sha256:'):
+            # Formato: pbkdf2:sha256:iterations$salt$hash
+            parts = stored_hash.split('$')
+            if len(parts) == 3:
+                method_parts = parts[0].split(':')
+                if len(method_parts) >= 3:
+                    try:
+                        iterations = int(method_parts[2])
+                    except ValueError:
+                        return False  # Formato de hash inválido
+                    salt = parts[1]
+                    expected_hash = parts[2]
+                    new_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), iterations)
+                    return new_hash.hex() == expected_hash
+        return False
+    except Exception:
+        # Falha silenciosa para evitar vazamento de informações
         return False
 
 
@@ -1066,8 +1109,8 @@ async def send_friend_request(db, solicitante_id, destinatarie_id):
     # Verifica se já existe relação
     existing = await db.prepare("""
         SELECT * FROM amizade
-        WHERE (usuario1_id = ? AND usuario2_id = ?)
-           OR (usuario1_id = ? AND usuario2_id = ?)
+        WHERE (usuarie1_id = ? AND usuarie2_id = ?)
+           OR (usuarie1_id = ? AND usuarie2_id = ?)
     """).bind(solicitante_id, destinatarie_id, destinatarie_id, solicitante_id).first()
     
     if existing:
@@ -1075,7 +1118,7 @@ async def send_friend_request(db, solicitante_id, destinatarie_id):
     
     # Cria solicitação
     result = await db.prepare("""
-        INSERT INTO amizade (usuario1_id, usuario2_id, solicitante_id, status)
+        INSERT INTO amizade (usuarie1_id, usuarie2_id, solicitante_id, status)
         VALUES (?, ?, ?, 'pendente')
         RETURNING id
     """).bind(solicitante_id, destinatarie_id, solicitante_id).first()
@@ -1094,7 +1137,7 @@ async def respond_friend_request(db, amizade_id, usuario_id, aceitar=True):
     amizade = await db.prepare("""
         SELECT * FROM amizade
         WHERE id = ? AND status = 'pendente'
-        AND (usuario1_id = ? OR usuario2_id = ?)
+        AND (usuarie1_id = ? OR usuarie2_id = ?)
         AND solicitante_id != ?
     """).bind(amizade_id, usuario_id, usuario_id, usuario_id).first()
     
@@ -1123,8 +1166,8 @@ async def get_amigues(db, usuario_id):
         SELECT u.id, u.username, u.nome, u.foto_perfil, a.created_at as amigues_desde
         FROM amizade a
         JOIN user u ON (
-            (a.usuario1_id = ? AND a.usuario2_id = u.id)
-            OR (a.usuario2_id = ? AND a.usuario1_id = u.id)
+            (a.usuarie1_id = ? AND a.usuarie2_id = u.id)
+            OR (a.usuarie2_id = ? AND a.usuarie1_id = u.id)
         )
         WHERE a.status = 'aceita'
         ORDER BY u.nome, u.username
@@ -1139,7 +1182,7 @@ async def get_pending_friend_requests(db, usuario_id):
         SELECT a.*, u.username, u.nome, u.foto_perfil
         FROM amizade a
         JOIN user u ON a.solicitante_id = u.id
-        WHERE (a.usuario1_id = ? OR a.usuario2_id = ?)
+        WHERE (a.usuarie1_id = ? OR a.usuarie2_id = ?)
         AND a.status = 'pendente'
         AND a.solicitante_id != ?
         ORDER BY a.created_at DESC
@@ -1148,14 +1191,14 @@ async def get_pending_friend_requests(db, usuario_id):
     return [dict(row) for row in result.results] if result.results else []
 
 
-async def are_amigues(db, usuario1_id, usuario2_id):
+async def are_amigues(db, usuarie1_id, usuarie2_id):
     """Verifica se dois usuáries são amigues."""
     result = await db.prepare("""
         SELECT 1 FROM amizade
-        WHERE ((usuario1_id = ? AND usuario2_id = ?)
-            OR (usuario1_id = ? AND usuario2_id = ?))
+        WHERE ((usuarie1_id = ? AND usuarie2_id = ?)
+            OR (usuarie1_id = ? AND usuarie2_id = ?))
         AND status = 'aceita'
-    """).bind(usuario1_id, usuario2_id, usuario2_id, usuario1_id).first()
+    """).bind(usuarie1_id, usuarie2_id, usuarie2_id, usuarie1_id).first()
     return result is not None
 
 
@@ -1163,8 +1206,8 @@ async def remove_amizade(db, usuario_id, amigue_id):
     """Remove amizade."""
     await db.prepare("""
         DELETE FROM amizade
-        WHERE ((usuario1_id = ? AND usuario2_id = ?)
-            OR (usuario1_id = ? AND usuario2_id = ?))
+        WHERE ((usuarie1_id = ? AND usuarie2_id = ?)
+            OR (usuarie1_id = ? AND usuarie2_id = ?))
         AND status = 'aceita'
     """).bind(usuario_id, amigue_id, amigue_id, usuario_id).run()
 
@@ -1815,7 +1858,7 @@ async def check_and_award_badges(db, usuario_id):
     # Badge por amigues
     amigues_count = await db.prepare("""
         SELECT COUNT(*) as count FROM amizade
-        WHERE (usuario1_id = ? OR usuario2_id = ?) AND status = 'aceita'
+        WHERE (usuarie1_id = ? OR usuarie2_id = ?) AND status = 'aceita'
     """).bind(usuario_id, usuario_id).first()
     if amigues_count and amigues_count['count'] >= 5:
         if await award_badge(db, usuario_id, 'Social'):
@@ -2387,18 +2430,18 @@ async def get_messages_with_user(db, usuario_id, other_user_id, page=1, per_page
 # QUERIES - GRUPOS DE ESTUDO
 # ============================================================================
 
-async def create_study_group(db, nome, criador_id, descricao=None, is_public=True, max_membros=50):
+async def create_study_group(db, nome, criador_id, descricao=None, is_public=True, max_membres=50):
     """Cria um grupo de estudo."""
     result = await db.prepare("""
-        INSERT INTO grupo_estudo (nome, descricao, criador_id, is_public, max_membros)
+        INSERT INTO grupo_estudo (nome, descricao, criador_id, is_public, max_membres)
         VALUES (?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(nome, descricao, criador_id, 1 if is_public else 0, max_membros).first()
+    """).bind(nome, descricao, criador_id, 1 if is_public else 0, max_membres).first()
     
     if result:
         # Adicionar criador como admin
         await db.prepare("""
-            INSERT INTO grupo_membro (grupo_id, usuario_id, role) VALUES (?, ?, 'admin')
+            INSERT INTO grupo_membre (grupo_id, usuario_id, role) VALUES (?, ?, 'admin')
         """).bind(result['id'], criador_id).run()
     
     return result['id'] if result else None
@@ -2408,29 +2451,29 @@ async def join_study_group(db, grupo_id, usuario_id):
     """Entrar em um grupo de estudo."""
     # Verificar limite de membros
     count = await db.prepare("""
-        SELECT COUNT(*) as count FROM grupo_membro WHERE grupo_id = ?
+        SELECT COUNT(*) as count FROM grupo_membre WHERE grupo_id = ?
     """).bind(grupo_id).first()
     
     grupo = await db.prepare("""
-        SELECT max_membros FROM grupo_estudo WHERE id = ?
+        SELECT max_membres FROM grupo_estudo WHERE id = ?
     """).bind(grupo_id).first()
     
-    if count and grupo and count['count'] >= grupo['max_membros']:
+    if count and grupo and count['count'] >= grupo['max_membres']:
         return False, "Grupo cheio"
     
     try:
         await db.prepare("""
-            INSERT INTO grupo_membro (grupo_id, usuario_id) VALUES (?, ?)
+            INSERT INTO grupo_membre (grupo_id, usuario_id) VALUES (?, ?)
         """).bind(grupo_id, usuario_id).run()
         return True, None
     except Exception:
-        return False, "Já é membro do grupo"
+        return False, "Já é membre do grupo"
 
 
 async def leave_study_group(db, grupo_id, usuario_id):
     """Sair de um grupo de estudo."""
     await db.prepare("""
-        DELETE FROM grupo_membro WHERE grupo_id = ? AND usuario_id = ?
+        DELETE FROM grupo_membre WHERE grupo_id = ? AND usuario_id = ?
     """).bind(grupo_id, usuario_id).run()
 
 
@@ -2439,10 +2482,10 @@ async def get_study_groups(db, usuario_id=None, apenas_meus=False):
     if apenas_meus and usuario_id:
         result = await db.prepare("""
             SELECT g.*, gm.role,
-                   (SELECT COUNT(*) FROM grupo_membro WHERE grupo_id = g.id) as member_count,
+                   (SELECT COUNT(*) FROM grupo_membre WHERE grupo_id = g.id) as member_count,
                    u.username as criador_username
             FROM grupo_estudo g
-            JOIN grupo_membro gm ON g.id = gm.grupo_id
+            JOIN grupo_membre gm ON g.id = gm.grupo_id
             LEFT JOIN user u ON g.criador_id = u.id
             WHERE gm.usuario_id = ?
             ORDER BY g.created_at DESC
@@ -2450,7 +2493,7 @@ async def get_study_groups(db, usuario_id=None, apenas_meus=False):
     else:
         result = await db.prepare("""
             SELECT g.*,
-                   (SELECT COUNT(*) FROM grupo_membro WHERE grupo_id = g.id) as member_count,
+                   (SELECT COUNT(*) FROM grupo_membre WHERE grupo_id = g.id) as member_count,
                    u.username as criador_username
             FROM grupo_estudo g
             LEFT JOIN user u ON g.criador_id = u.id

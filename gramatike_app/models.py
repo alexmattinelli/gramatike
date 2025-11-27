@@ -170,10 +170,10 @@ class Curtida(db.Model):
     usuario = db.relationship('User')
 
 
-# Modelo de seguidores (seguindo/seguidores)
-seguidores = db.Table('seguidores',
-    db.Column('seguidor_id', db.Integer, db.ForeignKey('user.id')),
-    db.Column('seguido_id', db.Integer, db.ForeignKey('user.id'))
+# Modelo de seguidories (seguindo/seguidories)
+seguidories = db.Table('seguidories',
+    db.Column('seguidore_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('seguide_id', db.Integer, db.ForeignKey('user.id'))
 )
 
 class Report(db.Model):
@@ -200,12 +200,12 @@ class SupportTicket(db.Model):
     usuario = db.relationship('User')
     resposta = db.Column(db.Text)
 
-# Adicionar métodos de seguidores ao User
+# Adicionar métodos de seguidories ao User
 User.seguindo = db.relationship(
-    'User', secondary=seguidores,
-    primaryjoin=(seguidores.c.seguidor_id == User.id),
-    secondaryjoin=(seguidores.c.seguido_id == User.id),
-    backref=db.backref('seguidores', lazy='dynamic'),
+    'User', secondary=seguidories,
+    primaryjoin=(seguidories.c.seguidore_id == User.id),
+    secondaryjoin=(seguidories.c.seguide_id == User.id),
+    backref=db.backref('seguidories', lazy='dynamic'),
     lazy='dynamic'
 )
 

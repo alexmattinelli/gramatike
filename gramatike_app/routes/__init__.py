@@ -297,10 +297,10 @@ def deixar_de_seguir_usuario(user_id):
     return '', 204
 
 @bp.route('/api/seguidores/<int:user_id>', methods=['GET'])
-def listar_seguidores(user_id):
+def listar_seguidories(user_id):
     user = User.query.get_or_404(user_id)
-    seguidores = [{'id': u.id, 'username': u.username, 'nome': u.nome} for u in user.seguidores]
-    return jsonify(seguidores)
+    seguidories = [{'id': u.id, 'username': u.username, 'nome': u.nome} for u in user.seguidories]
+    return jsonify(seguidories)
 
 @bp.route('/api/seguindo/<int:user_id>', methods=['GET'])
 def listar_seguindo(user_id):
@@ -316,7 +316,7 @@ def api_amigues():
         user = current_user
         seguindo_ids = {u.id for u in user.seguindo}
         # amigues = usuários que seguem o user E são seguidos por ele
-        mutual = [u for u in user.seguidores if u.id in seguindo_ids]
+        mutual = [u for u in user.seguidories if u.id in seguindo_ids]
         out = []
         for m in mutual:
             out.append({
@@ -335,13 +335,13 @@ def api_amigues():
 @bp.route('/api/notifications', methods=['GET'])
 @login_required
 def api_notifications():
-    """Retorna notificações do usuário (novos seguidores e curtidas)."""
+    """Retorna notificações do usuário (novos seguidories e curtidas)."""
     try:
         user = current_user
         notifications = []
         
         # Get recent followers (last 10)
-        recent_followers = user.seguidores.order_by(User.id.desc()).limit(10).all()
+        recent_followers = user.seguidories.order_by(User.id.desc()).limit(10).all()
         for follower in recent_followers:
             notifications.append({
                 'type': 'follower',
