@@ -1997,8 +1997,9 @@ class Default(WorkerEntrypoint):
                     else:
                         error_msg = "Preencha todos os campos obrigatórios"
                 except Exception as e:
-                    # Log error type only (avoid exposing sensitive details in logs)
-                    print(f"[Registration Error] {type(e).__name__}")
+                    # Log error details for debugging
+                    print(f"[Registration Error] {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+                    print(f"[Registration Traceback] {traceback.format_exc()}", file=sys.stderr, flush=True)
                     # Show more specific error message to user
                     error_str = str(e).lower()
                     if 'unique' in error_str or 'duplicate' in error_str:
