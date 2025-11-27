@@ -20,6 +20,8 @@ from workers import WorkerEntrypoint, Response
 # módulo 'workers' built-in do Cloudflare Workers Python (que fornece WorkerEntrypoint e Response)
 try:
     from gramatike_d1.db import (
+        # Auto-inicialização
+        ensure_database_initialized,
         # Posts e interações
         get_posts, get_post_by_id, create_post, delete_post, like_post, unlike_post, has_liked,
         get_comments, create_comment,
@@ -98,6 +100,9 @@ except ImportError as e:
     # Log the specific import error for debugging
     print(f"[D1 Import Error] {e}", file=sys.stderr)
     DB_AVAILABLE = False
+    # Define placeholder for ensure_database_initialized
+    async def ensure_database_initialized(db):
+        return False
 
 
 def json_response(data, status=200, headers=None):
@@ -610,6 +615,13 @@ class Default(WorkerEntrypoint):
         
         # Obter banco de dados D1
         db = getattr(self.env, 'DB', None)
+        
+        # Auto-inicializar banco de dados (cria tabelas e superadmin se necessário)
+        if db and DB_AVAILABLE:
+            try:
+                await ensure_database_initialized(db)
+            except Exception as e:
+                print(f"[D1 Init Warning] {e}")
         
         # Obter usuário atual se DB disponível
         current_user = None
