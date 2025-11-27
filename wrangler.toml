@@ -29,7 +29,7 @@ bucket_name = "gramatike"
 [[d1_databases]]
 binding = "DB"
 database_name = "gramatike"
-database_id = "27581c5d-9293-4821-ab2a-76ace7925394"
+database_id = "c22cbe34-444b-40ec-9987-5e90ecc8cc91"
 
 # Secrets (configure via CLI: wrangler secret put SECRET_KEY)
 # - SECRET_KEY
