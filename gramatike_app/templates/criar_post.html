@@ -292,9 +292,11 @@ conteudoTextarea.addEventListener('input', function() {
 // Emoji picker functionality
 const emojiToggle = document.getElementById('emoji-toggle');
 const emojiPicker = document.getElementById('emoji-picker');
+let emojiPickerVisible = false;
 
 emojiToggle.addEventListener('click', function() {
-    emojiPicker.style.display = emojiPicker.style.display === 'none' ? 'block' : 'none';
+    emojiPickerVisible = !emojiPickerVisible;
+    emojiPicker.style.display = emojiPickerVisible ? 'block' : 'none';
 });
 
 document.querySelectorAll('.emoji-btn').forEach(btn => {
