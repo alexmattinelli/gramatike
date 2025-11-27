@@ -37,6 +37,23 @@ Configure um workflow do GitHub Actions com:
 
 ## Banco de Dados
 
+### ⚠️ Erro "Sistema temporariamente indisponível"?
+
+Se você está vendo este erro, as tabelas do banco de dados não foram criadas. Execute:
+
+```bash
+# 1. Autenticar (se necessário)
+wrangler login
+
+# 2. Criar tabelas no banco D1
+wrangler d1 execute gramatike --file=./schema.d1.sql
+
+# 3. Re-deploy
+npm run deploy
+```
+
+Ou use o script automatizado: `./scripts/setup_d1_database.sh`
+
 ### Cloudflare D1 (Recomendado para Workers)
 
 O Gramátike usa **Cloudflare D1** (SQLite na edge) para o deploy em Cloudflare Workers. Se você está vendo o erro **"Sistema temporariamente indisponível"**, provavelmente o D1 não está configurado.

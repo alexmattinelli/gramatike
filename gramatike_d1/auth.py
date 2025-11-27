@@ -36,7 +36,7 @@ def clear_session_cookie():
 
 
 async def get_current_user(db, request):
-    """Retorna o usuário atual baseado na sessão."""
+    """Retorna ê usuárie atual baseade na sessão."""
     token = get_session_token(request)
     if not token:
         return None
@@ -45,7 +45,7 @@ async def get_current_user(db, request):
     if not session:
         return None
     
-    # Verifica se usuário está banido
+    # Verifica se usuárie está banide
     if session.get('is_banned'):
         return None
     
@@ -59,14 +59,14 @@ async def get_current_user(db, request):
 
 
 async def authenticate(db, username_or_email, password):
-    """Autentica usuário e retorna dados se válido."""
+    """Autentica usuárie e retorna dados se válide."""
     # Tenta buscar por username primeiro, depois por email
     user = await get_user_by_username(db, username_or_email)
     if not user:
         user = await get_user_by_email(db, username_or_email)
     
     if not user:
-        return None, "Usuário não encontrado"
+        return None, "Usuárie não encontrade"
     
     if user.get('is_banned'):
         return None, "Conta banida"
@@ -100,7 +100,7 @@ async def logout(db, request):
 
 
 async def register(db, username, email, password, nome=None):
-    """Registra um novo usuário."""
+    """Registra ume nove usuárie."""
     # Validações
     if len(username) < 3:
         return None, "Username deve ter pelo menos 3 caracteres"
@@ -119,12 +119,12 @@ async def register(db, username, email, password, nome=None):
     # Verifica se email já existe
     existing = await get_user_by_email(db, email)
     if existing:
-        return None, "Email já está cadastrado"
+        return None, "Email já está cadastrade"
     
-    # Cria usuário
+    # Cria ume usuárie
     user_id = await create_user(db, username, email, password, nome)
     if not user_id:
-        return None, "Erro ao criar usuário"
+        return None, "Erro ao criar usuárie"
     
     return user_id, None
 
