@@ -43,7 +43,7 @@ async def ensure_database_initialized(db):
         return True
     
     try:
-        # Criar tabela de usuáries se não existir
+        # Criar tabela dê usuáries se não existir
         await db.prepare("""
             CREATE TABLE IF NOT EXISTS user (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -127,11 +127,11 @@ async def ensure_database_initialized(db):
         # Criar tabela de seguidories
         await db.prepare("""
             CREATE TABLE IF NOT EXISTS seguidories (
-                seguidorie_id INTEGER NOT NULL,
+                seguidore_id INTEGER NOT NULL,
                 seguide_id INTEGER NOT NULL,
                 created_at TEXT DEFAULT (datetime('now')),
-                PRIMARY KEY (seguidorie_id, seguide_id),
-                FOREIGN KEY (seguidorie_id) REFERENCES user(id) ON DELETE CASCADE,
+                PRIMARY KEY (seguidore_id, seguide_id),
+                FOREIGN KEY (seguidore_id) REFERENCES user(id) ON DELETE CASCADE,
                 FOREIGN KEY (seguide_id) REFERENCES user(id) ON DELETE CASCADE
             )
         """).run()
@@ -343,7 +343,7 @@ async def get_user_by_email(db, email):
 
 
 async def create_user(db, username, email, password, nome=None):
-    """Cria ume nove usuárie."""
+    """Cria ê nove usuárie."""
     hashed = hash_password(password)
     result = await db.prepare("""
         INSERT INTO user (username, email, password, nome, created_at)
@@ -354,7 +354,7 @@ async def create_user(db, username, email, password, nome=None):
 
 
 async def update_user_profile(db, user_id, **kwargs):
-    """Atualiza o perfil de usuárie."""
+    """Atualiza o perfil dê usuárie."""
     allowed = ['nome', 'bio', 'genero', 'pronome', 'foto_perfil', 'data_nascimento']
     updates = {k: v for k, v in kwargs.items() if k in allowed and v is not None}
     if not updates:
@@ -374,7 +374,7 @@ async def update_user_profile(db, user_id, **kwargs):
 # ============================================================================
 
 async def create_session(db, user_id, user_agent=None, ip_address=None):
-    """Cria uma nova sessão de usuárie."""
+    """Cria uma nova sessão dê usuárie."""
     token = generate_session_token()
     expires_at = (datetime.utcnow() + timedelta(days=30)).isoformat()
     
@@ -563,52 +563,52 @@ async def create_comment(db, post_id, usuario_id, conteudo):
 # QUERIES - SEGUIDORIES
 # ============================================================================
 
-async def follow_user(db, seguidorie_id, seguide_id):
-    """Seguir ume usuárie."""
-    if seguidorie_id == seguide_id:
+async def follow_user(db, seguidore_id, seguide_id):
+    """Seguir ê usuárie."""
+    if seguidore_id == seguide_id:
         return False
     try:
         await db.prepare("""
-            INSERT INTO seguidories (seguidorie_id, seguide_id) VALUES (?, ?)
-        """).bind(seguidorie_id, seguide_id).run()
+            INSERT INTO seguidories (seguidore_id, seguide_id) VALUES (?, ?)
+        """).bind(seguidore_id, seguide_id).run()
         return True
     except:
         return False
 
 
-async def unfollow_user(db, seguidorie_id, seguide_id):
-    """Deixar de seguir ume usuárie."""
+async def unfollow_user(db, seguidore_id, seguide_id):
+    """Deixar de seguir ê usuárie."""
     await db.prepare("""
-        DELETE FROM seguidories WHERE seguidorie_id = ? AND seguide_id = ?
-    """).bind(seguidorie_id, seguide_id).run()
+        DELETE FROM seguidories WHERE seguidore_id = ? AND seguide_id = ?
+    """).bind(seguidore_id, seguide_id).run()
 
 
-async def is_following(db, seguidorie_id, seguide_id):
+async def is_following(db, seguidore_id, seguide_id):
     """Verifica se está seguindo."""
     result = await db.prepare("""
-        SELECT 1 FROM seguidories WHERE seguidorie_id = ? AND seguide_id = ?
-    """).bind(seguidorie_id, seguide_id).first()
+        SELECT 1 FROM seguidories WHERE seguidore_id = ? AND seguide_id = ?
+    """).bind(seguidore_id, seguide_id).first()
     return result is not None
 
 
 async def get_followers(db, user_id):
-    """Lista seguidories de ume usuárie."""
+    """Lista seguidories de ê usuárie."""
     result = await db.prepare("""
         SELECT u.id, u.username, u.nome, u.foto_perfil
         FROM seguidories s
-        JOIN user u ON s.seguidorie_id = u.id
+        JOIN user u ON s.seguidore_id = u.id
         WHERE s.seguide_id = ?
     """).bind(user_id).all()
     return [dict(row) for row in result.results] if result.results else []
 
 
 async def get_following(db, user_id):
-    """Lista quem usuárie segue."""
+    """Lista quem ê usuárie segue."""
     result = await db.prepare("""
         SELECT u.id, u.username, u.nome, u.foto_perfil
         FROM seguidories s
         JOIN user u ON s.seguide_id = u.id
-        WHERE s.seguidorie_id = ?
+        WHERE s.seguidore_id = ?
     """).bind(user_id).all()
     return [dict(row) for row in result.results] if result.results else []
 
@@ -965,7 +965,7 @@ async def use_email_token(db, token):
 
 
 async def confirm_user_email(db, usuario_id):
-    """Confirma o email de usuárie."""
+    """Confirma o email dê usuárie."""
     await db.prepare("""
         UPDATE user SET email_confirmed = 1, email_confirmed_at = datetime('now')
         WHERE id = ?
@@ -973,7 +973,7 @@ async def confirm_user_email(db, usuario_id):
 
 
 async def update_user_password(db, usuario_id, new_password):
-    """Atualiza a senha de usuárie."""
+    """Atualiza a senha dê usuárie."""
     hashed = hash_password(new_password)
     await db.prepare("""
         UPDATE user SET password = ?
@@ -982,7 +982,7 @@ async def update_user_password(db, usuario_id, new_password):
 
 
 async def update_user_email(db, usuario_id, new_email):
-    """Atualiza o email de usuárie."""
+    """Atualiza o email dê usuárie."""
     await db.prepare("""
         UPDATE user SET email = ?, email_confirmed = 0
         WHERE id = ?
@@ -1007,7 +1007,7 @@ async def create_notification(db, usuario_id, tipo, titulo=None, mensagem=None, 
 
 
 async def get_notifications(db, usuario_id, apenas_nao_lidas=False, page=1, per_page=20):
-    """Lista notificações de usuárie."""
+    """Lista notificações dê usuárie."""
     offset = (page - 1) * per_page
     
     if apenas_nao_lidas:
@@ -1033,7 +1033,7 @@ async def get_notifications(db, usuario_id, apenas_nao_lidas=False, page=1, per_
 
 
 async def count_unread_notifications(db, usuario_id):
-    """Conta notificações não lidas de usuárie."""
+    """Conta notificações não lidas dê usuárie."""
     result = await db.prepare("""
         SELECT COUNT(*) as count FROM notification
         WHERE usuario_id = ? AND lida = 0
@@ -1118,7 +1118,7 @@ async def respond_friend_request(db, amizade_id, usuario_id, aceitar=True):
 
 
 async def get_amigues(db, usuario_id):
-    """Lista amigues de usuárie (amizades aceitas)."""
+    """Lista amigues dê usuárie (amizades aceitas)."""
     result = await db.prepare("""
         SELECT u.id, u.username, u.nome, u.foto_perfil, a.created_at as amigues_desde
         FROM amizade a
@@ -1266,7 +1266,7 @@ async def get_support_tickets(db, status=None, page=1, per_page=20):
 
 
 async def get_user_tickets(db, usuario_id):
-    """Lista tickets de usuárie."""
+    """Lista tickets dê usuárie."""
     result = await db.prepare("""
         SELECT * FROM support_ticket
         WHERE usuario_id = ?
@@ -1382,7 +1382,7 @@ async def save_upload(db, usuario_id, tipo, path, filename=None, content_type=No
 
 
 async def get_user_uploads(db, usuario_id, tipo=None):
-    """Lista uploads de usuárie."""
+    """Lista uploads dê usuárie."""
     if tipo:
         result = await db.prepare("""
             SELECT * FROM upload
@@ -1438,7 +1438,7 @@ async def ban_usuarie(db, usuario_id, reason=None, admin_id=None):
 
 
 async def unban_usuarie(db, usuario_id):
-    """Remove ban de usuárie."""
+    """Remove ban dê usuárie."""
     await db.prepare("""
         UPDATE user SET is_banned = 0, banned_at = NULL, ban_reason = NULL
         WHERE id = ?
@@ -1446,7 +1446,7 @@ async def unban_usuarie(db, usuario_id):
 
 
 async def suspend_usuarie(db, usuario_id, until_date):
-    """Suspende usuárie temporariamente."""
+    """Suspendê usuárie temporariamente."""
     await db.prepare("""
         UPDATE user SET suspended_until = ?
         WHERE id = ?
@@ -1465,7 +1465,7 @@ async def get_admin_stats(db):
     """Estatísticas para painel admin."""
     stats = {}
     
-    # Total de usuáries
+    # Total dê usuáries
     result = await db.prepare("SELECT COUNT(*) as count FROM user").first()
     stats['total_usuaries'] = result['count'] if result else 0
     
@@ -1620,7 +1620,7 @@ async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
 # ============================================================================
 
 async def get_user_points(db, usuario_id):
-    """Retorna pontos de usuárie."""
+    """Retorna pontos dê usuárie."""
     result = await db.prepare("""
         SELECT * FROM user_points WHERE usuario_id = ?
     """).bind(usuario_id).first()
@@ -1682,7 +1682,7 @@ async def add_points(db, usuario_id, pontos, tipo='exercicios'):
 
 
 async def update_user_level(db, usuario_id):
-    """Atualiza o nível de usuárie baseado em pontos."""
+    """Atualiza o nível dê usuárie baseado em pontos."""
     result = await db.prepare("""
         SELECT pontos_total FROM user_points WHERE usuario_id = ?
     """).bind(usuario_id).first()
@@ -1701,7 +1701,7 @@ async def update_user_level(db, usuario_id):
 
 
 async def get_ranking(db, limit=10, tipo=None):
-    """Retorna ranking de usuáries por pontos."""
+    """Retorna ranking dê usuáries por pontos."""
     # Usar queries separadas para cada tipo para evitar f-string SQL
     if tipo == 'exercicios':
         result = await db.prepare("""
@@ -1752,7 +1752,7 @@ async def get_all_badges(db):
 
 
 async def get_user_badges(db, usuario_id):
-    """Lista badges de usuárie."""
+    """Lista badges dê usuárie."""
     result = await db.prepare("""
         SELECT b.*, ub.earned_at
         FROM user_badge ub
@@ -1867,7 +1867,7 @@ async def record_exercise_answer(db, usuario_id, question_id, resposta, correto,
 
 
 async def get_user_exercise_stats(db, usuario_id, topic_id=None):
-    """Retorna estatísticas de exercícios de usuárie."""
+    """Retorna estatísticas de exercícios dê usuárie."""
     if topic_id:
         result = await db.prepare("""
             SELECT 
@@ -1945,7 +1945,7 @@ async def add_to_exercise_list(db, list_id, question_id, ordem=0):
 
 
 async def get_exercise_lists(db, usuario_id):
-    """Lista as listas de exercícios de usuárie."""
+    """Lista as listas de exercícios dê usuárie."""
     result = await db.prepare("""
         SELECT el.*, 
                (SELECT COUNT(*) FROM exercise_list_item WHERE list_id = el.id) as question_count
@@ -2167,7 +2167,7 @@ async def is_favorite(db, usuario_id, tipo, item_id):
 
 
 async def get_favorites(db, usuario_id, tipo=None):
-    """Lista favoritos de usuárie."""
+    """Lista favoritos dê usuárie."""
     if tipo:
         result = await db.prepare("""
             SELECT * FROM favorito WHERE usuario_id = ? AND tipo = ?
@@ -2187,7 +2187,7 @@ async def get_favorites(db, usuario_id, tipo=None):
 # ============================================================================
 
 async def add_to_history(db, usuario_id, tipo, item_tipo, item_id, dados=None):
-    """Adiciona item ao histórico de usuárie."""
+    """Adiciona item ao histórico dê usuárie."""
     dados_json = json.dumps(dados) if dados else None
     
     await db.prepare("""
@@ -2197,7 +2197,7 @@ async def add_to_history(db, usuario_id, tipo, item_tipo, item_id, dados=None):
 
 
 async def get_user_history(db, usuario_id, item_tipo=None, limit=50):
-    """Lista histórico de usuárie."""
+    """Lista histórico dê usuárie."""
     if item_tipo:
         result = await db.prepare("""
             SELECT * FROM user_history 
@@ -2221,7 +2221,7 @@ async def get_user_history(db, usuario_id, item_tipo=None, limit=50):
 # ============================================================================
 
 async def get_user_preferences(db, usuario_id):
-    """Retorna preferências de usuárie."""
+    """Retorna preferências dê usuárie."""
     result = await db.prepare("""
         SELECT * FROM user_preferences WHERE usuario_id = ?
     """).bind(usuario_id).first()
@@ -2237,7 +2237,7 @@ async def get_user_preferences(db, usuario_id):
 
 
 async def update_user_preferences(db, usuario_id, **kwargs):
-    """Atualiza preferências de usuárie."""
+    """Atualiza preferências dê usuárie."""
     # Garantir que registro existe
     await get_user_preferences(db, usuario_id)
     
@@ -2312,7 +2312,7 @@ async def send_direct_message(db, remetente_id, destinatarie_id, conteudo):
 
 
 async def get_conversations(db, usuario_id):
-    """Lista conversas de usuárie."""
+    """Lista conversas dê usuárie."""
     result = await db.prepare("""
         SELECT DISTINCT 
             CASE 

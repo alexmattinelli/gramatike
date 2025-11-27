@@ -100,7 +100,7 @@ async def logout(db, request):
 
 
 async def register(db, username, email, password, nome=None):
-    """Registra ume nove usuárie."""
+    """Registra ê nove usuárie."""
     # Validações
     if len(username) < 3:
         return None, "Username deve ter pelo menos 3 caracteres"

@@ -53,15 +53,15 @@ CREATE INDEX IF NOT EXISTS idx_session_expires ON user_session(expires_at);
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS seguidories (
-    seguidorie_id INTEGER NOT NULL,
+    seguidore_id INTEGER NOT NULL,
     seguide_id INTEGER NOT NULL,
     created_at TEXT DEFAULT (datetime('now')),
-    PRIMARY KEY (seguidorie_id, seguide_id),
-    FOREIGN KEY (seguidorie_id) REFERENCES user(id) ON DELETE CASCADE,
+    PRIMARY KEY (seguidore_id, seguide_id),
+    FOREIGN KEY (seguidore_id) REFERENCES user(id) ON DELETE CASCADE,
     FOREIGN KEY (seguide_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_seguidories_seguidorie ON seguidories(seguidorie_id);
+CREATE INDEX IF NOT EXISTS idx_seguidories_seguidorie ON seguidories(seguidore_id);
 CREATE INDEX IF NOT EXISTS idx_seguidories_seguide ON seguidories(seguide_id);
 
 -- ============================================================================
