@@ -294,12 +294,43 @@ def hash_password(password):
 
 
 def verify_password(stored_hash, password):
-    """Verifica se a senha corresponde ao hash armazenado."""
+    """Verifica se a senha corresponde ao hash armazenado.
+    
+    Suporta dois formatos de hash:
+    1. Formato D1 simples: "salt:hash" (usado pelo gramatike_d1)
+    2. Formato Werkzeug: "method:options$salt$hash" (usado pelo Flask/gramatike_app)
+    """
+    if not stored_hash or not password:
+        return False
+    
     try:
-        salt, hashed = stored_hash.split(':')
-        new_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
-        return new_hash.hex() == hashed
-    except:
+        # Tenta formato D1 simples primeiro (salt:hash)
+        if stored_hash.count(':') == 1 and '$' not in stored_hash:
+            salt, hashed = stored_hash.split(':')
+            new_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+            return new_hash.hex() == hashed
+        
+        # Tenta formato Werkzeug (pbkdf2:sha256:iterations$salt$hash ou scrypt:...)
+        # Este formato usa werkzeug.security.check_password_hash
+        try:
+            from werkzeug.security import check_password_hash
+            return check_password_hash(stored_hash, password)
+        except ImportError:
+            # Werkzeug não disponível, tenta parse manual do formato pbkdf2
+            if stored_hash.startswith('pbkdf2:sha256:'):
+                # Formato: pbkdf2:sha256:iterations$salt$hash
+                parts = stored_hash.split('$')
+                if len(parts) == 3:
+                    method_parts = parts[0].split(':')
+                    if len(method_parts) >= 3:
+                        iterations = int(method_parts[2])
+                        salt = parts[1]
+                        expected_hash = parts[2]
+                        new_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), iterations)
+                        return new_hash.hex() == expected_hash
+            return False
+    except Exception as e:
+        print(f"[Password Verify Error] {type(e).__name__}: {e}")
         return False
 
 

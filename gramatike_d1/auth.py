@@ -69,7 +69,21 @@ async def authenticate(db, username_or_email, password):
         return None, "Usuárie não encontrade"
     
     if user.get('is_banned'):
+        ban_reason = user.get('ban_reason', '')
+        if ban_reason:
+            return None, f"Conta banida: {ban_reason}"
         return None, "Conta banida"
+    
+    # Verifica suspensão temporária
+    suspended_until = user.get('suspended_until')
+    if suspended_until:
+        try:
+            from datetime import datetime
+            suspended_dt = datetime.fromisoformat(suspended_until.replace('Z', '+00:00'))
+            if datetime.utcnow() < suspended_dt.replace(tzinfo=None):
+                return None, f"Conta suspensa até {suspended_until[:16].replace('T', ' ')}"
+        except Exception:
+            pass
     
     if not verify_password(user['password'], password):
         return None, "Senha incorreta"
