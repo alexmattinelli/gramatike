@@ -49,20 +49,20 @@ CREATE INDEX IF NOT EXISTS idx_session_user ON user_session(user_id);
 CREATE INDEX IF NOT EXISTS idx_session_expires ON user_session(expires_at);
 
 -- ============================================================================
--- SEGUIDORES / REDE SOCIAL
+-- SEGUIDORIES / REDE SOCIAL
 -- ============================================================================
 
-CREATE TABLE IF NOT EXISTS seguidores (
-    seguidor_id INTEGER NOT NULL,
-    seguido_id INTEGER NOT NULL,
+CREATE TABLE IF NOT EXISTS seguidories (
+    seguidorie_id INTEGER NOT NULL,
+    seguide_id INTEGER NOT NULL,
     created_at TEXT DEFAULT (datetime('now')),
-    PRIMARY KEY (seguidor_id, seguido_id),
-    FOREIGN KEY (seguidor_id) REFERENCES user(id) ON DELETE CASCADE,
-    FOREIGN KEY (seguido_id) REFERENCES user(id) ON DELETE CASCADE
+    PRIMARY KEY (seguidorie_id, seguide_id),
+    FOREIGN KEY (seguidorie_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (seguide_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_seguidores_seguidor ON seguidores(seguidor_id);
-CREATE INDEX IF NOT EXISTS idx_seguidores_seguido ON seguidores(seguido_id);
+CREATE INDEX IF NOT EXISTS idx_seguidories_seguidorie ON seguidories(seguidorie_id);
+CREATE INDEX IF NOT EXISTS idx_seguidories_seguide ON seguidories(seguide_id);
 
 -- ============================================================================
 -- POSTS E INTERAÇÕES
@@ -791,30 +791,30 @@ CREATE TABLE IF NOT EXISTS grupo_estudo (
     imagem TEXT,
     criador_id INTEGER NOT NULL,
     is_public INTEGER DEFAULT 1,
-    max_membros INTEGER DEFAULT 50,
+    max_membres INTEGER DEFAULT 50,
     created_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (criador_id) REFERENCES user(id)
 );
 
-CREATE TABLE IF NOT EXISTS grupo_membro (
+CREATE TABLE IF NOT EXISTS grupo_membre (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     grupo_id INTEGER NOT NULL,
-    usuario_id INTEGER NOT NULL,
-    role TEXT DEFAULT 'membro',  -- 'admin', 'moderador', 'membro'
+    usuarie_id INTEGER NOT NULL,
+    role TEXT DEFAULT 'membre',  -- 'admin', 'moderadorie', 'membre'
     joined_at TEXT DEFAULT (datetime('now')),
-    UNIQUE(grupo_id, usuario_id),
+    UNIQUE(grupo_id, usuarie_id),
     FOREIGN KEY (grupo_id) REFERENCES grupo_estudo(id) ON DELETE CASCADE,
-    FOREIGN KEY (usuario_id) REFERENCES user(id) ON DELETE CASCADE
+    FOREIGN KEY (usuarie_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS grupo_mensagem (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     grupo_id INTEGER NOT NULL,
-    usuario_id INTEGER NOT NULL,
+    usuarie_id INTEGER NOT NULL,
     conteudo TEXT NOT NULL,
     created_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (grupo_id) REFERENCES grupo_estudo(id) ON DELETE CASCADE,
-    FOREIGN KEY (usuario_id) REFERENCES user(id)
+    FOREIGN KEY (usuarie_id) REFERENCES user(id)
 );
 
 -- ============================================================================

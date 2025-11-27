@@ -43,7 +43,7 @@ async def ensure_database_initialized(db):
         return True
     
     try:
-        # Criar tabela de usuários se não existir
+        # Criar tabela de usuáries se não existir
         await db.prepare("""
             CREATE TABLE IF NOT EXISTS user (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -124,15 +124,15 @@ async def ensure_database_initialized(db):
             )
         """).run()
         
-        # Criar tabela de seguidores
+        # Criar tabela de seguidories
         await db.prepare("""
-            CREATE TABLE IF NOT EXISTS seguidores (
-                seguidor_id INTEGER NOT NULL,
-                seguido_id INTEGER NOT NULL,
+            CREATE TABLE IF NOT EXISTS seguidories (
+                seguidorie_id INTEGER NOT NULL,
+                seguide_id INTEGER NOT NULL,
                 created_at TEXT DEFAULT (datetime('now')),
-                PRIMARY KEY (seguidor_id, seguido_id),
-                FOREIGN KEY (seguidor_id) REFERENCES user(id) ON DELETE CASCADE,
-                FOREIGN KEY (seguido_id) REFERENCES user(id) ON DELETE CASCADE
+                PRIMARY KEY (seguidorie_id, seguide_id),
+                FOREIGN KEY (seguidorie_id) REFERENCES user(id) ON DELETE CASCADE,
+                FOREIGN KEY (seguide_id) REFERENCES user(id) ON DELETE CASCADE
             )
         """).run()
         
@@ -313,7 +313,7 @@ def generate_session_token():
 # ============================================================================
 
 async def get_user_by_id(db, user_id):
-    """Busca usuário por ID."""
+    """Busca usuárie por ID."""
     result = await db.prepare(
         "SELECT * FROM user WHERE id = ?"
     ).bind(user_id).first()
@@ -323,7 +323,7 @@ async def get_user_by_id(db, user_id):
 
 
 async def get_user_by_username(db, username):
-    """Busca usuário por username."""
+    """Busca usuárie por username."""
     result = await db.prepare(
         "SELECT * FROM user WHERE username = ?"
     ).bind(username).first()
@@ -333,7 +333,7 @@ async def get_user_by_username(db, username):
 
 
 async def get_user_by_email(db, email):
-    """Busca usuário por email."""
+    """Busca usuárie por email."""
     result = await db.prepare(
         "SELECT * FROM user WHERE email = ?"
     ).bind(email).first()
@@ -343,7 +343,7 @@ async def get_user_by_email(db, email):
 
 
 async def create_user(db, username, email, password, nome=None):
-    """Cria um novo usuário."""
+    """Cria ume nove usuárie."""
     hashed = hash_password(password)
     result = await db.prepare("""
         INSERT INTO user (username, email, password, nome, created_at)
@@ -354,7 +354,7 @@ async def create_user(db, username, email, password, nome=None):
 
 
 async def update_user_profile(db, user_id, **kwargs):
-    """Atualiza o perfil do usuário."""
+    """Atualiza o perfil de usuárie."""
     allowed = ['nome', 'bio', 'genero', 'pronome', 'foto_perfil', 'data_nascimento']
     updates = {k: v for k, v in kwargs.items() if k in allowed and v is not None}
     if not updates:
@@ -374,7 +374,7 @@ async def update_user_profile(db, user_id, **kwargs):
 # ============================================================================
 
 async def create_session(db, user_id, user_agent=None, ip_address=None):
-    """Cria uma nova sessão de usuário."""
+    """Cria uma nova sessão de usuárie."""
     token = generate_session_token()
     expires_at = (datetime.utcnow() + timedelta(days=30)).isoformat()
     
@@ -522,7 +522,7 @@ async def unlike_post(db, user_id, post_id):
 
 
 async def has_liked(db, user_id, post_id):
-    """Verifica se usuário curtiu o post."""
+    """Verifica se usuárie curtiu o post."""
     result = await db.prepare("""
         SELECT 1 FROM post_likes WHERE user_id = ? AND post_id = ?
     """).bind(user_id, post_id).first()
@@ -560,55 +560,55 @@ async def create_comment(db, post_id, usuario_id, conteudo):
 
 
 # ============================================================================
-# QUERIES - SEGUIDORES
+# QUERIES - SEGUIDORIES
 # ============================================================================
 
-async def follow_user(db, seguidor_id, seguido_id):
-    """Seguir um usuário."""
-    if seguidor_id == seguido_id:
+async def follow_user(db, seguidorie_id, seguide_id):
+    """Seguir ume usuárie."""
+    if seguidorie_id == seguide_id:
         return False
     try:
         await db.prepare("""
-            INSERT INTO seguidores (seguidor_id, seguido_id) VALUES (?, ?)
-        """).bind(seguidor_id, seguido_id).run()
+            INSERT INTO seguidories (seguidorie_id, seguide_id) VALUES (?, ?)
+        """).bind(seguidorie_id, seguide_id).run()
         return True
     except:
         return False
 
 
-async def unfollow_user(db, seguidor_id, seguido_id):
-    """Deixar de seguir um usuário."""
+async def unfollow_user(db, seguidorie_id, seguide_id):
+    """Deixar de seguir ume usuárie."""
     await db.prepare("""
-        DELETE FROM seguidores WHERE seguidor_id = ? AND seguido_id = ?
-    """).bind(seguidor_id, seguido_id).run()
+        DELETE FROM seguidories WHERE seguidorie_id = ? AND seguide_id = ?
+    """).bind(seguidorie_id, seguide_id).run()
 
 
-async def is_following(db, seguidor_id, seguido_id):
+async def is_following(db, seguidorie_id, seguide_id):
     """Verifica se está seguindo."""
     result = await db.prepare("""
-        SELECT 1 FROM seguidores WHERE seguidor_id = ? AND seguido_id = ?
-    """).bind(seguidor_id, seguido_id).first()
+        SELECT 1 FROM seguidories WHERE seguidorie_id = ? AND seguide_id = ?
+    """).bind(seguidorie_id, seguide_id).first()
     return result is not None
 
 
 async def get_followers(db, user_id):
-    """Lista seguidores de um usuário."""
+    """Lista seguidories de ume usuárie."""
     result = await db.prepare("""
         SELECT u.id, u.username, u.nome, u.foto_perfil
-        FROM seguidores s
-        JOIN user u ON s.seguidor_id = u.id
-        WHERE s.seguido_id = ?
+        FROM seguidories s
+        JOIN user u ON s.seguidorie_id = u.id
+        WHERE s.seguide_id = ?
     """).bind(user_id).all()
     return [dict(row) for row in result.results] if result.results else []
 
 
 async def get_following(db, user_id):
-    """Lista quem o usuário segue."""
+    """Lista quem usuárie segue."""
     result = await db.prepare("""
         SELECT u.id, u.username, u.nome, u.foto_perfil
-        FROM seguidores s
-        JOIN user u ON s.seguido_id = u.id
-        WHERE s.seguidor_id = ?
+        FROM seguidories s
+        JOIN user u ON s.seguide_id = u.id
+        WHERE s.seguidorie_id = ?
     """).bind(user_id).all()
     return [dict(row) for row in result.results] if result.results else []
 
