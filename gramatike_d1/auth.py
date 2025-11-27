@@ -36,7 +36,7 @@ def clear_session_cookie():
 
 
 async def get_current_user(db, request):
-    """Retorna usuárie atual baseade na sessão."""
+    """Retorna ê usuárie atual baseade na sessão."""
     token = get_session_token(request)
     if not token:
         return None
@@ -100,7 +100,7 @@ async def logout(db, request):
 
 
 async def register(db, username, email, password, nome=None):
-    """Registra ê nove usuárie."""
+    """Registra ume nove usuárie."""
     # Validações
     if len(username) < 3:
         return None, "Username deve ter pelo menos 3 caracteres"
@@ -121,7 +121,7 @@ async def register(db, username, email, password, nome=None):
     if existing:
         return None, "Email já está cadastrade"
     
-    # Cria usuárie
+    # Cria ume usuárie
     user_id = await create_user(db, username, email, password, nome)
     if not user_id:
         return None, "Erro ao criar usuárie"
