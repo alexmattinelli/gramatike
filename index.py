@@ -159,7 +159,7 @@ def escape_html(text):
     """Escape HTML special characters to prevent XSS."""
     if not text:
         return ""
-    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&#x27;")
+    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&#x27;").replace("/", "&#x2F;")
 
 
 def normalize_image_url(url, default="/static/img/perfil.png"):
@@ -178,7 +178,7 @@ def escape_js_string(text):
     """Escape string for safe inclusion in JavaScript."""
     if not text:
         return ""
-    return str(text).replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("<", "\\u003c").replace(">", "\\u003e")
+    return str(text).replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t").replace("<", "\\u003c").replace(">", "\\u003e").replace("</", "<\\/")
 
 
 # ============================================================================
@@ -1843,7 +1843,7 @@ class Default(WorkerEntrypoint):
     async def _index_page(self, db, current_user):
         """Página inicial - Feed/Rede Social."""
         # Se usuário não está autenticado, mostra a landing page
-        if not current_user:
+        if current_user is None or not current_user:
             return f"""{page_head("Gramátike")}
     <header class="site-head">
         <h1 class="logo">Gramátike</h1>
