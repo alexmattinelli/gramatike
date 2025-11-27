@@ -12,9 +12,22 @@ import sys
 import traceback
 from urllib.parse import urlparse, parse_qs
 
+# Import JavaScript console for proper log levels in Cloudflare Workers
+# console.log = info level, console.warn = warning, console.error = error
+try:
+    from js import console
+except ImportError:
+    # Fallback for local testing - create a mock console
+    class MockConsole:
+        def log(self, *args): print(*args)
+        def info(self, *args): print(*args)
+        def warn(self, *args): print(*args, file=sys.stderr)
+        def error(self, *args): print(*args, file=sys.stderr)
+    console = MockConsole()
+
 # Versão do código - usado para tracking de deployment
 # Atualize este valor a cada commit para verificar se o deploy foi feito
-SCRIPT_VERSION = "v2025.11.27.b"
+SCRIPT_VERSION = "v2025.11.27.c"
 
 # NOTA: Este 'workers' é o módulo built-in do Cloudflare Workers Python,
 # NÃO a pasta local (que foi renomeada para 'gramatike_d1').
@@ -608,7 +621,8 @@ class Default(WorkerEntrypoint):
     async def fetch(self, request):
         """Handle incoming HTTP requests."""
         # Log da versão do script no início para tracking
-        print(f"[Gramátike] Script Version: {SCRIPT_VERSION}", file=sys.stderr, flush=True)
+        # Use console.log for informational logs (appears as "log" level, not "error")
+        console.log(f"[Gramátike] Script Version: {SCRIPT_VERSION}")
         
         url = request.url
         path = "/"
@@ -630,7 +644,8 @@ class Default(WorkerEntrypoint):
                 try:
                     await ensure_database_initialized(db)
                 except Exception as e:
-                    print(f"[D1 Init Warning] {e}", file=sys.stderr, flush=True)
+                    # Warnings use console.warn
+                    console.warn(f"[D1 Init Warning] {e}")
             
             # Obter usuárie atual se DB disponível
             current_user = None
@@ -638,7 +653,8 @@ class Default(WorkerEntrypoint):
                 try:
                     current_user = await get_current_user(db, request)
                 except Exception as e:
-                    print(f"[Auth Warning] get_current_user failed: {e}", file=sys.stderr, flush=True)
+                    # Warnings use console.warn
+                    console.warn(f"[Auth Warning] get_current_user failed: {e}")
             
             # ====================================================================
             # API ROUTES
@@ -687,9 +703,9 @@ class Default(WorkerEntrypoint):
             return html_response(self._not_found_page(path), status=404)
             
         except Exception as e:
-            # Log detalhado de qualquer erro não capturado
-            print(f"[Fetch Error] {type(e).__name__}: {e}", file=sys.stderr, flush=True)
-            print(f"[Fetch Traceback] {traceback.format_exc()}", file=sys.stderr, flush=True)
+            # Log detalhado de qualquer erro não capturado - use console.error for actual errors
+            console.error(f"[Fetch Error] {type(e).__name__}: {e}")
+            console.error(f"[Fetch Traceback] {traceback.format_exc()}")
             error_html = f"""<!DOCTYPE html>
 <html lang="pt-BR">
 <head><title>Erro — Gramátike</title><meta charset="UTF-8"></head>
@@ -710,9 +726,9 @@ class Default(WorkerEntrypoint):
                 result = await result
             return result
         except Exception as e:
-            # Log detalhado do erro
-            print(f"[SafeCall Error] {type(e).__name__}: {e}", file=sys.stderr, flush=True)
-            print(f"[SafeCall Traceback] {traceback.format_exc()}", file=sys.stderr, flush=True)
+            # Log detalhado do erro - use console.error for actual errors
+            console.error(f"[SafeCall Error] {type(e).__name__}: {e}")
+            console.error(f"[SafeCall Traceback] {traceback.format_exc()}")
             return f"<h1>Erro</h1><p>{str(e)}</p><p style='font-size:0.7rem;color:#666;'>Versão: {SCRIPT_VERSION}</p>"
 
     async def _handle_api(self, request, path, method, params, db, current_user):
@@ -1966,24 +1982,26 @@ class Default(WorkerEntrypoint):
                     email = form_data.get('email', [''])[0].strip()
                     password = form_data.get('password', [''])[0]
                     
-                    # Log login attempt (without sensitive password info)
-                    print(f"[Login] Tentativa: {email}", file=sys.stderr, flush=True)
+                    # Log login attempt (without sensitive password info) - use console.log for info
+                    console.log(f"[Login] Tentativa: {email}")
                     
                     if email and password:
                         token, err = await login(db, request, email, password)
                         if token:
-                            print(f"[Login] Login bem-sucedido: {email}", file=sys.stderr, flush=True)
+                            console.log(f"[Login] Login bem-sucedido: {email}")
                             return redirect('/', headers={"Set-Cookie": set_session_cookie(token)})
                         else:
-                            print(f"[Login] Falha na autenticação: {email} - {err}", file=sys.stderr, flush=True)
+                            # Failed auth is a warning, use console.warn
+                            console.warn(f"[Login] Falha na autenticação: {email} - {err}")
                             error_msg = err or "Credenciais inválidas"
                     else:
-                        print(f"[Login] Campos incompletos", file=sys.stderr, flush=True)
+                        # Warning: incomplete fields
+                        console.warn(f"[Login] Campos incompletos")
                         error_msg = "Preencha todos os campos"
                 except Exception as e:
-                    # Log error details for debugging (without sensitive info)
-                    print(f"[Login Error] {type(e).__name__}: {e}", file=sys.stderr, flush=True)
-                    print(f"[Login Traceback] {traceback.format_exc()}", file=sys.stderr, flush=True)
+                    # Log error details for debugging (without sensitive info) - use console.error
+                    console.error(f"[Login Error] {type(e).__name__}: {e}")
+                    console.error(f"[Login Traceback] {traceback.format_exc()}")
                     # Show more specific error message to user
                     error_str = str(e).lower()
                     if 'no such table' in error_str or 'database' in error_str:
@@ -2067,9 +2085,9 @@ class Default(WorkerEntrypoint):
                     else:
                         error_msg = "Preencha todos os campos obrigatórios"
                 except Exception as e:
-                    # Log error details for debugging
-                    print(f"[Registration Error] {type(e).__name__}: {e}", file=sys.stderr, flush=True)
-                    print(f"[Registration Traceback] {traceback.format_exc()}", file=sys.stderr, flush=True)
+                    # Log error details for debugging - use console.error
+                    console.error(f"[Registration Error] {type(e).__name__}: {e}")
+                    console.error(f"[Registration Traceback] {traceback.format_exc()}")
                     # Show more specific error message to user
                     error_str = str(e).lower()
                     if 'unique' in error_str or 'duplicate' in error_str:
