@@ -173,6 +173,21 @@ wrangler tail
 wrangler tail --format pretty
 ```
 
+### Erro: Login não funciona após criar tabelas
+
+Se o login não funciona mesmo após criar as tabelas, provavelmente não existem usuários no banco. O sistema cria um superadmin automaticamente na primeira requisição, mas isso pode não acontecer se as tabelas foram criadas manualmente.
+
+**Solução 1: Criar conta via cadastro**
+Acesse `/cadastro` e crie uma nova conta.
+
+**Solução 2: Inserir admin manualmente**
+```bash
+# No Codespace ou terminal local
+npx wrangler d1 execute gramatike --remote --command="INSERT INTO user (username, email, password, nome, is_admin, is_superadmin, created_at) VALUES ('admin', 'admin@exemplo.com', 'HASH_AQUI', 'Admin', 1, 1, datetime('now'));"
+```
+
+Nota: O hash de senha deve ser gerado com o formato `salt:hash` usando PBKDF2-SHA256.
+
 ### Limpar e recriar banco de dados
 
 Se precisar resetar o banco:
