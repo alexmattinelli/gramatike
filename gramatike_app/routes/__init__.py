@@ -2532,20 +2532,25 @@ def cadastro():
 
         # Validate username - no spaces allowed and length requirements
         if ' ' in username:
-            flash('Nome de usuário não pode conter espaços.')
+            flash('Nome de usuário não pode conter espaços.', 'error')
             return redirect(url_for('main.cadastro'))
         
         if len(username) < 5:
-            flash('Nome de usuário deve ter no mínimo 5 caracteres.')
+            flash('Nome de usuário deve ter no mínimo 5 caracteres.', 'error')
             return redirect(url_for('main.cadastro'))
         
         if len(username) > 45:
-            flash('Nome de usuário deve ter no máximo 45 caracteres.')
+            flash('Nome de usuário deve ter no máximo 45 caracteres.', 'error')
             return redirect(url_for('main.cadastro'))
 
-        # Verifica se o usuário já existe
+        # Verifica se o e-mail já existe
         if User.query.filter_by(email=email).first():
-            flash('E-mail já cadastrado.')
+            flash('E-mail já cadastrado.', 'error')
+            return redirect(url_for('main.cadastro'))
+
+        # Verifica se o nome de usuário já existe
+        if User.query.filter_by(username=username).first():
+            flash('Nome de usuário já está em uso.', 'error')
             return redirect(url_for('main.cadastro'))
 
         # Cria o novo usuário
@@ -2560,10 +2565,15 @@ def cadastro():
         try:
             novo_usuario.set_password(password)
         except Exception:
-            flash('Falha ao definir senha. Tente novamente.')
+            flash('Falha ao definir senha. Tente novamente.', 'error')
             return redirect(url_for('main.cadastro'))
-        db.session.add(novo_usuario)
-        db.session.commit()
+        try:
+            db.session.add(novo_usuario)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            flash('Erro ao processar cadastro. Tente novamente.', 'error')
+            return redirect(url_for('main.cadastro'))
         # E-mails pós-cadastro (não bloqueantes)
         try:
             # Boas-vindas
@@ -2576,7 +2586,7 @@ def cadastro():
             send_email(novo_usuario.email, 'Confirme seu e-mail', html_v)
         except Exception:
             pass
-        flash('Cadastro realizado com sucesso! Faça login.')
+        flash('Cadastro realizado com sucesso! Faça login.', 'success')
         return redirect(url_for('main.login'))
 
     return render_template('cadastro.html')
