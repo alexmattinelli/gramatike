@@ -30,7 +30,7 @@ def safe_dict(result):
     """Converte resultado D1 para dict de forma segura.
     
     Handles potential edge cases where the D1 result object might not
-    directly support dict() conversion, or where values might need type coercion.
+    directly support dict() conversion.
     """
     if result is None:
         return None
@@ -42,10 +42,9 @@ def safe_dict(result):
         # Fallback: if the result has keys() method, iterate manually
         try:
             if hasattr(result, 'keys'):
-                return {k: result[k] for k in result.keys()}
-            elif hasattr(result, '__iter__') and hasattr(result, '__getitem__'):
-                # Could be a sequence-like object
-                return dict(result)
+                keys = result.keys()
+                if keys:
+                    return {k: result[k] for k in keys}
         except Exception:
             pass
     except Exception:

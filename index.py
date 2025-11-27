@@ -9,6 +9,7 @@
 
 import json
 import sys
+import traceback
 from urllib.parse import urlparse, parse_qs
 
 # NOTA: Este 'workers' é o módulo built-in do Cloudflare Workers Python,
@@ -1906,7 +1907,6 @@ class Default(WorkerEntrypoint):
                         error_msg = "Preencha todos os campos"
                 except Exception as e:
                     # Log error details for debugging (without sensitive info)
-                    import traceback
                     print(f"[Login Error] {type(e).__name__}: {e}")
                     print(f"[Login Traceback] {traceback.format_exc()}")
                     # Show more specific error message to user
