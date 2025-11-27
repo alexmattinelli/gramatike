@@ -1897,18 +1897,24 @@ class Default(WorkerEntrypoint):
                     email = form_data.get('email', [''])[0].strip()
                     password = form_data.get('password', [''])[0]
                     
+                    # Log login attempt (without sensitive password info)
+                    print(f"[Login] Tentativa: {email}", file=sys.stderr, flush=True)
+                    
                     if email and password:
                         token, err = await login(db, request, email, password)
                         if token:
+                            print(f"[Login] Login bem-sucedido: {email}", file=sys.stderr, flush=True)
                             return redirect('/', headers={"Set-Cookie": set_session_cookie(token)})
                         else:
+                            print(f"[Login] Falha na autenticação: {email} - {err}", file=sys.stderr, flush=True)
                             error_msg = err or "Credenciais inválidas"
                     else:
+                        print(f"[Login] Campos incompletos", file=sys.stderr, flush=True)
                         error_msg = "Preencha todos os campos"
                 except Exception as e:
                     # Log error details for debugging (without sensitive info)
-                    print(f"[Login Error] {type(e).__name__}: {e}")
-                    print(f"[Login Traceback] {traceback.format_exc()}")
+                    print(f"[Login Error] {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+                    print(f"[Login Traceback] {traceback.format_exc()}", file=sys.stderr, flush=True)
                     # Show more specific error message to user
                     error_str = str(e).lower()
                     if 'no such table' in error_str or 'database' in error_str:

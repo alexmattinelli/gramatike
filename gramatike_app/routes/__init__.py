@@ -1153,41 +1153,41 @@ def login():
         try:
             ident = (request.form.get('email') or '').strip()
             pwd = request.form.get('password') or ''
-            print(f'[Login] Tentativa: {ident}')
+            current_app.logger.info(f'[Login] Tentativa: {ident}')
             
             from sqlalchemy import or_
             user = User.query.filter(or_(User.email == ident, User.username == ident)).first()
             
             if not user:
-                print(f'[Login] Usuário não encontrado: {ident}')
+                current_app.logger.warning(f'[Login] Usuário não encontrado: {ident}')
                 flash('Login inválido. Verifique seu usuário/email e senha.', 'error')
                 return render_template('login.html')
             
-            print(f'[Login] Usuário encontrado: {user.username} (ID: {user.id})')
+            current_app.logger.info(f'[Login] Usuário encontrado: {user.username} (ID: {user.id})')
             
             # Verifica se está banido
             if getattr(user, 'is_banned', False):
-                print(f'[Login] Usuário banido: {user.username}')
+                current_app.logger.warning(f'[Login] Usuário banido: {user.username}')
                 flash('Conta banida. Entre em contato com o suporte.', 'error')
                 return render_template('login.html')
             
             # Verifica senha via hash seguro
             pwd_ok = user.check_password(pwd)
-            print(f'[Login] Resultado verificação senha: {pwd_ok}')
+            current_app.logger.info(f'[Login] Resultado verificação senha: {pwd_ok}')
             
             if pwd_ok:
                 login_user(user)
-                print(f'[Login] Login bem-sucedido: {user.username} (ID: {user.id})')
+                current_app.logger.info(f'[Login] Login bem-sucedido: {user.username} (ID: {user.id})')
                 return redirect(url_for('main.index'))
             else:
-                print(f'[Login] Senha incorreta para: {user.username}')
+                current_app.logger.warning(f'[Login] Senha incorreta para: {user.username}')
                 flash('Login inválido. Verifique seu usuário/email e senha.', 'error')
                 return render_template('login.html')
                 
         except Exception as e:
             import traceback
-            print(f'[Login Error] {type(e).__name__}: {str(e)}')
-            print(f'[Login Traceback]\n{traceback.format_exc()}')
+            current_app.logger.error(f'[Login Error] {type(e).__name__}: {str(e)}')
+            current_app.logger.error(f'[Login Traceback]\n{traceback.format_exc()}')
             flash('Erro ao processar login.', 'error')
             return render_template('login.html')
     
@@ -2332,7 +2332,7 @@ def get_posts():
             dt_local = _to_brasilia(p.data) if p.data else None
             data_str = dt_local.strftime('%d/%m/%Y %H:%M') if dt_local else ''
         except Exception as e:
-            print(f'[ERRO DATA POST] id={p.id} data={p.data} erro={e}')
+            current_app.logger.warning(f'[ERRO DATA POST] id={p.id} data={p.data} erro={e}')
             data_str = ''
         # Buscar o usuário autor do post
         autor = None
@@ -2361,7 +2361,7 @@ def get_posts():
             'foto_perfil': foto_perfil,
             'liked': liked
         })
-    print(f'[API /api/posts] {len(result)} posts retornados')
+    current_app.logger.debug(f'[API /api/posts] {len(result)} posts retornados')
     return jsonify(result)
 
 @bp.route('/api/posts', methods=['POST'])
@@ -2599,19 +2599,19 @@ def cadastro():
         try:
             novo_usuario.set_password(password)
         except Exception as e:
-            print(f'[Cadastro] Erro ao definir senha: {e}')
+            current_app.logger.error(f'[Cadastro] Erro ao definir senha: {e}')
             flash('Falha ao definir senha. Tente novamente.', 'error')
             return redirect(url_for('main.cadastro'))
         
         try:
             db.session.add(novo_usuario)
             db.session.commit()
-            print(f'[Cadastro] Novo usuário cadastrado: {novo_usuario.username} (ID: {novo_usuario.id})')
+            current_app.logger.info(f'[Cadastro] Novo usuário cadastrado: {novo_usuario.username} (ID: {novo_usuario.id})')
         except Exception as e:
             db.session.rollback()
             import traceback
-            print(f'[Cadastro] Erro ao salvar usuário: {type(e).__name__}: {e}')
-            print(f'[Cadastro Traceback]\n{traceback.format_exc()}')
+            current_app.logger.error(f'[Cadastro] Erro ao salvar usuário: {type(e).__name__}: {e}')
+            current_app.logger.error(f'[Cadastro Traceback]\n{traceback.format_exc()}')
             flash('Erro ao processar cadastro. Tente novamente.', 'error')
             return redirect(url_for('main.cadastro'))
         # E-mails pós-cadastro (não bloqueantes)
