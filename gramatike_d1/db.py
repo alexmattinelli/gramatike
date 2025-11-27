@@ -382,16 +382,24 @@ def verify_password(stored_hash, password):
             parts = stored_hash.split('$')
             if len(parts) == 3:
                 method_parts = parts[0].split(':')
-                if len(method_parts) >= 4:
+                # Werkzeug scrypt format has exactly 4 parts: scrypt, n, r, p
+                if len(method_parts) == 4:
                     try:
                         n = int(method_parts[1])  # CPU/memory cost parameter
                         r = int(method_parts[2])  # Block size parameter
                         p = int(method_parts[3])  # Parallelization parameter
                     except ValueError:
                         return False  # Formato de hash inválido
+                    
+                    # Validate scrypt parameters to prevent DoS attacks
+                    # Werkzeug defaults: n=32768, r=8, p=1
+                    # Allow reasonable ranges: n <= 2^20 (1M), r <= 32, p <= 16
+                    if n <= 0 or n > 1048576 or r <= 0 or r > 32 or p <= 0 or p > 16:
+                        return False  # Parâmetros scrypt inválidos ou suspeitos
+                    
                     salt = parts[1]
                     expected_hash = parts[2]
-                    # hashlib.scrypt usa dklen=64 (512 bits) por padrão no Werkzeug
+                    # Werkzeug uses dklen=64 (512 bits) for scrypt hashes
                     new_hash = hashlib.scrypt(
                         password.encode(), 
                         salt=salt.encode(), 
