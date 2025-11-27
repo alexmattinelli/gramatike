@@ -45,11 +45,11 @@ button { font-family: var(--font-base); font-weight:600; }
     --text: #e5e7eb;
   }
   html, body { height:100%; overflow-x:hidden; }
-  body { font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #9B5DE5; margin:0; display:flex; flex-direction:column; min-height:100vh; }
+  body { font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--primary); margin:0; display:flex; flex-direction:column; min-height:100vh; }
   .content-wrapper { background: var(--bg); min-height:100vh; }
   h1,h2,h3 { font-family: var(--font-base); }
   /* HEADER ROXO (sem curvas - apenas a área de conteúdo terá bordas arredondadas) */
-  header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-radius:0; position:relative; display:flex; flex-direction:column; align-items:center; }
+  header.site-head { background: var(--primary); padding:28px clamp(16px,4vw,40px) 46px; border-radius:0; position:relative; display:flex; flex-direction:column; align-items:center; }
   .logo { font-family: var(--font-brand) !important; font-size:2.5rem; color:#fff; letter-spacing:1px; font-weight:400; }
   /* Mobile: Header mais compacto */
   @media (max-width: 980px){ 
@@ -258,7 +258,7 @@ button { font-family: var(--font-base); font-weight:600; }
 </header>
 
 <!-- Wrapper branco com borda curvada no topo -->
-<div class="content-wrapper" style="background:#ffffff; border-top-left-radius:35px; border-top-right-radius:35px; margin-top:-30px; padding-top:30px; position:relative; z-index:1;">
+<div class="content-wrapper" style="background:var(--card); border-top-left-radius:35px; border-top-right-radius:35px; margin-top:-30px; padding-top:30px; position:relative; z-index:1;">
 <main class="site-main" style="width:100%; max-width:1400px; margin:0 auto 4rem; padding:0 32px; display:flex; gap:48px; align-items:flex-start; justify-content:flex-start; box-sizing:border-box;">
   <div class="feed-col" style="flex:1 1 960px; max-width:960px; min-width:0;">
   
@@ -349,10 +349,10 @@ button { font-family: var(--font-base); font-weight:600; }
   <!-- Navegação rápida: Educação e Dinâmicas -->
   <div id="quick-nav" style="display:flex; gap:.7rem; margin:0 0 1.1rem;">
     <a href="{{ url_for('main.educacao') }}" aria-label="Ir para Educação" style="flex:1; text-decoration:none; background:var(--card); border:1px solid var(--border); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.9rem; font-weight:700; color:var(--primary); letter-spacing:.3px; transition:.18s; box-shadow:0 4px 12px rgba(0,0,0,.06);">
-      <span style="font-size:1.2rem;">📚</span> Educação
+      <span style="font-size:1.2rem;" aria-hidden="true">📚</span> Educação
     </a>
     <a href="{{ url_for('main.dinamicas_home') }}" aria-label="Ir para Dinâmicas" style="flex:1; text-decoration:none; background:var(--card); border:1px solid var(--border); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.9rem; font-weight:700; color:var(--primary); letter-spacing:.3px; transition:.18s; box-shadow:0 4px 12px rgba(0,0,0,.06);">
-      <span style="font-size:1.2rem;">🎮</span> Dinâmicas
+      <span style="font-size:1.2rem;" aria-hidden="true">🎮</span> Dinâmicas
     </a>
   </div>
 
@@ -380,7 +380,7 @@ button { font-family: var(--font-base); font-weight:600; }
       <!-- Username do usuário -->
       {% if current_user.is_authenticated %}
       <div style="text-align:center; margin-bottom:.8rem;">
-        <span style="font-size:1.1rem; font-weight:800; color:var(--primary); letter-spacing:.3px;">👤 @{{ current_user.username }}</span>
+        <span style="font-size:1.1rem; font-weight:800; color:var(--primary); letter-spacing:.3px;"><span aria-hidden="true">👤</span> @{{ current_user.username }}</span>
       </div>
       <!-- Links do perfil -->
       <div style="display:flex; flex-direction:column; gap:.5rem; margin-bottom:.8rem;">
@@ -643,19 +643,19 @@ button { font-family: var(--font-base); font-weight:600; }
   </a>
   
   <a href="{{ url_for('main.educacao') }}" aria-label="Educação" title="Educação">
-    <span style="font-size:1.3rem;">📚</span>
+    <span style="font-size:1.3rem;" aria-hidden="true">📚</span>
     <span>Educação</span>
   </a>
   
-  <a href="{{ url_for('main.novo_post') }}" aria-label="Criar post" title="Criar post" style="background: #ffffff; color: #9B5DE5; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <a href="{{ url_for('main.novo_post') }}" aria-label="Criar post" title="Criar post" style="background: var(--card); color: var(--primary); border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <line x1="12" y1="5" x2="12" y2="19"></line>
       <line x1="5" y1="12" x2="19" y2="12"></line>
     </svg>
   </a>
   
   <a href="{{ url_for('main.dinamicas_home') }}" aria-label="Dinâmicas" title="Dinâmicas">
-    <span style="font-size:1.3rem;">🎮</span>
+    <span style="font-size:1.3rem;" aria-hidden="true">🎮</span>
     <span>Dinâmicas</span>
   </a>
   
