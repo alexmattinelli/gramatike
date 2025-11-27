@@ -2566,15 +2566,18 @@ def cadastro():
         # Define senha com hash seguro
         try:
             novo_usuario.set_password(password)
-        except Exception:
+        except Exception as e:
+            current_app.logger.error(f'Erro ao definir senha: {e}')
             flash('Falha ao definir senha. Tente novamente.', 'error')
             return redirect(url_for('main.cadastro'))
         try:
             db.session.add(novo_usuario)
             db.session.commit()
-        except Exception:
+            current_app.logger.info(f'Novo usuário cadastrado: {novo_usuario.username} (ID: {novo_usuario.id})')
+        except Exception as e:
             db.session.rollback()
-            flash('Erro ao processar cadastro. Tente novamente.', 'error')
+            current_app.logger.error(f'Erro ao salvar usuário no banco: {type(e).__name__}: {e}')
+            flash(f'Erro ao processar cadastro: {type(e).__name__}. Tente novamente.', 'error')
             return redirect(url_for('main.cadastro'))
         # E-mails pós-cadastro (não bloqueantes)
         try:
