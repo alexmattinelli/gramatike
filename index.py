@@ -623,7 +623,7 @@ class Default(WorkerEntrypoint):
             except Exception as e:
                 print(f"[D1 Init Warning] {e}")
         
-        # Obter usuário atual se DB disponível
+        # Obter usuárie atual se DB disponível
         current_user = None
         if db and DB_AVAILABLE:
             try:
@@ -669,7 +669,7 @@ class Default(WorkerEntrypoint):
                 return result
             return html_response(result)
         
-        # Rotas dinâmicas (perfil de usuário)
+        # Rotas dinâmicas (perfil de usuárie)
         if path.startswith('/u/'):
             username = path[3:]
             result = await self._profile_page(db, current_user, username)
@@ -770,7 +770,7 @@ class Default(WorkerEntrypoint):
                     page = int(params.get('page', [1])[0])
                     posts = await get_posts(db, page=page)
                     
-                    # Verifica likes do usuário atual
+                    # Verifica likes de usuárie atual
                     if current_user:
                         for post in posts:
                             post['liked'] = await has_liked(db, current_user['id'], post['id'])
@@ -2253,7 +2253,7 @@ class Default(WorkerEntrypoint):
 {page_footer()}"""
 
     async def _profile_page(self, db, current_user, username):
-        """Página de perfil de usuário."""
+        """Página de perfil de usuárie."""
         if not db or not DB_AVAILABLE:
             return self._not_found_page(f'/u/{username}')
         
@@ -2265,7 +2265,7 @@ class Default(WorkerEntrypoint):
             # Buscar posts de usuárie
             posts = await get_posts(db, user_id=user['id'], per_page=20)
             
-            # Buscar seguidories/seguindo
+            # Buscar seguidories/seguides
             followers = await get_followers(db, user['id'])
             following = await get_following(db, user['id'])
             
@@ -2316,7 +2316,7 @@ class Default(WorkerEntrypoint):
             {f'<p style="margin-bottom: 1rem;">{user.get("bio", "")}</p>' if user.get('bio') else ''}
             <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 1rem; font-size: 0.85rem;">
                 <span><strong>{len(followers)}</strong> seguidories</span>
-                <span><strong>{len(following)}</strong> seguindo</span>
+                <span><strong>{len(following)}</strong> seguides</span>
             </div>
             {action_btn}
         </div>
