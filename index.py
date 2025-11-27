@@ -1905,8 +1905,10 @@ class Default(WorkerEntrypoint):
                     else:
                         error_msg = "Preencha todos os campos"
                 except Exception as e:
-                    # Log error type only (avoid exposing sensitive details in logs)
-                    print(f"[Login Error] {type(e).__name__}")
+                    # Log error details for debugging (without sensitive info)
+                    import traceback
+                    print(f"[Login Error] {type(e).__name__}: {e}")
+                    print(f"[Login Traceback] {traceback.format_exc()}")
                     # Show more specific error message to user
                     error_str = str(e).lower()
                     if 'no such table' in error_str or 'database' in error_str:

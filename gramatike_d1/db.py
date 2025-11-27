@@ -26,6 +26,35 @@ def rows_to_list(rows, columns):
     return [row_to_dict(row, columns) for row in rows]
 
 
+def safe_dict(result):
+    """Converte resultado D1 para dict de forma segura.
+    
+    Handles potential edge cases where the D1 result object might not
+    directly support dict() conversion, or where values might need type coercion.
+    """
+    if result is None:
+        return None
+    
+    try:
+        # Standard dict conversion
+        return dict(result)
+    except TypeError:
+        # Fallback: if the result has keys() method, iterate manually
+        try:
+            if hasattr(result, 'keys'):
+                return {k: result[k] for k in result.keys()}
+            elif hasattr(result, '__iter__') and hasattr(result, '__getitem__'):
+                # Could be a sequence-like object
+                return dict(result)
+        except Exception:
+            pass
+    except Exception:
+        pass
+    
+    # Return None if conversion fails
+    return None
+
+
 # ============================================================================
 # AUTO-INICIALIZAÇÃO DO BANCO DE DADOS
 # ============================================================================
@@ -304,6 +333,12 @@ def verify_password(stored_hash, password):
         return False
     
     try:
+        # Converte bytes para string se necessário (D1 pode retornar bytes)
+        if isinstance(stored_hash, bytes):
+            stored_hash = stored_hash.decode('utf-8')
+        if isinstance(password, bytes):
+            password = password.decode('utf-8')
+        
         # Tenta formato D1 simples primeiro (salt:hash)
         if stored_hash.count(':') == 1 and '$' not in stored_hash:
             salt, hashed = stored_hash.split(':')
@@ -361,7 +396,7 @@ async def get_user_by_id(db, user_id):
         "SELECT * FROM user WHERE id = ?"
     ).bind(user_id).first()
     if result:
-        return dict(result)
+        return safe_dict(result)
     return None
 
 
@@ -371,7 +406,7 @@ async def get_user_by_username(db, username):
         "SELECT * FROM user WHERE username = ?"
     ).bind(username).first()
     if result:
-        return dict(result)
+        return safe_dict(result)
     return None
 
 
@@ -381,7 +416,7 @@ async def get_user_by_email(db, email):
         "SELECT * FROM user WHERE email = ?"
     ).bind(email).first()
     if result:
-        return dict(result)
+        return safe_dict(result)
     return None
 
 
@@ -438,7 +473,7 @@ async def get_session(db, token):
         WHERE s.token = ? AND s.expires_at > datetime('now')
     """).bind(token).first()
     if result:
-        return dict(result)
+        return safe_dict(result)
     return None
 
 
