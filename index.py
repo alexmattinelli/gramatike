@@ -1996,7 +1996,7 @@ class Default(WorkerEntrypoint):
                     # Show more specific error message to user
                     error_str = str(e).lower()
                     if 'unique' in error_str or 'duplicate' in error_str:
-                        error_msg = "Este usuário ou email já está cadastrado."
+                        error_msg = "Estu usuárie ou email já está cadastrade."
                     elif 'no such table' in error_str or 'database' in error_str:
                         error_msg = "Erro de banco de dados. Contate o suporte."
                     elif 'timeout' in error_str or 'connection' in error_str:
