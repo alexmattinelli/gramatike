@@ -12,6 +12,19 @@ from datetime import datetime, timedelta
 import hashlib
 import secrets
 
+# Import JavaScript console for proper log levels in Cloudflare Workers
+# console.log = info level, console.warn = warning, console.error = error
+try:
+    from js import console
+except ImportError:
+    # Fallback for local testing - create a mock console
+    class MockConsole:
+        def log(self, *args): print(*args)
+        def info(self, *args): print(*args)
+        def warn(self, *args): print(*args, file=sys.stderr)
+        def error(self, *args): print(*args, file=sys.stderr)
+    console = MockConsole()
+
 # ============================================================================
 # HELPERS DE DATABASE
 # ============================================================================
@@ -31,31 +44,73 @@ def rows_to_list(rows, columns):
 def safe_dict(result):
     """Converte resultado D1 para dict de forma segura.
     
-    Handles potential edge cases where the D1 result object might not
-    directly support dict() conversion.
+    Handles JsProxy objects returned by Cloudflare D1 in Pyodide environment.
+    The D1 database returns JavaScript objects (JsProxy) that need special
+    handling to convert to Python dicts.
     """
     if result is None:
         return None
     
+    # Check if it's a JsProxy object (from Pyodide/Cloudflare Workers)
+    result_type = type(result).__name__
+    
+    # Method 1: Try to_py() for JsProxy objects (Pyodide's conversion method)
+    if hasattr(result, 'to_py'):
+        try:
+            converted = result.to_py()
+            if isinstance(converted, dict):
+                return converted
+            # If to_py() returns something else, try dict() on it
+            return dict(converted) if converted else None
+        except Exception:
+            pass  # Fall through to other methods
+    
+    # Method 2: Try Object.keys() for JavaScript objects
     try:
-        # Standard dict conversion
+        from js import Object
+        # Get JavaScript object keys
+        js_keys = Object.keys(result)
+        if js_keys:
+            # Convert keys to Python list and build dict
+            keys_list = js_keys.to_py() if hasattr(js_keys, 'to_py') else list(js_keys)
+            return {k: (result[k].to_py() if hasattr(result[k], 'to_py') else result[k]) for k in keys_list}
+    except ImportError:
+        pass  # Not in Pyodide environment
+    except Exception:
+        pass  # Fall through to other methods
+    
+    # Method 3: Standard dict conversion (works for regular Python objects)
+    try:
         converted = dict(result)
         return converted
-    except TypeError as te:
-        print(f"[safe_dict] TypeError ao converter resultado: {te}, result type: {type(result)}", file=sys.stderr, flush=True)
-        # Fallback: if the result has keys() method, iterate manually
-        try:
-            if hasattr(result, 'keys'):
-                keys = result.keys()
-                if keys:
-                    return {k: result[k] for k in keys}
-        except Exception as e2:
-            print(f"[safe_dict] Fallback também falhou: {e2}", file=sys.stderr, flush=True)
-    except Exception as e:
-        print(f"[safe_dict] Exception ao converter resultado: {e}, result type: {type(result)}", file=sys.stderr, flush=True)
+    except TypeError:
+        pass  # Not directly convertible
+    except Exception:
+        pass
     
-    # Return None if conversion fails
-    print(f"[safe_dict] Retornando None para result: {result}", file=sys.stderr, flush=True)
+    # Method 4: Try keys() method if available
+    try:
+        if hasattr(result, 'keys'):
+            keys = result.keys()
+            if hasattr(keys, 'to_py'):
+                keys = keys.to_py()
+            if keys:
+                return {k: (result[k].to_py() if hasattr(result[k], 'to_py') else result[k]) for k in keys}
+    except Exception:
+        pass
+    
+    # Method 5: Try iterating as items
+    try:
+        if hasattr(result, 'items'):
+            items = result.items()
+            if hasattr(items, 'to_py'):
+                items = items.to_py()
+            return dict(items)
+    except Exception:
+        pass
+    
+    # All methods failed - log warning and return None
+    console.warn(f"[safe_dict] Não foi possível converter resultado: type={result_type}")
     return None
 
 
@@ -75,7 +130,8 @@ async def ensure_database_initialized(db):
     if _db_initialized:
         return True
     
-    print("[D1 Init] Iniciando verificação do banco de dados...", file=sys.stderr, flush=True)
+    # Use console.log for informational messages
+    console.log("[D1 Init] Iniciando verificação do banco de dados...")
     
     try:
         # Criar tabela de usuáries se não existir
@@ -295,7 +351,8 @@ async def ensure_database_initialized(db):
             "SELECT id FROM user WHERE is_superadmin = 1 LIMIT 1"
         ).first()
         
-        print(f"[D1 Init] Superadmin check result: {superadmin}", file=sys.stderr, flush=True)
+        # Use console.log for informational messages
+        console.log(f"[D1 Init] Superadmin check result: {superadmin}")
         
         if not superadmin:
             # Verificar se o usuário 'gramatike' já existe (sem ser superadmin)
@@ -304,12 +361,12 @@ async def ensure_database_initialized(db):
             ).first()
             
             if existing_user:
-                print(f"[D1 Init] Usuário 'gramatike' já existe: {existing_user}", file=sys.stderr, flush=True)
+                console.log(f"[D1 Init] Usuário 'gramatike' já existe: {existing_user}")
                 # Se existe mas não é superadmin, promover a superadmin
                 await db.prepare("""
                     UPDATE user SET is_admin = 1, is_superadmin = 1 WHERE username = 'gramatike'
                 """).run()
-                print("[D1 Init] Usuário 'gramatike' promovido a superadmin!", file=sys.stderr, flush=True)
+                console.log("[D1 Init] Usuário 'gramatike' promovido a superadmin!")
             else:
                 # Criar senha hasheada para o superadmin
                 salt = secrets.token_hex(16)
@@ -323,23 +380,25 @@ async def ensure_database_initialized(db):
                         VALUES (?, ?, ?, ?, 1, 1, datetime('now'))
                     """).bind('gramatike', 'admin@gramatike.com.br', password_hash, 'Gramátike Admin').run()
                     
-                    print("[D1 Init] Superadmin 'gramatike' criado automaticamente!", file=sys.stderr, flush=True)
+                    console.log("[D1 Init] Superadmin 'gramatike' criado automaticamente!")
                 except Exception as insert_error:
-                    print(f"[D1 Init Error] Falha ao criar superadmin: {insert_error}", file=sys.stderr, flush=True)
+                    # Use console.error for actual errors
+                    console.error(f"[D1 Init Error] Falha ao criar superadmin: {insert_error}")
         else:
-            print("[D1 Init] Superadmin já existe, pulando criação.", file=sys.stderr, flush=True)
+            console.log("[D1 Init] Superadmin já existe, pulando criação.")
         
         # Verificar quantos usuários existem no banco
         user_count = await db.prepare("SELECT COUNT(*) as count FROM user").first()
-        print(f"[D1 Init] Total de usuários no banco: {user_count}", file=sys.stderr, flush=True)
+        console.log(f"[D1 Init] Total de usuários no banco: {user_count}")
         
         _db_initialized = True
-        print("[D1 Init] Inicialização concluída com sucesso!", file=sys.stderr, flush=True)
+        console.log("[D1 Init] Inicialização concluída com sucesso!")
         return True
         
     except Exception as e:
-        print(f"[D1 Init Error] {e}", file=sys.stderr, flush=True)
-        print(f"[D1 Init Traceback] {traceback.format_exc()}", file=sys.stderr, flush=True)
+        # Use console.error for actual errors
+        console.error(f"[D1 Init Error] {e}")
+        console.error(f"[D1 Init Traceback] {traceback.format_exc()}")
         return False
 
 
@@ -472,14 +531,16 @@ async def get_user_by_username(db, username):
         result = await db.prepare(
             "SELECT * FROM user WHERE username = ?"
         ).bind(username).first()
-        print(f"[get_user_by_username] Query result for '{username}': {result}, type: {type(result)}", file=sys.stderr, flush=True)
+        # Use console.log for debug/info messages
+        console.log(f"[get_user_by_username] Query result for '{username}': {result}, type: {type(result)}")
         if result:
             converted = safe_dict(result)
-            print(f"[get_user_by_username] safe_dict result: {converted is not None}", file=sys.stderr, flush=True)
+            console.log(f"[get_user_by_username] safe_dict result: {converted is not None}")
             return converted
         return None
     except Exception as e:
-        print(f"[get_user_by_username] Error: {e}", file=sys.stderr, flush=True)
+        # Use console.error for actual errors
+        console.error(f"[get_user_by_username] Error: {e}")
         return None
 
 
@@ -617,7 +678,7 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
             LIMIT ? OFFSET ?
         """).bind(per_page, offset).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_post_by_id(db, post_id):
@@ -631,7 +692,7 @@ async def get_post_by_id(db, post_id):
         WHERE p.id = ?
     """).bind(post_id).first()
     if result:
-        return dict(result)
+        return safe_dict(result)
     return None
 
 
@@ -697,7 +758,7 @@ async def get_comments(db, post_id, page=1, per_page=50):
         LIMIT ? OFFSET ?
     """).bind(post_id, per_page, offset).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def create_comment(db, post_id, usuario_id, conteudo):
@@ -750,7 +811,7 @@ async def get_followers(db, user_id):
         JOIN user u ON s.seguidore_id = u.id
         WHERE s.seguide_id = ?
     """).bind(user_id).all()
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_following(db, user_id):
@@ -761,7 +822,7 @@ async def get_following(db, user_id):
         JOIN user u ON s.seguide_id = u.id
         WHERE s.seguidore_id = ?
     """).bind(user_id).all()
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 # ============================================================================
@@ -792,7 +853,7 @@ async def get_edu_contents(db, tipo=None, page=1, per_page=20):
             LIMIT ? OFFSET ?
         """).bind(per_page, offset).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_edu_content_by_id(db, content_id):
@@ -805,7 +866,7 @@ async def get_edu_content_by_id(db, content_id):
         WHERE e.id = ?
     """).bind(content_id).first()
     if result:
-        return dict(result)
+        return safe_dict(result)
     return None
 
 
@@ -833,7 +894,7 @@ async def search_edu_contents(db, query, tipo=None):
             LIMIT 50
         """).bind(search_term, search_term, search_term).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 # ============================================================================
@@ -848,7 +909,7 @@ async def get_exercise_topics(db):
         FROM exercise_topic t
         ORDER BY t.nome
     """).all()
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_exercise_questions(db, topic_id=None, section_id=None):
@@ -889,7 +950,7 @@ async def get_exercise_questions(db, topic_id=None, section_id=None):
             ORDER BY q.created_at DESC
         """).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 # ============================================================================
@@ -916,7 +977,7 @@ async def get_dynamics(db, active_only=True):
             ORDER BY d.created_at DESC
         """).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_dynamic_by_id(db, dynamic_id):
@@ -928,7 +989,7 @@ async def get_dynamic_by_id(db, dynamic_id):
         WHERE d.id = ?
     """).bind(dynamic_id).first()
     if result:
-        return dict(result)
+        return safe_dict(result)
     return None
 
 
@@ -942,7 +1003,7 @@ async def get_dynamic_responses(db, dynamic_id):
         ORDER BY r.created_at DESC
     """).bind(dynamic_id).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def submit_dynamic_response(db, dynamic_id, usuario_id, payload):
@@ -979,7 +1040,7 @@ async def get_palavras_do_dia(db, ativas_only=True):
             ORDER BY p.ordem, p.created_at DESC
         """).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_palavra_do_dia_atual(db):
@@ -991,7 +1052,7 @@ async def get_palavra_do_dia_atual(db):
         LIMIT 1
     """).first()
     if result:
-        return dict(result)
+        return safe_dict(result)
     return None
 
 
@@ -1051,7 +1112,7 @@ async def get_divulgacoes(db, area=None, show_on_edu=None, show_on_index=None):
             ORDER BY ordem, created_at DESC
         """).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_novidades(db, limit=5):
@@ -1064,7 +1125,7 @@ async def get_novidades(db, limit=5):
         LIMIT ?
     """).bind(limit).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 # ============================================================================
@@ -1103,7 +1164,7 @@ async def verify_email_token(db, token, tipo):
     """).bind(token, tipo).first()
     
     if result:
-        return dict(result)
+        return safe_dict(result)
     return None
 
 
@@ -1180,7 +1241,7 @@ async def get_notifications(db, usuario_id, apenas_nao_lidas=False, page=1, per_
             LIMIT ? OFFSET ?
         """).bind(usuario_id, per_page, offset).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def count_unread_notifications(db, usuario_id):
@@ -1281,7 +1342,7 @@ async def get_amigues(db, usuario_id):
         ORDER BY u.nome, u.username
     """).bind(usuario_id, usuario_id).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_pending_friend_requests(db, usuario_id):
@@ -1296,7 +1357,7 @@ async def get_pending_friend_requests(db, usuario_id):
         ORDER BY a.created_at DESC
     """).bind(usuario_id, usuario_id, usuario_id).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def are_amigues(db, usuarie1_id, usuarie2_id):
@@ -1358,7 +1419,7 @@ async def get_reports(db, apenas_pendentes=True, page=1, per_page=20):
             LIMIT ? OFFSET ?
         """).bind(per_page, offset).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def resolve_report(db, report_id, resolver_id=None):
@@ -1413,7 +1474,7 @@ async def get_support_tickets(db, status=None, page=1, per_page=20):
             LIMIT ? OFFSET ?
         """).bind(per_page, offset).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_user_tickets(db, usuario_id):
@@ -1424,7 +1485,7 @@ async def get_user_tickets(db, usuario_id):
         ORDER BY created_at DESC
     """).bind(usuario_id).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def respond_ticket(db, ticket_id, resposta):
@@ -1547,7 +1608,7 @@ async def get_user_uploads(db, usuario_id, tipo=None):
             ORDER BY created_at DESC
         """).bind(usuario_id).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 # ============================================================================
@@ -1577,7 +1638,7 @@ async def get_all_usuaries(db, page=1, per_page=20, search=None):
             LIMIT ? OFFSET ?
         """).bind(per_page, offset).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def ban_usuarie(db, usuario_id, reason=None, admin_id=None):
@@ -1662,7 +1723,7 @@ async def check_rate_limit(db, ip_address, endpoint, max_attempts=10, window_min
         """).bind(ip_address, endpoint).run()
         return True, None
     
-    rate = dict(result)
+    rate = safe_dict(result)
     
     # Verifica se está bloqueado
     if rate.get('blocked_until'):
@@ -1763,7 +1824,7 @@ async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
             LIMIT ? OFFSET ?
         """).bind(per_page, offset).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 # ============================================================================
@@ -1784,7 +1845,7 @@ async def get_user_points(db, usuario_id):
         return {'usuario_id': usuario_id, 'pontos_total': 0, 'pontos_exercicios': 0,
                 'pontos_posts': 0, 'pontos_dinamicas': 0, 'nivel': 1}
     
-    return dict(result)
+    return safe_dict(result)
 
 
 async def add_points(db, usuario_id, pontos, tipo='exercicios'):
@@ -1891,7 +1952,7 @@ async def get_ranking(db, limit=10, tipo=None):
             LIMIT ?
         """).bind(limit).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_all_badges(db):
@@ -1899,7 +1960,7 @@ async def get_all_badges(db):
     result = await db.prepare("""
         SELECT * FROM badge ORDER BY categoria, pontos_necessarios
     """).all()
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_user_badges(db, usuario_id):
@@ -1911,7 +1972,7 @@ async def get_user_badges(db, usuario_id):
         WHERE ub.usuario_id = ?
         ORDER BY ub.earned_at DESC
     """).bind(usuario_id).all()
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def award_badge(db, usuario_id, badge_nome):
@@ -2040,7 +2101,7 @@ async def get_user_exercise_stats(db, usuario_id, topic_id=None):
         """).bind(usuario_id).first()
     
     if result:
-        return dict(result)
+        return safe_dict(result)
     return {'total_respostas': 0, 'acertos': 0, 'pontos': 0}
 
 
@@ -2067,7 +2128,7 @@ async def get_questions_not_scored(db, usuario_id, topic_id=None, limit=10):
             LIMIT ?
         """).bind(usuario_id, limit).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 # ============================================================================
@@ -2104,7 +2165,7 @@ async def get_exercise_lists(db, usuario_id):
         WHERE el.usuario_id = ?
         ORDER BY el.created_at DESC
     """).bind(usuario_id).all()
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_exercise_list_questions(db, list_id):
@@ -2117,7 +2178,7 @@ async def get_exercise_list_questions(db, list_id):
         WHERE eli.list_id = ?
         ORDER BY eli.ordem
     """).bind(list_id).all()
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def save_quiz_result(db, usuario_id, acertos, erros, pontos, tempo_total, list_id=None, topic_id=None):
@@ -2189,7 +2250,7 @@ async def get_flashcard_decks(db, usuario_id=None, include_public=True):
             ORDER BY fd.created_at DESC
         """).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_flashcards(db, deck_id):
@@ -2197,7 +2258,7 @@ async def get_flashcards(db, deck_id):
     result = await db.prepare("""
         SELECT * FROM flashcard WHERE deck_id = ? ORDER BY ordem
     """).bind(deck_id).all()
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_cards_to_review(db, usuario_id, deck_id=None, limit=20):
@@ -2227,7 +2288,7 @@ async def get_cards_to_review(db, usuario_id, deck_id=None, limit=20):
             LIMIT ?
         """).bind(usuario_id, usuario_id, now, limit).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def record_flashcard_review(db, usuario_id, flashcard_id, quality):
@@ -2330,7 +2391,7 @@ async def get_favorites(db, usuario_id, tipo=None):
             ORDER BY created_at DESC
         """).bind(usuario_id).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 # ============================================================================
@@ -2364,7 +2425,7 @@ async def get_user_history(db, usuario_id, item_tipo=None, limit=50):
             LIMIT ?
         """).bind(usuario_id, limit).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 # ============================================================================
@@ -2384,7 +2445,7 @@ async def get_user_preferences(db, usuario_id):
         """).bind(usuario_id).run()
         return await get_user_preferences(db, usuario_id)
     
-    return dict(result)
+    return safe_dict(result)
 
 
 async def update_user_preferences(db, usuario_id, **kwargs):
@@ -2500,8 +2561,8 @@ async def get_conversations(db, usuario_id):
         
         conversations.append({
             'other_user': user,
-            'last_message': dict(last_msg) if last_msg else None,
-            'unread_count': unread['count'] if unread else 0
+            'last_message': safe_dict(last_msg) if last_msg else None,
+            'unread_count': safe_dict(unread)['count'] if unread else 0
         })
     
     return conversations
@@ -2531,7 +2592,7 @@ async def get_messages_with_user(db, usuario_id, other_user_id, page=1, per_page
         WHERE remetente_id = ? AND destinatarie_id = ? AND lida = 0
     """).bind(other_user_id, usuario_id).run()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 # ============================================================================
@@ -2609,7 +2670,7 @@ async def get_study_groups(db, usuario_id=None, apenas_meus=False):
             ORDER BY g.created_at DESC
         """).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_group_messages(db, grupo_id, page=1, per_page=50):
@@ -2625,7 +2686,7 @@ async def get_group_messages(db, grupo_id, page=1, per_page=50):
         LIMIT ? OFFSET ?
     """).bind(grupo_id, per_page, offset).all()
     
-    return [dict(row) for row in result.results] if result.results else []
+    return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def send_group_message(db, grupo_id, usuario_id, conteudo):
@@ -2650,7 +2711,7 @@ async def get_accessibility_content(db, tipo_conteudo, conteudo_id):
     """).bind(tipo_conteudo, conteudo_id).first()
     
     if result:
-        return dict(result)
+        return safe_dict(result)
     return None
 
 
@@ -2779,7 +2840,7 @@ async def get_user_mentions(db, usuario_id, limit=50, offset=0):
         ORDER BY m.created_at DESC
         LIMIT ? OFFSET ?
     """).bind(usuario_id, limit, offset).all()
-    return [dict(r) for r in results.results] if results.results else []
+    return [safe_dict(r) for r in results.results] if results.results else []
 
 
 # ============================================================================
@@ -2811,7 +2872,7 @@ async def get_or_create_hashtag(db, tag):
         "SELECT * FROM hashtag WHERE tag = ?"
     ).bind(tag).first()
     if result:
-        return dict(result)
+        return safe_dict(result)
     # Criar nova
     new_result = await db.prepare("""
         INSERT INTO hashtag (tag, count_uso, created_at)
@@ -2851,7 +2912,7 @@ async def get_trending_hashtags(db, limit=10):
         ORDER BY count_uso DESC
         LIMIT ?
     """).bind(limit).all()
-    return [dict(r) for r in results.results] if results.results else []
+    return [safe_dict(r) for r in results.results] if results.results else []
 
 
 async def search_by_hashtag(db, tag, tipo=None, limit=50, offset=0):
@@ -2870,7 +2931,7 @@ async def search_by_hashtag(db, tag, tipo=None, limit=50, offset=0):
         LIMIT ? OFFSET ?
     """).bind(tag, limit, offset).all()
     
-    return [dict(r) for r in results.results] if results.results else []
+    return [safe_dict(r) for r in results.results] if results.results else []
 
 
 # ============================================================================
@@ -2923,7 +2984,7 @@ async def get_emojis_custom(db, categoria=None, ativo_only=True):
             ORDER BY categoria, ordem, nome
         """).all()
     
-    return [dict(r) for r in results.results] if results.results else []
+    return [safe_dict(r) for r in results.results] if results.results else []
 
 
 async def get_emoji_by_codigo(db, codigo):
@@ -2931,7 +2992,7 @@ async def get_emoji_by_codigo(db, codigo):
     result = await db.prepare(
         "SELECT * FROM emoji_custom WHERE codigo = ? AND ativo = 1"
     ).bind(codigo).first()
-    return dict(result) if result else None
+    return safe_dict(result) if result else None
 
 
 async def update_emoji_custom(db, emoji_id, **kwargs):
@@ -2971,7 +3032,7 @@ async def get_emoji_categories(db):
         GROUP BY categoria
         ORDER BY categoria
     """).all()
-    return [dict(r) for r in results.results] if results.results else []
+    return [safe_dict(r) for r in results.results] if results.results else []
 
 
 def escape_html(text):
@@ -3019,7 +3080,7 @@ async def get_all_feature_flags(db):
     results = await db.prepare(
         "SELECT * FROM feature_flag ORDER BY nome"
     ).all()
-    return [dict(r) for r in results.results] if results.results else []
+    return [safe_dict(r) for r in results.results] if results.results else []
 
 
 async def update_feature_flag(db, nome, ativo, updated_by=None):
