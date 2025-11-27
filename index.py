@@ -2265,7 +2265,7 @@ class Default(WorkerEntrypoint):
             # Buscar posts de usuárie
             posts = await get_posts(db, user_id=user['id'], per_page=20)
             
-            # Buscar seguidories/seguides
+            # Buscar seguidories/seguindo
             followers = await get_followers(db, user['id'])
             following = await get_following(db, user['id'])
             
@@ -2316,7 +2316,7 @@ class Default(WorkerEntrypoint):
             {f'<p style="margin-bottom: 1rem;">{user.get("bio", "")}</p>' if user.get('bio') else ''}
             <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 1rem; font-size: 0.85rem;">
                 <span><strong>{len(followers)}</strong> seguidories</span>
-                <span><strong>{len(following)}</strong> seguides</span>
+                <span><strong>{len(following)}</strong> seguindo</span>
             </div>
             {action_btn}
         </div>
