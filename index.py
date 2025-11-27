@@ -155,6 +155,32 @@ def redirect(url, status=302, headers=None):
     return Response("", status=status, headers=resp_headers)
 
 
+def escape_html(text):
+    """Escape HTML special characters to prevent XSS."""
+    if not text:
+        return ""
+    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&#x27;")
+
+
+def normalize_image_url(url, default="/static/img/perfil.png"):
+    """Normalize image URL - prepend /static/ if not an absolute URL."""
+    if not url or not str(url).strip():
+        return default
+    url = str(url).strip()
+    if url.startswith('http://') or url.startswith('https://'):
+        return url
+    if url.startswith('/static/'):
+        return url
+    return f"/static/{url}"
+
+
+def escape_js_string(text):
+    """Escape string for safe inclusion in JavaScript."""
+    if not text:
+        return ""
+    return str(text).replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("<", "\\u003c").replace(">", "\\u003e")
+
+
 # ============================================================================
 # CSS STYLES - Mesma estética do Gramátike
 # ============================================================================
@@ -1884,16 +1910,14 @@ class Default(WorkerEntrypoint):
         posts_html = ""
         if posts:
             for p in posts:
-                # Buscar dados do autor
-                autor_username = p.get('usuario', 'Usuárie')
-                autor_foto = p.get('foto_perfil', '/static/img/perfil.png')
-                if autor_foto and not autor_foto.startswith('http'):
-                    autor_foto = f"/static/{autor_foto}"
+                # Buscar dados do autor - escaped para segurança
+                autor_username = escape_html(p.get('usuario', 'Usuárie'))
+                autor_foto = normalize_image_url(p.get('foto_perfil'))
                 
                 data_str = ""
                 if p.get('data'):
                     try:
-                        data_str = str(p.get('data'))[:16]  # Simplificar formato
+                        data_str = escape_html(str(p.get('data'))[:16])  # Simplificar formato
                     except:
                         pass
                 
@@ -1904,13 +1928,15 @@ class Default(WorkerEntrypoint):
                 # Imagem do post
                 img_html = ""
                 if p.get('imagem'):
-                    img_src = p.get('imagem')
-                    if img_src and not img_src.startswith('http'):
-                        img_src = f"/static/{img_src}"
-                    img_html = f'<img src="{img_src}" alt="Imagem do post" style="width:100%;border-radius:16px;margin:0.8rem 0;max-height:400px;object-fit:cover;">'
+                    img_src = normalize_image_url(p.get('imagem'))
+                    img_html = f'<img src="{escape_html(img_src)}" alt="Imagem do post" style="width:100%;border-radius:16px;margin:0.8rem 0;max-height:400px;object-fit:cover;">'
+                
+                # Escapar conteúdo do post
+                post_conteudo = escape_html(p.get('conteudo', ''))
+                post_id = int(p.get('id', 0))
                 
                 posts_html += f"""
-                <div class="feed-item" data-post-id="{p.get('id')}">
+                <div class="feed-item" data-post-id="{post_id}">
                     <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:0.8rem;">
                         <img src="{autor_foto}" alt="@{autor_username}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #eee;">
                         <div>
@@ -1918,17 +1944,17 @@ class Default(WorkerEntrypoint):
                             <span style="color:var(--text-dim);font-size:0.7rem;margin-left:0.5rem;">{data_str}</span>
                         </div>
                     </div>
-                    <p style="font-size:0.95rem;line-height:1.5;white-space:pre-wrap;">{p.get('conteudo', '')}</p>
+                    <p style="font-size:0.95rem;line-height:1.5;white-space:pre-wrap;">{post_conteudo}</p>
                     {img_html}
                     <div style="display:flex;gap:1rem;margin-top:0.8rem;font-size:0.8rem;">
-                        <button onclick="likePost({p.get('id')})" class="like-btn {liked_class}" style="background:#f1edff;border:1px solid #d3c5ff;padding:0.4rem 0.8rem;border-radius:20px;cursor:pointer;font-weight:600;color:var(--primary);">
+                        <button onclick="likePost({post_id})" class="like-btn {liked_class}" style="background:#f1edff;border:1px solid #d3c5ff;padding:0.4rem 0.8rem;border-radius:20px;cursor:pointer;font-weight:600;color:var(--primary);">
                             {liked_icon} {p.get('like_count', 0)}
                         </button>
-                        <button onclick="toggleComments({p.get('id')})" style="background:#f1edff;border:1px solid #d3c5ff;padding:0.4rem 0.8rem;border-radius:20px;cursor:pointer;font-weight:600;color:var(--primary);">
+                        <button onclick="toggleComments({post_id})" style="background:#f1edff;border:1px solid #d3c5ff;padding:0.4rem 0.8rem;border-radius:20px;cursor:pointer;font-weight:600;color:var(--primary);">
                             💬 {p.get('comment_count', 0)}
                         </button>
                     </div>
-                    <div id="comments-{p.get('id')}" style="display:none;margin-top:0.8rem;"></div>
+                    <div id="comments-{post_id}" style="display:none;margin-top:0.8rem;"></div>
                 </div>"""
         else:
             posts_html = '<div class="empty">Nenhum post ainda. Seja ê primeire a postar!</div>'
@@ -1937,17 +1963,22 @@ class Default(WorkerEntrypoint):
         divulgacoes_html = ""
         if divulgacoes:
             for d in divulgacoes[:3]:
+                div_titulo = escape_html(d.get('titulo', ''))
+                div_texto = escape_html((d.get('texto') or '')[:80])
                 divulgacoes_html += f"""
                 <div style="padding:0.5rem 0;border-bottom:1px solid var(--border);">
-                    <strong style="font-size:0.75rem;color:var(--primary);">{d.get('titulo', '')}</strong>
-                    <p style="font-size:0.65rem;color:var(--text-dim);margin:0.2rem 0 0;">{(d.get('texto') or '')[:80]}...</p>
+                    <strong style="font-size:0.75rem;color:var(--primary);">{div_titulo}</strong>
+                    <p style="font-size:0.65rem;color:var(--text-dim);margin:0.2rem 0 0;">{div_texto}...</p>
                 </div>"""
         else:
             divulgacoes_html = '<div class="placeholder">Nenhuma divulgação.</div>'
         
-        # Info do usuário para JS
-        user_username = current_user.get('username', '')
-        user_id = current_user.get('id', '')
+        # Info do usuário para JS - escaped para segurança
+        user_username = escape_html(current_user.get('username', ''))
+        user_username_js = escape_js_string(current_user.get('username', ''))
+        user_id = int(current_user.get('id', 0))
+        user_nome = escape_html(current_user.get('nome') or '@' + current_user.get('username', ''))
+        user_foto = normalize_image_url(current_user.get('foto_perfil'))
         
         extra_css = """
         .like-btn.liked { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
@@ -1957,7 +1988,7 @@ class Default(WorkerEntrypoint):
     <header class="site-head">
         <h1 class="logo">Gramátike</h1>
         <a href="/perfil" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);width:50px;height:50px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,0.5);">
-            <img src="{current_user.get('foto_perfil', '/static/img/perfil.png') if not current_user.get('foto_perfil', '').startswith('http') else current_user.get('foto_perfil', '/static/img/perfil.png')}" alt="Perfil" style="width:100%;height:100%;object-fit:cover;">
+            <img src="{user_foto}" alt="Perfil" style="width:100%;height:100%;object-fit:cover;">
         </a>
     </header>
     <main>
@@ -1982,7 +2013,7 @@ class Default(WorkerEntrypoint):
                     <a href="/dinamicas">🎮 Dinâmicas</a>
                 </div>
                 <div class="side-card">
-                    <h3>👤 {current_user.get('nome') or '@' + user_username}</h3>
+                    <h3>👤 {user_nome}</h3>
                     <p style="font-size:0.75rem;color:var(--text-dim);">@{user_username}</p>
                     <div style="display:flex;gap:1rem;margin-top:0.8rem;">
                         <a href="/perfil" style="font-size:0.7rem;color:var(--primary);text-decoration:none;font-weight:700;">Meu Perfil</a>
@@ -2000,8 +2031,15 @@ class Default(WorkerEntrypoint):
         </div>
     </main>
     <script>
-    window.currentUser = "{user_username}";
+    window.currentUser = "{user_username_js}";
     window.currentUserId = {user_id};
+    
+    // Helper function to escape HTML in JS
+    function escapeHtml(text) {{
+        if (!text) return '';
+        const map = {{'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;'}};
+        return String(text).replace(/[&<>"']/g, c => map[c]);
+    }}
     
     async function likePost(postId) {{
         try {{
@@ -2025,7 +2063,7 @@ class Default(WorkerEntrypoint):
                 if(comentarios.length === 0) {{
                     div.innerHTML = '<p style="font-size:0.75rem;color:var(--text-dim);">Nenhum comentário.</p>';
                 }} else {{
-                    div.innerHTML = comentarios.map(c => '<div style="background:#f9fafb;padding:0.5rem 0.7rem;border-radius:10px;margin-bottom:0.4rem;font-size:0.8rem;"><strong style="color:var(--primary);">@' + c.usuario + '</strong><p style="margin:0.2rem 0 0;">' + c.conteudo + '</p></div>').join('');
+                    div.innerHTML = comentarios.map(c => '<div style="background:#f9fafb;padding:0.5rem 0.7rem;border-radius:10px;margin-bottom:0.4rem;font-size:0.8rem;"><strong style="color:var(--primary);">@' + escapeHtml(c.usuario) + '</strong><p style="margin:0.2rem 0 0;">' + escapeHtml(c.conteudo) + '</p></div>').join('');
                 }}
             }} catch(e) {{
                 div.innerHTML = '<p style="font-size:0.75rem;color:#c00;">Erro ao carregar comentários.</p>';
@@ -2709,13 +2747,14 @@ class Default(WorkerEntrypoint):
             except:
                 pass
         
-        # Gerar HTML dos posts
+        # Gerar HTML dos posts com escape
         posts_html = ""
         if posts:
             for p in posts:
+                post_conteudo = escape_html(p.get('conteudo', ''))
                 posts_html += f"""
                 <div class="feed-item">
-                    <p class="fi-body">{p.get('conteudo', '')}</p>
+                    <p class="fi-body">{post_conteudo}</p>
                     <div style="margin-top: 0.8rem; font-size: 0.7rem; color: var(--text-dim);">
                         ❤️ {p.get('like_count', 0)} • 💬 {p.get('comment_count', 0)}
                     </div>
@@ -2723,9 +2762,11 @@ class Default(WorkerEntrypoint):
         else:
             posts_html = '<div class="empty">Você ainda não fez nenhum post.</div>'
         
-        foto_perfil = user.get('foto_perfil', '/static/img/perfil.png')
-        if foto_perfil and not foto_perfil.startswith('http'):
-            foto_perfil = f"/static/{foto_perfil}"
+        # Usar helper para URL da foto
+        foto_perfil = normalize_image_url(user.get('foto_perfil'))
+        username_escaped = escape_html(username)
+        user_nome = escape_html(user.get('nome') or '@' + username)
+        user_bio = escape_html(user.get('bio', ''))
         
         return f"""{page_head(f"Meu Perfil — Gramátike")}
     <header class="site-head">
@@ -2734,15 +2775,15 @@ class Default(WorkerEntrypoint):
     <main>
         <div class="card" style="text-align: center; margin-bottom: 1.5rem;">
             <img src="{foto_perfil}" 
-                 alt="@{username}" 
+                 alt="@{username_escaped}" 
                  style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1rem; object-fit: cover;">
             <h2 style="color: var(--primary); margin-bottom: 0.3rem;">
-                {user.get('nome') or '@' + username}
+                {user_nome}
             </h2>
-            <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.8rem;">@{username}</p>
-            {f'<p style="margin-bottom: 1rem;">{user.get("bio", "")}</p>' if user.get('bio') else ''}
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.8rem;">@{username_escaped}</p>
+            {f'<p style="margin-bottom: 1rem;">{user_bio}</p>' if user_bio else ''}
             <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 1rem; font-size: 0.85rem;">
-                <span><strong>{len(followers)}</strong> seguidories</span>
+                <span><strong>{len(followers)}</strong> seguidores</span>
                 <span><strong>{len(following)}</strong> seguindo</span>
             </div>
             <a href="/configuracoes" class="btn btn-primary">Editar Perfil</a>
@@ -2763,6 +2804,10 @@ class Default(WorkerEntrypoint):
             return redirect('/login')
         
         user = current_user
+        # Escape user data for safe display
+        username = escape_html(user.get('username', ''))
+        email = escape_html(user.get('email', ''))
+        nome = escape_html(user.get('nome', 'Não informado'))
         
         return f"""{page_head("Configurações — Gramátike")}
     <header class="site-head">
@@ -2774,9 +2819,9 @@ class Default(WorkerEntrypoint):
             
             <div style="margin-bottom: 2rem;">
                 <h3 style="font-size: 1rem; margin-bottom: 0.8rem;">Informações da Conta</h3>
-                <p style="font-size: 0.85rem; margin-bottom: 0.5rem;"><strong>Usuárie:</strong> @{user.get('username', '')}</p>
-                <p style="font-size: 0.85rem; margin-bottom: 0.5rem;"><strong>Email:</strong> {user.get('email', '')}</p>
-                <p style="font-size: 0.85rem;"><strong>Nome:</strong> {user.get('nome', 'Não informado')}</p>
+                <p style="font-size: 0.85rem; margin-bottom: 0.5rem;"><strong>Usuárie:</strong> @{username}</p>
+                <p style="font-size: 0.85rem; margin-bottom: 0.5rem;"><strong>Email:</strong> {email}</p>
+                <p style="font-size: 0.85rem;"><strong>Nome:</strong> {nome}</p>
             </div>
             
             <div style="border-top: 1px solid var(--border); padding-top: 1.5rem;">
