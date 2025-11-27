@@ -1173,7 +1173,6 @@ def login():
             
             # Verifica senha via hash seguro
             pwd_ok = user.check_password(pwd)
-            current_app.logger.info(f'[Login] Resultado verificação senha: {pwd_ok}')
             
             if pwd_ok:
                 login_user(user)
