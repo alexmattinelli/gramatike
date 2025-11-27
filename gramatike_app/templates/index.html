@@ -173,7 +173,7 @@ button { font-family: var(--font-base); font-weight:600; }
   .post-content u { text-decoration:underline; }
   .post-content ul, .post-content ol { margin:.5rem 0 .5rem 1.5rem; padding:0; }
   .post-content li { margin:.3rem 0; }
-  .post-content a:not(.mention):not(.hashtag) { color:#2563eb; text-decoration:underline; }
+  .post-content a:not(.mention):not(.hashtag) { color:#9B5DE5; text-decoration:underline; }
   .post-content p { margin:.5rem 0; }
   .post-media img { width:100%; display:block; border-radius:24px; margin:.6rem 0 1.1rem; object-fit:contain; background:#f3f4f6; max-height:380px; cursor:pointer; }
   .post-media { position:relative; overflow:hidden; }
@@ -679,7 +679,11 @@ button { font-family: var(--font-base); font-weight:600; }
   {% endif %}
 </nav>
 
-<!-- Script do feed carregado sem footer visível -->
+<!-- Footer -->
+<footer class="site-footer" style="background:var(--primary); color:#ffffff; text-align:center; padding:1.2rem 1rem; font-size:.9rem; font-weight:600; letter-spacing:.4px; margin-top:auto;">
+  © 2025 Gramátike • Língua Viva e de Todes
+</footer>
+
 <script src="{{ url_for('static', filename='js/feed.js') }}"></script>
 <script>
 window.currentUser = "{{ current_user.username if current_user.is_authenticated else '' }}";
@@ -1166,7 +1170,7 @@ function parseTextWithLinks(text) {
     textNodes.forEach(node => {
       let text = node.textContent;
       // Replace mentions and hashtags
-      text = text.replace(/@([\wÁ-Úá-ú0-9_]+)/g, (m, u) => `<a href="#" class="mention" data-username="${u}" style="color:#2563eb;text-decoration:none;font-weight:700;">@${u}</a>`);
+      text = text.replace(/@([\wÁ-Úá-ú0-9_]+)/g, (m, u) => `<a href="#" class="mention" data-username="${u}" style="color:#9B5DE5;text-decoration:none;font-weight:700;">@${u}</a>`);
       text = text.replace(/#([\wÁ-Úá-ú0-9_]+)/g, (m, t) => `<a href="/hashtag/${t}" class="hashtag" style="color:#7c3aed;text-decoration:none;">#${t}</a>`);
       if(text !== node.textContent){
         const span = document.createElement('span');
@@ -1181,7 +1185,7 @@ function parseTextWithLinks(text) {
     const esc = (s)=> (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     let out = esc(text||'');
     // menções @usuario (com acentos e _)
-    out = out.replace(/@([\wÁ-Úá-ú0-9_]+)/g, (m, u) => `<a href="#" class="mention" data-username="${u}" style="color:#2563eb;text-decoration:none;font-weight:700;">@${u}</a>`);
+    out = out.replace(/@([\wÁ-Úá-ú0-9_]+)/g, (m, u) => `<a href="#" class="mention" data-username="${u}" style="color:#9B5DE5;text-decoration:none;font-weight:700;">@${u}</a>`);
     // hashtags #tag
     out = out.replace(/#([\wÁ-Úá-ú0-9_]+)/g, (m, t) => `<a href="/hashtag/${t}" class="hashtag" style="color:#7c3aed;text-decoration:none;">#${t}</a>`);
     return out;
