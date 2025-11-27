@@ -2430,13 +2430,13 @@ async def get_messages_with_user(db, usuario_id, other_user_id, page=1, per_page
 # QUERIES - GRUPOS DE ESTUDO
 # ============================================================================
 
-async def create_study_group(db, nome, criador_id, descricao=None, is_public=True, max_membros=50):
+async def create_study_group(db, nome, criador_id, descricao=None, is_public=True, max_membres=50):
     """Cria um grupo de estudo."""
     result = await db.prepare("""
-        INSERT INTO grupo_estudo (nome, descricao, criador_id, is_public, max_membros)
+        INSERT INTO grupo_estudo (nome, descricao, criador_id, is_public, max_membres)
         VALUES (?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(nome, descricao, criador_id, 1 if is_public else 0, max_membros).first()
+    """).bind(nome, descricao, criador_id, 1 if is_public else 0, max_membres).first()
     
     if result:
         # Adicionar criador como admin
@@ -2455,10 +2455,10 @@ async def join_study_group(db, grupo_id, usuario_id):
     """).bind(grupo_id).first()
     
     grupo = await db.prepare("""
-        SELECT max_membros FROM grupo_estudo WHERE id = ?
+        SELECT max_membres FROM grupo_estudo WHERE id = ?
     """).bind(grupo_id).first()
     
-    if count and grupo and count['count'] >= grupo['max_membros']:
+    if count and grupo and count['count'] >= grupo['max_membres']:
         return False, "Grupo cheio"
     
     try:
@@ -2467,7 +2467,7 @@ async def join_study_group(db, grupo_id, usuario_id):
         """).bind(grupo_id, usuario_id).run()
         return True, None
     except Exception:
-        return False, "Já é membro do grupo"
+        return False, "Já é membre do grupo"
 
 
 async def leave_study_group(db, grupo_id, usuario_id):

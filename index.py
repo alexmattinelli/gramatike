@@ -1604,7 +1604,7 @@ class Default(WorkerEntrypoint):
                         current_user['id'],
                         body.get('descricao'),
                         body.get('is_public', True),
-                        body.get('max_membros', 50)
+                        body.get('max_membres', 50)
                     )
                     return json_response({"id": grupo_id}, 201)
             
