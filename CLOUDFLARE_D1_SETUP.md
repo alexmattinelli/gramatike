@@ -2,6 +2,33 @@
 
 Este guia explica como configurar o Cloudflare D1 (banco de dados SQLite na edge) para a aplicação Gramátike.
 
+## ⚡ Início Rápido (Quick Start)
+
+Se você está vendo o erro **"Sistema temporariamente indisponível"** ou **"Banco de dados não disponível"**, siga estes passos:
+
+```bash
+# 1. Autenticar no Cloudflare (se ainda não fez)
+wrangler login
+
+# 2. Criar o banco de dados D1 (se ainda não existe)
+wrangler d1 create gramatike
+
+# 3. IMPORTANTE: Atualize o database_id no wrangler.toml com o ID retornado acima
+
+# 4. Criar todas as tabelas no banco de dados
+wrangler d1 execute gramatike --file=./schema.d1.sql
+
+# 5. Fazer o deploy
+npm run deploy
+```
+
+**Ou use o script automatizado:**
+```bash
+./scripts/setup_d1_database.sh
+```
+
+---
+
 ## Por que este erro aparece?
 
 Se você está vendo o erro **"Banco de dados não disponível. Verifique a configuração do Cloudflare D1."** na página de login ou cadastro, isso significa que:
