@@ -1905,8 +1905,8 @@ class Default(WorkerEntrypoint):
                     else:
                         error_msg = "Preencha todos os campos"
                 except Exception as e:
-                    # Log error for debugging
-                    print(f"[Login Error] {type(e).__name__}: {e}")
+                    # Log error type only (avoid exposing sensitive details in logs)
+                    print(f"[Login Error] {type(e).__name__}")
                     # Show more specific error message to user
                     error_str = str(e).lower()
                     if 'no such table' in error_str or 'database' in error_str:
@@ -1989,8 +1989,8 @@ class Default(WorkerEntrypoint):
                     else:
                         error_msg = "Preencha todos os campos obrigatórios"
                 except Exception as e:
-                    # Log error for debugging
-                    print(f"[Registration Error] {type(e).__name__}: {e}")
+                    # Log error type only (avoid exposing sensitive details in logs)
+                    print(f"[Registration Error] {type(e).__name__}")
                     # Show more specific error message to user
                     error_str = str(e).lower()
                     if 'unique' in error_str or 'duplicate' in error_str:

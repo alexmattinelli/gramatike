@@ -78,9 +78,13 @@ async def authenticate(db, username_or_email, password):
     suspended_until = user.get('suspended_until')
     if suspended_until:
         try:
-            from datetime import datetime
+            from datetime import datetime, timezone
             suspended_dt = datetime.fromisoformat(suspended_until.replace('Z', '+00:00'))
-            if datetime.utcnow() < suspended_dt.replace(tzinfo=None):
+            now_utc = datetime.now(timezone.utc)
+            # Comparar ambos como timezone-aware
+            if suspended_dt.tzinfo is None:
+                suspended_dt = suspended_dt.replace(tzinfo=timezone.utc)
+            if now_utc < suspended_dt:
                 return None, f"Conta suspensa até {suspended_until[:16].replace('T', ' ')}"
         except Exception:
             pass

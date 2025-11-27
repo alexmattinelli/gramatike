@@ -311,26 +311,38 @@ def verify_password(stored_hash, password):
             return new_hash.hex() == hashed
         
         # Tenta formato Werkzeug (pbkdf2:sha256:iterations$salt$hash ou scrypt:...)
-        # Este formato usa werkzeug.security.check_password_hash
+        # Primeiro verifica se werkzeug está disponível
         try:
-            from werkzeug.security import check_password_hash
-            return check_password_hash(stored_hash, password)
+            from werkzeug.security import check_password_hash as _werkzeug_check
+            werkzeug_available = True
         except ImportError:
-            # Werkzeug não disponível, tenta parse manual do formato pbkdf2
-            if stored_hash.startswith('pbkdf2:sha256:'):
-                # Formato: pbkdf2:sha256:iterations$salt$hash
-                parts = stored_hash.split('$')
-                if len(parts) == 3:
-                    method_parts = parts[0].split(':')
-                    if len(method_parts) >= 3:
+            werkzeug_available = False
+        
+        if werkzeug_available:
+            try:
+                return _werkzeug_check(stored_hash, password)
+            except Exception:
+                # Werkzeug falhou ao verificar, tenta fallback manual
+                pass
+        
+        # Fallback: parse manual do formato pbkdf2 quando werkzeug não está disponível
+        if stored_hash.startswith('pbkdf2:sha256:'):
+            # Formato: pbkdf2:sha256:iterations$salt$hash
+            parts = stored_hash.split('$')
+            if len(parts) == 3:
+                method_parts = parts[0].split(':')
+                if len(method_parts) >= 3:
+                    try:
                         iterations = int(method_parts[2])
-                        salt = parts[1]
-                        expected_hash = parts[2]
-                        new_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), iterations)
-                        return new_hash.hex() == expected_hash
-            return False
-    except Exception as e:
-        print(f"[Password Verify Error] {type(e).__name__}: {e}")
+                    except ValueError:
+                        return False  # Formato de hash inválido
+                    salt = parts[1]
+                    expected_hash = parts[2]
+                    new_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), iterations)
+                    return new_hash.hex() == expected_hash
+        return False
+    except Exception:
+        # Falha silenciosa para evitar vazamento de informações
         return False
 
 
