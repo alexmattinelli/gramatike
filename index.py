@@ -685,6 +685,9 @@ class Default(WorkerEntrypoint):
                 "/apostilas": lambda: self._apostilas_page(db, current_user),
                 "/podcasts": lambda: self._podcasts_page(db, current_user),
                 "/logout": lambda: self._logout(db, request),
+                "/novo-post": lambda: self._novo_post_page(db, current_user, request, method),
+                "/perfil": lambda: self._meu_perfil_page(db, current_user),
+                "/configuracoes": lambda: self._configuracoes_page(db, current_user),
             }
 
             handler = page_routes.get(path)
@@ -1813,7 +1816,9 @@ class Default(WorkerEntrypoint):
 
     async def _index_page(self, db, current_user):
         """Página inicial - Feed/Rede Social."""
-        return f"""{page_head("Gramátike")}
+        # Se usuário não está autenticado, mostra a landing page
+        if not current_user:
+            return f"""{page_head("Gramátike")}
     <header class="site-head">
         <h1 class="logo">Gramátike</h1>
     </header>
@@ -1863,6 +1868,181 @@ class Default(WorkerEntrypoint):
             </a>
         </div>
     </main>
+{page_footer()}"""
+
+        # Usuário está autenticado - mostra o feed com posts
+        posts = []
+        divulgacoes = []
+        if db and DB_AVAILABLE:
+            try:
+                posts = await get_posts(db, page=1, per_page=20)
+                divulgacoes = await get_divulgacoes(db, area='edu')
+            except Exception as e:
+                console.warn(f"[Index] Error loading posts: {e}")
+        
+        # Renderizar posts
+        posts_html = ""
+        if posts:
+            for p in posts:
+                # Buscar dados do autor
+                autor_username = p.get('usuario', 'Usuárie')
+                autor_foto = p.get('foto_perfil', '/static/img/perfil.png')
+                if autor_foto and not autor_foto.startswith('http'):
+                    autor_foto = f"/static/{autor_foto}"
+                
+                data_str = ""
+                if p.get('data'):
+                    try:
+                        data_str = str(p.get('data'))[:16]  # Simplificar formato
+                    except:
+                        pass
+                
+                # Verificar se o usuário atual curtiu
+                liked_class = "liked" if p.get('liked') else ""
+                liked_icon = "❤️" if p.get('liked') else "🤍"
+                
+                # Imagem do post
+                img_html = ""
+                if p.get('imagem'):
+                    img_src = p.get('imagem')
+                    if img_src and not img_src.startswith('http'):
+                        img_src = f"/static/{img_src}"
+                    img_html = f'<img src="{img_src}" alt="Imagem do post" style="width:100%;border-radius:16px;margin:0.8rem 0;max-height:400px;object-fit:cover;">'
+                
+                posts_html += f"""
+                <div class="feed-item" data-post-id="{p.get('id')}">
+                    <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:0.8rem;">
+                        <img src="{autor_foto}" alt="@{autor_username}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #eee;">
+                        <div>
+                            <strong style="color:var(--primary);font-size:0.9rem;">@{autor_username}</strong>
+                            <span style="color:var(--text-dim);font-size:0.7rem;margin-left:0.5rem;">{data_str}</span>
+                        </div>
+                    </div>
+                    <p style="font-size:0.95rem;line-height:1.5;white-space:pre-wrap;">{p.get('conteudo', '')}</p>
+                    {img_html}
+                    <div style="display:flex;gap:1rem;margin-top:0.8rem;font-size:0.8rem;">
+                        <button onclick="likePost({p.get('id')})" class="like-btn {liked_class}" style="background:#f1edff;border:1px solid #d3c5ff;padding:0.4rem 0.8rem;border-radius:20px;cursor:pointer;font-weight:600;color:var(--primary);">
+                            {liked_icon} {p.get('like_count', 0)}
+                        </button>
+                        <button onclick="toggleComments({p.get('id')})" style="background:#f1edff;border:1px solid #d3c5ff;padding:0.4rem 0.8rem;border-radius:20px;cursor:pointer;font-weight:600;color:var(--primary);">
+                            💬 {p.get('comment_count', 0)}
+                        </button>
+                    </div>
+                    <div id="comments-{p.get('id')}" style="display:none;margin-top:0.8rem;"></div>
+                </div>"""
+        else:
+            posts_html = '<div class="empty">Nenhum post ainda. Seja ê primeire a postar!</div>'
+        
+        # Divulgações para sidebar
+        divulgacoes_html = ""
+        if divulgacoes:
+            for d in divulgacoes[:3]:
+                divulgacoes_html += f"""
+                <div style="padding:0.5rem 0;border-bottom:1px solid var(--border);">
+                    <strong style="font-size:0.75rem;color:var(--primary);">{d.get('titulo', '')}</strong>
+                    <p style="font-size:0.65rem;color:var(--text-dim);margin:0.2rem 0 0;">{(d.get('texto') or '')[:80]}...</p>
+                </div>"""
+        else:
+            divulgacoes_html = '<div class="placeholder">Nenhuma divulgação.</div>'
+        
+        # Info do usuário para JS
+        user_username = current_user.get('username', '')
+        user_id = current_user.get('id', '')
+        
+        extra_css = """
+        .like-btn.liked { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
+        """
+        
+        return f"""{page_head("Gramátike", extra_css)}
+    <header class="site-head">
+        <h1 class="logo">Gramátike</h1>
+        <a href="/perfil" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);width:50px;height:50px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,0.5);">
+            <img src="{current_user.get('foto_perfil', '/static/img/perfil.png') if not current_user.get('foto_perfil', '').startswith('http') else current_user.get('foto_perfil', '/static/img/perfil.png')}" alt="Perfil" style="width:100%;height:100%;object-fit:cover;">
+        </a>
+    </header>
+    <main>
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Pesquisar..." onkeydown="if(event.key==='Enter')executarBusca()">
+            <button class="search-btn" onclick="executarBusca()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
+            <a href="/novo-post" class="btn btn-primary" style="white-space:nowrap;">+ Novo Post</a>
+        </div>
+        
+        <div class="layout">
+            <div id="feed-list">
+                {posts_html}
+            </div>
+            <aside class="side-col">
+                <div class="quick-nav">
+                    <a href="/educacao">📚 Educação</a>
+                    <a href="/dinamicas">🎮 Dinâmicas</a>
+                </div>
+                <div class="side-card">
+                    <h3>👤 {current_user.get('nome') or '@' + user_username}</h3>
+                    <p style="font-size:0.75rem;color:var(--text-dim);">@{user_username}</p>
+                    <div style="display:flex;gap:1rem;margin-top:0.8rem;">
+                        <a href="/perfil" style="font-size:0.7rem;color:var(--primary);text-decoration:none;font-weight:700;">Meu Perfil</a>
+                        <a href="/configuracoes" style="font-size:0.7rem;color:var(--primary);text-decoration:none;font-weight:700;">Configurações</a>
+                    </div>
+                </div>
+                <div class="side-card">
+                    <h3>📣 Novidades</h3>
+                    {divulgacoes_html}
+                </div>
+                <div style="text-align:center;margin-top:1rem;">
+                    <a href="/logout" style="font-size:0.75rem;color:#c00;text-decoration:none;font-weight:700;">Sair</a>
+                </div>
+            </aside>
+        </div>
+    </main>
+    <script>
+    window.currentUser = "{user_username}";
+    window.currentUserId = {user_id};
+    
+    async function likePost(postId) {{
+        try {{
+            const res = await fetch('/api/posts/' + postId + '/like', {{method: 'POST'}});
+            const data = await res.json();
+            // Reload to update
+            location.reload();
+        }} catch(e) {{
+            console.error(e);
+        }}
+    }}
+    
+    async function toggleComments(postId) {{
+        const div = document.getElementById('comments-' + postId);
+        if(div.style.display === 'none') {{
+            div.style.display = 'block';
+            try {{
+                const res = await fetch('/api/posts/' + postId + '/comentarios');
+                const data = await res.json();
+                const comentarios = data.comentarios || [];
+                if(comentarios.length === 0) {{
+                    div.innerHTML = '<p style="font-size:0.75rem;color:var(--text-dim);">Nenhum comentário.</p>';
+                }} else {{
+                    div.innerHTML = comentarios.map(c => '<div style="background:#f9fafb;padding:0.5rem 0.7rem;border-radius:10px;margin-bottom:0.4rem;font-size:0.8rem;"><strong style="color:var(--primary);">@' + c.usuario + '</strong><p style="margin:0.2rem 0 0;">' + c.conteudo + '</p></div>').join('');
+                }}
+            }} catch(e) {{
+                div.innerHTML = '<p style="font-size:0.75rem;color:#c00;">Erro ao carregar comentários.</p>';
+            }}
+        }} else {{
+            div.style.display = 'none';
+        }}
+    }}
+    
+    function executarBusca() {{
+        const termo = document.getElementById('search-input').value.trim();
+        if(termo) {{
+            // Recarrega com filtro
+            location.href = '/?q=' + encodeURIComponent(termo);
+        }}
+    }}
+    </script>
 {page_footer()}"""
 
     async def _educacao_page(self, db, current_user):
@@ -2454,6 +2634,162 @@ class Default(WorkerEntrypoint):
 {page_footer()}"""
         except Exception as e:
             return self._not_found_page(f'/u/{username}')
+
+    async def _novo_post_page(self, db, current_user, request, method):
+        """Página para criar novo post."""
+        if not current_user:
+            return redirect('/login')
+        
+        error_msg = ""
+        success_msg = ""
+        
+        if method == 'POST':
+            if not db or not DB_AVAILABLE:
+                error_msg = "Banco de dados não disponível."
+            else:
+                try:
+                    body_text = await request.text()
+                    form_data = parse_qs(body_text)
+                    
+                    conteudo = form_data.get('conteudo', [''])[0].strip()
+                    
+                    if conteudo:
+                        post_id = await create_post(db, current_user['id'], conteudo, None)
+                        if post_id:
+                            return redirect('/')
+                        else:
+                            error_msg = "Erro ao criar post"
+                    else:
+                        error_msg = "O conteúdo não pode estar vazio"
+                except Exception as e:
+                    console.error(f"[NovoPost Error] {e}")
+                    error_msg = "Erro ao processar post"
+        
+        error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
+        
+        return f"""{page_head("Novo Post — Gramátike")}
+    <header class="site-head">
+        <h1 class="logo">Gramátike</h1>
+    </header>
+    <main>
+        <div class="card" style="max-width: 600px; margin: 0 auto;">
+            <h2 style="color: var(--primary); margin-bottom: 1rem;">Criar Post</h2>
+            {error_html}
+            <form method="POST" action="/novo-post">
+                <div class="form-group">
+                    <label>O que você está pensando?</label>
+                    <textarea name="conteudo" rows="5" style="width:100%;padding:0.8rem;border:1.5px solid #d9e1ea;border-radius:12px;font-family:'Nunito',sans-serif;font-size:0.95rem;resize:vertical;" placeholder="Escreva algo..." required></textarea>
+                </div>
+                <div style="display:flex;gap:1rem;justify-content:flex-end;margin-top:1rem;">
+                    <a href="/" class="btn" style="background:#f1edff;color:var(--primary);">Cancelar</a>
+                    <button type="submit" class="button-primary" style="width:auto;padding:0.7rem 1.5rem;">Publicar</button>
+                </div>
+            </form>
+        </div>
+    </main>
+{page_footer()}"""
+
+    async def _meu_perfil_page(self, db, current_user):
+        """Página do perfil do usuário logado."""
+        if not current_user:
+            return redirect('/login')
+        
+        user = current_user
+        username = user.get('username', '')
+        
+        posts = []
+        followers = []
+        following = []
+        
+        if db and DB_AVAILABLE:
+            try:
+                posts = await get_posts(db, user_id=user['id'], per_page=20)
+                followers = await get_followers(db, user['id'])
+                following = await get_following(db, user['id'])
+            except:
+                pass
+        
+        # Gerar HTML dos posts
+        posts_html = ""
+        if posts:
+            for p in posts:
+                posts_html += f"""
+                <div class="feed-item">
+                    <p class="fi-body">{p.get('conteudo', '')}</p>
+                    <div style="margin-top: 0.8rem; font-size: 0.7rem; color: var(--text-dim);">
+                        ❤️ {p.get('like_count', 0)} • 💬 {p.get('comment_count', 0)}
+                    </div>
+                </div>"""
+        else:
+            posts_html = '<div class="empty">Você ainda não fez nenhum post.</div>'
+        
+        foto_perfil = user.get('foto_perfil', '/static/img/perfil.png')
+        if foto_perfil and not foto_perfil.startswith('http'):
+            foto_perfil = f"/static/{foto_perfil}"
+        
+        return f"""{page_head(f"Meu Perfil — Gramátike")}
+    <header class="site-head">
+        <h1 class="logo">Gramátike</h1>
+    </header>
+    <main>
+        <div class="card" style="text-align: center; margin-bottom: 1.5rem;">
+            <img src="{foto_perfil}" 
+                 alt="@{username}" 
+                 style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1rem; object-fit: cover;">
+            <h2 style="color: var(--primary); margin-bottom: 0.3rem;">
+                {user.get('nome') or '@' + username}
+            </h2>
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.8rem;">@{username}</p>
+            {f'<p style="margin-bottom: 1rem;">{user.get("bio", "")}</p>' if user.get('bio') else ''}
+            <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 1rem; font-size: 0.85rem;">
+                <span><strong>{len(followers)}</strong> seguidories</span>
+                <span><strong>{len(following)}</strong> seguindo</span>
+            </div>
+            <a href="/configuracoes" class="btn btn-primary">Editar Perfil</a>
+        </div>
+        
+        <h3 style="color: var(--primary); margin-bottom: 1rem;">Meus Posts</h3>
+        {posts_html}
+        
+        <div style="text-align:center;margin-top:2rem;">
+            <a href="/logout" style="font-size:0.85rem;color:#c00;text-decoration:none;font-weight:700;">Sair da Conta</a>
+        </div>
+    </main>
+{page_footer()}"""
+
+    async def _configuracoes_page(self, db, current_user):
+        """Página de configurações do usuário."""
+        if not current_user:
+            return redirect('/login')
+        
+        user = current_user
+        
+        return f"""{page_head("Configurações — Gramátike")}
+    <header class="site-head">
+        <h1 class="logo">Gramátike</h1>
+    </header>
+    <main>
+        <div class="card" style="max-width: 500px; margin: 0 auto;">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Configurações</h2>
+            
+            <div style="margin-bottom: 2rem;">
+                <h3 style="font-size: 1rem; margin-bottom: 0.8rem;">Informações da Conta</h3>
+                <p style="font-size: 0.85rem; margin-bottom: 0.5rem;"><strong>Usuárie:</strong> @{user.get('username', '')}</p>
+                <p style="font-size: 0.85rem; margin-bottom: 0.5rem;"><strong>Email:</strong> {user.get('email', '')}</p>
+                <p style="font-size: 0.85rem;"><strong>Nome:</strong> {user.get('nome', 'Não informado')}</p>
+            </div>
+            
+            <div style="border-top: 1px solid var(--border); padding-top: 1.5rem;">
+                <h3 style="font-size: 1rem; margin-bottom: 0.8rem;">Ações</h3>
+                <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                    <a href="/perfil" class="btn" style="background:#f1edff;color:var(--primary);text-align:center;">← Voltar ao Perfil</a>
+                    <a href="/" class="btn" style="background:#f1edff;color:var(--primary);text-align:center;">Ir para o Feed</a>
+                    <a href="/logout" class="btn" style="background:#ffebee;color:#c00;text-align:center;">Sair da Conta</a>
+                </div>
+            </div>
+        </div>
+    </main>
+{page_footer()}"""
 
     def _not_found_page(self, path):
         """Página 404."""
