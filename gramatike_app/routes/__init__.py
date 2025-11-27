@@ -1159,15 +1159,15 @@ def login():
             user = User.query.filter(or_(User.email == ident, User.username == ident)).first()
             
             if not user:
-                current_app.logger.warning(f'[Login] Usuário não encontrado: {ident}')
+                current_app.logger.warning(f'[Login] Usuárie não encontrade: {ident}')
                 flash('Login inválido. Verifique seu usuário/email e senha.', 'error')
                 return render_template('login.html')
             
-            current_app.logger.info(f'[Login] Usuário encontrado: {user.username} (ID: {user.id})')
+            current_app.logger.info(f'[Login] Usuárie encontrade: {user.username} (ID: {user.id})')
             
-            # Verifica se está banido
+            # Verifica se está banide
             if getattr(user, 'is_banned', False):
-                current_app.logger.warning(f'[Login] Usuário banido: {user.username}')
+                current_app.logger.warning(f'[Login] Usuárie banide: {user.username}')
                 flash('Conta banida. Entre em contato com o suporte.', 'error')
                 return render_template('login.html')
             
@@ -2605,11 +2605,11 @@ def cadastro():
         try:
             db.session.add(novo_usuario)
             db.session.commit()
-            current_app.logger.info(f'[Cadastro] Novo usuário cadastrado: {novo_usuario.username} (ID: {novo_usuario.id})')
+            current_app.logger.info(f'[Cadastro] Nove usuárie cadastrade: {novo_usuario.username} (ID: {novo_usuario.id})')
         except Exception as e:
             db.session.rollback()
             import traceback
-            current_app.logger.error(f'[Cadastro] Erro ao salvar usuário: {type(e).__name__}: {e}')
+            current_app.logger.error(f'[Cadastro] Erro ao salvar usuárie: {type(e).__name__}: {e}')
             current_app.logger.error(f'[Cadastro Traceback]\n{traceback.format_exc()}')
             flash('Erro ao processar cadastro. Tente novamente.', 'error')
             return redirect(url_for('main.cadastro'))
