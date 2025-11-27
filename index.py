@@ -12,6 +12,10 @@ import sys
 import traceback
 from urllib.parse import urlparse, parse_qs
 
+# Versão do código - usado para tracking de deployment
+# Atualize este valor a cada commit para verificar se o deploy foi feito
+SCRIPT_VERSION = "v2025.11.27.a"
+
 # NOTA: Este 'workers' é o módulo built-in do Cloudflare Workers Python,
 # NÃO a pasta local (que foi renomeada para 'gramatike_d1').
 from workers import WorkerEntrypoint, Response
@@ -603,90 +607,113 @@ class Default(WorkerEntrypoint):
 
     async def fetch(self, request):
         """Handle incoming HTTP requests."""
+        # Log da versão do script no início para tracking
+        print(f"[Gramátike] Script Version: {SCRIPT_VERSION}", file=sys.stderr, flush=True)
+        
         url = request.url
         path = "/"
         query_params = {}
         
-        if url:
-            parsed = urlparse(url)
-            path = parsed.path or "/"
-            query_params = parse_qs(parsed.query)
-        
-        method = request.method
-        
-        # Obter banco de dados D1
-        db = getattr(self.env, 'DB', None)
-        
-        # Auto-inicializar banco de dados (cria tabelas e superadmin se necessário)
-        if db and DB_AVAILABLE:
-            try:
-                await ensure_database_initialized(db)
-            except Exception as e:
-                print(f"[D1 Init Warning] {e}")
-        
-        # Obter usuárie atual se DB disponível
-        current_user = None
-        if db and DB_AVAILABLE:
-            try:
-                current_user = await get_current_user(db, request)
-            except:
-                pass
-        
-        # ====================================================================
-        # API ROUTES
-        # ====================================================================
-        
-        if path.startswith('/api/'):
-            return await self._handle_api(request, path, method, query_params, db, current_user)
-        
-        # ====================================================================
-        # PAGE ROUTES
-        # ====================================================================
-        
-        # Rotas que requerem autenticação
-        if path == '/' and not current_user:
-            # Redireciona para login se não autenticado na página principal
-            pass  # Permite ver a página inicial sem login
-        
-        # Route handling
-        page_routes = {
-            "/": lambda: self._index_page(db, current_user),
-            "": lambda: self._index_page(db, current_user),
-            "/educacao": lambda: self._educacao_page(db, current_user),
-            "/login": lambda: self._login_page(db, current_user, request, method),
-            "/cadastro": lambda: self._cadastro_page(db, current_user, request, method),
-            "/dinamicas": lambda: self._dinamicas_page(db, current_user),
-            "/exercicios": lambda: self._exercicios_page(db, current_user),
-            "/artigos": lambda: self._artigos_page(db, current_user),
-            "/apostilas": lambda: self._apostilas_page(db, current_user),
-            "/podcasts": lambda: self._podcasts_page(db, current_user),
-            "/logout": lambda: self._logout(db, request),
-        }
+        try:
+            if url:
+                parsed = urlparse(url)
+                path = parsed.path or "/"
+                query_params = parse_qs(parsed.query)
+            
+            method = request.method
+            
+            # Obter banco de dados D1
+            db = getattr(self.env, 'DB', None)
+            
+            # Auto-inicializar banco de dados (cria tabelas e superadmin se necessário)
+            if db and DB_AVAILABLE:
+                try:
+                    await ensure_database_initialized(db)
+                except Exception as e:
+                    print(f"[D1 Init Warning] {e}", file=sys.stderr, flush=True)
+            
+            # Obter usuárie atual se DB disponível
+            current_user = None
+            if db and DB_AVAILABLE:
+                try:
+                    current_user = await get_current_user(db, request)
+                except Exception as e:
+                    print(f"[Auth Warning] get_current_user failed: {e}", file=sys.stderr, flush=True)
+            
+            # ====================================================================
+            # API ROUTES
+            # ====================================================================
+            
+            if path.startswith('/api/'):
+                return await self._handle_api(request, path, method, query_params, db, current_user)
+            
+            # ====================================================================
+            # PAGE ROUTES
+            # ====================================================================
+            
+            # Rotas que requerem autenticação
+            if path == '/' and not current_user:
+                # Redireciona para login se não autenticado na página principal
+                pass  # Permite ver a página inicial sem login
+            
+            # Route handling
+            page_routes = {
+                "/": lambda: self._index_page(db, current_user),
+                "": lambda: self._index_page(db, current_user),
+                "/educacao": lambda: self._educacao_page(db, current_user),
+                "/login": lambda: self._login_page(db, current_user, request, method),
+                "/cadastro": lambda: self._cadastro_page(db, current_user, request, method),
+                "/dinamicas": lambda: self._dinamicas_page(db, current_user),
+                "/exercicios": lambda: self._exercicios_page(db, current_user),
+                "/artigos": lambda: self._artigos_page(db, current_user),
+                "/apostilas": lambda: self._apostilas_page(db, current_user),
+                "/podcasts": lambda: self._podcasts_page(db, current_user),
+                "/logout": lambda: self._logout(db, request),
+            }
 
-        handler = page_routes.get(path)
-        if handler:
-            result = await self._safe_call(handler)
-            if isinstance(result, Response):
-                return result
-            return html_response(result)
-        
-        # Rotas dinâmicas (perfil de usuárie)
-        if path.startswith('/u/'):
-            username = path[3:]
-            result = await self._profile_page(db, current_user, username)
-            return html_response(result) if not isinstance(result, Response) else result
-        
-        return html_response(self._not_found_page(path), status=404)
+            handler = page_routes.get(path)
+            if handler:
+                result = await self._safe_call(handler)
+                if isinstance(result, Response):
+                    return result
+                return html_response(result)
+            
+            # Rotas dinâmicas (perfil de usuárie)
+            if path.startswith('/u/'):
+                username = path[3:]
+                result = await self._profile_page(db, current_user, username)
+                return html_response(result) if not isinstance(result, Response) else result
+            
+            return html_response(self._not_found_page(path), status=404)
+            
+        except Exception as e:
+            # Log detalhado de qualquer erro não capturado
+            print(f"[Fetch Error] {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+            print(f"[Fetch Traceback] {traceback.format_exc()}", file=sys.stderr, flush=True)
+            error_html = f"""<!DOCTYPE html>
+<html lang="pt-BR">
+<head><title>Erro — Gramátike</title><meta charset="UTF-8"></head>
+<body style="font-family: sans-serif; padding: 2rem; text-align: center;">
+<h1 style="color: #9B5DE5;">Erro Interno</h1>
+<p>Ocorreu um erro ao processar sua requisição.</p>
+<p style="font-size: 0.8rem; color: #666;">Versão: {SCRIPT_VERSION}</p>
+<a href="/" style="color: #9B5DE5;">Voltar ao início</a>
+</body>
+</html>"""
+            return html_response(error_html, status=500)
 
     async def _safe_call(self, handler):
-        """Chama handler de forma segura."""
+        """Chama handler de forma segura com logging detalhado."""
         try:
             result = handler()
             if hasattr(result, '__await__'):
                 result = await result
             return result
         except Exception as e:
-            return f"<h1>Erro</h1><p>{str(e)}</p>"
+            # Log detalhado do erro
+            print(f"[SafeCall Error] {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+            print(f"[SafeCall Traceback] {traceback.format_exc()}", file=sys.stderr, flush=True)
+            return f"<h1>Erro</h1><p>{str(e)}</p><p style='font-size:0.7rem;color:#666;'>Versão: {SCRIPT_VERSION}</p>"
 
     async def _handle_api(self, request, path, method, params, db, current_user):
         """Handle API routes."""
@@ -696,13 +723,15 @@ class Default(WorkerEntrypoint):
             return json_response({
                 "status": "ok",
                 "platform": "Cloudflare Workers + D1",
-                "db_available": db is not None and DB_AVAILABLE
+                "db_available": db is not None and DB_AVAILABLE,
+                "script_version": SCRIPT_VERSION
             })
         
         if path == '/api/info':
             return json_response({
                 "name": "Gramátike",
                 "version": "2.0.0",
+                "script_version": SCRIPT_VERSION,
                 "features": ["D1 Database", "Auth", "Posts", "Education"]
             })
         
@@ -1955,6 +1984,7 @@ class Default(WorkerEntrypoint):
             <div class="signup-hint">
                 Ainda não tem conta? <a href="/cadastro">Cadastre-se</a>
             </div>
+            <p style="font-size: 0.6rem; color: #999; text-align: center; margin-top: 1.5rem;">{SCRIPT_VERSION}</p>
         </div>
     </div>
     {mobile_nav()}
