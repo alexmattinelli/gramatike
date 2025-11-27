@@ -8,7 +8,11 @@
 # Usa linguagem neutra (usuáries, seguidories, amigues).
 
 import json
+import sys
 from urllib.parse import urlparse, parse_qs
+
+# NOTA: Este 'workers' é o módulo built-in do Cloudflare Workers Python,
+# NÃO a pasta local (que foi renomeada para 'gramatike_d1').
 from workers import WorkerEntrypoint, Response
 
 # Importar módulos de banco de dados e autenticação
@@ -92,7 +96,6 @@ try:
     DB_AVAILABLE = True
 except ImportError as e:
     # Log the specific import error for debugging
-    import sys
     print(f"[D1 Import Error] {e}", file=sys.stderr)
     DB_AVAILABLE = False
 
