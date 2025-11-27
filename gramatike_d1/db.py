@@ -324,9 +324,10 @@ def hash_password(password):
 def verify_password(stored_hash, password):
     """Verifica se a senha corresponde ao hash armazenado.
     
-    Suporta dois formatos de hash:
+    Suporta três formatos de hash:
     1. Formato D1 simples: "salt:hash" (usado pelo gramatike_d1)
-    2. Formato Werkzeug: "method:options$salt$hash" (usado pelo Flask/gramatike_app)
+    2. Formato Werkzeug pbkdf2: "pbkdf2:sha256:iterations$salt$hash"
+    3. Formato Werkzeug scrypt: "scrypt:n:r:p$salt$hash" (padrão atual do Werkzeug)
     """
     if not stored_hash or not password:
         return False
@@ -374,6 +375,31 @@ def verify_password(stored_hash, password):
                     expected_hash = parts[2]
                     new_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), iterations)
                     return new_hash.hex() == expected_hash
+        
+        # Fallback: parse manual do formato scrypt quando werkzeug não está disponível
+        # Formato: scrypt:n:r:p$salt$hash (ex: scrypt:32768:8:1$salt$hash)
+        if stored_hash.startswith('scrypt:'):
+            parts = stored_hash.split('$')
+            if len(parts) == 3:
+                method_parts = parts[0].split(':')
+                if len(method_parts) >= 4:
+                    try:
+                        n = int(method_parts[1])  # CPU/memory cost parameter
+                        r = int(method_parts[2])  # Block size parameter
+                        p = int(method_parts[3])  # Parallelization parameter
+                    except ValueError:
+                        return False  # Formato de hash inválido
+                    salt = parts[1]
+                    expected_hash = parts[2]
+                    # hashlib.scrypt usa dklen=64 (512 bits) por padrão no Werkzeug
+                    new_hash = hashlib.scrypt(
+                        password.encode(), 
+                        salt=salt.encode(), 
+                        n=n, r=r, p=p, 
+                        dklen=64
+                    )
+                    return new_hash.hex() == expected_hash
+        
         return False
     except Exception:
         # Falha silenciosa para evitar vazamento de informações
