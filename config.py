@@ -5,7 +5,7 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me')
     # Database configuration:
     # - Cloudflare D1: Use o binding "DB" configurado no wrangler.toml (para Cloudflare Workers)
-    #   O D1 usa SQLite na edge e as queries estão em workers/db.py
+    #   O D1 usa SQLite na edge e as queries estão em gramatike_d1/db.py
     # - Development: SQLite local na pasta instance
     # - PostgreSQL: Suportado via DATABASE_URL para ambientes que não usam D1
     _ROOT = os.path.dirname(os.path.abspath(__file__))

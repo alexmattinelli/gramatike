@@ -1,6 +1,9 @@
-# workers/auth.py
+# gramatike_d1/auth.py
 # Módulo de autenticação para Cloudflare Workers
 # Gerencia login, logout, sessões via cookies
+#
+# NOTA: Renomeado de 'workers/' para 'gramatike_d1/' para evitar conflito
+# com o módulo 'workers' built-in do Cloudflare Workers Python.
 
 import json
 from .db import (
