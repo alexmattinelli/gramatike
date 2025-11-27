@@ -114,6 +114,48 @@ def safe_dict(result):
     return None
 
 
+def safe_get(result, key, default=None):
+    """Safely get a value from a D1 result (handles JsProxy objects).
+    
+    This is a convenience function for accessing single values from D1 results,
+    particularly useful for patterns like: safe_get(result, 'id')
+    """
+    if result is None:
+        return default
+    
+    # If it's already a dict, just access it
+    if isinstance(result, dict):
+        return result.get(key, default)
+    
+    # Try to_py() first for JsProxy
+    if hasattr(result, 'to_py'):
+        try:
+            converted = result.to_py()
+            if isinstance(converted, dict):
+                return converted.get(key, default)
+        except Exception:
+            pass
+    
+    # Try direct access with to_py() on the value
+    try:
+        value = result[key]
+        if hasattr(value, 'to_py'):
+            return value.to_py()
+        return value
+    except (KeyError, TypeError, IndexError):
+        pass
+    
+    # Fallback to safe_dict
+    try:
+        d = safe_dict(result)
+        if d:
+            return d.get(key, default)
+    except Exception:
+        pass
+    
+    return default
+
+
 # ============================================================================
 # AUTO-INICIALIZAÇÃO DO BANCO DE DADOS
 # ============================================================================
@@ -562,7 +604,7 @@ async def create_user(db, username, email, password, nome=None):
         VALUES (?, ?, ?, ?, datetime('now'))
         RETURNING id
     """).bind(username, email, hashed, nome).first()
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 async def update_user_profile(db, user_id, **kwargs):
@@ -704,7 +746,7 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
         FROM user WHERE id = ?
         RETURNING id
     """).bind(usuario_id, conteudo, imagem, usuario_id).first()
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 async def delete_post(db, post_id, deleted_by=None):
@@ -768,7 +810,7 @@ async def create_comment(db, post_id, usuario_id, conteudo):
         VALUES (?, ?, ?, datetime('now'))
         RETURNING id
     """).bind(post_id, usuario_id, conteudo).first()
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 # ============================================================================
@@ -1015,7 +1057,7 @@ async def submit_dynamic_response(db, dynamic_id, usuario_id, payload):
         VALUES (?, ?, ?)
         RETURNING id
     """).bind(dynamic_id, usuario_id, payload_json).first()
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 # ============================================================================
@@ -1215,7 +1257,7 @@ async def create_notification(db, usuario_id, tipo, titulo=None, mensagem=None, 
         RETURNING id
     """).bind(usuario_id, tipo, titulo, mensagem, link, 
               from_usuario_id, post_id, comentario_id).first()
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 async def get_notifications(db, usuario_id, apenas_nao_lidas=False, page=1, per_page=20):
@@ -1250,7 +1292,7 @@ async def count_unread_notifications(db, usuario_id):
         SELECT COUNT(*) as count FROM notification
         WHERE usuario_id = ? AND lida = 0
     """).bind(usuario_id).first()
-    return result['count'] if result else 0
+    return safe_get(result, 'count', 0)
 
 
 async def mark_notification_read(db, notification_id, usuario_id):
@@ -1297,7 +1339,7 @@ async def send_friend_request(db, solicitante_id, destinatarie_id):
                               titulo='Novo pedido de amizade',
                               from_usuario_id=solicitante_id)
     
-    return result['id'] if result else None, None
+    return safe_get(result, 'id'), None
 
 
 async def respond_friend_request(db, amizade_id, usuario_id, aceitar=True):
@@ -1392,7 +1434,7 @@ async def create_report(db, post_id, usuario_id, motivo, category=None):
         VALUES (?, ?, ?, ?)
         RETURNING id
     """).bind(post_id, usuario_id, motivo, category).first()
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 async def get_reports(db, apenas_pendentes=True, page=1, per_page=20):
@@ -1435,7 +1477,7 @@ async def count_pending_reports(db):
     result = await db.prepare("""
         SELECT COUNT(*) as count FROM report WHERE resolved = 0
     """).first()
-    return result['count'] if result else 0
+    return safe_get(result, 'count', 0)
 
 
 # ============================================================================
@@ -1449,7 +1491,7 @@ async def create_support_ticket(db, mensagem, usuario_id=None, nome=None, email=
         VALUES (?, ?, ?, ?)
         RETURNING id
     """).bind(usuario_id, nome, email, mensagem).first()
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 async def get_support_tickets(db, status=None, page=1, per_page=20):
@@ -1521,7 +1563,7 @@ async def create_divulgacao(db, area, titulo, texto=None, link=None, imagem=None
         RETURNING id
     """).bind(area, titulo, texto, link, imagem, 
               1 if show_on_edu else 0, 1 if show_on_index else 0).first()
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 async def update_divulgacao(db, divulgacao_id, titulo=None, texto=None, link=None, 
@@ -1590,7 +1632,7 @@ async def save_upload(db, usuario_id, tipo, path, filename=None, content_type=No
         VALUES (?, ?, ?, ?, ?, ?)
         RETURNING id
     """).bind(usuario_id, tipo, path, filename, content_type, size).first()
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 async def get_user_uploads(db, usuario_id, tipo=None):
@@ -1679,25 +1721,25 @@ async def get_admin_stats(db):
     
     # Total de usuáries
     result = await db.prepare("SELECT COUNT(*) as count FROM user").first()
-    stats['total_usuaries'] = result['count'] if result else 0
+    stats['total_usuaries'] = safe_get(result, 'count', 0)
     
     # Usuáries ativos (últimos 7 dias)
     result = await db.prepare("""
         SELECT COUNT(DISTINCT user_id) as count FROM user_session
         WHERE created_at > datetime('now', '-7 days')
     """).first()
-    stats['usuaries_ativos'] = result['count'] if result else 0
+    stats['usuaries_ativos'] = safe_get(result, 'count', 0)
     
     # Total de posts
     result = await db.prepare("SELECT COUNT(*) as count FROM post WHERE is_deleted = 0").first()
-    stats['total_posts'] = result['count'] if result else 0
+    stats['total_posts'] = safe_get(result, 'count', 0)
     
     # Denúncias pendentes
     stats['denuncias_pendentes'] = await count_pending_reports(db)
     
     # Tickets abertos
     result = await db.prepare("SELECT COUNT(*) as count FROM support_ticket WHERE status = 'aberto'").first()
-    stats['tickets_abertos'] = result['count'] if result else 0
+    stats['tickets_abertos'] = safe_get(result, 'count', 0)
     
     return stats
 
@@ -1725,6 +1767,10 @@ async def check_rate_limit(db, ip_address, endpoint, max_attempts=10, window_min
     
     rate = safe_dict(result)
     
+    # Handle case where safe_dict returns None
+    if not rate:
+        return True, None
+    
     # Verifica se está bloqueado
     if rate.get('blocked_until'):
         blocked_until = datetime.fromisoformat(rate['blocked_until'])
@@ -1740,7 +1786,10 @@ async def check_rate_limit(db, ip_address, endpoint, max_attempts=10, window_min
             return True, None
     
     # Verifica janela de tempo
-    first_attempt = datetime.fromisoformat(rate['first_attempt'])
+    first_attempt_str = rate.get('first_attempt')
+    if not first_attempt_str:
+        return True, None
+    first_attempt = datetime.fromisoformat(first_attempt_str)
     window = timedelta(minutes=window_minutes)
     
     if now - first_attempt > window:
@@ -1902,7 +1951,7 @@ async def update_user_level(db, usuario_id):
     if not result:
         return
     
-    pontos = result['pontos_total']
+    pontos = safe_get(result, 'pontos_total', 0)
     
     # Calcular nível (a cada 100 pontos sobe um nível)
     nivel = max(1, (pontos // 100) + 1)
@@ -2142,7 +2191,7 @@ async def create_exercise_list(db, usuario_id, nome, descricao=None, modo='estud
         VALUES (?, ?, ?, ?, ?)
         RETURNING id
     """).bind(usuario_id, nome, descricao, modo, tempo_limite).first()
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 async def add_to_exercise_list(db, list_id, question_id, ordem=0):
@@ -2188,7 +2237,7 @@ async def save_quiz_result(db, usuario_id, acertos, erros, pontos, tempo_total, 
         VALUES (?, ?, ?, ?, ?, ?, ?)
         RETURNING id
     """).bind(usuario_id, list_id, topic_id, acertos, erros, pontos, tempo_total).first()
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 # ============================================================================
@@ -2207,7 +2256,7 @@ async def create_flashcard_deck(db, titulo, usuario_id=None, descricao=None, is_
     if usuario_id:
         await award_badge(db, usuario_id, 'Flashcard Pro')
     
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 async def add_flashcard(db, deck_id, frente, verso, dica=None, ordem=0):
@@ -2217,7 +2266,7 @@ async def add_flashcard(db, deck_id, frente, verso, dica=None, ordem=0):
         VALUES (?, ?, ?, ?, ?)
         RETURNING id
     """).bind(deck_id, frente, verso, dica, ordem).first()
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 async def get_flashcard_decks(db, usuario_id=None, include_public=True):
@@ -2520,7 +2569,7 @@ async def send_direct_message(db, remetente_id, destinatarie_id, conteudo):
                               titulo='Nova mensagem!',
                               from_usuario_id=remetente_id)
     
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 async def get_conversations(db, usuario_id):
@@ -2609,11 +2658,13 @@ async def create_study_group(db, nome, criador_id, descricao=None, is_public=Tru
     
     if result:
         # Adicionar criador como admin
-        await db.prepare("""
-            INSERT INTO grupo_membre (grupo_id, usuario_id, role) VALUES (?, ?, 'admin')
-        """).bind(result['id'], criador_id).run()
+        grupo_id = safe_get(result, 'id')
+        if grupo_id:
+            await db.prepare("""
+                INSERT INTO grupo_membre (grupo_id, usuario_id, role) VALUES (?, ?, 'admin')
+            """).bind(grupo_id, criador_id).run()
     
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 async def join_study_group(db, grupo_id, usuario_id):
@@ -2696,7 +2747,7 @@ async def send_group_message(db, grupo_id, usuario_id, conteudo):
         VALUES (?, ?, ?)
         RETURNING id
     """).bind(grupo_id, usuario_id, conteudo).first()
-    return result['id'] if result else None
+    return safe_get(result, 'id')
 
 
 # ============================================================================
@@ -2880,7 +2931,8 @@ async def get_or_create_hashtag(db, tag):
         RETURNING id
     """).bind(tag).first()
     if new_result:
-        return {'id': new_result['id'], 'tag': tag, 'count_uso': 1}
+        new_id = safe_get(new_result, 'id')
+        return {'id': new_id, 'tag': tag, 'count_uso': 1}
     return None
 
 
@@ -2953,7 +3005,7 @@ async def create_emoji_custom(db, codigo, nome, imagem_url, descricao=None, cate
             VALUES (?, ?, ?, ?, ?, datetime('now'), ?)
             RETURNING id
         """).bind(codigo, nome, imagem_url, descricao, categoria, created_by).first()
-        return result['id'] if result else None
+        return safe_get(result, 'id')
     except Exception:
         return None
 
@@ -3072,7 +3124,7 @@ async def get_feature_flag(db, nome):
     result = await db.prepare(
         "SELECT ativo FROM feature_flag WHERE nome = ?"
     ).bind(nome).first()
-    return bool(result['ativo']) if result else True
+    return bool(safe_get(result, 'ativo', 1)) if result else True
 
 
 async def get_all_feature_flags(db):
