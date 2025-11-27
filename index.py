@@ -9,6 +9,7 @@
 
 import json
 import sys
+import traceback
 from urllib.parse import urlparse, parse_qs
 
 # NOTA: Este 'workers' é o módulo built-in do Cloudflare Workers Python,
@@ -1905,8 +1906,9 @@ class Default(WorkerEntrypoint):
                     else:
                         error_msg = "Preencha todos os campos"
                 except Exception as e:
-                    # Log error type only (avoid exposing sensitive details in logs)
-                    print(f"[Login Error] {type(e).__name__}")
+                    # Log error details for debugging (without sensitive info)
+                    print(f"[Login Error] {type(e).__name__}: {e}")
+                    print(f"[Login Traceback] {traceback.format_exc()}")
                     # Show more specific error message to user
                     error_str = str(e).lower()
                     if 'no such table' in error_str or 'database' in error_str:
