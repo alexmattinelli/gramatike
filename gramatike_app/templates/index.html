@@ -45,25 +45,26 @@ button { font-family: var(--font-base); font-weight:600; }
     --text: #e5e7eb;
   }
   html, body { height:100%; overflow-x:hidden; }
-  body { font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); margin:0; display:flex; flex-direction:column; min-height:100vh; }
+  body { font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #9B5DE5; margin:0; display:flex; flex-direction:column; min-height:100vh; }
+  .content-wrapper { background: var(--bg); min-height:100vh; }
   h1,h2,h3 { font-family: var(--font-base); }
-  /* HEADER ROXO (padronizado com páginas EDU) */
-  header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:35px; border-bottom-right-radius:35px; position:relative; display:flex; flex-direction:column; align-items:center; }
+  /* HEADER ROXO (sem curvas - apenas a área de conteúdo terá bordas arredondadas) */
+  header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-radius:0; position:relative; display:flex; flex-direction:column; align-items:center; }
   .logo { font-family: var(--font-brand) !important; font-size:2.5rem; color:#fff; letter-spacing:1px; font-weight:400; }
   /* Mobile: Header mais compacto */
   @media (max-width: 980px){ 
     header.site-head { padding:18px clamp(12px,3vw,24px) 28px; }
     .logo { font-size:1.8rem; }
   }
-  /* Avatar do usuário no cabeçalho */
-  .profile-avatar-link { position:absolute; right:24px; top:50%; transform:translateY(-50%); display:inline-flex; align-items:center; justify-content:center; width:58px; height:58px; border-radius:50%; border:3px solid #ffffff55; box-shadow:0 4px 14px rgba(0,0,0,.25); overflow:hidden; background:#ffffff22; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); cursor:pointer; text-decoration:none; transition: box-shadow .25s, transform .18s; }
+  /* Avatar do usuário no cabeçalho (maior e mais visível) */
+  .profile-avatar-link { position:absolute; right:24px; top:50%; transform:translateY(-50%); display:inline-flex; align-items:center; justify-content:center; width:72px; height:72px; border-radius:50%; border:3px solid #ffffff55; box-shadow:0 4px 14px rgba(0,0,0,.25); overflow:hidden; background:#ffffff22; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); cursor:pointer; text-decoration:none; transition: box-shadow .25s, transform .18s; }
   .profile-avatar-link:hover { box-shadow:0 6px 20px rgba(0,0,0,.32); }
   .profile-avatar-link:active { transform:translateY(-50%) scale(.95); }
   .profile-avatar-link img { width:100%; height:100%; object-fit:cover; display:block; }
-  .profile-avatar-link span.initial { font-size:1.9rem; font-weight:800; color:#fff; letter-spacing:.5px; }
+  .profile-avatar-link span.initial { font-size:2.2rem; font-weight:800; color:#fff; letter-spacing:.5px; }
   /* Tooltip simples acessível */
   .profile-avatar-link[data-tooltip]:hover::after, .profile-avatar-link[data-tooltip]:focus-visible::after { content:attr(data-tooltip); position:absolute; bottom:-6px; left:50%; transform:translate(-50%,100%); background:#222; color:#fff; font-size:.6rem; font-weight:600; padding:4px 7px 5px; border-radius:8px; white-space:nowrap; box-shadow:0 4px 12px rgba(0,0,0,.35); letter-spacing:.5px; }
-  @media (max-width:640px){ .profile-avatar-link { width:46px; height:46px; right:16px; } .profile-avatar-link span.initial { font-size:1.4rem; } }
+  @media (max-width:640px){ .profile-avatar-link { width:56px; height:56px; right:16px; } .profile-avatar-link span.initial { font-size:1.6rem; } }
   @media (max-width: 980px){ .profile-avatar-link { display:none !important; } }
   body, p, input, textarea, select, button { font-family:'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
   /* Removido layout 3 colunas – voltando ao estilo anterior */
@@ -100,8 +101,7 @@ button { font-family: var(--font-base); font-weight:600; }
   .quick-menu .sair-btn { color:#9B5DE5; }
   @keyframes fadeIn { from { opacity:0; transform: translateY(-4px);} to { opacity:1; transform:translateY(0);} }
   .head-btn { font-family:'Nunito'; font-weight:700; font-size:.75rem; letter-spacing:.5px; cursor:pointer; }
-  footer { background:#9B5DE5; border-top-left-radius:60px; border-top-right-radius:60px; padding:2.4rem 1rem 2.6rem; margin-top:5rem; text-align:center; color:#fff; font-family:'Nunito'; font-size:.8rem; font-weight:700; letter-spacing:.6px; }
-  footer a { color:#fff; text-decoration:none; font-weight:800; }
+  /* Footer removido conforme solicitado */
   @media (max-width:640px){ .card-block{padding:1.8rem 1.4rem 2.2rem;} header.site-head{padding:24px 18px 38px;} .logo{font-size:2.4rem;} }
   nav a { color:#fff; text-decoration:none; margin-left:1.5rem; font-weight:600; position:relative; transition:opacity .2s; }
   nav a:hover { opacity:.85; }
@@ -217,8 +217,7 @@ button { font-family: var(--font-base); font-weight:600; }
   body.dark .comment .c-time { color:#94a3b8; }
   .comment .c-body { font-size:.78rem; font-weight:500; }
 
-  footer { text-align:center; background: var(--primary); color:#fff; padding:2rem 1rem; border-top:none; font-size:.9rem; letter-spacing:1px; }
-  @media (max-width: 980px){ footer, .footer-bar { display:none !important; } }
+  /* Footer removido conforme solicitado */
 
   /* Skeleton Loader */
   .feed-skeleton { background: var(--card); border:1px solid var(--border); padding:1.5rem 2rem; border-radius:20px; margin-bottom:2rem; position:relative; overflow:hidden; }
@@ -258,7 +257,9 @@ button { font-family: var(--font-base); font-weight:600; }
   {% endif %}
 </header>
 
-<main class="site-main" style="width:100%; max-width:1400px; margin:2rem auto 4rem; padding:0 32px; display:flex; gap:48px; align-items:flex-start; justify-content:flex-start; box-sizing:border-box;">
+<!-- Wrapper branco com borda curvada no topo -->
+<div class="content-wrapper" style="background:#ffffff; border-top-left-radius:35px; border-top-right-radius:35px; margin-top:-30px; padding-top:30px; position:relative; z-index:1;">
+<main class="site-main" style="width:100%; max-width:1400px; margin:0 auto 4rem; padding:0 32px; display:flex; gap:48px; align-items:flex-start; justify-content:flex-start; box-sizing:border-box;">
   <div class="feed-col" style="flex:1 1 960px; max-width:960px; min-width:0;">
   
   <!-- Card de Ações Rápidas (mobile only - similar ao card de Amigues) -->
@@ -345,27 +346,15 @@ button { font-family: var(--font-base); font-weight:600; }
 
   </div>
   <aside class="right-col" style="width:300px; flex:0 0 300px; position:sticky; top:15px; align-self:flex-start;">
-  <!-- Navegação rápida: Palavras do Dia -->
+  <!-- Navegação rápida: Educação e Dinâmicas -->
   <div id="quick-nav" style="display:flex; gap:.7rem; margin:0 0 1.1rem;">
-  <a href="{{ url_for('main.educacao') }}" aria-label="Ir para Palavras do Dia" style="flex:1; text-decoration:none; background:var(--card); border:1px solid var(--border); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.8rem; font-weight:700; color:var(--primary); letter-spacing:.3px; transition:.18s;">
-        <span style="display:inline-flex; width:30px; height:30px; border-radius:12px; background:#f1edff; align-items:center; justify-content:center; color:var(--primary);">
-          <!-- SVG Palavras do Dia -->
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" role="img">
-            <path d="M9 18V5l12-2v13" stroke="url(#palavrasGrad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="6" cy="18" r="3" stroke="url(#palavrasGrad)" stroke-width="2.2"/>
-            <circle cx="18" cy="16" r="3" stroke="url(#palavrasGrad)" stroke-width="2.2"/>
-            <defs>
-              <linearGradient id="palavrasGrad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#9B5DE5"/>
-                <stop offset="100%" stop-color="#9B5DE5"/>
-              </linearGradient>
-            </defs>
-          </svg>
-        </span>
-  Palavras do Dia
-      </a>
-      <div style="flex:1; text-align:center; background:var(--card); border:1px solid var(--border); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; color:var(--primary); letter-spacing:.3px; transition:.18s;">Em breve</div>
-    </div>
+    <a href="{{ url_for('main.educacao') }}" aria-label="Ir para Educação" style="flex:1; text-decoration:none; background:var(--card); border:1px solid var(--border); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.9rem; font-weight:700; color:var(--primary); letter-spacing:.3px; transition:.18s; box-shadow:0 4px 12px rgba(0,0,0,.06);">
+      <span style="font-size:1.2rem;">📚</span> Educação
+    </a>
+    <a href="{{ url_for('main.dinamicas_home') }}" aria-label="Ir para Dinâmicas" style="flex:1; text-decoration:none; background:var(--card); border:1px solid var(--border); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.9rem; font-weight:700; color:var(--primary); letter-spacing:.3px; transition:.18s; box-shadow:0 4px 12px rgba(0,0,0,.06);">
+      <span style="font-size:1.2rem;">🎮</span> Dinâmicas
+    </a>
+  </div>
 
   <!-- Notifications Button -->
   <div style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem; position:relative;">
@@ -386,14 +375,37 @@ button { font-family: var(--font-base); font-weight:600; }
     </div>
   </div>
 
+  <!-- Card do Perfil com username, links e Amigues -->
   <div id="amigues-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08);">
-      <div class="amigues-toolbar" style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0 0 .6rem;">
-        <a href="{{ url_for('main.configuracoes') }}" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <!-- Username do usuário -->
+      {% if current_user.is_authenticated %}
+      <div style="text-align:center; margin-bottom:.8rem;">
+        <span style="font-size:1.1rem; font-weight:800; color:var(--primary); letter-spacing:.3px;">👤 @{{ current_user.username }}</span>
+      </div>
+      <!-- Links do perfil -->
+      <div style="display:flex; flex-direction:column; gap:.5rem; margin-bottom:.8rem;">
+        <a href="{{ url_for('main.meu_perfil') }}" style="display:flex; align-items:center; gap:.6rem; text-decoration:none; padding:.5rem .7rem; border-radius:14px; background:#f8f5ff; font-size:.85rem; font-weight:600; color:var(--primary); transition:.18s;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Meu Perfil
+        </a>
+        <a href="{{ url_for('main.configuracoes') }}" style="display:flex; align-items:center; gap:.6rem; text-decoration:none; padding:.5rem .7rem; border-radius:14px; background:#f8f5ff; font-size:.85rem; font-weight:600; color:var(--primary); transition:.18s;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
+          Configurações
         </a>
+      </div>
+      {% else %}
+      <div style="text-align:center; margin-bottom:.8rem;">
+        <a href="{{ url_for('main.login') }}" style="font-size:1rem; font-weight:700; color:var(--primary); text-decoration:none;">Entrar</a>
+      </div>
+      {% endif %}
+      <!-- Botões de ação -->
+      <div class="amigues-toolbar" style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0 0 .6rem;">
         <a href="{{ url_for('main.suporte') }}" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
@@ -414,7 +426,9 @@ button { font-family: var(--font-base); font-weight:600; }
         </a>
         {% endif %}
       </div>
-      <div class="amigues-divider" style="height:1px; background:var(--border); margin:.2rem 0 .6rem; border-radius:1px;"></div>
+      <!-- Linha divisória -->
+      <div class="amigues-divider" style="height:1px; background:var(--border); margin:.6rem 0 .8rem; border-radius:1px;"></div>
+      <!-- Seção Amigues -->
       <h3 style="margin:0 0 .8rem; font-size:1rem; font-weight:800; letter-spacing:.5px; color:var(--primary); text-align:center;">Amigues</h3>
       <div id="amigues-list" style="display:flex; flex-direction:column; gap:.65rem; min-height:20px;"></div>
       <div id="amigues-empty" style="display:none; font-size:.7rem; opacity:.7; line-height:1.3;">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
@@ -454,6 +468,7 @@ button { font-family: var(--font-base); font-weight:600; }
     </div>
   </aside>
 </main>
+</div><!-- fechando content-wrapper -->
 <style>
 /* Responsivo: evitar barra horizontal e espaço lateral vazio em telas menores */
 @media (max-width: 1200px){
@@ -627,13 +642,9 @@ button { font-family: var(--font-base); font-weight:600; }
     <span>Início</span>
   </a>
   
-  <a href="{{ url_for('main.educacao') }}" aria-label="Palavras do Dia" title="Palavras do Dia">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M9 18V5l12-2v13"/>
-      <circle cx="6" cy="18" r="3"/>
-      <circle cx="18" cy="16" r="3"/>
-    </svg>
-    <span>Palavras do Dia</span>
+  <a href="{{ url_for('main.educacao') }}" aria-label="Educação" title="Educação">
+    <span style="font-size:1.3rem;">📚</span>
+    <span>Educação</span>
   </a>
   
   <a href="{{ url_for('main.novo_post') }}" aria-label="Criar post" title="Criar post" style="background: #ffffff; color: #9B5DE5; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
@@ -643,11 +654,9 @@ button { font-family: var(--font-base); font-weight:600; }
     </svg>
   </a>
   
-  <a href="{{ url_for('main.index') }}" aria-label="Portal Gramátike" title="Portal Gramátike">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-    </svg>
-    <span>Portal Gramátike</span>
+  <a href="{{ url_for('main.dinamicas_home') }}" aria-label="Dinâmicas" title="Dinâmicas">
+    <span style="font-size:1.3rem;">🎮</span>
+    <span>Dinâmicas</span>
   </a>
   
   {% if current_user.is_authenticated %}
@@ -670,10 +679,8 @@ button { font-family: var(--font-base); font-weight:600; }
   {% endif %}
 </nav>
 
-<div class="footer-bar" style="background:#9B5DE5; color:#ffffff; text-align:center; padding:1.2rem 0 1.2rem; font-size:1.05rem; border-top-left-radius:32px; border-top-right-radius:32px; margin-top:auto; letter-spacing:.5px;">
-  © 2025 Gramátike • Linguagem Viva e de Todes
-  <script src="{{ url_for('static', filename='js/feed.js') }}"></script>
-</div>
+<!-- Script do feed carregado sem footer visível -->
+<script src="{{ url_for('static', filename='js/feed.js') }}"></script>
 <script>
 window.currentUser = "{{ current_user.username if current_user.is_authenticated else '' }}";
 window.currentUserId = "{{ current_user.id if current_user.is_authenticated else '' }}";
