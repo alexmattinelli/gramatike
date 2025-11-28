@@ -431,13 +431,27 @@ def create_app():
     except Exception:
         pass
 
-    # --- Security headers ---
+    # --- Security headers and cache control ---
     @app.after_request
     def add_security_headers(resp):
         resp.headers.setdefault('X-Content-Type-Options', 'nosniff')
         resp.headers.setdefault('X-Frame-Options', 'DENY')
         resp.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
         resp.headers.setdefault('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
+        
+        # Cache-Control para arquivos estáticos CSS/JS: revalidar sempre
+        # Isso garante que mudanças de layout apareçam após deploy
+        from flask import request
+        if request.path.startswith('/static/'):
+            if request.path.endswith(('.css', '.js')):
+                # CSS/JS: cache curto com revalidação obrigatória
+                resp.headers['Cache-Control'] = 'public, max-age=0, must-revalidate'
+            elif request.path.endswith(('.png', '.jpg', '.jpeg', '.gif', '.ico', '.webp', '.svg')):
+                # Imagens: cache mais longo (1 hora)
+                resp.headers.setdefault('Cache-Control', 'public, max-age=3600')
+            elif request.path.endswith('.webmanifest'):
+                # Manifest: cache curto
+                resp.headers['Cache-Control'] = 'public, max-age=60, must-revalidate'
         # CSP brando para não quebrar inline scripts atuais; ajuste futuramente para remover 'unsafe-inline'
         # Permitir Google Fonts, Quill.js CDN e imagens externas (ex.: Cloudflare R2 Storage)
         csp = (
