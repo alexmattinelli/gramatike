@@ -45,8 +45,8 @@ button { font-family: var(--font-base); font-weight:600; }
     --text: #e5e7eb;
   }
   html, body { height:100%; overflow-x:hidden; }
-  body { font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--primary); margin:0; display:flex; flex-direction:column; min-height:100vh; }
-  .content-wrapper { background: var(--bg); min-height:100vh; }
+  body { font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); margin:0; display:flex; flex-direction:column; min-height:100vh; }
+  .content-wrapper { background: var(--bg); flex:1; }
   h1,h2,h3 { font-family: var(--font-base); }
   /* HEADER ROXO (sem curvas - apenas a área de conteúdo terá bordas arredondadas) */
   header.site-head { background: var(--primary); padding:28px clamp(16px,4vw,40px) 46px; border-radius:0; position:relative; display:flex; flex-direction:column; align-items:center; }
@@ -346,14 +346,22 @@ button { font-family: var(--font-base); font-weight:600; }
 
   </div>
   <aside class="right-col" style="width:300px; flex:0 0 300px; position:sticky; top:15px; align-self:flex-start;">
-  <!-- Navegação rápida: Educação e Dinâmicas -->
+  <!-- Navegação rápida: Educação e Em breve -->
   <div id="quick-nav" style="display:flex; gap:.7rem; margin:0 0 1.1rem;">
     <a href="{{ url_for('main.educacao') }}" aria-label="Ir para Educação" style="flex:1; text-decoration:none; background:var(--card); border:1px solid var(--border); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.9rem; font-weight:700; color:var(--primary); letter-spacing:.3px; transition:.18s; box-shadow:0 4px 12px rgba(0,0,0,.06);">
-      <span style="font-size:1.2rem;" aria-hidden="true">📚</span> Educação
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+      </svg>
+      Educação
     </a>
-    <a href="{{ url_for('main.dinamicas_home') }}" aria-label="Ir para Dinâmicas" style="flex:1; text-decoration:none; background:var(--card); border:1px solid var(--border); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.9rem; font-weight:700; color:var(--primary); letter-spacing:.3px; transition:.18s; box-shadow:0 4px 12px rgba(0,0,0,.06);">
-      <span style="font-size:1.2rem;" aria-hidden="true">🎮</span> Dinâmicas
-    </a>
+    <div style="flex:1; background:var(--card); border:1px solid var(--border); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.9rem; font-weight:700; color:#999; letter-spacing:.3px; box-shadow:0 4px 12px rgba(0,0,0,.06);">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+      Em breve
+    </div>
   </div>
 
   <!-- Notifications Button -->
@@ -399,13 +407,24 @@ button { font-family: var(--font-base); font-weight:600; }
           Configurações
         </a>
       </div>
-      {% else %}
-      <div style="text-align:center; margin-bottom:.8rem;">
-        <a href="{{ url_for('main.login') }}" style="font-size:1rem; font-weight:700; color:var(--primary); text-decoration:none;">Entrar</a>
-      </div>
       {% endif %}
       <!-- Botões de ação -->
       <div class="amigues-toolbar" style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0 0 .6rem;">
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('main.login') }}" class="search-btn icon-btn" title="Entrar" aria-label="Entrar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+          </svg>
+        </a>
+        <a href="{{ url_for('main.configuracoes') }}" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </a>
+        {% endif %}
         <a href="{{ url_for('main.suporte') }}" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
@@ -643,7 +662,10 @@ button { font-family: var(--font-base); font-weight:600; }
   </a>
   
   <a href="{{ url_for('main.educacao') }}" aria-label="Educação" title="Educação">
-    <span style="font-size:1.3rem;" aria-hidden="true">📚</span>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+    </svg>
     <span>Educação</span>
   </a>
   
@@ -654,10 +676,13 @@ button { font-family: var(--font-base); font-weight:600; }
     </svg>
   </a>
   
-  <a href="{{ url_for('main.dinamicas_home') }}" aria-label="Dinâmicas" title="Dinâmicas">
-    <span style="font-size:1.3rem;" aria-hidden="true">🎮</span>
-    <span>Dinâmicas</span>
-  </a>
+  <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px 12px; color: rgba(255,255,255,0.6); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.3px;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <polyline points="12 6 12 12 16 14"></polyline>
+    </svg>
+    <span>Em breve</span>
+  </div>
   
   {% if current_user.is_authenticated %}
   <a href="{{ url_for('main.meu_perfil') }}" aria-label="Perfil" title="Perfil">
