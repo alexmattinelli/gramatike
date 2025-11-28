@@ -126,7 +126,7 @@ header.site-head .logo {
 .profile-avatar-link {
   position: absolute;
   right: 24px;
-  top: 40%;  /* Moved up from 50% */
+  top: 38%;  /* Moved up from 50% */
   transform: translateY(-50%);
   display: inline-flex;
   align-items: center;
