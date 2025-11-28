@@ -27,12 +27,12 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
-  // Limpa caches antigos
+  // Limpa caches antigos usando prefixo específico 'gk-static-'
   e.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => OLD_CACHES.includes(name) || (name.startsWith('gk-') && name !== CACHE_VERSION))
+          .filter((name) => name.startsWith('gk-static-') && name !== CACHE_VERSION)
           .map((name) => caches.delete(name))
       );
     }).then(() => clients.claim())
@@ -63,7 +63,12 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(async () => {
           const cached = await caches.match(req);
-          return cached || Response.error();
+          if (cached) return cached;
+          // Retorna uma resposta mais informativa quando offline e sem cache
+          return new Response(
+            '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Offline</title></head><body style="font-family:sans-serif;text-align:center;padding:2rem;"><h1>📶 Você está offline</h1><p>Esta página ainda não está disponível em cache. Por favor, verifique sua conexão e tente novamente.</p></body></html>',
+            { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+          );
         })
     );
   } else {
@@ -79,7 +84,8 @@ self.addEventListener('fetch', (event) => {
           }
           return fresh;
         } catch (err) {
-          return cached || Response.error();
+          // Retorna resposta vazia para recursos não críticos
+          return new Response('', { status: 503 });
         }
       })
     );

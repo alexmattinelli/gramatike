@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 # Carrega variáveis de .env o mais cedo possível (antes de importar Config)
 try:
     import os as _os_dv
@@ -441,7 +441,6 @@ def create_app():
         
         # Cache-Control para arquivos estáticos CSS/JS: revalidar sempre
         # Isso garante que mudanças de layout apareçam após deploy
-        from flask import request
         if request.path.startswith('/static/'):
             if request.path.endswith(('.css', '.js')):
                 # CSS/JS: cache curto com revalidação obrigatória
