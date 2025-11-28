@@ -27,7 +27,7 @@ except ImportError:
 
 # Versão do código - usado para tracking de deployment
 # Atualize este valor a cada commit para verificar se o deploy foi feito
-SCRIPT_VERSION = "v2025.11.27.c"
+SCRIPT_VERSION = "v2025.11.28.a"
 
 # NOTA: Este 'workers' é o módulo built-in do Cloudflare Workers Python,
 # NÃO a pasta local (que foi renomeada para 'gramatike_d1').
@@ -213,12 +213,23 @@ body {
 }
 h1, h2, h3 { font-weight: 800; margin: 0 0 0.9rem; line-height: 1.12; }
 
-/* Header */
+/* Content wrapper (área branca com borda curva no topo) */
+.content-wrapper {
+    background: var(--card);
+    flex: 1;
+    border-top-left-radius: 35px;
+    border-top-right-radius: 35px;
+    margin-top: -30px;
+    padding-top: 30px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Header (sem curvas - apenas a área de conteúdo terá bordas arredondadas) */
 header.site-head {
     background: var(--primary);
     padding: 28px clamp(16px, 4vw, 40px) 46px;
-    border-bottom-left-radius: 40px;
-    border-bottom-right-radius: 40px;
+    border-radius: 0;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -436,12 +447,10 @@ footer {
     background: var(--primary);
     color: #fff;
     text-align: center;
-    padding: 1.4rem 1rem 1.6rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-    font-weight: 700;
-    border-top-left-radius: 38px;
-    border-top-right-radius: 38px;
+    padding: 1.2rem 1rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.4px;
+    font-weight: 600;
 }
 
 /* Mobile nav */
@@ -451,24 +460,23 @@ footer {
     bottom: 0;
     left: 0;
     right: 0;
-    background: #ffffff;
-    border-top: 1px solid var(--border);
+    background: var(--primary);
     padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
-    box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
     z-index: 1000;
 }
-.mobile-nav a {
+.mobile-nav a, .mobile-nav div {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
     padding: 6px 12px;
-    color: #666;
+    color: #fff;
     text-decoration: none;
     font-size: 0.65rem;
     font-weight: 600;
 }
-.mobile-nav a:hover { color: var(--primary); }
+.mobile-nav a:hover { opacity: 0.85; }
 .mobile-nav svg { color: inherit; }
 
 /* Mobile */
@@ -604,38 +612,36 @@ def mobile_nav():
         </a>
         <a href="/educacao">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
             </svg>
             <span>Educação</span>
         </a>
-        <a href="/login" style="background: var(--primary); color: white; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0;">
+        <a href="/novo-post" style="background: var(--primary); color: white; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #ffffff;">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </a>
+        <div style="color: rgba(255,255,255,0.6);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>Em breve</span>
+        </div>
+        <a href="/login">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
             </svg>
-        </a>
-        <a href="/dinamicas">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="6" width="20" height="12" rx="2"></rect>
-                <path d="M6 12h4"></path>
-                <path d="M14 12h4"></path>
-            </svg>
-            <span>Dinâmicas</span>
-        </a>
-        <a href="/exercicios">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-            <span>Exercícios</span>
+            <span>Perfil</span>
         </a>
     </nav>"""
 
 def page_footer():
     return f"""
-    <footer>© 2025 Gramátike • Inclusão e Gênero Neutro</footer>
+    <footer>© 2025 Gramátike • Língua Viva e de Todes</footer>
     {mobile_nav()}
 </body>
 </html>"""
@@ -1848,6 +1854,7 @@ class Default(WorkerEntrypoint):
     <header class="site-head">
         <h1 class="logo">Gramátike</h1>
     </header>
+    <div class="content-wrapper">
     <main>
         <div class="card" style="text-align: center; margin-bottom: 2rem;">
             <h2 style="color: var(--primary); margin-bottom: 0.5rem;">Bem-vinde ao Gramátike!</h2>
@@ -1864,8 +1871,8 @@ class Default(WorkerEntrypoint):
         <div class="modules-grid">
             <a href="/educacao" class="module-card">
                 <div class="icon">📚</div>
-                <h3>Palavras do Dia</h3>
-                <p>Aprenda palavras novas diariamente</p>
+                <h3>Educação</h3>
+                <p>Aprenda gramática de forma inclusiva</p>
             </a>
             <a href="/dinamicas" class="module-card">
                 <div class="icon">🎮</div>
@@ -1888,12 +1895,13 @@ class Default(WorkerEntrypoint):
                 <p>Material de estudo</p>
             </a>
             <a href="/" class="module-card">
-                <div class="icon">🎧</div>
+                <div class="icon">💬</div>
                 <h3>Portal Gramátike</h3>
                 <p>Acesse a comunidade</p>
             </a>
         </div>
     </main>
+    </div>
 {page_footer()}"""
 
         # Usuário está autenticado - mostra o feed com posts
@@ -1982,15 +1990,65 @@ class Default(WorkerEntrypoint):
         
         extra_css = """
         .like-btn.liked { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
+        /* Quick nav gradient buttons */
+        .quick-nav-btn {{
+            flex: 1;
+            text-decoration: none;
+            background: linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%);
+            padding: 1rem 1.1rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.4px;
+            transition: all 0.25s ease;
+            box-shadow: 0 6px 20px rgba(155,93,229,0.35);
+            border: none;
+        }}
+        .quick-nav-disabled {{
+            flex: 1;
+            background: linear-gradient(135deg, #b8a4c9 0%, #9d8ab5 100%);
+            padding: 1rem 1.1rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.4px;
+            box-shadow: 0 6px 20px rgba(155,93,229,0.25);
+            border: none;
+            opacity: 0.85;
+        }}
+        /* Profile links */
+        .profile-link {{
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            padding: 0.5rem 0.7rem;
+            border-radius: 14px;
+            background: #f8f5ff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary);
+            transition: 0.18s;
+        }}
+        .profile-link:hover {{ background: #f0ebff; }}
         """
         
         return f"""{page_head("Gramátike", extra_css)}
     <header class="site-head">
         <h1 class="logo">Gramátike</h1>
-        <a href="/perfil" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);width:50px;height:50px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,0.5);">
+        <a href="/perfil" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);width:64px;height:64px;border-radius:50%;overflow:hidden;border:3px solid rgba(255,255,255,0.35);box-shadow:0 4px 14px rgba(0,0,0,0.25);">
             <img src="{user_foto}" alt="Perfil" style="width:100%;height:100%;object-fit:cover;">
         </a>
     </header>
+    <div class="content-wrapper">
     <main>
         <div class="search-box">
             <input type="text" id="search-input" placeholder="Pesquisar..." onkeydown="if(event.key==='Enter')executarBusca()">
@@ -2008,28 +2066,54 @@ class Default(WorkerEntrypoint):
                 {posts_html}
             </div>
             <aside class="side-col">
-                <div class="quick-nav">
-                    <a href="/educacao">📚 Educação</a>
-                    <a href="/dinamicas">🎮 Dinâmicas</a>
+                <div style="display:flex;gap:0.8rem;margin:0 0 1.2rem;">
+                    <a href="/educacao" class="quick-nav-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                        Educação
+                    </a>
+                    <div class="quick-nav-disabled">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        Em breve
+                    </div>
                 </div>
                 <div class="side-card">
-                    <h3>👤 {user_nome}</h3>
-                    <p style="font-size:0.75rem;color:var(--text-dim);">@{user_username}</p>
-                    <div style="display:flex;gap:1rem;margin-top:0.8rem;">
-                        <a href="/perfil" style="font-size:0.7rem;color:var(--primary);text-decoration:none;font-weight:700;">Meu Perfil</a>
-                        <a href="/configuracoes" style="font-size:0.7rem;color:var(--primary);text-decoration:none;font-weight:700;">Configurações</a>
+                    <div style="text-align:center;margin-bottom:0.8rem;">
+                        <span style="font-size:1.1rem;font-weight:800;color:var(--primary);letter-spacing:0.3px;">👤 @{user_username}</span>
                     </div>
+                    <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:0.8rem;">
+                        <a href="/perfil" class="profile-link">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Meu Perfil
+                        </a>
+                        <a href="/configuracoes" class="profile-link">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                            Configurações
+                        </a>
+                    </div>
+                    <div style="height:1px;background:var(--border);margin:0.6rem 0 0.8rem;border-radius:1px;"></div>
+                    <h3 style="margin:0 0 0.8rem;font-size:1rem;font-weight:800;letter-spacing:0.5px;color:var(--primary);text-align:center;">Amigues</h3>
+                    <p style="font-size:0.7rem;opacity:0.7;line-height:1.3;text-align:center;">Sem amigues ainda. Faça amizades para aparecerem aqui.</p>
                 </div>
                 <div class="side-card">
                     <h3>📣 Novidades</h3>
                     {divulgacoes_html}
                 </div>
-                <div style="text-align:center;margin-top:1rem;">
-                    <a href="/logout" style="font-size:0.75rem;color:#c00;text-decoration:none;font-weight:700;">Sair</a>
-                </div>
             </aside>
         </div>
     </main>
+    </div>
     <script>
     window.currentUser = "{user_username_js}";
     window.currentUserId = {user_id};
@@ -2146,6 +2230,7 @@ class Default(WorkerEntrypoint):
             <a href="/artigos">📰 Artigos</a>
         </nav>
     </header>
+    <div class="content-wrapper">
     <main>
         <div class="search-box">
             <input type="text" placeholder="Buscar posts do @gramatike...">
@@ -2177,6 +2262,7 @@ class Default(WorkerEntrypoint):
             </aside>
         </div>
     </main>
+    </div>
 {page_footer()}"""
 
     async def _login_page(self, db, current_user, request, method):
