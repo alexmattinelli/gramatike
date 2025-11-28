@@ -263,6 +263,15 @@ button { font-family: var(--font-base); font-weight:600; }
 <main class="site-main" style="width:100%; max-width:1400px; margin:0 auto 4rem; padding:0 32px; display:flex; gap:48px; align-items:flex-start; justify-content:flex-start; box-sizing:border-box;">
   <div class="feed-col" style="flex:1 1 960px; max-width:960px; min-width:0;">
   
+  <!-- Triângulo toggle para mostrar/esconder card de ações (mobile only) -->
+  <div id="mobile-toggle-triangle" onclick="toggleMobileActionsCard()" style="display:none; width:100%; text-align:center; margin-bottom:.5rem; cursor:pointer;">
+    <div id="triangle-icon" style="display:inline-flex; align-items:center; justify-content:center; background:var(--primary); width:40px; height:24px; border-radius:0 0 12px 12px; box-shadow:0 4px 12px rgba(155,93,229,.3); transition:transform .2s;">
+      <svg id="triangle-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </div>
+  </div>
+  
   <!-- Card de Ações Rápidas (mobile only - similar ao card de Amigues) -->
   <div id="mobile-actions-card" style="display:none; background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem;">
     <div style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0;">
@@ -532,11 +541,20 @@ button { font-family: var(--font-base); font-weight:600; }
     display: none !important;
   }
   
-  /* Mostrar card de ações rápidas no mobile */
-  #mobile-actions-card {
+  /* Mostrar triângulo toggle no mobile */
+  #mobile-toggle-triangle {
     display: block !important;
+  }
+  
+  /* Card de ações inicialmente escondido no mobile - mostrar ao clicar no triângulo */
+  #mobile-actions-card {
+    display: none !important;
     padding: 1rem 1.2rem .9rem !important; /* Card com mais padding */
     margin: 0 -1rem 1.4rem !important; /* Aumentar largura - mesma margem dos posts */
+  }
+  
+  #mobile-actions-card.visible {
+    display: block !important;
   }
   
   /* Botões do card de ações - mais quadrados e maiores */
@@ -1792,6 +1810,19 @@ function toggleMobileTicTacToe() {
     panel.style.display = 'block';
   } else {
     panel.style.display = 'none';
+  }
+}
+
+function toggleMobileActionsCard() {
+  const card = document.getElementById('mobile-actions-card');
+  const triangleSvg = document.getElementById('triangle-svg');
+  
+  if (card.classList.contains('visible')) {
+    card.classList.remove('visible');
+    if (triangleSvg) triangleSvg.style.transform = 'rotate(0deg)';
+  } else {
+    card.classList.add('visible');
+    if (triangleSvg) triangleSvg.style.transform = 'rotate(180deg)';
   }
 }
 
