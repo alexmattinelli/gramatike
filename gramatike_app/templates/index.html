@@ -57,14 +57,14 @@ button { font-family: var(--font-base); font-weight:600; }
     .logo { font-size:1.8rem; }
   }
   /* Avatar do usuário no cabeçalho (maior e mais visível) */
-  .profile-avatar-link { position:absolute; right:24px; top:50%; transform:translateY(-50%); display:inline-flex; align-items:center; justify-content:center; width:72px; height:72px; border-radius:50%; border:3px solid #ffffff55; box-shadow:0 4px 14px rgba(0,0,0,.25); overflow:hidden; background:#ffffff22; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); cursor:pointer; text-decoration:none; transition: box-shadow .25s, transform .18s; }
+  .profile-avatar-link { position:absolute; right:24px; top:50%; transform:translateY(-50%); display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:50%; border:3px solid #ffffff55; box-shadow:0 4px 14px rgba(0,0,0,.25); overflow:hidden; background:#ffffff22; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); cursor:pointer; text-decoration:none; transition: box-shadow .25s, transform .18s; }
   .profile-avatar-link:hover { box-shadow:0 6px 20px rgba(0,0,0,.32); }
   .profile-avatar-link:active { transform:translateY(-50%) scale(.95); }
   .profile-avatar-link img { width:100%; height:100%; object-fit:cover; display:block; }
-  .profile-avatar-link span.initial { font-size:2.2rem; font-weight:800; color:#fff; letter-spacing:.5px; }
+  .profile-avatar-link span.initial { font-size:1.9rem; font-weight:800; color:#fff; letter-spacing:.5px; }
   /* Tooltip simples acessível */
   .profile-avatar-link[data-tooltip]:hover::after, .profile-avatar-link[data-tooltip]:focus-visible::after { content:attr(data-tooltip); position:absolute; bottom:-6px; left:50%; transform:translate(-50%,100%); background:#222; color:#fff; font-size:.6rem; font-weight:600; padding:4px 7px 5px; border-radius:8px; white-space:nowrap; box-shadow:0 4px 12px rgba(0,0,0,.35); letter-spacing:.5px; }
-  @media (max-width:640px){ .profile-avatar-link { width:56px; height:56px; right:16px; } .profile-avatar-link span.initial { font-size:1.6rem; } }
+  @media (max-width:640px){ .profile-avatar-link { width:52px; height:52px; right:16px; } .profile-avatar-link span.initial { font-size:1.5rem; } }
   @media (max-width: 980px){ .profile-avatar-link { display:none !important; } }
   body, p, input, textarea, select, button { font-family:'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
   /* Removido layout 3 colunas – voltando ao estilo anterior */
@@ -435,12 +435,10 @@ button { font-family: var(--font-base); font-weight:600; }
         {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
         <a href="{{ url_for('admin.dashboard') }}" class="search-btn icon-btn" title="Painel" aria-label="Painel">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="8" y1="6" x2="21" y2="6"></line>
-            <line x1="8" y1="12" x2="21" y2="12"></line>
-            <line x1="8" y1="18" x2="21" y2="18"></line>
-            <line x1="3" y1="6" x2="3.01" y2="6"></line>
-            <line x1="3" y1="12" x2="3.01" y2="12"></line>
-            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
           </svg>
         </a>
         {% endif %}
@@ -669,8 +667,8 @@ button { font-family: var(--font-base); font-weight:600; }
     <span>Educação</span>
   </a>
   
-  <a href="{{ url_for('main.novo_post') }}" aria-label="Criar post" title="Criar post" style="background: var(--card); color: var(--primary); border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <a href="{{ url_for('main.novo_post') }}" aria-label="Criar post" title="Criar post" style="background: var(--primary); color: #ffffff; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #ffffff;">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <line x1="12" y1="5" x2="12" y2="19"></line>
       <line x1="5" y1="12" x2="19" y2="12"></line>
     </svg>
