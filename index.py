@@ -213,9 +213,9 @@ body {
 }
 h1, h2, h3 { font-weight: 800; margin: 0 0 0.9rem; line-height: 1.12; }
 
-/* Content wrapper (área branca com borda curva no topo) */
+/* Content wrapper (área clarinha com borda curva no topo) */
 .content-wrapper {
-    background: var(--card);
+    background: var(--bg);
     flex: 1;
     border-top-left-radius: 35px;
     border-top-right-radius: 35px;
