@@ -507,6 +507,17 @@ def create_app():
         
         return ("Erro interno no servidor.", 500, {'Content-Type': 'text/plain; charset=utf-8'})
 
+    # Padrões comuns de probes de segurança (bots maliciosos)
+    # Estes são normalmente ignorados silenciosamente para não poluir logs
+    SUSPICIOUS_PATTERNS = (
+        '.php', '.asp', '.aspx', '.jsp', '.cgi',
+        'wp-admin', 'wp-login', 'wp-content', 'wordpress',
+        'phpmyadmin', 'phpinfo', 'admin.php',
+        '.env', '.git', '.htaccess', '.htpasswd',
+        '/cgi-bin/', '/scripts/', '/shell', '/cmd',
+        'eval(', 'base64_decode', 'system(',
+    )
+
     # Tratador 404 para páginas não encontradas
     @app.errorhandler(404)
     def _handle_404(e):
@@ -514,25 +525,15 @@ def create_app():
         
         path = request.path if request else 'N/A'
         
-        # Padrões comuns de probes de segurança (bots maliciosos)
-        # Estes são normalmente ignorados silenciosamente para não poluir logs
-        suspicious_patterns = (
-            '.php', '.asp', '.aspx', '.jsp', '.cgi',
-            'wp-admin', 'wp-login', 'wp-content', 'wordpress',
-            'phpmyadmin', 'phpinfo', 'admin.php',
-            '.env', '.git', '.htaccess', '.htpasswd',
-            '/cgi-bin/', '/scripts/', '/shell', '/cmd',
-            'eval(', 'base64_decode', 'system(',
-        )
-        
         # Verifica se é um probe de segurança
         path_lower = path.lower()
-        is_suspicious = any(pattern in path_lower for pattern in suspicious_patterns)
+        is_suspicious = any(pattern in path_lower for pattern in SUSPICIOUS_PATTERNS)
         
         if is_suspicious:
             # Log discreto para probes de segurança (não enche o log com detalhes)
+            # Usa remote_addr como fonte primária (mais confiável que X-Forwarded-For)
             try:
-                ip = request.headers.get('X-Forwarded-For', request.remote_addr) or '0.0.0.0'
+                ip = request.remote_addr or '0.0.0.0'
                 app.logger.debug(f"Probe bloqueado: {path} | IP: {ip}")
             except Exception:
                 pass
