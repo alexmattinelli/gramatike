@@ -507,6 +507,47 @@ def create_app():
         
         return ("Erro interno no servidor.", 500, {'Content-Type': 'text/plain; charset=utf-8'})
 
+    # Tratador 404 para páginas não encontradas
+    @app.errorhandler(404)
+    def _handle_404(e):
+        from flask import request
+        
+        path = request.path if request else 'N/A'
+        
+        # Padrões comuns de probes de segurança (bots maliciosos)
+        # Estes são normalmente ignorados silenciosamente para não poluir logs
+        suspicious_patterns = (
+            '.php', '.asp', '.aspx', '.jsp', '.cgi',
+            'wp-admin', 'wp-login', 'wp-content', 'wordpress',
+            'phpmyadmin', 'phpinfo', 'admin.php',
+            '.env', '.git', '.htaccess', '.htpasswd',
+            '/cgi-bin/', '/scripts/', '/shell', '/cmd',
+            'eval(', 'base64_decode', 'system(',
+        )
+        
+        # Verifica se é um probe de segurança
+        path_lower = path.lower()
+        is_suspicious = any(pattern in path_lower for pattern in suspicious_patterns)
+        
+        if is_suspicious:
+            # Log discreto para probes de segurança (não enche o log com detalhes)
+            try:
+                ip = request.headers.get('X-Forwarded-For', request.remote_addr) or '0.0.0.0'
+                app.logger.debug(f"Probe bloqueado: {path} | IP: {ip}")
+            except Exception:
+                pass
+            # Retorna 404 simples sem revelar informações
+            return ("Não encontrado.", 404, {'Content-Type': 'text/plain; charset=utf-8'})
+        
+        # Para requisições normais, log informativo
+        try:
+            app.logger.info(f"404: {path} | Method: {request.method}")
+        except Exception:
+            pass
+        
+        # Retorna página 404 amigável
+        return ("Página não encontrada.", 404, {'Content-Type': 'text/plain; charset=utf-8'})
+
     # --- Rate limiting simples por endpoint/IP ---
     # Formato: endpoint -> (limite, janela_em_segundos)
     app.config.setdefault('RATE_LIMITS', {
