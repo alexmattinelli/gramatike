@@ -46,7 +46,7 @@ button { font-family: var(--font-base); font-weight:600; }
   }
   html, body { height:100%; overflow-x:hidden; }
   body { font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); margin:0; display:flex; flex-direction:column; min-height:100vh; }
-  .content-wrapper { background: var(--bg); flex:1; }
+  .content-wrapper { background: var(--bg); flex:1; border-top-left-radius:35px; border-top-right-radius:35px; margin-top:-30px; padding-top:30px; position:relative; z-index:1; }
   h1,h2,h3 { font-family: var(--font-base); }
   /* HEADER ROXO (sem curvas - apenas a área de conteúdo terá bordas arredondadas) */
   header.site-head { background: var(--primary); padding:28px clamp(16px,4vw,40px) 46px; border-radius:0; position:relative; display:flex; flex-direction:column; align-items:center; }
@@ -257,8 +257,8 @@ button { font-family: var(--font-base); font-weight:600; }
   {% endif %}
 </header>
 
-<!-- Wrapper branco com borda curvada no topo -->
-<div class="content-wrapper" style="background:var(--card); border-top-left-radius:35px; border-top-right-radius:35px; margin-top:-30px; padding-top:30px; position:relative; z-index:1;">
+<!-- Wrapper clarinho com borda curvada no topo -->
+<div class="content-wrapper">
 <main class="site-main" style="width:100%; max-width:1400px; margin:0 auto 4rem; padding:0 32px; display:flex; gap:48px; align-items:flex-start; justify-content:flex-start; box-sizing:border-box;">
   <div class="feed-col" style="flex:1 1 960px; max-width:960px; min-width:0;">
   
@@ -702,10 +702,10 @@ button { font-family: var(--font-base); font-weight:600; }
   {% endif %}
 </nav>
 
-<!-- Footer -->
-<footer class="site-footer" style="background:var(--primary); color:#ffffff; text-align:center; padding:1.2rem 1rem; font-size:.9rem; font-weight:600; letter-spacing:.4px; margin-top:auto;">
+<!-- Footer simples (apenas texto) -->
+<div style="text-align:center; padding:1rem; font-size:.8rem; color:var(--text-secondary); font-weight:600; letter-spacing:.4px; margin-top:auto;">
   © 2025 Gramátike • Língua Viva e de Todes
-</footer>
+</div>
 
 <script src="{{ url_for('static', filename='js/feed.js') }}"></script>
 <script>

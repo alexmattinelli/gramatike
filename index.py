@@ -213,9 +213,9 @@ body {
 }
 h1, h2, h3 { font-weight: 800; margin: 0 0 0.9rem; line-height: 1.12; }
 
-/* Content wrapper (área branca com borda curva no topo) */
+/* Content wrapper (área clarinha com borda curva no topo) */
 .content-wrapper {
-    background: var(--card);
+    background: var(--bg);
     flex: 1;
     border-top-left-radius: 35px;
     border-top-right-radius: 35px;
@@ -441,16 +441,15 @@ main {
     border-color: #e1d4fb;
 }
 
-/* Footer */
-footer {
+/* Footer simples (apenas texto) */
+.footer-text {
     margin-top: auto;
-    background: var(--primary);
-    color: #fff;
     text-align: center;
-    padding: 1.2rem 1rem;
-    font-size: 0.9rem;
+    padding: 1rem;
+    font-size: 0.8rem;
     letter-spacing: 0.4px;
     font-weight: 600;
+    color: var(--text-dim);
 }
 
 /* Mobile nav */
@@ -641,7 +640,7 @@ def mobile_nav():
 
 def page_footer():
     return f"""
-    <footer>© 2025 Gramátike • Língua Viva e de Todes</footer>
+    <div class="footer-text">© 2025 Gramátike • Língua Viva e de Todes</div>
     {mobile_nav()}
 </body>
 </html>"""
