@@ -117,7 +117,7 @@ button { font-family: var(--font-base); font-weight:600; }
   .search-btn { height:48px; border:none; background: var(--primary); color:#fff; padding:0 1.2rem; border-radius:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:.4rem; box-shadow:0 4px 12px rgba(130,87,229,.45); }
   .search-btn.icon-btn { width:48px; justify-content:center; padding:0; }
   .search-btn:hover { background: var(--primary-dark); }
-  .new-post-btn { display:flex;align-items:center;justify-content:center; width:48px; height:48px; background:#9B5DE5; color:#fff; border-radius:16px; font-size:1.55rem; font-weight:600; text-decoration:none; box-shadow:0 4px 14px rgba(155,93,229,.4); line-height:0; }
+  .new-post-btn { display:flex;align-items:center;justify-content:center;gap:.4rem; padding:0 1rem; height:48px; background:#9B5DE5; color:#fff; border-radius:16px; font-size:.85rem; font-weight:700; text-decoration:none; box-shadow:0 4px 14px rgba(155,93,229,.4); letter-spacing:.3px; }
   .new-post-btn:hover { filter:brightness(1.08); }
   @media (max-width: 980px){ .new-post-btn { display:none !important; } }
   .new-post-btn svg, .search-btn svg { display:block; }
@@ -265,7 +265,8 @@ button { font-family: var(--font-base); font-weight:600; }
   
   <!-- Card de Ações Rápidas (mobile only - similar ao card de Amigues) -->
   <div id="mobile-actions-card" style="display:none; background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem;">
-    <div style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0;">
+    <!-- Botões de ação -->
+    <div style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0 0 .8rem;">
       <button onclick="window.location.href='{{ url_for('main.suporte') }}'" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="10"></circle>
@@ -279,15 +280,6 @@ button { font-family: var(--font-base); font-weight:600; }
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
       </button>
-      <button onclick="toggleMobileTicTacToe()" class="search-btn icon-btn" title="Jogo da Velha" aria-label="Jogo da Velha">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="2" y="6" width="20" height="12" rx="2"></rect>
-          <path d="M6 12h4"></path>
-          <path d="M14 12h4"></path>
-          <path d="M8 8v8"></path>
-          <path d="M16 8v8"></path>
-        </svg>
-      </button>
       <button onclick="toggleNotifications()" class="search-btn icon-btn" title="Notificações" aria-label="Notificações" style="position:relative;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -295,33 +287,26 @@ button { font-family: var(--font-base); font-weight:600; }
         </svg>
         <span id="mobile-actions-notif-badge" style="display:none; position:absolute; top:-4px; right:-4px; background:#ff9800; color:#fff; font-size:.6rem; padding:2px 5px; border-radius:10px; font-weight:700;">0</span>
       </button>
-      <button onclick="toggleMobileAmigues()" class="search-btn icon-btn" title="Amigues" aria-label="Amigues">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-          <circle cx="9" cy="7" r="4"></circle>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-        </svg>
-      </button>
     </div>
-    <!-- Amigues list - mostrado quando clicar no botão -->
-    <div id="mobile-amigues-panel" style="display:none; margin-top:.8rem; border-top:1px solid var(--border); padding-top:.8rem;">
-      <h3 style="margin:0 0 .8rem; font-size:1rem; font-weight:800; letter-spacing:.5px; color:var(--primary); text-align:center;">Amigues</h3>
-      <div id="mobile-amigues-list" style="display:flex; flex-direction:column; gap:.65rem; min-height:20px;"></div>
-      <div id="mobile-amigues-empty" style="display:none; font-size:.7rem; opacity:.7; line-height:1.3; text-align:center;">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
+    <!-- Linha divisória -->
+    <div style="height:1px; background:var(--border); margin:.4rem 0 .8rem; border-radius:1px;"></div>
+    <!-- Seção Amigues (visível por padrão) -->
+    <h3 style="margin:0 0 .8rem; font-size:1rem; font-weight:800; letter-spacing:.5px; color:var(--primary); text-align:center;">👥 Amigues</h3>
+    <div id="mobile-amigues-list" style="display:flex; flex-direction:column; gap:.65rem; min-height:20px;"></div>
+    <div id="mobile-amigues-empty" style="display:none; font-size:.7rem; opacity:.7; line-height:1.3; text-align:center;">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
+  </div>
+  
+  <!-- Card do Jogo da Velha (mobile only - sempre visível) -->
+  <div id="mobile-ttt-card" style="display:none; background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.1rem 1.15rem .95rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem;">
+    <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary); text-align:center;"># Jogo da Velha</h3>
+    <p style="margin:.2rem 0 .7rem; font-size:.7rem; color:#555; font-weight:600; text-align:center;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
+    <div id="mobile_ttt_status" style="font-size:.72rem; font-weight:800; color:#9B5DE5; letter-spacing:.4px; margin:0 0 .6rem; text-align:center;">Sua vez: você é X</div>
+    <div id="mobile_ttt_board" role="grid" aria-label="Tabuleiro do Jogo da Velha" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:.5rem;">
+      {% for i in range(9) %}
+      <button type="button" data-i="{{ i }}" role="gridcell" aria-label="casa {{ i+1 }} vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+      {% endfor %}
     </div>
-    <!-- Jogo da Velha - mostrado quando clicar no botão -->
-    <div id="mobile-ttt-panel" style="display:none; margin-top:.8rem; border-top:1px solid var(--border); padding-top:.8rem;">
-      <h3 style="margin:0 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary); text-align:center;"># Jogo da Velha</h3>
-      <p style="margin:.2rem 0 .7rem; font-size:.7rem; color:#555; font-weight:600; text-align:center;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
-      <div id="mobile_ttt_status" style="font-size:.72rem; font-weight:800; color:#9B5DE5; letter-spacing:.4px; margin:0 0 .6rem; text-align:center;">Sua vez: você é X</div>
-      <div id="mobile_ttt_board" role="grid" aria-label="Tabuleiro do Jogo da Velha" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:.5rem;">
-        {% for i in range(9) %}
-        <button type="button" data-i="{{ i }}" role="gridcell" aria-label="casa {{ i+1 }} vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
-        {% endfor %}
-      </div>
-      <button id="mobile_ttt_reset" type="button" style="margin-top:.8rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; padding:.5rem .9rem; font-size:.7rem; font-weight:800; letter-spacing:.4px; cursor:pointer; width:100%;">Reiniciar</button>
-    </div>
+    <button id="mobile_ttt_reset" type="button" style="margin-top:.8rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; padding:.5rem .9rem; font-size:.7rem; font-weight:800; letter-spacing:.4px; cursor:pointer; width:100%;">Reiniciar</button>
   </div>
   
   <div class="feed-controls" style="margin-top:0;">
@@ -334,10 +319,11 @@ button { font-family: var(--font-base); font-weight:600; }
         </svg>
       </button>
       <a href="{{ url_for('main.novo_post') }}" class="new-post-btn" aria-label="Criar postagem" title="Criar postagem">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
+        <span>Postar</span>
       </a>
       <div id="autocomplete" class="autocomplete" role="listbox" aria-label="Sugestões de busca"></div>
     </div>
@@ -356,7 +342,7 @@ button { font-family: var(--font-base); font-weight:600; }
       </svg>
       Educação
     </a>
-    <div style="flex:1; background:linear-gradient(135deg, #b8a4c9 0%, #9d8ab5 100%); padding:1rem 1.1rem; border-radius:20px; display:flex; align-items:center; gap:.7rem; font-size:1rem; font-weight:800; color:#ffffff; letter-spacing:.4px; box-shadow:0 6px 20px rgba(155,93,229,.25); border:none; opacity:.85;">
+    <div style="flex:1; background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%); padding:1rem 1.1rem; border-radius:20px; display:flex; align-items:center; gap:.7rem; font-size:1rem; font-weight:800; color:#ffffff; letter-spacing:.4px; box-shadow:0 6px 20px rgba(155,93,229,.35); border:none; opacity:.65; cursor:not-allowed;">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="12" cy="12" r="10"></circle>
         <polyline points="12 6 12 12 16 14"></polyline>
@@ -539,6 +525,12 @@ button { font-family: var(--font-base); font-weight:600; }
     margin: 0 -1rem 1.4rem !important; /* Aumentar largura - mesma margem dos posts */
   }
   
+  /* Mostrar card do Jogo da Velha no mobile */
+  #mobile-ttt-card {
+    display: block !important;
+    margin: 0 -1rem 1.4rem !important;
+  }
+  
   /* Botões do card de ações - mais quadrados e maiores */
   #mobile-actions-card .search-btn.icon-btn {
     width: 52px !important;
@@ -668,11 +660,12 @@ button { font-family: var(--font-base); font-weight:600; }
     <span>Educação</span>
   </a>
   
-  <a href="{{ url_for('main.novo_post') }}" aria-label="Criar post" title="Criar post" style="background: var(--primary); color: #ffffff; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #ffffff;">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <a href="{{ url_for('main.novo_post') }}" aria-label="Postar" title="Postar" style="background: var(--primary); color: #ffffff; border-radius: 24px; padding: 8px 16px; margin: -6px 0; display: flex; align-items: center; justify-content: center; gap: 6px; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #ffffff; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.3px;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <line x1="12" y1="5" x2="12" y2="19"></line>
       <line x1="5" y1="12" x2="19" y2="12"></line>
     </svg>
+    <span>Postar</span>
   </a>
   
   <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px 12px; color: rgba(255,255,255,0.6); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.3px;">
@@ -1242,43 +1235,71 @@ document.addEventListener('click', function(e){
 
 // Carrega os posts ao abrir a página
 document.addEventListener('DOMContentLoaded', ()=>{ loadPosts(); });
-// Carregar amigues (seguimento mútuo)
+// Carregar amigues (seguimento mútuo) - Desktop e Mobile
 document.addEventListener('DOMContentLoaded', ()=>{
   fetch('/api/amigues').then(r=>{
     if(r.status===401) return []; return r.json();
   }).then(list=>{
+    // Desktop sidebar
     const aside = document.querySelector('.right-col');
-    if(!aside) return;
-    const wrap = document.getElementById('amigues-list');
-    const empty = document.getElementById('amigues-empty');
-    if(!Array.isArray(list) || list.length===0){
-      empty.style.display='block';
-      return;
+    if(aside){
+      const wrap = document.getElementById('amigues-list');
+      const empty = document.getElementById('amigues-empty');
+      if(!Array.isArray(list) || list.length===0){
+        if(empty) empty.style.display='block';
+      } else {
+        if(empty) empty.style.display='none';
+        if(wrap) {
+          wrap.innerHTML = list.slice(0,12).map(u=>{
+            const fp = (u.foto_perfil||'').trim() || 'img/perfil.png';
+            const src = /^https?:\/\//i.test(fp) ? fp : (`/static/${fp}`);
+            return `
+            <a href="/perfil/${u.id}" style="display:flex;align-items:center;gap:.6rem;text-decoration:none;padding:.35rem .4rem;border-radius:14px;transition:background .18s;">
+              <img src="${src}" alt="${u.username}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.15);background:#eee;">
+              <span style="display:flex;flex-direction:column;">
+                <strong style="font-size:.75rem;letter-spacing:.4px;color:var(--text);">@${u.username}</strong>
+                <span style="font-size:.6rem;opacity:.65;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(u.nome||'').replace(/</g,'&lt;')}</span>
+              </span>
+            </a>`;
+          }).join('');
+          // Se mais que 12, mostrar contador
+          if(list.length>12){
+            const more = document.createElement('div');
+            more.style.cssText='margin-top:.4rem;font-size:.6rem;opacity:.6;font-weight:600;text-align:right;';
+            more.textContent = `+ ${list.length-12} outres`; 
+            document.getElementById('amigues-card').appendChild(more);
+          }
+          // Hover effect via delegação
+          wrap.addEventListener('mouseover', e=>{ const a=e.target.closest('a'); if(a) a.style.background='#f5f2ff'; });
+          wrap.addEventListener('mouseout', e=>{ const a=e.target.closest('a'); if(a) a.style.background='transparent'; });
+        }
+      }
     }
-    empty.style.display='none';
-    wrap.innerHTML = list.slice(0,12).map(u=>{
-      const fp = (u.foto_perfil||'').trim() || 'img/perfil.png';
-      const src = /^https?:\/\//i.test(fp) ? fp : (`/static/${fp}`);
-      return `
-      <a href="/perfil/${u.id}" style="display:flex;align-items:center;gap:.6rem;text-decoration:none;padding:.35rem .4rem;border-radius:14px;transition:background .18s;">
-        <img src="${src}" alt="${u.username}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.15);background:#eee;">
-        <span style="display:flex;flex-direction:column;">
-          <strong style="font-size:.75rem;letter-spacing:.4px;color:var(--text);">@${u.username}</strong>
-          <span style="font-size:.6rem;opacity:.65;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(u.nome||'').replace(/</g,'&lt;')}</span>
-        </span>
-      </a>`;
-    }).join('');
-    // Se mais que 12, mostrar contador
-    if(list.length>12){
-      const more = document.createElement('div');
-      more.style.cssText='margin-top:.4rem;font-size:.6rem;opacity:.6;font-weight:600;text-align:right;';
-      more.textContent = `+ ${list.length-12} outres`; 
-      document.getElementById('amigues-card').appendChild(more);
+    // Mobile card
+    const mobileWrap = document.getElementById('mobile-amigues-list');
+    const mobileEmpty = document.getElementById('mobile-amigues-empty');
+    if(mobileWrap){
+      if(!Array.isArray(list) || list.length===0){
+        if(mobileEmpty) mobileEmpty.style.display='block';
+      } else {
+        if(mobileEmpty) mobileEmpty.style.display='none';
+        mobileWrap.innerHTML = list.slice(0,8).map(u=>{
+          const fp = (u.foto_perfil||'').trim() || 'img/perfil.png';
+          const src = /^https?:\/\//i.test(fp) ? fp : (`/static/${fp}`);
+          return `
+          <a href="/perfil/${u.id}" style="display:flex;align-items:center;gap:.6rem;text-decoration:none;padding:.4rem .5rem;border-radius:14px;background:#f9fafb;border:1px solid #e5e7eb;">
+            <img src="${src}" alt="${u.username}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.12);background:#eee;">
+            <span style="display:flex;flex-direction:column;">
+              <strong style="font-size:.72rem;letter-spacing:.4px;color:var(--primary);">@${u.username}</strong>
+            </span>
+          </a>`;
+        }).join('');
+      }
     }
-    // Hover effect via delegação
-    wrap.addEventListener('mouseover', e=>{ const a=e.target.closest('a'); if(a) a.style.background='#f5f2ff'; });
-    wrap.addEventListener('mouseout', e=>{ const a=e.target.closest('a'); if(a) a.style.background='transparent'; });
   }).catch(()=>{});
+  
+  // Initialize mobile tic-tac-toe for everyone
+  initMobileTicTacToe();
 });
 // Lazy loading de imagens de posts (IntersectionObserver)
 // (Menu removido conforme solicitado)
@@ -1758,68 +1779,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initMobileTicTacToe();
 });
 {% endif %}
-
-// Mobile Actions Card Functions
-function toggleMobileAmigues() {
-  const panel = document.getElementById('mobile-amigues-panel');
-  const tttPanel = document.getElementById('mobile-ttt-panel');
-  
-  // Close tic-tac-toe if open
-  if (tttPanel && tttPanel.style.display !== 'none') {
-    tttPanel.style.display = 'none';
-  }
-  
-  // Toggle amigues
-  if (panel.style.display === 'none') {
-    panel.style.display = 'block';
-    loadMobileAmigues();
-  } else {
-    panel.style.display = 'none';
-  }
-}
-
-function toggleMobileTicTacToe() {
-  const panel = document.getElementById('mobile-ttt-panel');
-  const amiguesPanel = document.getElementById('mobile-amigues-panel');
-  
-  // Close amigues if open
-  if (amiguesPanel && amiguesPanel.style.display !== 'none') {
-    amiguesPanel.style.display = 'none';
-  }
-  
-  // Toggle tic-tac-toe
-  if (panel.style.display === 'none') {
-    panel.style.display = 'block';
-  } else {
-    panel.style.display = 'none';
-  }
-}
-
-function loadMobileAmigues() {
-  fetch('/api/amigues').then(r => {
-    if (r.status === 401) return [];
-    return r.json();
-  }).then(list => {
-    const wrap = document.getElementById('mobile-amigues-list');
-    const empty = document.getElementById('mobile-amigues-empty');
-    if (!Array.isArray(list) || list.length === 0) {
-      empty.style.display = 'block';
-      return;
-    }
-    empty.style.display = 'none';
-    wrap.innerHTML = list.slice(0, 12).map(u => {
-      const fp = (u.foto_perfil || '').trim() || 'img/perfil.png';
-      const src = /^https?:\/\//i.test(fp) ? fp : (`/static/${fp}`);
-      return `
-        <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem .6rem;border-radius:16px;background:#f9fafb;border:1px solid #e5e7eb;">
-          <img src="${src}" alt="Avatar de ${u.username}" loading="lazy" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.15);" />
-          <div style="flex:1;min-width:0;">
-            <a href="/perfil/${u.username}" style="display:block;font-weight:700;font-size:.7rem;color:var(--primary);text-decoration:none;letter-spacing:.4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.username}</a>
-          </div>
-        </div>`;
-    }).join('');
-  }).catch(() => {});
-}
 
 // Mobile Tic-Tac-Toe Game
 function initMobileTicTacToe() {
