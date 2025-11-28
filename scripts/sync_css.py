@@ -23,8 +23,15 @@ def extract_css_from_html(html_path: str) -> str:
     # Extrair todas as tags <style>
     style_blocks = re.findall(r'<style[^>]*>(.*?)</style>', html_content, re.DOTALL)
     
-    # Combinar todo o CSS
-    all_css = '\n'.join(style_blocks)
+    # Filtrar blocos vazios e combinar CSS válido
+    valid_blocks = []
+    for block in style_blocks:
+        # Limpar e verificar se há conteúdo CSS válido
+        cleaned = block.strip()
+        if cleaned and '{' in cleaned:  # CSS must have at least one rule with braces
+            valid_blocks.append(block)
+    
+    all_css = '\n'.join(valid_blocks)
     
     # Limpar espaços em branco excessivos
     lines = []
@@ -44,8 +51,9 @@ def update_base_css(index_py_path: str, new_css: str) -> bool:
     # Encontrar o bloco BASE_CSS = """..."""
     pattern = r'(BASE_CSS\s*=\s*""")(.*?)(""")'
     
-    # Escapar caracteres especiais no CSS
-    escaped_css = new_css.replace('\\', '\\\\')
+    # Escapar caracteres especiais no CSS para Python triple-quoted strings
+    escaped_css = new_css.replace('\\', '\\\\')  # Escape backslashes first
+    escaped_css = escaped_css.replace('"""', '\\"\\"\\"')  # Escape triple quotes
     
     # Substituir o conteúdo
     new_content, count = re.subn(

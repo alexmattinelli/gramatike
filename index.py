@@ -29,7 +29,7 @@ except ImportError:
 # Atualize este valor a cada commit para verificar se o deploy foi feito
 # Para deploy: npm run deploy (ou via Cloudflare Dashboard)
 # Verificar versão: GET /api/health ou /api/info
-SCRIPT_VERSION = "v2025.11.28.c"  # CSS synced from index.html
+SCRIPT_VERSION = "v2025.11.28.c"  # Auto-synced CSS from index.html via scripts/sync_css.py
 
 # NOTA: Este 'workers' é o módulo built-in do Cloudflare Workers Python,
 # NÃO a pasta local (que foi renomeada para 'gramatike_d1').
