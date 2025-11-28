@@ -1,0 +1,519 @@
+/* 
+ * Gramátike - Common Stylesheet
+ * Centralized CSS for colors, fonts, and standard formats
+ * Include this file in all templates for consistent styling
+ */
+
+/* =============================================================================
+   CSS Variables - Cores e Design System
+   ============================================================================= */
+:root {
+  /* Primary Colors */
+  --primary: #9B5DE5;
+  --primary-dark: #7B4BC4;
+  --primary-light: #b88ff5;
+  --primary-hover: #7d3dc9;
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%);
+  --gradient-disabled: linear-gradient(135deg, #b8a4c9 0%, #9d8ab5 100%);
+  
+  /* Text Colors */
+  --text: #222;
+  --text-secondary: #666;
+  --text-dim: #999;
+  --text-light: #fff;
+  
+  /* Background Colors */
+  --bg: #f7f8ff;
+  --bg-light: #fafafa;
+  --bg-purple-light: #f8f5ff;
+  --bg-purple-lighter: #f1edff;
+  
+  /* UI Colors */
+  --card: #ffffff;
+  --border: #e5e7eb;
+  --input: #ffffff;
+  --shadow: rgba(130, 87, 229, 0.12);
+  --shadow-hover: rgba(130, 87, 229, 0.25);
+  
+  /* Status Colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+  
+  /* Fonts */
+  --font-base: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-brand: 'Mansalva', cursive;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 50%;
+}
+
+/* =============================================================================
+   Typography
+   ============================================================================= */
+body, p, label, input, button, a, span, li, td, th, div {
+  font-family: var(--font-base) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-base);
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 0 0 0.75em;
+}
+
+.logo, h1.logo {
+  font-family: var(--font-brand) !important;
+  font-weight: 400;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+/* =============================================================================
+   Base Styles
+   ============================================================================= */
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-base);
+  background: var(--bg);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  color: var(--text);
+}
+
+/* =============================================================================
+   Header Styles
+   ============================================================================= */
+header.site-head {
+  background: var(--primary);
+  padding: 28px clamp(16px, 4vw, 40px) 46px;
+  border-radius: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+header.site-head .logo {
+  font-family: var(--font-brand) !important;
+  font-size: 2.5rem;
+  color: #fff;
+  letter-spacing: 1px;
+  font-weight: 400;
+}
+
+/* Profile Avatar in Header */
+.profile-avatar-link {
+  position: absolute;
+  right: 24px;
+  top: 40%;  /* Moved up from 50% */
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  border: 3px solid rgba(255, 255, 255, 0.33);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.13);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  cursor: pointer;
+  text-decoration: none;
+  transition: box-shadow 0.25s, transform 0.18s;
+}
+
+.profile-avatar-link:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.32);
+}
+
+.profile-avatar-link:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.profile-avatar-link img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-avatar-link span.initial {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+/* Tooltip */
+.profile-avatar-link[data-tooltip]:hover::after,
+.profile-avatar-link[data-tooltip]:focus-visible::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translate(-50%, 100%);
+  background: #222;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 4px 7px 5px;
+  border-radius: 8px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  letter-spacing: 0.5px;
+}
+
+/* Mobile header adjustments */
+@media (max-width: 980px) {
+  header.site-head {
+    padding: 18px clamp(12px, 3vw, 24px) 28px;
+  }
+  
+  header.site-head .logo {
+    font-size: 1.8rem;
+  }
+  
+  .profile-avatar-link {
+    display: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .profile-avatar-link {
+    width: 52px;
+    height: 52px;
+    right: 16px;
+  }
+  
+  .profile-avatar-link span.initial {
+    font-size: 1.5rem;
+  }
+}
+
+/* =============================================================================
+   Content Wrapper (for pages with curved top)
+   ============================================================================= */
+.content-wrapper {
+  background: var(--bg);
+  flex: 1;
+  border-top-left-radius: 35px;
+  border-top-right-radius: 35px;
+  margin-top: -30px;
+  padding-top: 30px;
+  position: relative;
+  z-index: 1;
+}
+
+/* =============================================================================
+   Button Styles
+   ============================================================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-base);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  transition: filter 0.15s ease, transform 0.05s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+/* Search Button */
+.search-btn {
+  height: 48px;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  padding: 0 1.2rem;
+  border-radius: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: 0 4px 12px rgba(130, 87, 229, 0.45);
+}
+
+.search-btn.icon-btn {
+  width: 48px;
+  justify-content: center;
+  padding: 0;
+}
+
+.search-btn:hover {
+  background: var(--primary-dark);
+}
+
+/* =============================================================================
+   Quick Navigation Buttons (Educação, Dinâmica, Em breve)
+   ============================================================================= */
+.quick-nav-btn {
+  flex: 1;
+  text-decoration: none;
+  background: var(--gradient-primary);
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.4px;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 20px rgba(155, 93, 229, 0.35);
+  border: none;
+}
+
+.quick-nav-btn:hover {
+  filter: brightness(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(155, 93, 229, 0.45);
+}
+
+.quick-nav-btn.disabled {
+  background: var(--gradient-primary);
+  opacity: 0.75;
+  cursor: default;
+}
+
+.quick-nav-btn.disabled:hover {
+  filter: none;
+  transform: none;
+}
+
+/* =============================================================================
+   Card Styles
+   ============================================================================= */
+.card-base {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.3rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* =============================================================================
+   Profile Card in Sidebar
+   ============================================================================= */
+.profile-sidebar-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.3rem 1.3rem 1.1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.profile-sidebar-card .profile-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.profile-sidebar-card .profile-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  border: 2px solid var(--border);
+}
+
+.profile-sidebar-card .profile-username {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: 0.3px;
+}
+
+/* Profile Links */
+.profile-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-purple-light);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+  transition: all 0.18s;
+}
+
+.profile-link:hover {
+  background: var(--bg-purple-lighter);
+}
+
+/* Toolbar buttons in sidebar */
+.sidebar-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 0 0 0.6rem;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.6rem 0 0.8rem;
+  border-radius: 1px;
+}
+
+/* =============================================================================
+   Mobile Bottom Navigation
+   ============================================================================= */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: var(--primary);
+  border-radius: 24px;
+  padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+  box-shadow: 0 4px 20px rgba(155, 93, 229, 0.4);
+  z-index: 1000;
+}
+
+@media (max-width: 980px) {
+  .mobile-bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+  
+  /* Hide header on mobile */
+  header.site-head {
+    display: none !important;
+  }
+}
+
+.mobile-bottom-nav a,
+.mobile-bottom-nav button {
+  all: unset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: opacity 0.2s;
+  text-decoration: none;
+}
+
+.mobile-bottom-nav a:active,
+.mobile-bottom-nav button:active {
+  transform: scale(0.95);
+}
+
+.mobile-bottom-nav a:hover,
+.mobile-bottom-nav button:hover {
+  opacity: 0.85;
+}
+
+/* =============================================================================
+   Utility Classes
+   ============================================================================= */
+.text-primary { color: var(--primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-dim); }
+.bg-primary { background: var(--primary); }
+.bg-card { background: var(--card); }
+
+.nunito-font { font-family: var(--font-base) !important; }
+.mansalva-font { font-family: var(--font-brand) !important; }
+
+.shadow-sm { box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); }
+.shadow-md { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+.shadow-lg { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); }
+
+/* =============================================================================
+   Responsive Adjustments
+   ============================================================================= */
+@media (max-width: 1200px) {
+  main.site-main {
+    padding: 0 24px;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 980px) {
+  main.site-main {
+    padding: 0 18px;
+    gap: 28px;
+    margin-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+  }
+  
+  /* Hide sidebar on mobile */
+  .right-col {
+    display: none !important;
+  }
+  
+  .feed-col {
+    max-width: 100% !important;
+    flex: 1 1 auto !important;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 860px) {
+  main.site-main {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 22px;
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  main.site-main {
+    padding: 0 12px;
+  }
+}
