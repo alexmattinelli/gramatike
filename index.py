@@ -27,7 +27,9 @@ except ImportError:
 
 # Versão do código - usado para tracking de deployment
 # Atualize este valor a cada commit para verificar se o deploy foi feito
-SCRIPT_VERSION = "v2025.11.28.a"
+# Para deploy: npm run deploy (ou via Cloudflare Dashboard)
+# Verificar versão: GET /api/health ou /api/info
+SCRIPT_VERSION = "v2025.11.28.b"
 
 # NOTA: Este 'workers' é o módulo built-in do Cloudflare Workers Python,
 # NÃO a pasta local (que foi renomeada para 'gramatike_d1').
