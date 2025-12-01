@@ -459,7 +459,7 @@ main {
     bottom: 12px;
     left: 12px;
     right: 12px;
-    background: #9B5DE5;
+    background: var(--primary);
     border-radius: 24px;
     padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
     box-shadow: 0 4px 20px rgba(155, 93, 229, 0.4);
