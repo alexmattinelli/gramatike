@@ -182,24 +182,26 @@ def sanitize_for_d1(value):
                     py_value = value.to_py()
                     # to_py() on undefined returns None
                     return py_value
-                except Exception:
-                    # If conversion fails, treat as None
+                except (TypeError, AttributeError, ValueError):
+                    # If conversion fails due to unsupported type, treat as None
                     return None
             
             # Check if value is JavaScript undefined by comparing to None-like behavior
             try:
                 # JavaScript undefined is falsy and has no meaningful string representation
+                # Note: we only check for 'undefined' and '' as 'null' is handled by to_py()
                 str_val = str(value)
-                if str_val in ('undefined', 'null', ''):
+                if str_val in ('undefined', ''):
                     return None
-            except Exception:
+            except (TypeError, ValueError):
                 return None
         
         # For regular Python values, return as-is
         return value
         
-    except Exception:
-        # In case of any error, return None to be safe
+    except (TypeError, AttributeError) as e:
+        # Log the error for debugging but return None to prevent D1_TYPE_ERROR
+        console.warn(f"[sanitize_for_d1] Unexpected error converting value: {e}")
         return None
 
 
