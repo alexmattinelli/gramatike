@@ -4,9 +4,9 @@
 	"private": true,
 	"description": "Gramátike - Portuguese grammar education platform",
 	"scripts": {
-		"deploy": "uv run pywrangler deploy",
-		"dev": "uv run pywrangler dev",
-		"start": "uv run pywrangler dev"
+		"deploy": "npx wrangler deploy",
+		"dev": "npx wrangler dev",
+		"start": "npx wrangler dev"
 	},
 	"devDependencies": {
 		"wrangler": "^4.46.0"
