@@ -1094,10 +1094,10 @@ class Default(WorkerEntrypoint):
                     # Parse FormData
                     form_data = await request.formData()
                     
-                    # Get content - handle JsProxy and undefined
+                    # Get content - handle JsProxy and JavaScript undefined values
                     conteudo_raw = form_data.get('conteudo')
                     
-                    # Check for JavaScript undefined - it's truthy check fails or str() shows 'undefined'
+                    # Check if value is missing (None in Python)
                     if conteudo_raw is None:
                         return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
                     
@@ -1110,7 +1110,7 @@ class Default(WorkerEntrypoint):
                     else:
                         conteudo = str(conteudo_raw) if conteudo_raw else None
                     
-                    # Handle JavaScript undefined represented as string
+                    # Handle JavaScript undefined represented as string 'undefined'
                     if conteudo is None or conteudo == 'undefined' or conteudo == '':
                         return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
                     
@@ -1119,7 +1119,8 @@ class Default(WorkerEntrypoint):
                     if not conteudo:
                         return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
                     
-                    # Sanitize user_id to ensure it's a proper Python int
+                    # Ensure user_id is a proper Python int before passing to D1
+                    # (dict access might still return JsProxy in Pyodide environment)
                     if hasattr(user_id, 'to_py'):
                         user_id = user_id.to_py()
                     user_id = int(user_id) if user_id is not None else None
