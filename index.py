@@ -3729,9 +3729,9 @@ class Default(WorkerEntrypoint):
                             user_id = user.get('id')
                             token = await create_email_token(db, user_id, 'reset', expires_hours=1)
                             if token:
-                                # In Cloudflare Workers, we can't send email directly via SMTP
-                                # Log the reset token for now (in production, you'd use an email service)
-                                console.log(f"[Password Reset] Token created for user {user_id}: {token}")
+                                # Token created successfully
+                                # Note: In Cloudflare Workers, email sending requires an external service
+                                # The token is stored in the database for verification
                                 message = "Se o e-mail estiver cadastrado, você receberá um link de recuperação."
                                 message_type = "success"
                             else:
@@ -3799,25 +3799,27 @@ class Default(WorkerEntrypoint):
         if current_user:
             return redirect('/')
         
-        # Get token from URL or form
-        query_string = str(request.url).split('?')[1] if '?' in str(request.url) else ''
-        query_params = parse_qs(query_string)
-        token = query_params.get('token', [''])[0]
+        # Get token from URL using proper URL parsing
+        parsed_url = urlparse(str(request.url))
+        query_params = parse_qs(parsed_url.query)
+        url_token = query_params.get('token', [''])[0]
+        
+        # Initialize token from URL
+        token = url_token
+        password = ""
+        password2 = ""
         
         if method == 'POST':
             try:
                 body_text = await request.text()
                 form_data = parse_qs(body_text)
-                token = form_data.get('token', [''])[0] or token
+                # Prefer token from form, fallback to URL token
+                form_token = form_data.get('token', [''])[0]
+                token = form_token if form_token else url_token
                 password = form_data.get('password', [''])[0]
                 password2 = form_data.get('password2', [''])[0]
             except Exception as e:
                 console.error(f"[Reset Senha Error] Error parsing form: {e}")
-                password = ""
-                password2 = ""
-        else:
-            password = ""
-            password2 = ""
         
         message = ""
         message_type = ""
