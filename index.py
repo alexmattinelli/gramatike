@@ -859,6 +859,7 @@ class Default(WorkerEntrypoint):
                 "/novo-post": lambda: self._novo_post_page(db, current_user, request, method),
                 "/perfil": lambda: self._meu_perfil_page(db, current_user),
                 "/configuracoes": lambda: self._configuracoes_page(db, current_user),
+                "/admin": lambda: self._admin_page(db, current_user),
             }
 
             handler = page_routes.get(path)
@@ -3514,4 +3515,89 @@ class Default(WorkerEntrypoint):
             <a href="/" class="btn btn-primary">Voltar ao início</a>
         </div>
     </main>
+{page_footer(False)}"""
+
+    async def _admin_page(self, db, current_user):
+        """Admin Dashboard page."""
+        # Check if user is admin
+        if not current_user:
+            return f"""{page_head("Acesso Restrito — Gramátike")}
+    <header class="site-head">
+        <h1 class="logo">Gramátike</h1>
+    </header>
+    <main>
+        <div class="card" style="text-align: center;">
+            <h2 style="color: var(--primary);">Acesso Restrito</h2>
+            <p style="color: var(--text-dim); margin: 1rem 0;">
+                Você precisa estar logado para acessar esta página.
+            </p>
+            <a href="/login" class="btn btn-primary">Fazer Login</a>
+        </div>
+    </main>
+{page_footer(False)}"""
+        
+        is_admin = current_user.get('is_admin', False) or current_user.get('is_superadmin', False)
+        if not is_admin:
+            return f"""{page_head("Acesso Restrito — Gramátike")}
+    <header class="site-head">
+        <h1 class="logo">Gramátike</h1>
+    </header>
+    <main>
+        <div class="card" style="text-align: center;">
+            <h2 style="color: var(--primary);">Acesso Restrito</h2>
+            <p style="color: var(--text-dim); margin: 1rem 0;">
+                Você não tem permissão para acessar o painel de administração.
+            </p>
+            <a href="/" class="btn btn-primary">Voltar ao início</a>
+        </div>
+    </main>
+{page_footer(False)}"""
+        
+        # Get admin stats
+        stats = await get_admin_stats(db) if db else {}
+        total_users = stats.get('total_users', 0)
+        total_posts = stats.get('total_posts', 0)
+        total_comments = stats.get('total_comments', 0)
+        
+        return f"""{page_head("Painel de Controle — Gramátike", """
+        .admin-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0; }}
+        .admin-stat {{ background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; text-align: center; }}
+        .admin-stat h3 {{ color: var(--primary); font-size: 2rem; margin: 0; }}
+        .admin-stat p {{ color: var(--text-dim); margin: 0.5rem 0 0; font-size: 0.9rem; }}
+        .admin-section {{ background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; margin: 1.5rem 0; }}
+        .admin-section h2 {{ color: var(--primary); margin: 0 0 1rem; font-size: 1.2rem; }}
+        """)}
+    <header class="site-head">
+        <h1 class="logo">Gramátike</h1>
+        <a href="/" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);color:#fff;text-decoration:none;font-weight:700;">← Voltar</a>
+    </header>
+    <div class="content-wrapper">
+    <main style="max-width: 1000px; margin: 0 auto; padding: 2rem;">
+        <h1 style="color: var(--primary); margin-bottom: 1rem;">Painel de Controle</h1>
+        <p style="color: var(--text-dim); margin-bottom: 2rem;">Bem-vindo, {escape_html(current_user.get('username', 'Admin'))}!</p>
+        
+        <div class="admin-grid">
+            <div class="admin-stat">
+                <h3>{total_users}</h3>
+                <p>Usuáries</p>
+            </div>
+            <div class="admin-stat">
+                <h3>{total_posts}</h3>
+                <p>Posts</p>
+            </div>
+            <div class="admin-stat">
+                <h3>{total_comments}</h3>
+                <p>Comentários</p>
+            </div>
+        </div>
+        
+        <div class="admin-section">
+            <h2>Ações Rápidas</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                <a href="/educacao" class="btn btn-primary">Educação</a>
+                <a href="/" class="btn btn-primary">Feed</a>
+            </div>
+        </div>
+    </main>
+    </div>
 {page_footer(False)}"""
