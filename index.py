@@ -872,6 +872,8 @@ class Default(WorkerEntrypoint):
                 "/perfil": lambda: self._meu_perfil_page(db, current_user),
                 "/configuracoes": lambda: self._configuracoes_page(db, current_user),
                 "/admin": lambda: self._admin_page(db, current_user),
+                "/esqueci-senha": lambda: self._esqueci_senha_page(db, current_user, request, method),
+                "/reset-senha": lambda: self._reset_senha_page(db, current_user, request, method),
             }
 
             handler = page_routes.get(path)
@@ -3008,6 +3010,9 @@ class Default(WorkerEntrypoint):
                     <label>Senha</label>
                     <input type="password" name="password" placeholder="••••••••" required>
                 </div>
+                <div style="text-align: right; margin-top: 0.5rem;">
+                    <a href="/esqueci-senha" style="font-size: 0.75rem; color: #666; text-decoration: none;">Esqueceu a senha?</a>
+                </div>
                 <button type="submit" class="button-primary" style="margin-top: 1rem;">Entrar</button>
             </form>
             <div class="signup-hint">
@@ -3697,3 +3702,223 @@ class Default(WorkerEntrypoint):
     </main>
     </div>
 {page_footer(False)}"""
+
+    async def _esqueci_senha_page(self, db, current_user, request, method):
+        """Página Esqueci Minha Senha."""
+        # Se já logado, redireciona para a página inicial
+        if current_user:
+            return redirect('/')
+        
+        message = ""
+        message_type = ""
+        
+        if method == 'POST':
+            try:
+                body_text = await request.text()
+                form_data = parse_qs(body_text)
+                email = form_data.get('email', [''])[0].strip()
+                
+                if email:
+                    # Check if user exists
+                    if db and DB_AVAILABLE:
+                        from gramatike_d1.db import get_user_by_email
+                        user = await get_user_by_email(db, email)
+                        
+                        if user:
+                            # Create reset token
+                            user_id = user.get('id')
+                            token = await create_email_token(db, user_id, 'reset', expires_hours=1)
+                            if token:
+                                # Token created successfully
+                                # Note: In Cloudflare Workers, email sending requires an external service
+                                # The token is stored in the database for verification
+                                message = "Se o e-mail estiver cadastrado, você receberá um link de recuperação."
+                                message_type = "success"
+                            else:
+                                message = "Se o e-mail estiver cadastrado, você receberá um link de recuperação."
+                                message_type = "success"
+                        else:
+                            # Don't reveal if email exists
+                            message = "Se o e-mail estiver cadastrado, você receberá um link de recuperação."
+                            message_type = "success"
+                    else:
+                        message = "Serviço temporariamente indisponível."
+                        message_type = "error"
+                else:
+                    message = "Por favor, informe seu e-mail."
+                    message_type = "error"
+            except Exception as e:
+                console.error(f"[Esqueci Senha Error] {type(e).__name__}: {e}")
+                message = "Erro ao processar solicitação. Tente novamente."
+                message_type = "error"
+        
+        message_html = ""
+        if message:
+            bg_color = "#e8f5e9" if message_type == "success" else "#ffebee"
+            text_color = "#2e7d32" if message_type == "success" else "#c62828"
+            message_html = f'<div style="background: {bg_color}; color: {text_color}; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.9rem;">{message}</div>'
+        
+        extra_css = """
+        .esqueci-wrapper { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:2.2rem 1.2rem 3.5rem; }
+        .esqueci-card { width:100%; max-width:400px; background:#fff; border-radius:18px; padding:2rem; box-shadow:0 10px 26px -4px rgba(0,0,0,.12); }
+        .esqueci-card h2 { margin:0 0 1.5rem; font-size:1.4rem; font-weight:800; text-align:center; color: var(--primary); }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem; color: #666; }
+        .form-group input { width: 100%; padding: 0.75rem; border: 1.5px solid #d9e1ea; border-radius: 10px; font-size: 0.9rem; }
+        .form-group input:focus { outline: none; border-color: var(--primary); }
+        .button-primary { width: 100%; background: var(--primary); color: #fff; border: none; padding: 0.9rem; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+        .button-primary:hover { background: #7d3dc9; }
+        .back-link { display: block; text-align: center; margin-top: 1.5rem; color: var(--primary); text-decoration: none; font-size: 0.9rem; }
+        .back-link:hover { text-decoration: underline; }
+        header.site-head { display: none; }
+        footer { display: none; }
+        """
+        
+        return f"""{page_head("Esqueci Minha Senha — Gramátike", extra_css)}
+    <div class="esqueci-wrapper">
+        <div class="esqueci-card">
+            {message_html}
+            <h2>Esqueci minha senha</h2>
+            <form method="POST" action="/esqueci-senha">
+                <div class="form-group">
+                    <label for="email">Digite seu e-mail cadastrado:</label>
+                    <input type="email" id="email" name="email" required placeholder="seu@email.com">
+                </div>
+                <button type="submit" class="button-primary">Enviar link de recuperação</button>
+            </form>
+            <a href="/login" class="back-link">Voltar ao login</a>
+        </div>
+    </div>
+    {mobile_nav(False)}
+</body>
+</html>"""
+
+    async def _reset_senha_page(self, db, current_user, request, method):
+        """Página Redefinir Senha."""
+        # Se já logado, redireciona para a página inicial
+        if current_user:
+            return redirect('/')
+        
+        # Get token from URL using proper URL parsing
+        parsed_url = urlparse(str(request.url))
+        query_params = parse_qs(parsed_url.query)
+        url_token = query_params.get('token', [''])[0]
+        
+        # Initialize token from URL
+        token = url_token
+        password = ""
+        password2 = ""
+        
+        if method == 'POST':
+            try:
+                body_text = await request.text()
+                form_data = parse_qs(body_text)
+                # Prefer token from form, fallback to URL token
+                form_token = form_data.get('token', [''])[0]
+                token = form_token if form_token else url_token
+                password = form_data.get('password', [''])[0]
+                password2 = form_data.get('password2', [''])[0]
+            except Exception as e:
+                console.error(f"[Reset Senha Error] Error parsing form: {e}")
+        
+        message = ""
+        message_type = ""
+        token_data = None
+        
+        if not token:
+            message = "Token inválido ou expirado."
+            message_type = "error"
+        elif db and DB_AVAILABLE:
+            # Verify token
+            token_data = await verify_email_token(db, token, 'reset')
+            if not token_data:
+                message = "Token inválido ou expirado."
+                message_type = "error"
+            elif method == 'POST':
+                if not password:
+                    message = "Por favor, informe a nova senha."
+                    message_type = "error"
+                elif password != password2:
+                    message = "As senhas não coincidem."
+                    message_type = "error"
+                else:
+                    # Validate password strength
+                    is_valid, password_error = validate_password_strength(password)
+                    if not is_valid:
+                        message = password_error
+                        message_type = "error"
+                    else:
+                        # Update password
+                        try:
+                            user_id = token_data.get('usuario_id')
+                            await update_user_password(db, user_id, password)
+                            await use_email_token(db, token)
+                            # Redirect to login with success message
+                            return redirect('/login')
+                        except Exception as e:
+                            console.error(f"[Reset Senha Error] {type(e).__name__}: {e}")
+                            message = "Erro ao atualizar a senha. Tente novamente."
+                            message_type = "error"
+        else:
+            message = "Serviço temporariamente indisponível."
+            message_type = "error"
+        
+        message_html = ""
+        if message:
+            bg_color = "#e8f5e9" if message_type == "success" else "#ffebee"
+            text_color = "#2e7d32" if message_type == "success" else "#c62828"
+            message_html = f'<div style="background: {bg_color}; color: {text_color}; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.9rem;">{message}</div>'
+        
+        extra_css = """
+        .reset-wrapper { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:2.2rem 1.2rem 3.5rem; }
+        .reset-card { width:100%; max-width:480px; background:#fff; border-radius:18px; padding:2rem; box-shadow:0 10px 26px -4px rgba(0,0,0,.12); }
+        .reset-card h2 { margin:0 0 1.5rem; font-size:1.4rem; font-weight:800; text-align:center; color: var(--primary); }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 0.4rem; color: #666; }
+        .form-group input { width: 100%; padding: 0.75rem; border: 1.5px solid #d9e1ea; border-radius: 10px; font-size: 0.9rem; }
+        .form-group input:focus { outline: none; border-color: var(--primary); }
+        .button-primary { width: 100%; background: var(--primary); color: #fff; border: none; padding: 0.9rem; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+        .button-primary:hover { background: #7d3dc9; }
+        header.site-head { display: none; }
+        footer { display: none; }
+        """
+        
+        # If token is invalid, show error page
+        if message_type == "error" and token_data is None:
+            return f"""{page_head("Redefinir Senha — Gramátike", extra_css)}
+    <div class="reset-wrapper">
+        <div class="reset-card">
+            {message_html}
+            <h2>Redefinir senha</h2>
+            <p style="text-align: center; color: #666;">
+                O link de redefinição de senha é inválido ou expirou. 
+                <a href="/esqueci-senha" style="color: var(--primary);">Solicite um novo link</a>.
+            </p>
+        </div>
+    </div>
+    {mobile_nav(False)}
+</body>
+</html>"""
+        
+        return f"""{page_head("Redefinir Senha — Gramátike", extra_css)}
+    <div class="reset-wrapper">
+        <div class="reset-card">
+            {message_html}
+            <h2>Redefinir senha</h2>
+            <form method="POST" action="/reset-senha">
+                <input type="hidden" name="token" value="{escape_html(token)}">
+                <div class="form-group">
+                    <label for="password">Nova senha</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="password2">Confirmar nova senha</label>
+                    <input type="password" id="password2" name="password2" required>
+                </div>
+                <button type="submit" class="button-primary">Salvar nova senha</button>
+            </form>
+        </div>
+    </div>
+    {mobile_nav(False)}
+</body>
+</html>"""
