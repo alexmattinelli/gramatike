@@ -3619,7 +3619,7 @@ class Default(WorkerEntrypoint):
 {page_footer(False)}"""
 
     async def _admin_page(self, db, current_user):
-        """Admin Dashboard page."""
+        """Admin Dashboard page - VERSÃO COMPLETA com todas as abas."""
         # Check if user is admin
         if not current_user:
             return f"""{page_head("Acesso Restrito — Gramátike")}
@@ -3660,6 +3660,34 @@ class Default(WorkerEntrypoint):
         total_posts = stats.get('total_posts', 0)
         total_comments = stats.get('total_comments', 0)
         
+        # Get all users for admin panel
+        all_users = await get_all_usuaries(db) if db else []
+        
+        # Build users table
+        users_html = ""
+        for user in (all_users[:10] if len(all_users) > 10 else all_users):
+            username = escape_html(user.get('username', ''))
+            email = escape_html(user.get('email', ''))
+            is_user_admin = user.get('is_admin', False)
+            is_superadmin = user.get('is_superadmin', False)
+            
+            badge = ""
+            if is_superadmin:
+                badge = '<span class="badge badge-superadmin">SUPERADMIN</span>'
+            elif is_user_admin:
+                badge = '<span class="badge badge-admin">ADMIN</span>'
+                
+            users_html += f'''
+            <tr>
+                <td>{username}</td>
+                <td>{email}</td>
+                <td>{badge}</td>
+                <td>
+                    <button class="action-btn">Ver Perfil</button>
+                    <button class="action-btn danger">Banir</button>
+                </td>
+            </tr>'''
+        
         return f"""{page_head("Painel de Controle — Gramátike", """
         .admin-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0; }}
         .admin-stat {{ background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; text-align: center; }}
@@ -3667,40 +3695,142 @@ class Default(WorkerEntrypoint):
         .admin-stat p {{ color: var(--text-dim); margin: 0.5rem 0 0; font-size: 0.9rem; }}
         .admin-section {{ background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; margin: 1.5rem 0; }}
         .admin-section h2 {{ color: var(--primary); margin: 0 0 1rem; font-size: 1.2rem; }}
+        .tabs {{ margin-top:1.4rem; display:flex; flex-wrap:wrap; gap:.65rem; justify-content:center; border:none; padding:0; }}
+        .tab-link {{ text-decoration:none; font-weight:700; font-size:.7rem; letter-spacing:.55px; padding:.65rem 1.05rem .62rem; background:#ffffff14; color:#fff; border:1px solid #ffffff25; backdrop-filter:blur(4px); border-radius:22px; display:inline-flex; align-items:center; gap:.35rem; box-shadow:0 2px 6px rgba(0,0,0,.28); transition:.25s; cursor:pointer; }}
+        .tab-link:hover {{ background:#555; color:#fff; }}
+        .tab-link.active {{ background:#fff; color:#333; box-shadow:0 6px 18px -4px rgba(0,0,0,.55); }}
+        .tab-panel {{ display:none; }}
+        .tab-panel.active {{ display:block; }}
+        table.admin-users {{ width:100%; border-collapse:collapse; font-size:0.85rem; margin:1rem 0; }}
+        table.admin-users th, table.admin-users td {{ padding:10px 12px; border:1px solid var(--border); text-align:left; }}
+        table.admin-users th {{ background:var(--bg-alt); font-weight:600; }}
+        .badge {{ display:inline-block; padding:3px 8px; border-radius:12px; font-size:0.6rem; font-weight:600; letter-spacing:.5px; }}
+        .badge-admin {{ background:var(--primary); color:#fff; }}
+        .badge-superadmin {{ background:linear-gradient(120deg,#ffb347,#ff6b6b); color:#fff; }}
+        .action-btn {{ cursor:pointer; background:#ffffff; border:1px solid var(--border); padding:6px 12px; border-radius:6px; font-size:0.7rem; font-weight:600; margin-right:0.5rem; }}
+        .action-btn:hover {{ background:#f0f6ff; border-color:#9bb9ee; }}
+        .action-btn.danger {{ border-color:#e7b1b1; color:#d04444; }}
+        .action-btn.danger:hover {{ background:#ffecec; border-color:#f5a2a2; }}
         """)}
     <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
+        <h1 class="logo">Painel de Controle</h1>
         <a href="/" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);color:#fff;text-decoration:none;font-weight:700;">← Voltar</a>
     </header>
+    
+    <nav class="tabs" role="tablist">
+        <a href="javascript:void(0)" data-tab="geral" class="tab-link active" role="tab" aria-selected="true">📊 Geral</a>
+        <a href="javascript:void(0)" data-tab="analytics" class="tab-link" role="tab">📈 Analytics</a>
+        <a href="javascript:void(0)" data-tab="edu" class="tab-link" role="tab">📚 Edu</a>
+        <a href="javascript:void(0)" data-tab="gramatike" class="tab-link" role="tab">✏️ Gramátike</a>
+        <a href="javascript:void(0)" data-tab="publi" class="tab-link" role="tab">📢 Publi</a>
+    </nav>
+    
     <div class="content-wrapper">
-    <main style="max-width: 1000px; margin: 0 auto; padding: 2rem;">
-        <h1 style="color: var(--primary); margin-bottom: 1rem;">Painel de Controle</h1>
-        <p style="color: var(--text-dim); margin-bottom: 2rem;">Bem-vindo, {escape_html(current_user.get('username', 'Admin'))}!</p>
+    <main style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
         
-        <div class="admin-grid">
-            <div class="admin-stat">
-                <h3>{total_users}</h3>
-                <p>Usuáries</p>
+        <!-- ABA GERAL -->
+        <section class="tab-panel active" id="tab-geral" role="tabpanel">
+            <h2>Visão Geral</h2>
+            
+            <div class="admin-grid">
+                <div class="admin-stat">
+                    <h3>{total_users}</h3>
+                    <p>Usuáries</p>
+                </div>
+                <div class="admin-stat">
+                    <h3>{total_posts}</h3>
+                    <p>Posts</p>
+                </div>
+                <div class="admin-stat">
+                    <h3>{total_comments}</h3>
+                    <p>Comentários</p>
+                </div>
             </div>
-            <div class="admin-stat">
-                <h3>{total_posts}</h3>
-                <p>Posts</p>
+            
+            <div class="admin-section">
+                <h2>Usuáries Cadastrades</h2>
+                <table class="admin-users">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {users_html}
+                    </tbody>
+                </table>
             </div>
-            <div class="admin-stat">
-                <h3>{total_comments}</h3>
-                <p>Comentários</p>
-            </div>
-        </div>
+        </section>
         
-        <div class="admin-section">
-            <h2>Ações Rápidas</h2>
-            <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
-                <a href="/educacao" class="btn btn-primary">Educação</a>
-                <a href="/" class="btn btn-primary">Feed</a>
+        <!-- ABA ANALYTICS -->
+        <section class="tab-panel" id="tab-analytics" role="tabpanel">
+            <h2>Analytics</h2>
+            <div class="admin-section">
+                <p>Estatísticas e métricas do sistema aparecerão aqui.</p>
+                <p style="color: var(--text-dim); font-size: 0.9rem;">Total de Posts: {total_posts}</p>
+                <p style="color: var(--text-dim); font-size: 0.9rem;">Total de Comentários: {total_comments}</p>
             </div>
-        </div>
+        </section>
+        
+        <!-- ABA EDU -->
+        <section class="tab-panel" id="tab-edu" role="tabpanel">
+            <h2>Conteúdos Educacionais</h2>
+            <div class="admin-section">
+                <p>Gerenciamento de artigos, apostilas, podcasts e novidades.</p>
+                <div style="margin-top:1rem;">
+                    <a href="/educacao" class="action-btn">Ver Conteúdos</a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ABA GRAMÁTIKE -->
+        <section class="tab-panel" id="tab-gramatike" role="tabpanel">
+            <h2>Exercícios Gramátike</h2>
+            <div class="admin-section">
+                <p>Gerenciamento de exercícios, questões e tópicos.</p>
+                <div style="margin-top:1rem;">
+                    <a href="/exercicios" class="action-btn">Ver Exercícios</a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ABA PUBLI -->
+        <section class="tab-panel" id="tab-publi" role="tabpanel">
+            <h2>Publicidade e Divulgação</h2>
+            <div class="admin-section">
+                <p>Gerenciamento de cards de destaque e promoções.</p>
+            </div>
+        </section>
+        
     </main>
     </div>
+    
+    <script>
+    // Sistema de abas
+    document.addEventListener('DOMContentLoaded', function() {{
+        const tabLinks = document.querySelectorAll('.tab-link');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+        
+        tabLinks.forEach(link => {{
+            link.addEventListener('click', function(e) {{
+                e.preventDefault();
+                const targetTab = this.getAttribute('data-tab');
+                
+                // Remove active de todas as abas
+                tabLinks.forEach(l => l.classList.remove('active'));
+                tabPanels.forEach(p => p.classList.remove('active'));
+                
+                // Adiciona active na aba clicada
+                this.classList.add('active');
+                document.getElementById('tab-' + targetTab).classList.add('active');
+            }});
+        }});
+    }});
+    </script>
+    
 {page_footer(False)}"""
 
     async def _esqueci_senha_page(self, db, current_user, request, method):
