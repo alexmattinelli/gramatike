@@ -2126,6 +2126,19 @@ class Default(WorkerEntrypoint):
         user_nome = escape_html(current_user.get('nome') or '@' + current_user.get('username', ''))
         user_foto = normalize_image_url(current_user.get('foto_perfil'))
         
+        # Admin button (only for admin/superadmin)
+        is_admin = current_user.get('is_admin', False) or current_user.get('is_superadmin', False)
+        admin_btn_html = ''
+        if is_admin:
+            admin_btn_html = '''<button onclick="location.href='/admin'" class="action-btn" title="Painel de Controle" aria-label="Painel de Controle">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                        </button>'''
+        
         extra_css = """
         .like-btn.liked { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
         /* Quick nav gradient buttons */
@@ -2271,38 +2284,58 @@ class Default(WorkerEntrypoint):
                 {posts_html}
             </div>
             <aside class="side-col">
+                <!-- Navegação rápida: Educação e Em breve -->
                 <div style="display:flex;gap:0.8rem;margin:0 0 1.2rem;">
-                    <a href="/educacao" class="quick-nav-btn">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <a href="/educacao" style="flex:1;text-decoration:none;background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%);padding:1rem 1.1rem;border-radius:20px;display:flex;align-items:center;gap:0.7rem;font-size:1rem;font-weight:800;color:#ffffff;letter-spacing:0.4px;transition:all 0.25s ease;box-shadow:0 6px 20px rgba(155,93,229,0.35);border:none;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                         </svg>
                         Educação
                     </a>
-                    <div class="quick-nav-disabled">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <div style="flex:1;background:linear-gradient(135deg, #b8a4c9 0%, #9d8ab5 100%);padding:1rem 1.1rem;border-radius:20px;display:flex;align-items:center;gap:0.7rem;font-size:1rem;font-weight:800;color:#ffffff;letter-spacing:0.4px;box-shadow:0 6px 20px rgba(155,93,229,0.25);border:none;opacity:0.85;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10"></circle>
                             <polyline points="12 6 12 12 16 14"></polyline>
                         </svg>
                         Em breve
                     </div>
                 </div>
-                <!-- Notifications Button -->
-                <div class="side-card" style="padding:1rem;">
-                    <button id="notifications-btn" onclick="toggleNotifications()" style="width:100%;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.8rem;border-radius:16px;transition:0.2s;" onmouseover="this.style.background='#f5f7fb'" onmouseout="this.style.background='transparent'">
-                        <div style="display:flex;align-items:center;gap:0.7rem;">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                            <span style="font-size:0.85rem;font-weight:700;color:var(--text);">Notificações</span>
-                        </div>
-                        <span id="notifications-badge" class="action-badge" style="display:none;position:static;">0</span>
-                    </button>
-                    <div id="notifications-panel" style="display:none;">
-                        <div id="notifications-list" style="display:flex;flex-direction:column;gap:0.6rem;max-height:300px;overflow-y:auto;">
-                            <div style="text-align:center;color:#999;font-size:0.75rem;padding:1rem;">Nenhuma notificação</div>
+                <!-- Card Amigues (com botões de ações e lista de amigos) -->
+                <div class="side-card" style="padding:1.3rem 1.3rem 1.1rem;margin-bottom:1rem;">
+                    <!-- Botões de ações rápidas -->
+                    <div style="display:flex;align-items:center;justify-content:center;gap:0.6rem;margin:0 0 0.8rem;">
+                        <button onclick="location.href='/suporte'" class="action-btn" title="Suporte" aria-label="Suporte">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                        </button>
+                        <button onclick="location.href='/configuracoes'" class="action-btn" title="Configurações" aria-label="Configurações">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                        </button>
+                        <button onclick="toggleNotifications()" class="action-btn" title="Notificações" aria-label="Notificações" style="position:relative;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span id="notifications-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ff9800;color:#fff;font-size:0.6rem;padding:2px 5px;border-radius:10px;font-weight:700;">0</span>
+                        </button>
+                        {admin_btn_html}
+                    </div>
+                    <!-- Painel de notificações -->
+                    <div id="notifications-panel" style="display:none;margin-bottom:0.8rem;border-bottom:1px solid var(--border);padding-bottom:0.8rem;">
+                        <div id="notifications-list" style="display:flex;flex-direction:column;gap:0.6rem;max-height:200px;overflow-y:auto;">
+                            <div style="text-align:center;color:#999;font-size:0.75rem;padding:0.5rem;">Nenhuma notificação</div>
                         </div>
                     </div>
-                </div>
-                <div class="side-card">
+                    <!-- Divisor -->
+                    <div style="height:1px;background:var(--border);margin:0 0 0.8rem;"></div>
+                    <!-- Seção Amigues -->
                     <h3 style="margin:0 0 0.8rem;font-size:1rem;font-weight:800;letter-spacing:0.5px;color:var(--primary);text-align:center;">Amigues</h3>
                     <div id="amigues-list" style="display:flex;flex-direction:column;gap:0.65rem;min-height:20px;"></div>
                     <div id="amigues-empty" style="font-size:0.7rem;opacity:0.7;line-height:1.3;text-align:center;">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
