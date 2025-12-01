@@ -398,6 +398,16 @@ button { font-family: var(--font-base); font-weight:600; }
           </svg>
           <span id="notifications-badge" style="display:none; position:absolute; top:-4px; right:-4px; background:#ff9800; color:#fff; font-size:.6rem; padding:2px 5px; border-radius:10px; font-weight:700;">0</span>
         </button>
+        {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+        <button onclick="window.location.href='{{ url_for('admin.dashboard') }}'" class="search-btn icon-btn" title="Painel de Controle" aria-label="Painel de Controle">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+        </button>
+        {% endif %}
       </div>
       <!-- Painel de notificações -->
       <div id="notifications-panel" style="display:none; margin-bottom:.8rem; border-bottom:1px solid var(--border); padding-bottom:.8rem;">
