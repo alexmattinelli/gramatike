@@ -540,6 +540,11 @@ button { font-family: var(--font-base); font-weight:600; }
     margin-bottom: calc(80px + env(safe-area-inset-bottom));
   }
   
+  /* Ocultar footer de texto no mobile */
+  #desktop-footer {
+    display: none !important;
+  }
+  
   /* Barra de busca com mesma largura dos cards de post no mobile */
   .feed-controls {
     margin: 1.2rem -1rem 2rem !important; /* Mesma largura dos posts */
@@ -683,8 +688,8 @@ button { font-family: var(--font-base); font-weight:600; }
   {% endif %}
 </nav>
 
-<!-- Footer simples (apenas texto) -->
-<div style="text-align:center; padding:1rem; font-size:.8rem; color:var(--text-secondary); font-weight:600; letter-spacing:.4px; margin-top:auto;">
+<!-- Footer simples (apenas texto) - oculto no mobile -->
+<div id="desktop-footer" style="text-align:center; padding:1rem; font-size:.8rem; color:var(--text-secondary); font-weight:600; letter-spacing:.4px; margin-top:auto;">
   © 2025 Gramátike • Língua Viva e de Todes
 </div>
 
