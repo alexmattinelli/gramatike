@@ -40,6 +40,8 @@ try:
     from gramatike_d1.db import (
         # Auto-inicialização
         ensure_database_initialized,
+        # Helpers
+        safe_dict,
         # Posts e interações
         get_posts, get_post_by_id, create_post, delete_post, like_post, unlike_post, has_liked,
         get_comments, create_comment,
@@ -121,6 +123,14 @@ except ImportError as e:
     # Define placeholder for ensure_database_initialized
     async def ensure_database_initialized(db):
         return False
+    # Define placeholder for safe_dict
+    def safe_dict(result):
+        if result is None:
+            return None
+        try:
+            return dict(result)
+        except (TypeError, ValueError):
+            return None
 
 
 def json_response(data, status=200, headers=None):
@@ -721,6 +731,8 @@ def page_head(title, extra_css=""):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title}</title>
     <meta name="theme-color" content="#9B5DE5">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="icon" type="image/png" href="/static/favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>{BASE_CSS}{extra_css}</style>
 </head>
@@ -1059,6 +1071,83 @@ class Default(WorkerEntrypoint):
                     
                     post = await get_post_by_id(db, post_id)
                     return json_response({"post": post}, 201)
+            
+            # Posts Multi (FormData with multiple images)
+            if path == '/api/posts_multi' and method == 'POST':
+                if not current_user:
+                    return json_response({"error": "Não autenticado", "success": False}, 401)
+                
+                try:
+                    # Get user ID with validation - handle JsProxy for current_user
+                    if hasattr(current_user, 'to_py'):
+                        current_user_dict = current_user.to_py()
+                    elif isinstance(current_user, dict):
+                        current_user_dict = current_user
+                    else:
+                        current_user_dict = safe_dict(current_user)
+                    
+                    user_id = current_user_dict.get('id') if current_user_dict else None
+                    if user_id is None:
+                        console.error("[posts_multi] current_user.id is None")
+                        return json_response({"error": "Usuárie inválide", "success": False}, 400)
+                    
+                    # Parse FormData
+                    form_data = await request.formData()
+                    
+                    # Get content - handle JsProxy and JavaScript undefined values
+                    conteudo_raw = form_data.get('conteudo')
+                    
+                    # Check if value is missing (None in Python)
+                    if conteudo_raw is None:
+                        return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
+                    
+                    # Convert JsProxy to Python string if needed
+                    if hasattr(conteudo_raw, 'to_py'):
+                        try:
+                            conteudo = conteudo_raw.to_py()
+                        except (TypeError, AttributeError):
+                            conteudo = None
+                    else:
+                        conteudo = str(conteudo_raw) if conteudo_raw else None
+                    
+                    # Handle JavaScript undefined represented as string 'undefined'
+                    if conteudo is None or conteudo == 'undefined' or conteudo == '':
+                        return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
+                    
+                    conteudo = conteudo.strip() if isinstance(conteudo, str) else ''
+                    
+                    if not conteudo:
+                        return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
+                    
+                    # Ensure user_id is a proper Python int before passing to D1
+                    # (dict access might still return JsProxy in Pyodide environment)
+                    if hasattr(user_id, 'to_py'):
+                        user_id = user_id.to_py()
+                    user_id = int(user_id) if user_id is not None else None
+                    
+                    if user_id is None:
+                        return json_response({"error": "Usuárie inválide", "success": False}, 400)
+                    
+                    # For now, we don't handle image uploads in Cloudflare Workers
+                    # (would need R2 storage integration)
+                    # Just create the post with text content
+                    post_id = await create_post(db, user_id, conteudo, None)
+                    
+                    if not post_id:
+                        return json_response({"error": "Erro ao criar post", "success": False}, 500)
+                    
+                    # Process mentions (@username)
+                    await process_mentions(db, conteudo, user_id, 'post', post_id)
+                    
+                    # Process hashtags (#tag)
+                    await process_hashtags(db, conteudo, 'post', post_id)
+                    
+                    return json_response({"success": True, "id": post_id, "imagens": []}, 201)
+                    
+                except Exception as e:
+                    console.error(f"[posts_multi Error] {type(e).__name__}: {e}")
+                    console.error(f"[posts_multi Traceback] {traceback.format_exc()}")
+                    return json_response({"error": str(e), "success": False}, 500)
             
             # Like/Unlike post
             if path.startswith('/api/posts/') and path.endswith('/like') and method == 'POST':
