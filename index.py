@@ -506,7 +506,119 @@ main {
     }
     main { margin-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
     .side-col { display: none; }
+    /* Mostrar triângulo toggle no mobile */
+    #mobile-toggle-triangle { display: block !important; }
+    /* Card de ações inicialmente escondido no mobile */
+    #mobile-actions-card { display: none !important; }
+    #mobile-actions-card.visible { display: block !important; }
 }
+
+/* Mobile toggle triangle */
+#mobile-toggle-triangle {
+    display: none;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+}
+#triangle-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary);
+    width: 40px;
+    height: 24px;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 4px 12px rgba(155,93,229,0.3);
+    transition: transform 0.2s;
+}
+#triangle-svg { transition: transform 0.2s; }
+
+/* Mobile actions card */
+#mobile-actions-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 1.3rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    margin-bottom: 1rem;
+}
+.mobile-actions-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+}
+.action-btn {
+    width: 48px;
+    height: 48px;
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(130,87,229,0.45);
+    position: relative;
+}
+.action-btn:hover { background: var(--primary-dark); }
+.action-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ff9800;
+    color: #fff;
+    font-size: 0.6rem;
+    padding: 2px 5px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+/* Notifications panel */
+#notifications-panel {
+    margin-top: 0.8rem;
+    border-top: 1px solid var(--border);
+    padding-top: 0.8rem;
+}
+.notif-item {
+    display: block;
+    padding: 0.7rem;
+    background: #f9fbfd;
+    border: 1px solid #e3e9f0;
+    border-radius: 12px;
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+    transition: 0.2s;
+}
+.notif-item:hover { background: #f1edff; }
+
+/* Mobile panels */
+#mobile-amigues-panel, #mobile-ttt-panel {
+    margin-top: 0.8rem;
+    border-top: 1px solid var(--border);
+    padding-top: 0.8rem;
+}
+
+/* Tic-tac-toe */
+.ttt-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+.ttt-cell {
+    height: 56px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #fff;
+    color: var(--primary);
+    font-weight: 900;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+.ttt-cell:hover { background: #f8f5ff; }
 @media (max-width: 720px) {
     .feed-item { padding: 1rem 1.05rem 0.9rem; }
 }
@@ -2076,6 +2188,68 @@ class Default(WorkerEntrypoint):
     </header>
     <div class="content-wrapper">
     <main>
+        <!-- Triângulo toggle para mostrar/esconder card de ações (mobile only) -->
+        <div id="mobile-toggle-triangle" onclick="toggleMobileActionsCard()">
+            <div id="triangle-icon">
+                <svg id="triangle-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+        </div>
+        
+        <!-- Card de Ações Rápidas (mobile only) -->
+        <div id="mobile-actions-card">
+            <div class="mobile-actions-row">
+                <button onclick="location.href='/suporte'" class="action-btn" title="Suporte">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </button>
+                <button onclick="location.href='/configuracoes'" class="action-btn" title="Configurações">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </button>
+                <button onclick="toggleMobileTicTacToe()" class="action-btn" title="Jogo da Velha">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M6 12h4"></path><path d="M14 12h4"></path><path d="M8 8v8"></path><path d="M16 8v8"></path></svg>
+                </button>
+                <button onclick="toggleMobileNotifications()" class="action-btn" title="Notificações" style="position:relative;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    <span id="mobile-notif-badge" class="action-badge" style="display:none;">0</span>
+                </button>
+                <button onclick="toggleMobileAmigues()" class="action-btn" title="Amigues">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </button>
+            </div>
+            <!-- Amigues mobile panel -->
+            <div id="mobile-amigues-panel" style="display:none;">
+                <h3 style="margin:0 0 0.8rem;font-size:1rem;font-weight:800;letter-spacing:0.5px;color:var(--primary);text-align:center;">Amigues</h3>
+                <div id="mobile-amigues-list" style="display:flex;flex-direction:column;gap:0.65rem;min-height:20px;"></div>
+                <div id="mobile-amigues-empty" style="display:none;font-size:0.7rem;opacity:0.7;line-height:1.3;text-align:center;">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
+            </div>
+            <!-- Tic-Tac-Toe mobile panel -->
+            <div id="mobile-ttt-panel" style="display:none;">
+                <h3 style="margin:0 0 0.55rem;font-size:0.95rem;letter-spacing:0.5px;font-weight:800;color:var(--primary);text-align:center;"># Jogo da Velha</h3>
+                <p style="margin:0.2rem 0 0.7rem;font-size:0.7rem;color:#555;font-weight:600;text-align:center;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
+                <div id="mobile_ttt_status" style="font-size:0.72rem;font-weight:800;color:var(--primary);letter-spacing:0.4px;margin:0 0 0.6rem;text-align:center;">Sua vez: você é X</div>
+                <div id="mobile_ttt_board" class="ttt-board">
+                    <button type="button" data-i="0" class="ttt-cell"></button>
+                    <button type="button" data-i="1" class="ttt-cell"></button>
+                    <button type="button" data-i="2" class="ttt-cell"></button>
+                    <button type="button" data-i="3" class="ttt-cell"></button>
+                    <button type="button" data-i="4" class="ttt-cell"></button>
+                    <button type="button" data-i="5" class="ttt-cell"></button>
+                    <button type="button" data-i="6" class="ttt-cell"></button>
+                    <button type="button" data-i="7" class="ttt-cell"></button>
+                    <button type="button" data-i="8" class="ttt-cell"></button>
+                </div>
+                <button id="mobile_ttt_reset" type="button" style="margin-top:0.8rem;background:var(--primary);color:#fff;border:none;border-radius:14px;padding:0.5rem 0.9rem;font-size:0.7rem;font-weight:800;letter-spacing:0.4px;cursor:pointer;width:100%;">Reiniciar</button>
+            </div>
+            <!-- Notifications mobile panel -->
+            <div id="mobile-notifications-panel" style="display:none;">
+                <h3 style="margin:0 0 0.8rem;font-size:1rem;font-weight:800;letter-spacing:0.5px;color:var(--primary);text-align:center;">Notificações</h3>
+                <div id="mobile-notifications-list" style="display:flex;flex-direction:column;gap:0.6rem;max-height:300px;overflow-y:auto;">
+                    <div style="text-align:center;color:#999;font-size:0.75rem;padding:1rem;">Nenhuma notificação</div>
+                </div>
+            </div>
+        </div>
+        
         <div class="search-box">
             <input type="text" id="search-input" placeholder="Pesquisar..." onkeydown="if(event.key==='Enter')executarBusca()">
             <button class="search-btn" onclick="executarBusca()">
@@ -2108,6 +2282,21 @@ class Default(WorkerEntrypoint):
                         Em breve
                     </div>
                 </div>
+                <!-- Notifications Button -->
+                <div class="side-card" style="padding:1rem;">
+                    <button id="notifications-btn" onclick="toggleNotifications()" style="width:100%;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.8rem;border-radius:16px;transition:0.2s;" onmouseover="this.style.background='#f5f7fb'" onmouseout="this.style.background='transparent'">
+                        <div style="display:flex;align-items:center;gap:0.7rem;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <span style="font-size:0.85rem;font-weight:700;color:var(--text);">Notificações</span>
+                        </div>
+                        <span id="notifications-badge" class="action-badge" style="display:none;position:static;">0</span>
+                    </button>
+                    <div id="notifications-panel" style="display:none;">
+                        <div id="notifications-list" style="display:flex;flex-direction:column;gap:0.6rem;max-height:300px;overflow-y:auto;">
+                            <div style="text-align:center;color:#999;font-size:0.75rem;padding:1rem;">Nenhuma notificação</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="side-card">
                     <div style="text-align:center;margin-bottom:0.8rem;">
                         <span style="font-size:1.1rem;font-weight:800;color:var(--primary);letter-spacing:0.3px;">👤 @{user_username}</span>
@@ -2127,14 +2316,37 @@ class Default(WorkerEntrypoint):
                             </svg>
                             Configurações
                         </a>
+                        <a href="/suporte" class="profile-link">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            Suporte
+                        </a>
                     </div>
                     <div style="height:1px;background:var(--border);margin:0.6rem 0 0.8rem;border-radius:1px;"></div>
                     <h3 style="margin:0 0 0.8rem;font-size:1rem;font-weight:800;letter-spacing:0.5px;color:var(--primary);text-align:center;">Amigues</h3>
-                    <p style="font-size:0.7rem;opacity:0.7;line-height:1.3;text-align:center;">Sem amigues ainda. Faça amizades para aparecerem aqui.</p>
+                    <div id="amigues-list" style="display:flex;flex-direction:column;gap:0.65rem;min-height:20px;"></div>
+                    <div id="amigues-empty" style="font-size:0.7rem;opacity:0.7;line-height:1.3;text-align:center;">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
                 </div>
                 <div class="side-card">
                     <h3>📣 Novidades</h3>
                     {divulgacoes_html}
+                </div>
+                <!-- Jogo da Velha -->
+                <div class="side-card">
+                    <h3 style="margin:0.15rem 0 0.55rem;font-size:0.95rem;letter-spacing:0.5px;font-weight:800;color:var(--primary);"># Jogo da Velha</h3>
+                    <p style="margin:0.2rem 0 0.7rem;font-size:0.7rem;color:#555;font-weight:600;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
+                    <div id="ttt_status" style="font-size:0.72rem;font-weight:800;color:var(--primary);letter-spacing:0.4px;margin:0 0 0.6rem;">Sua vez: você é X</div>
+                    <div id="ttt_board" class="ttt-board">
+                        <button type="button" data-i="0" class="ttt-cell"></button>
+                        <button type="button" data-i="1" class="ttt-cell"></button>
+                        <button type="button" data-i="2" class="ttt-cell"></button>
+                        <button type="button" data-i="3" class="ttt-cell"></button>
+                        <button type="button" data-i="4" class="ttt-cell"></button>
+                        <button type="button" data-i="5" class="ttt-cell"></button>
+                        <button type="button" data-i="6" class="ttt-cell"></button>
+                        <button type="button" data-i="7" class="ttt-cell"></button>
+                        <button type="button" data-i="8" class="ttt-cell"></button>
+                    </div>
+                    <button id="ttt_reset" type="button" style="margin-top:0.8rem;background:var(--primary);color:#fff;border:none;border-radius:14px;padding:0.5rem 0.9rem;font-size:0.7rem;font-weight:800;letter-spacing:0.4px;cursor:pointer;width:100%;">Reiniciar</button>
                 </div>
             </aside>
         </div>
@@ -2190,6 +2402,330 @@ class Default(WorkerEntrypoint):
             location.href = '/?q=' + encodeURIComponent(termo);
         }}
     }}
+    
+    // Mobile Actions Card Toggle
+    function toggleMobileActionsCard() {{
+        const card = document.getElementById('mobile-actions-card');
+        const triangleSvg = document.getElementById('triangle-svg');
+        if (card.classList.contains('visible')) {{
+            card.classList.remove('visible');
+            if (triangleSvg) triangleSvg.style.transform = 'rotate(0deg)';
+        }} else {{
+            card.classList.add('visible');
+            if (triangleSvg) triangleSvg.style.transform = 'rotate(180deg)';
+        }}
+    }}
+    
+    // Mobile Amigues Toggle
+    function toggleMobileAmigues() {{
+        const panel = document.getElementById('mobile-amigues-panel');
+        const tttPanel = document.getElementById('mobile-ttt-panel');
+        const notifPanel = document.getElementById('mobile-notifications-panel');
+        if (tttPanel) tttPanel.style.display = 'none';
+        if (notifPanel) notifPanel.style.display = 'none';
+        if (panel.style.display === 'none') {{
+            panel.style.display = 'block';
+            loadMobileAmigues();
+        }} else {{
+            panel.style.display = 'none';
+        }}
+    }}
+    
+    // Mobile Tic-Tac-Toe Toggle
+    function toggleMobileTicTacToe() {{
+        const panel = document.getElementById('mobile-ttt-panel');
+        const amiguesPanel = document.getElementById('mobile-amigues-panel');
+        const notifPanel = document.getElementById('mobile-notifications-panel');
+        if (amiguesPanel) amiguesPanel.style.display = 'none';
+        if (notifPanel) notifPanel.style.display = 'none';
+        if (panel.style.display === 'none') {{
+            panel.style.display = 'block';
+        }} else {{
+            panel.style.display = 'none';
+        }}
+    }}
+    
+    // Mobile Notifications Toggle
+    function toggleMobileNotifications() {{
+        const panel = document.getElementById('mobile-notifications-panel');
+        const amiguesPanel = document.getElementById('mobile-amigues-panel');
+        const tttPanel = document.getElementById('mobile-ttt-panel');
+        if (amiguesPanel) amiguesPanel.style.display = 'none';
+        if (tttPanel) tttPanel.style.display = 'none';
+        if (panel.style.display === 'none') {{
+            panel.style.display = 'block';
+            loadNotifications('mobile-notifications-list', 'mobile-notif-badge');
+        }} else {{
+            panel.style.display = 'none';
+        }}
+    }}
+    
+    // Desktop Notifications Toggle
+    function toggleNotifications() {{
+        const panel = document.getElementById('notifications-panel');
+        if (panel.style.display === 'none') {{
+            panel.style.display = 'block';
+            loadNotifications('notifications-list', 'notifications-badge');
+        }} else {{
+            panel.style.display = 'none';
+        }}
+    }}
+    
+    // Load notifications
+    async function loadNotifications(listId, badgeId) {{
+        const list = document.getElementById(listId);
+        const badge = document.getElementById(badgeId);
+        try {{
+            const res = await fetch('/api/notifications');
+            const data = await res.json();
+            const notifications = data.notifications || [];
+            if (notifications.length === 0) {{
+                list.innerHTML = '<div style="text-align:center;color:#999;font-size:0.75rem;padding:1rem;">Nenhuma notificação</div>';
+                if (badge) badge.style.display = 'none';
+            }} else {{
+                list.innerHTML = notifications.map(n => 
+                    '<a href="' + escapeHtml(n.link || '#') + '" class="notif-item"><div style="font-size:0.75rem;color:#333;line-height:1.4;">' + escapeHtml(n.message || n.mensagem) + '</div><div style="font-size:0.65rem;color:#999;margin-top:0.3rem;">' + escapeHtml(n.time || n.data || '') + '</div></a>'
+                ).join('');
+                if (badge) {{
+                    badge.textContent = notifications.length;
+                    badge.style.display = 'inline-block';
+                }}
+            }}
+        }} catch (e) {{
+            list.innerHTML = '<div style="text-align:center;color:#f44;font-size:0.75rem;padding:1rem;">Erro ao carregar</div>';
+        }}
+    }}
+    
+    // Load amigues for mobile
+    async function loadMobileAmigues() {{
+        const wrap = document.getElementById('mobile-amigues-list');
+        const empty = document.getElementById('mobile-amigues-empty');
+        try {{
+            const res = await fetch('/api/amigues');
+            if (res.status === 401) {{
+                empty.style.display = 'block';
+                return;
+            }}
+            const data = await res.json();
+            const list = data.amigues || [];
+            if (list.length === 0) {{
+                empty.style.display = 'block';
+                return;
+            }}
+            empty.style.display = 'none';
+            wrap.innerHTML = list.slice(0, 12).map(u => {{
+                const fp = (u.foto_perfil || '').trim() || '/static/img/perfil.png';
+                const src = /^https?:\\/\\//i.test(fp) ? fp : ('/static/' + fp);
+                return '<div style="display:flex;align-items:center;gap:0.7rem;padding:0.5rem 0.6rem;border-radius:16px;background:#f9fafb;border:1px solid #e5e7eb;"><img src="' + escapeHtml(src) + '" alt="Avatar" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.15);"><div style="flex:1;min-width:0;"><a href="/perfil/' + escapeHtml(u.username || u.id) + '" style="display:block;font-weight:700;font-size:0.7rem;color:var(--primary);text-decoration:none;letter-spacing:0.4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(u.username) + '</a></div></div>';
+            }}).join('');
+        }} catch (e) {{
+            empty.style.display = 'block';
+        }}
+    }}
+    
+    // Load amigues for desktop
+    async function loadAmigues() {{
+        const wrap = document.getElementById('amigues-list');
+        const empty = document.getElementById('amigues-empty');
+        if (!wrap) return;
+        try {{
+            const res = await fetch('/api/amigues');
+            if (res.status === 401) {{
+                empty.style.display = 'block';
+                return;
+            }}
+            const data = await res.json();
+            const list = data.amigues || [];
+            if (list.length === 0) {{
+                empty.style.display = 'block';
+                return;
+            }}
+            empty.style.display = 'none';
+            wrap.innerHTML = list.slice(0, 12).map(u => {{
+                const fp = (u.foto_perfil || '').trim() || '/static/img/perfil.png';
+                const src = /^https?:\\/\\//i.test(fp) ? fp : ('/static/' + fp);
+                return '<a href="/perfil/' + escapeHtml(u.username || u.id) + '" style="display:flex;align-items:center;gap:0.6rem;text-decoration:none;padding:0.35rem 0.4rem;border-radius:14px;transition:background 0.18s;"><img src="' + escapeHtml(src) + '" alt="' + escapeHtml(u.username) + '" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.15);background:#eee;"><span style="display:flex;flex-direction:column;"><strong style="font-size:0.75rem;letter-spacing:0.4px;color:var(--text);">@' + escapeHtml(u.username) + '</strong><span style="font-size:0.6rem;opacity:0.65;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(u.nome || '') + '</span></span></a>';
+            }}).join('');
+        }} catch (e) {{
+            empty.style.display = 'block';
+        }}
+    }}
+    
+    // Tic-Tac-Toe Game (Desktop)
+    (function() {{
+        var boardEl = document.getElementById('ttt_board');
+        var statusEl = document.getElementById('ttt_status');
+        var resetEl = document.getElementById('ttt_reset');
+        if(!boardEl || !statusEl || !resetEl) return;
+        var board = new Array(9).fill('');
+        var HUMAN = 'X', AI = 'O';
+        var gameOver = false;
+        function setStatus(msg){{ if(statusEl) statusEl.textContent = msg; }}
+        function render(){{
+            var cells = boardEl.querySelectorAll('button[data-i]');
+            cells.forEach(function(btn){{
+                var i = +btn.getAttribute('data-i');
+                var v = board[i];
+                btn.textContent = v || '';
+                btn.disabled = !!v || gameOver;
+            }});
+        }}
+        var wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+        function winner(b){{
+            for(var k=0;k<wins.length;k++){{
+                var a=wins[k][0], c=wins[k][1], d=wins[k][2];
+                if(b[a] && b[a]===b[c] && b[c]===b[d]) return b[a];
+            }}
+            return null;
+        }}
+        function empties(b){{ var r=[]; for(var i=0;i<9;i++){{ if(!b[i]) r.push(i);}} return r; }}
+        function isDraw(b){{ return empties(b).length===0 && !winner(b); }}
+        function tryWinMove(b, p){{
+            var e = empties(b);
+            for(var i=0;i<e.length;i++){{
+                var idx = e[i];
+                b[idx] = p;
+                var w = winner(b);
+                b[idx] = '';
+                if(w===p) return idx;
+            }}
+            return -1;
+        }}
+        function aiPick(){{
+            var idx = tryWinMove(board, AI); if(idx!==-1) return idx;
+            idx = tryWinMove(board, HUMAN); if(idx!==-1) return idx;
+            if(!board[4]) return 4;
+            var corners = [0,2,6,8];
+            for(var i=0;i<corners.length;i++){{ if(!board[corners[i]]) return corners[i]; }}
+            var sides = [1,3,5,7];
+            for(var j=0;j<sides.length;j++){{ if(!board[sides[j]]) return sides[j]; }}
+            return -1;
+        }}
+        function endIfNeeded(){{
+            var w = winner(board);
+            if(w){{ gameOver=true; setStatus(w===HUMAN ? 'Você venceu!' : 'Robo venceu!'); render(); return true; }}
+            if(isDraw(board)){{ gameOver=true; setStatus('Empate.'); render(); return true; }}
+            return false;
+        }}
+        function humanMove(i){{
+            if(gameOver || board[i]) return;
+            board[i] = HUMAN;
+            render();
+            if(endIfNeeded()) return;
+            setStatus('Robo pensando...');
+            setTimeout(function(){{
+                var m = aiPick();
+                if(m>=0){{ board[m] = AI; }}
+                render();
+                if(!endIfNeeded()) setStatus('Sua vez: você é X');
+            }}, 220);
+        }}
+        boardEl.addEventListener('click', function(ev){{
+            var t = ev.target;
+            if(!(t && t.matches('button[data-i]'))) return;
+            var i = +t.getAttribute('data-i');
+            humanMove(i);
+        }});
+        resetEl.addEventListener('click', function(){{
+            board = new Array(9).fill('');
+            gameOver=false;
+            setStatus('Sua vez: você é X');
+            render();
+        }});
+        setStatus('Sua vez: você é X');
+        render();
+    }})();
+    
+    // Tic-Tac-Toe Game (Mobile)
+    (function() {{
+        var boardEl = document.getElementById('mobile_ttt_board');
+        var statusEl = document.getElementById('mobile_ttt_status');
+        var resetEl = document.getElementById('mobile_ttt_reset');
+        if(!boardEl || !statusEl || !resetEl) return;
+        var board = new Array(9).fill('');
+        var HUMAN = 'X', AI = 'O';
+        var gameOver = false;
+        function setStatus(msg){{ if(statusEl) statusEl.textContent = msg; }}
+        function render(){{
+            var cells = boardEl.querySelectorAll('button[data-i]');
+            cells.forEach(function(btn){{
+                var i = +btn.getAttribute('data-i');
+                var v = board[i];
+                btn.textContent = v || '';
+                btn.disabled = !!v || gameOver;
+            }});
+        }}
+        var wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+        function winner(b){{
+            for(var k=0;k<wins.length;k++){{
+                var a=wins[k][0], c=wins[k][1], d=wins[k][2];
+                if(b[a] && b[a]===b[c] && b[c]===b[d]) return b[a];
+            }}
+            return null;
+        }}
+        function empties(b){{ var r=[]; for(var i=0;i<9;i++){{ if(!b[i]) r.push(i);}} return r; }}
+        function isDraw(b){{ return empties(b).length===0 && !winner(b); }}
+        function tryWinMove(b, p){{
+            var e = empties(b);
+            for(var i=0;i<e.length;i++){{
+                var idx = e[i];
+                b[idx] = p;
+                var w = winner(b);
+                b[idx] = '';
+                if(w===p) return idx;
+            }}
+            return -1;
+        }}
+        function aiPick(){{
+            var idx = tryWinMove(board, AI); if(idx!==-1) return idx;
+            idx = tryWinMove(board, HUMAN); if(idx!==-1) return idx;
+            if(!board[4]) return 4;
+            var corners = [0,2,6,8];
+            for(var i=0;i<corners.length;i++){{ if(!board[corners[i]]) return corners[i]; }}
+            var sides = [1,3,5,7];
+            for(var j=0;j<sides.length;j++){{ if(!board[sides[j]]) return sides[j]; }}
+            return -1;
+        }}
+        function endIfNeeded(){{
+            var w = winner(board);
+            if(w){{ gameOver=true; setStatus(w===HUMAN ? 'Você venceu!' : 'Robo venceu!'); render(); return true; }}
+            if(isDraw(board)){{ gameOver=true; setStatus('Empate.'); render(); return true; }}
+            return false;
+        }}
+        function humanMove(i){{
+            if(gameOver || board[i]) return;
+            board[i] = HUMAN;
+            render();
+            if(endIfNeeded()) return;
+            setStatus('Robo pensando...');
+            setTimeout(function(){{
+                var m = aiPick();
+                if(m>=0){{ board[m] = AI; }}
+                render();
+                if(!endIfNeeded()) setStatus('Sua vez: você é X');
+            }}, 220);
+        }}
+        boardEl.addEventListener('click', function(ev){{
+            var t = ev.target;
+            if(!(t && t.matches('button[data-i]'))) return;
+            var i = +t.getAttribute('data-i');
+            humanMove(i);
+        }});
+        resetEl.addEventListener('click', function(){{
+            board = new Array(9).fill('');
+            gameOver=false;
+            setStatus('Sua vez: você é X');
+            render();
+        }});
+        setStatus('Sua vez: você é X');
+        render();
+    }})();
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {{
+        loadAmigues();
+        loadNotifications('notifications-list', 'notifications-badge');
+    }});
     </script>
 {page_footer(True)}"""
 
