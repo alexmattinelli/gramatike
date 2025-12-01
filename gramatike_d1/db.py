@@ -156,6 +156,61 @@ def safe_get(result, key, default=None):
     return default
 
 
+def sanitize_for_d1(value):
+    """Sanitizes a value before passing it to D1 SQL queries.
+    
+    This handles the case where JavaScript 'undefined' values might be passed
+    instead of Python None, which causes D1_TYPE_ERROR.
+    
+    In the Pyodide/Cloudflare Workers environment, accessing a non-existent
+    key from a JsProxy object returns JavaScript's undefined, which D1
+    cannot handle. This function converts such values to Python None.
+    """
+    if value is None:
+        return None
+    
+    # Check for JavaScript undefined (appears as a JsProxy with undefined type)
+    try:
+        # Get the type name - JavaScript undefined has a specific representation
+        type_name = type(value).__name__
+        
+        # JsProxy objects representing undefined need special handling
+        if type_name == 'JsProxy':
+            # Try to convert to Python - undefined converts to None
+            if hasattr(value, 'to_py'):
+                try:
+                    py_value = value.to_py()
+                    # to_py() on undefined returns None
+                    return py_value
+                except Exception:
+                    # If conversion fails, treat as None
+                    return None
+            
+            # Check if value is JavaScript undefined by comparing to None-like behavior
+            try:
+                # JavaScript undefined is falsy and has no meaningful string representation
+                str_val = str(value)
+                if str_val in ('undefined', 'null', ''):
+                    return None
+            except Exception:
+                return None
+        
+        # For regular Python values, return as-is
+        return value
+        
+    except Exception:
+        # In case of any error, return None to be safe
+        return None
+
+
+def sanitize_params(*args):
+    """Sanitizes multiple parameters for D1 SQL queries.
+    
+    Returns a tuple of sanitized values.
+    """
+    return tuple(sanitize_for_d1(arg) for arg in args)
+
+
 # ============================================================================
 # AUTO-INICIALIZAÇÃO DO BANCO DE DADOS
 # ============================================================================
@@ -739,22 +794,52 @@ async def get_post_by_id(db, post_id):
 
 
 async def create_post(db, usuario_id, conteudo, imagem=None):
-    """Cria um novo post."""
+    """Cria um novo post.
+    
+    Args:
+        db: D1 database connection
+        usuario_id: ID of the user creating the post
+        conteudo: Post content text
+        imagem: Optional image URL/path (can be None)
+    
+    Returns:
+        The ID of the created post, or None if creation failed
+    """
+    # Sanitize all parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_conteudo, s_imagem = sanitize_params(usuario_id, conteudo, imagem)
+    
+    # Validate required fields after sanitization
+    if s_usuario_id is None:
+        console.error("[create_post] usuario_id is None after sanitization")
+        return None
+    if s_conteudo is None:
+        console.error("[create_post] conteudo is None after sanitization")
+        return None
+    
     result = await db.prepare("""
         INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
         SELECT ?, username, ?, ?, datetime('now')
         FROM user WHERE id = ?
         RETURNING id
-    """).bind(usuario_id, conteudo, imagem, usuario_id).first()
+    """).bind(s_usuario_id, s_conteudo, s_imagem, s_usuario_id).first()
     return safe_get(result, 'id')
 
 
 async def delete_post(db, post_id, deleted_by=None):
-    """Soft delete de um post."""
+    """Soft delete de um post.
+    
+    Args:
+        db: D1 database connection
+        post_id: ID of the post to delete
+        deleted_by: Optional ID of the user who deleted the post
+    """
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_post_id, s_deleted_by = sanitize_params(post_id, deleted_by)
+    
     await db.prepare("""
         UPDATE post SET is_deleted = 1, deleted_at = datetime('now'), deleted_by = ?
         WHERE id = ?
-    """).bind(deleted_by, post_id).run()
+    """).bind(s_deleted_by, s_post_id).run()
 
 
 async def like_post(db, user_id, post_id):

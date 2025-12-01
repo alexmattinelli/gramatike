@@ -3340,6 +3340,12 @@ class Default(WorkerEntrypoint):
         if not current_user:
             return redirect('/login')
         
+        # Validate current_user has required 'id' field
+        user_id = current_user.get('id') if isinstance(current_user, dict) else None
+        if user_id is None:
+            console.error("[NovoPost] current_user.id is None")
+            return redirect('/login')
+        
         error_msg = ""
         success_msg = ""
         
@@ -3354,7 +3360,8 @@ class Default(WorkerEntrypoint):
                     conteudo = form_data.get('conteudo', [''])[0].strip()
                     
                     if conteudo:
-                        post_id = await create_post(db, current_user['id'], conteudo, None)
+                        # Pass user_id (already validated) instead of accessing dict again
+                        post_id = await create_post(db, user_id, conteudo, None)
                         if post_id:
                             return redirect('/')
                         else:
