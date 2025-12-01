@@ -27,7 +27,7 @@ except ImportError:
 
 # Versão do código - usado para tracking de deployment
 # Atualize este valor a cada commit para verificar se o deploy foi feito
-SCRIPT_VERSION = "v2025.11.28.a"
+SCRIPT_VERSION = "v2025.12.01.a"
 
 # NOTA: Este 'workers' é o módulo built-in do Cloudflare Workers Python,
 # NÃO a pasta local (que foi renomeada para 'gramatike_d1').
@@ -452,31 +452,45 @@ main {
     color: var(--text-dim);
 }
 
-/* Mobile nav */
-.mobile-nav {
+/* Mobile bottom nav - floating rounded bar style from index.html */
+.mobile-bottom-nav {
     display: none;
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
     background: var(--primary);
-    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
-    box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+    border-radius: 24px;
+    padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+    box-shadow: 0 4px 20px rgba(155, 93, 229, 0.4);
     z-index: 1000;
 }
-.mobile-nav a, .mobile-nav div {
+.mobile-bottom-nav a, .mobile-bottom-nav button, .mobile-bottom-nav div {
+    all: unset;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 4px;
     padding: 6px 12px;
-    color: #fff;
-    text-decoration: none;
+    cursor: pointer;
+    color: #ffffff;
     font-size: 0.65rem;
     font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: opacity 0.2s;
+    text-decoration: none;
 }
-.mobile-nav a:hover { opacity: 0.85; }
-.mobile-nav svg { color: inherit; }
+.mobile-bottom-nav a:active, .mobile-bottom-nav button:active {
+    transform: scale(0.95);
+}
+.mobile-bottom-nav a svg, .mobile-bottom-nav button svg {
+    color: #ffffff;
+    transition: opacity 0.2s;
+}
+.mobile-bottom-nav a:hover, .mobile-bottom-nav button:hover {
+    opacity: 0.85;
+}
 
 /* Mobile */
 @media (max-width: 980px) {
@@ -485,12 +499,12 @@ main {
     .edu-nav { display: none !important; }
     .quick-nav { display: none !important; }
     footer { display: none !important; }
-    .mobile-nav {
+    .mobile-bottom-nav {
         display: flex;
         justify-content: space-around;
         align-items: center;
     }
-    main { margin-bottom: calc(60px + env(safe-area-inset-bottom)) !important; }
+    main { margin-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
     .side-col { display: none; }
 }
 @media (max-width: 720px) {
@@ -599,49 +613,62 @@ def page_head(title, extra_css=""):
 </head>
 <body>"""
 
-def mobile_nav():
-    return """
-    <nav class="mobile-nav">
-        <a href="/">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+def mobile_nav(is_authenticated=False):
+    """Generate mobile bottom navigation bar - matching index.html style."""
+    profile_link = """
+        <a href="/perfil" aria-label="Perfil" title="Perfil">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>Perfil</span>
+        </a>""" if is_authenticated else """
+        <a href="/login" aria-label="Entrar" title="Entrar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                <polyline points="10 17 15 12 10 7"></polyline>
+                <line x1="15" y1="12" x2="3" y2="12"></line>
+            </svg>
+            <span>Entrar</span>
+        </a>"""
+    
+    return f"""
+    <nav class="mobile-bottom-nav" aria-label="Navegação principal mobile">
+        <a href="/" aria-label="Feed" title="Feed">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
             <span>Início</span>
         </a>
-        <a href="/educacao">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <a href="/educacao" aria-label="Educação" title="Educação">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
             </svg>
             <span>Educação</span>
         </a>
-        <a href="/novo-post" style="background: var(--primary); color: white; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #ffffff;">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+        <a href="/novo-post" aria-label="Criar post" title="Criar post" style="background: var(--primary); color: #ffffff; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #ffffff;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
         </a>
-        <div style="color: rgba(255,255,255,0.6);">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px 12px; color: rgba(255,255,255,0.6); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.3px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
             <span>Em breve</span>
         </div>
-        <a href="/login">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            <span>Perfil</span>
-        </a>
+        {profile_link}
     </nav>"""
 
-def page_footer():
+def page_footer(is_authenticated=False):
+    """Generate page footer with mobile navigation."""
     return f"""
     <div class="footer-text">© 2025 Gramátike • Língua Viva e de Todes</div>
-    {mobile_nav()}
+    {mobile_nav(is_authenticated)}
 </body>
 </html>"""
 
@@ -1901,7 +1928,7 @@ class Default(WorkerEntrypoint):
         </div>
     </main>
     </div>
-{page_footer()}"""
+{page_footer(False)}"""
 
         # Usuário está autenticado - mostra o feed com posts
         posts = []
@@ -2164,7 +2191,7 @@ class Default(WorkerEntrypoint):
         }}
     }}
     </script>
-{page_footer()}"""
+{page_footer(True)}"""
 
     async def _educacao_page(self, db, current_user):
         """Página Educação - Hub educacional."""
@@ -2262,7 +2289,7 @@ class Default(WorkerEntrypoint):
         </div>
     </main>
     </div>
-{page_footer()}"""
+{page_footer(current_user is not None)}"""
 
     async def _login_page(self, db, current_user, request, method):
         """Página de Login."""
@@ -2348,7 +2375,7 @@ class Default(WorkerEntrypoint):
             <p style="font-size: 0.6rem; color: #999; text-align: center; margin-top: 1.5rem;">{SCRIPT_VERSION}</p>
         </div>
     </div>
-    {mobile_nav()}
+    {mobile_nav(False)}
 </body>
 </html>"""
 
@@ -2444,7 +2471,7 @@ class Default(WorkerEntrypoint):
             </div>
         </div>
     </div>
-    {mobile_nav()}
+    {mobile_nav(False)}
 </body>
 </html>"""
 
@@ -2482,7 +2509,7 @@ class Default(WorkerEntrypoint):
     <main>
         {dynamics_html}
     </main>
-{page_footer()}"""
+{page_footer(current_user is not None)}"""
 
     async def _exercicios_page(self, db, current_user):
         """Página de Exercícios."""
@@ -2531,7 +2558,7 @@ class Default(WorkerEntrypoint):
         </div>
         {topics_html}
     </main>
-{page_footer()}"""
+{page_footer(current_user is not None)}"""
 
     async def _artigos_page(self, db, current_user):
         """Página de Artigos."""
@@ -2576,7 +2603,7 @@ class Default(WorkerEntrypoint):
         </div>
         {artigos_html}
     </main>
-{page_footer()}"""
+{page_footer(current_user is not None)}"""
 
     async def _apostilas_page(self, db, current_user):
         """Página de Apostilas."""
@@ -2622,7 +2649,7 @@ class Default(WorkerEntrypoint):
         </div>
         {apostilas_html}
     </main>
-{page_footer()}"""
+{page_footer(current_user is not None)}"""
 
     async def _podcasts_page(self, db, current_user):
         """Página de Podcasts."""
@@ -2668,7 +2695,7 @@ class Default(WorkerEntrypoint):
         </div>
         {podcasts_html}
     </main>
-{page_footer()}"""
+{page_footer(current_user is not None)}"""
 
     async def _profile_page(self, db, current_user, username):
         """Página de perfil de usuárie."""
@@ -2754,7 +2781,7 @@ class Default(WorkerEntrypoint):
         }}
     }}
     </script>
-{page_footer()}"""
+{page_footer(current_user is not None)}"""
         except Exception as e:
             return self._not_found_page(f'/u/{username}')
 
@@ -2810,7 +2837,7 @@ class Default(WorkerEntrypoint):
             </form>
         </div>
     </main>
-{page_footer()}"""
+{page_footer(True)}"""
 
     async def _meu_perfil_page(self, db, current_user):
         """Página do perfil do usuário logado."""
@@ -2881,7 +2908,7 @@ class Default(WorkerEntrypoint):
             <a href="/logout" style="font-size:0.85rem;color:#c00;text-decoration:none;font-weight:700;">Sair da Conta</a>
         </div>
     </main>
-{page_footer()}"""
+{page_footer(True)}"""
 
     async def _configuracoes_page(self, db, current_user):
         """Página de configurações do usuário."""
@@ -2919,7 +2946,7 @@ class Default(WorkerEntrypoint):
             </div>
         </div>
     </main>
-{page_footer()}"""
+{page_footer(True)}"""
 
     def _not_found_page(self, path):
         """Página 404."""
@@ -2936,4 +2963,4 @@ class Default(WorkerEntrypoint):
             <a href="/" class="btn btn-primary">Voltar ao início</a>
         </div>
     </main>
-{page_footer()}"""
+{page_footer(False)}"""
