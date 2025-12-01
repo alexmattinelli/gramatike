@@ -2258,7 +2258,12 @@ class Default(WorkerEntrypoint):
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
             </button>
-            <a href="/novo-post" class="btn btn-primary" style="white-space:nowrap;">+ Novo Post</a>
+            <a href="/novo-post" class="search-btn" aria-label="Criar postagem" title="Criar postagem" style="text-decoration:none;">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </a>
         </div>
         
         <div class="layout">
@@ -2298,30 +2303,6 @@ class Default(WorkerEntrypoint):
                     </div>
                 </div>
                 <div class="side-card">
-                    <div style="text-align:center;margin-bottom:0.8rem;">
-                        <span style="font-size:1.1rem;font-weight:800;color:var(--primary);letter-spacing:0.3px;">👤 @{user_username}</span>
-                    </div>
-                    <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:0.8rem;">
-                        <a href="/perfil" class="profile-link">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                            Meu Perfil
-                        </a>
-                        <a href="/configuracoes" class="profile-link">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="3"></circle>
-                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                            </svg>
-                            Configurações
-                        </a>
-                        <a href="/suporte" class="profile-link">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                            Suporte
-                        </a>
-                    </div>
-                    <div style="height:1px;background:var(--border);margin:0.6rem 0 0.8rem;border-radius:1px;"></div>
                     <h3 style="margin:0 0 0.8rem;font-size:1rem;font-weight:800;letter-spacing:0.5px;color:var(--primary);text-align:center;">Amigues</h3>
                     <div id="amigues-list" style="display:flex;flex-direction:column;gap:0.65rem;min-height:20px;"></div>
                     <div id="amigues-empty" style="font-size:0.7rem;opacity:0.7;line-height:1.3;text-align:center;">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
