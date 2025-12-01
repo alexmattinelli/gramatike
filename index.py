@@ -534,8 +534,9 @@ main {
 }
 #triangle-svg { transition: transform 0.2s; }
 
-/* Mobile actions card */
+/* Mobile actions card - hidden by default, only shown on mobile */
 #mobile-actions-card {
+    display: none;
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 24px;
