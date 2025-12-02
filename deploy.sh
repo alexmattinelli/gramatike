@@ -5,8 +5,20 @@ echo "🚀 Deploy Gramátike - Cloudflare Workers"
 echo "========================================"
 echo ""
 
-# Configura token
-export CLOUDFLARE_API_TOKEN="VR_NPs75hlB1xC_TLiyj6uhn-piwFHHGJ5bWEAv2"
+# Token deve ser configurado via variável de ambiente
+# NÃO adicione tokens diretamente no código!
+# Configure via: export CLOUDFLARE_API_TOKEN="seu-token-aqui"
+
+if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+  echo "❌ CLOUDFLARE_API_TOKEN não definido!"
+  echo ""
+  echo "Configure o token antes de executar:"
+  echo "  export CLOUDFLARE_API_TOKEN=\"seu-token-aqui\""
+  echo ""
+  echo "Ou use wrangler login:"
+  echo "  npx wrangler login"
+  exit 1
+fi
 
 # Testa token
 echo "🔐 Testando autenticação..."
@@ -39,7 +51,6 @@ if [ $? -eq 0 ]; then
 else
   echo "❌ Token inválido ou erro na API"
   echo ""
-  echo "Tente manualmente:"
-  echo "  export CLOUDFLARE_API_TOKEN=\"VR_NPs75hlB1xC_TLiyj6uhn-piwFHHGJ5bWEAv2\""
-  echo "  npx wrangler deploy"
+  echo "Tente fazer login manualmente:"
+  echo "  npx wrangler login"
 fi

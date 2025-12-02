@@ -1,6 +1,6 @@
-# Build command: python -m pip install -r requirements.txt
-# Build output directory: /
-# Root directory: /
+# Cloudflare Pages configuration for Gramátike
+# Note: Main deployment uses Cloudflare Workers via wrangler.toml
+# This file is only used if deploying via Cloudflare Pages
 
 [build]
   command = "python -m pip install -r requirements-prod.txt"
@@ -9,7 +9,5 @@
 [build.environment]
   PYTHON_VERSION = "3.12"
 
-[[redirects]]
-  from = "/*"
-  to = "/functions/[[path]]"
-  status = 200
+# Note: Routes are handled by Cloudflare Workers (index.py), not Pages Functions
+# The [[redirects]] section was removed as it conflicted with Workers deployment
