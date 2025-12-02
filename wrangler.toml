@@ -9,6 +9,11 @@ compatibility_flags = [
     "python_dedicated_snapshot"
 ]
 
+# Assets estáticos (CSS, JS, imagens)
+[assets]
+directory = "static"
+binding = "ASSETS"
+
 # Variáveis de ambiente (valores reais devem ser configurados via dashboard)
 [vars]
 ENVIRONMENT = "production"

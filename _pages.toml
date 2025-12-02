@@ -1,0 +1,15 @@
+# Build command: python -m pip install -r requirements.txt
+# Build output directory: /
+# Root directory: /
+
+[build]
+  command = "python -m pip install -r requirements-prod.txt"
+  publish = "gramatike_app/static"
+
+[build.environment]
+  PYTHON_VERSION = "3.12"
+
+[[redirects]]
+  from = "/*"
+  to = "/functions/[[path]]"
+  status = 200

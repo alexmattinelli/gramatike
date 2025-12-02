@@ -1,0 +1,725 @@
+{
+  "results": [
+    {
+      "template": "podcasts.html",
+      "function": "_podcasts_page",
+      "status": "⚠️ SIMPLIFICADO",
+      "template_size": 29724,
+      "workers_size": 1919,
+      "ratio": 0.06456062441125017,
+      "features": [
+        "spotify_embed"
+      ]
+    },
+    {
+      "template": "apostilas.html",
+      "function": "_apostilas_page",
+      "status": "⚠️ SIMPLIFICADO",
+      "template_size": 44266,
+      "workers_size": 1938,
+      "ratio": 0.04378077983102155,
+      "features": []
+    },
+    {
+      "template": "dinamicas.html",
+      "function": "_dinamicas_page",
+      "status": "⚠️ SIMPLIFICADO",
+      "template_size": 20498,
+      "workers_size": 1477,
+      "ratio": 0.07205581032295834,
+      "features": []
+    },
+    {
+      "template": "login.html",
+      "function": "_login_page",
+      "status": "✅ OK",
+      "template_size": 6494,
+      "workers_size": 4817,
+      "ratio": 0.7417616261164152,
+      "features": [
+        "password_fields"
+      ]
+    },
+    {
+      "template": "register.html",
+      "function": "_cadastro_page",
+      "status": "✅ OK",
+      "template_size": 2895,
+      "workers_size": 5067,
+      "ratio": 1.750259067357513,
+      "features": [
+        "password_fields"
+      ]
+    },
+    {
+      "template": "esqueci_senha.html",
+      "function": "_esqueci_senha_page",
+      "status": "✅ OK",
+      "template_size": 3174,
+      "workers_size": 4898,
+      "ratio": 1.5431632010081915,
+      "features": []
+    },
+    {
+      "template": "cadastro.html",
+      "function": "_cadastro_page",
+      "status": "✅ OK",
+      "template_size": 5441,
+      "workers_size": 5067,
+      "ratio": 0.9312626355449366,
+      "features": [
+        "password_fields"
+      ]
+    },
+    {
+      "template": "gramatike_edu.html",
+      "function": "_educacao_page",
+      "status": "⚠️ SIMPLIFICADO",
+      "template_size": 45677,
+      "workers_size": 3657,
+      "ratio": 0.08006217571206516,
+      "features": [
+        "upload"
+      ]
+    },
+    {
+      "template": "exercicios.html",
+      "function": "_exercicios_page",
+      "status": "⚠️ SIMPLIFICADO",
+      "template_size": 59973,
+      "workers_size": 2015,
+      "ratio": 0.03359845263701999,
+      "features": []
+    },
+    {
+      "template": "configuracoes.html",
+      "function": "_configuracoes_page",
+      "status": "⚠️ SIMPLIFICADO",
+      "template_size": 17897,
+      "workers_size": 2591,
+      "ratio": 0.1447728669609432,
+      "features": [
+        "upload",
+        "dark_mode",
+        "password_fields"
+      ]
+    },
+    {
+      "template": "index.html",
+      "function": "_index_page",
+      "status": "✅ OK",
+      "template_size": 103215,
+      "workers_size": 42571,
+      "ratio": 0.4124497408322434,
+      "features": [
+        "upload",
+        "dark_mode",
+        "rich_text_editor"
+      ]
+    },
+    {
+      "template": "artigos.html",
+      "function": "_artigos_page",
+      "status": "⚠️ SIMPLIFICADO",
+      "template_size": 41218,
+      "workers_size": 1729,
+      "ratio": 0.041947692755592215,
+      "features": []
+    },
+    {
+      "template": "meu_perfil.html",
+      "function": "_meu_perfil_page",
+      "status": "⚠️ SIMPLIFICADO",
+      "template_size": 47009,
+      "workers_size": 2992,
+      "ratio": 0.06364738667063753,
+      "features": [
+        "upload"
+      ]
+    },
+    {
+      "template": "perfil.html",
+      "function": "_profile_page",
+      "status": "⚠️ SIMPLIFICADO",
+      "template_size": 47048,
+      "workers_size": 3926,
+      "ratio": 0.08344669273933004,
+      "features": [
+        "upload"
+      ]
+    },
+    {
+      "template": "admin/dashboard.html",
+      "function": "_admin_page",
+      "status": "⚠️ SIMPLIFICADO",
+      "template_size": 163036,
+      "workers_size": 10091,
+      "ratio": 0.06189430555214799,
+      "features": [
+        "upload",
+        "dark_mode",
+        "rich_text_editor",
+        "charts",
+        "spotify_embed"
+      ]
+    }
+  ],
+  "missing_functions": [
+    {
+      "template": "suporte.html",
+      "function": "_suporte_page",
+      "info": {
+        "path": "gramatike_app/templates/suporte.html",
+        "name": "suporte.html",
+        "size": 2646,
+        "lines": 42,
+        "has_forms": true,
+        "form_count": 1,
+        "has_tabs": false,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 3,
+        "url_for_calls": 3,
+        "jinja_loops": 0,
+        "jinja_ifs": 0,
+        "jinja_vars": 4,
+        "features": [],
+        "title": "Suporte"
+      }
+    },
+    {
+      "template": "post_detail.html",
+      "function": "_post_detail_page",
+      "info": {
+        "path": "gramatike_app/templates/post_detail.html",
+        "name": "post_detail.html",
+        "size": 4294,
+        "lines": 67,
+        "has_forms": false,
+        "form_count": 0,
+        "has_tabs": false,
+        "has_javascript": false,
+        "has_css": true,
+        "csrf_tokens": 0,
+        "url_for_calls": 3,
+        "jinja_loops": 1,
+        "jinja_ifs": 1,
+        "jinja_vars": 7,
+        "features": [
+          "upload"
+        ],
+        "title": "Post #{{ post.id }} — Gramátike Edu"
+      }
+    },
+    {
+      "template": "criar_post.html",
+      "function": null,
+      "info": {
+        "path": "gramatike_app/templates/criar_post.html",
+        "name": "criar_post.html",
+        "size": 29372,
+        "lines": 440,
+        "has_forms": true,
+        "form_count": 1,
+        "has_tabs": true,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 0,
+        "url_for_calls": 9,
+        "jinja_loops": 0,
+        "jinja_ifs": 1,
+        "jinja_vars": 9,
+        "features": [
+          "upload",
+          "rich_text_editor"
+        ],
+        "title": "Novo Post • Gramátike"
+      }
+    },
+    {
+      "template": "novidade_detail.html",
+      "function": null,
+      "info": {
+        "path": "gramatike_app/templates/novidade_detail.html",
+        "name": "novidade_detail.html",
+        "size": 11895,
+        "lines": 176,
+        "has_forms": true,
+        "form_count": 2,
+        "has_tabs": false,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 6,
+        "url_for_calls": 7,
+        "jinja_loops": 0,
+        "jinja_ifs": 5,
+        "jinja_vars": 18,
+        "features": [
+          "rich_text_editor"
+        ],
+        "title": "{{ novidade.titulo }} — Portal Gramátike"
+      }
+    },
+    {
+      "template": "reset_senha.html",
+      "function": null,
+      "info": {
+        "path": "gramatike_app/templates/reset_senha.html",
+        "name": "reset_senha.html",
+        "size": 4381,
+        "lines": 82,
+        "has_forms": true,
+        "form_count": 1,
+        "has_tabs": false,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 3,
+        "url_for_calls": 3,
+        "jinja_loops": 0,
+        "jinja_ifs": 0,
+        "jinja_vars": 5,
+        "features": [
+          "password_fields"
+        ],
+        "title": "Redefinir senha"
+      }
+    },
+    {
+      "template": "gerenciar_usuarios.html",
+      "function": null,
+      "info": {
+        "path": "gramatike_app/templates/gerenciar_usuarios.html",
+        "name": "gerenciar_usuarios.html",
+        "size": 7050,
+        "lines": 127,
+        "has_forms": true,
+        "form_count": 1,
+        "has_tabs": false,
+        "has_javascript": false,
+        "has_css": true,
+        "csrf_tokens": 2,
+        "url_for_calls": 6,
+        "jinja_loops": 2,
+        "jinja_ifs": 4,
+        "jinja_vars": 13,
+        "features": [],
+        "title": "Gerenciar Usuáries - Gramátike Admin"
+      }
+    },
+    {
+      "template": "dinamica_edit.html",
+      "function": "_dinamica_edit_page",
+      "info": {
+        "path": "gramatike_app/templates/dinamica_edit.html",
+        "name": "dinamica_edit.html",
+        "size": 16461,
+        "lines": 303,
+        "has_forms": true,
+        "form_count": 1,
+        "has_tabs": false,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 3,
+        "url_for_calls": 3,
+        "jinja_loops": 0,
+        "jinja_ifs": 2,
+        "jinja_vars": 12,
+        "features": [],
+        "title": "Editar Dinâmica — Gramátike Edu"
+      }
+    },
+    {
+      "template": "maintenance.html",
+      "function": null,
+      "info": {
+        "path": "gramatike_app/templates/maintenance.html",
+        "name": "maintenance.html",
+        "size": 1957,
+        "lines": 33,
+        "has_forms": false,
+        "form_count": 0,
+        "has_tabs": false,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 0,
+        "url_for_calls": 4,
+        "jinja_loops": 0,
+        "jinja_ifs": 1,
+        "jinja_vars": 5,
+        "features": [],
+        "title": "Em manutenção"
+      }
+    },
+    {
+      "template": "dinamica_admin.html",
+      "function": null,
+      "info": {
+        "path": "gramatike_app/templates/dinamica_admin.html",
+        "name": "dinamica_admin.html",
+        "size": 10431,
+        "lines": 221,
+        "has_forms": false,
+        "form_count": 0,
+        "has_tabs": true,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 0,
+        "url_for_calls": 4,
+        "jinja_loops": 11,
+        "jinja_ifs": 13,
+        "jinja_vars": 39,
+        "features": [],
+        "title": "Respostas — {{ d.titulo }}"
+      }
+    },
+    {
+      "template": "dinamica_view.html",
+      "function": "_dinamica_view_page",
+      "info": {
+        "path": "gramatike_app/templates/dinamica_view.html",
+        "name": "dinamica_view.html",
+        "size": 22773,
+        "lines": 357,
+        "has_forms": true,
+        "form_count": 4,
+        "has_tabs": false,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 12,
+        "url_for_calls": 5,
+        "jinja_loops": 6,
+        "jinja_ifs": 17,
+        "jinja_vars": 45,
+        "features": [],
+        "title": "{{ d.titulo }} — Dinâmica"
+      }
+    },
+    {
+      "template": "redacao.html",
+      "function": "_redacao_page",
+      "info": {
+        "path": "gramatike_app/templates/redacao.html",
+        "name": "redacao.html",
+        "size": 12056,
+        "lines": 143,
+        "has_forms": true,
+        "form_count": 1,
+        "has_tabs": false,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 0,
+        "url_for_calls": 12,
+        "jinja_loops": 2,
+        "jinja_ifs": 6,
+        "jinja_vars": 19,
+        "features": [
+          "rich_text_editor"
+        ],
+        "title": "Gramátike Edu — Redação"
+      }
+    },
+    {
+      "template": "videos.html",
+      "function": "_videos_page",
+      "info": {
+        "path": "gramatike_app/templates/videos.html",
+        "name": "videos.html",
+        "size": 35599,
+        "lines": 567,
+        "has_forms": true,
+        "form_count": 3,
+        "has_tabs": false,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 6,
+        "url_for_calls": 14,
+        "jinja_loops": 3,
+        "jinja_ifs": 9,
+        "jinja_vars": 38,
+        "features": [
+          "dark_mode",
+          "spotify_embed"
+        ],
+        "title": "Gramátike Edu — Vídeos"
+      }
+    },
+    {
+      "template": "admin/suporte_tickets.html",
+      "function": null,
+      "info": {
+        "path": "gramatike_app/templates/admin/suporte_tickets.html",
+        "name": "suporte_tickets.html",
+        "size": 5008,
+        "lines": 75,
+        "has_forms": true,
+        "form_count": 1,
+        "has_tabs": true,
+        "has_javascript": false,
+        "has_css": true,
+        "csrf_tokens": 3,
+        "url_for_calls": 4,
+        "jinja_loops": 1,
+        "jinja_ifs": 3,
+        "jinja_vars": 13,
+        "features": [],
+        "title": "Tickets de Suporte"
+      }
+    }
+  ],
+  "outdated_pages": [
+    {
+      "template": "podcasts.html",
+      "function": "_podcasts_page",
+      "ratio": 0.06456062441125017,
+      "info": {
+        "path": "gramatike_app/templates/podcasts.html",
+        "name": "podcasts.html",
+        "size": 29724,
+        "lines": 380,
+        "has_forms": true,
+        "form_count": 3,
+        "has_tabs": false,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 4,
+        "url_for_calls": 16,
+        "jinja_loops": 3,
+        "jinja_ifs": 21,
+        "jinja_vars": 48,
+        "features": [
+          "spotify_embed"
+        ],
+        "title": "Gramátike Edu — Podcasts"
+      }
+    },
+    {
+      "template": "apostilas.html",
+      "function": "_apostilas_page",
+      "ratio": 0.04378077983102155,
+      "info": {
+        "path": "gramatike_app/templates/apostilas.html",
+        "name": "apostilas.html",
+        "size": 44266,
+        "lines": 674,
+        "has_forms": true,
+        "form_count": 3,
+        "has_tabs": false,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 6,
+        "url_for_calls": 26,
+        "jinja_loops": 3,
+        "jinja_ifs": 27,
+        "jinja_vars": 60,
+        "features": [],
+        "title": "Gramátike Edu — Apostilas"
+      }
+    },
+    {
+      "template": "dinamicas.html",
+      "function": "_dinamicas_page",
+      "ratio": 0.07205581032295834,
+      "info": {
+        "path": "gramatike_app/templates/dinamicas.html",
+        "name": "dinamicas.html",
+        "size": 20498,
+        "lines": 362,
+        "has_forms": true,
+        "form_count": 3,
+        "has_tabs": false,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 9,
+        "url_for_calls": 8,
+        "jinja_loops": 1,
+        "jinja_ifs": 6,
+        "jinja_vars": 14,
+        "features": [],
+        "title": "Dinâmicas — Gramátike Edu"
+      }
+    },
+    {
+      "template": "gramatike_edu.html",
+      "function": "_educacao_page",
+      "ratio": 0.08006217571206516,
+      "info": {
+        "path": "gramatike_app/templates/gramatike_edu.html",
+        "name": "gramatike_edu.html",
+        "size": 45677,
+        "lines": 776,
+        "has_forms": true,
+        "form_count": 1,
+        "has_tabs": false,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 0,
+        "url_for_calls": 29,
+        "jinja_loops": 1,
+        "jinja_ifs": 8,
+        "jinja_vars": 34,
+        "features": [
+          "upload"
+        ],
+        "title": "Gramátike Edu"
+      }
+    },
+    {
+      "template": "exercicios.html",
+      "function": "_exercicios_page",
+      "ratio": 0.03359845263701999,
+      "info": {
+        "path": "gramatike_app/templates/exercicios.html",
+        "name": "exercicios.html",
+        "size": 59973,
+        "lines": 879,
+        "has_forms": true,
+        "form_count": 4,
+        "has_tabs": false,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 9,
+        "url_for_calls": 23,
+        "jinja_loops": 5,
+        "jinja_ifs": 16,
+        "jinja_vars": 55,
+        "features": [],
+        "title": "Gramátike Edu — Exercícios"
+      }
+    },
+    {
+      "template": "configuracoes.html",
+      "function": "_configuracoes_page",
+      "ratio": 0.1447728669609432,
+      "info": {
+        "path": "gramatike_app/templates/configuracoes.html",
+        "name": "configuracoes.html",
+        "size": 17897,
+        "lines": 343,
+        "has_forms": true,
+        "form_count": 2,
+        "has_tabs": true,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 6,
+        "url_for_calls": 5,
+        "jinja_loops": 0,
+        "jinja_ifs": 1,
+        "jinja_vars": 10,
+        "features": [
+          "upload",
+          "dark_mode",
+          "password_fields"
+        ],
+        "title": "Configurações"
+      }
+    },
+    {
+      "template": "artigos.html",
+      "function": "_artigos_page",
+      "ratio": 0.041947692755592215,
+      "info": {
+        "path": "gramatike_app/templates/artigos.html",
+        "name": "artigos.html",
+        "size": 41218,
+        "lines": 621,
+        "has_forms": true,
+        "form_count": 3,
+        "has_tabs": false,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 4,
+        "url_for_calls": 23,
+        "jinja_loops": 3,
+        "jinja_ifs": 21,
+        "jinja_vars": 55,
+        "features": [],
+        "title": "Gramátike Edu — Artigos"
+      }
+    },
+    {
+      "template": "meu_perfil.html",
+      "function": "_meu_perfil_page",
+      "ratio": 0.06364738667063753,
+      "info": {
+        "path": "gramatike_app/templates/meu_perfil.html",
+        "name": "meu_perfil.html",
+        "size": 47009,
+        "lines": 1037,
+        "has_forms": true,
+        "form_count": 1,
+        "has_tabs": true,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 3,
+        "url_for_calls": 10,
+        "jinja_loops": 0,
+        "jinja_ifs": 12,
+        "jinja_vars": 25,
+        "features": [
+          "upload"
+        ],
+        "title": "Gramátike — Perfil"
+      }
+    },
+    {
+      "template": "perfil.html",
+      "function": "_profile_page",
+      "ratio": 0.08344669273933004,
+      "info": {
+        "path": "gramatike_app/templates/perfil.html",
+        "name": "perfil.html",
+        "size": 47048,
+        "lines": 1029,
+        "has_forms": true,
+        "form_count": 1,
+        "has_tabs": true,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 3,
+        "url_for_calls": 10,
+        "jinja_loops": 0,
+        "jinja_ifs": 14,
+        "jinja_vars": 28,
+        "features": [
+          "upload"
+        ],
+        "title": "Gramátike — Perfil"
+      }
+    },
+    {
+      "template": "admin/dashboard.html",
+      "function": "_admin_page",
+      "ratio": 0.06189430555214799,
+      "info": {
+        "path": "gramatike_app/templates/admin/dashboard.html",
+        "name": "dashboard.html",
+        "size": 163036,
+        "lines": 2057,
+        "has_forms": true,
+        "form_count": 46,
+        "has_tabs": true,
+        "has_javascript": true,
+        "has_css": true,
+        "csrf_tokens": 123,
+        "url_for_calls": 66,
+        "jinja_loops": 19,
+        "jinja_ifs": 54,
+        "jinja_vars": 206,
+        "features": [
+          "upload",
+          "dark_mode",
+          "rich_text_editor",
+          "charts",
+          "spotify_embed"
+        ],
+        "title": "Painel de Controle"
+      }
+    }
+  ],
+  "summary": {
+    "total_templates": 28,
+    "with_workers_function": 15,
+    "without_workers_function": 13,
+    "outdated": 10
+  }
+}

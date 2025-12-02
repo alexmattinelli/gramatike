@@ -56,3 +56,5 @@ instance/app.db
 node_modules/
 package-lock.json
 test_profile_url_fix.py
+.vercel
+.env*.local
