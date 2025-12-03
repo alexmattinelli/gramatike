@@ -3122,7 +3122,7 @@ class Default(WorkerEntrypoint):
         return render_template('podcasts.html', content_html=podcasts_html)
 
     async def _profile_page(self, db, current_user, username):
-        """Página de perfil de usuárie."""
+        """Página de perfil de usuárie - usando template externo."""
         if not db or not DB_AVAILABLE:
             return self._not_found_page(f'/u/{username}')
         
@@ -3134,25 +3134,13 @@ class Default(WorkerEntrypoint):
             # Buscar posts de usuárie
             posts = await get_posts(db, user_id=user['id'], per_page=20)
             
-            # Buscar seguidories/seguindo
-            followers = await get_followers(db, user['id'])
-            following = await get_following(db, user['id'])
-            
-            # Verificar se usuárie logade segue
-            is_following_user = False
-            is_own_profile = False
-            if current_user:
-                is_own_profile = current_user['id'] == user['id']
-                if not is_own_profile:
-                    is_following_user = await is_following(db, current_user['id'], user['id'])
-            
             # Gerar HTML dos posts
             posts_html = ""
             if posts:
                 for p in posts:
                     posts_html += f"""
                     <div class="feed-item">
-                        <p class="fi-body">{p.get('conteudo', '')}</p>
+                        <p class="fi-body">{escape_html(p.get('conteudo', ''))}</p>
                         <div style="margin-top: 0.8rem; font-size: 0.7rem; color: var(--text-dim);">
                             ❤️ {p.get('like_count', 0)} • 💬 {p.get('comment_count', 0)}
                         </div>
@@ -3160,57 +3148,12 @@ class Default(WorkerEntrypoint):
             else:
                 posts_html = '<div class="empty">Nenhum post ainda.</div>'
             
-            # Botão de seguir/editar
-            action_btn = ""
-            if current_user:
-                if is_own_profile:
-                    action_btn = '<a href="/editar-perfil" class="btn btn-primary">Editar Perfil</a>'
-                else:
-                    btn_text = "Deixar de Seguir" if is_following_user else "Seguir"
-                    action_btn = f'<button onclick="toggleFollow(\'{username}\')" class="btn btn-primary" id="follow-btn">{btn_text}</button>'
-            
-            return f"""{page_head(f"@{username} — Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <main>
-        <div class="card" style="text-align: center; margin-bottom: 1.5rem;">
-            <img src="{user.get('foto_perfil', '/static/img/perfil.png')}" 
-                 alt="@{username}" 
-                 style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1rem; object-fit: cover;">
-            <h2 style="color: var(--primary); margin-bottom: 0.3rem;">
-                {user.get('nome') or '@' + username}
-            </h2>
-            <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.8rem;">@{username}</p>
-            {f'<p style="margin-bottom: 1rem;">{user.get("bio", "")}</p>' if user.get('bio') else ''}
-            <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 1rem; font-size: 0.85rem;">
-                <span><strong>{len(followers)}</strong> seguidories</span>
-                <span><strong>{len(following)}</strong> seguindo</span>
-            </div>
-            {action_btn}
-        </div>
-        
-        <h3 style="color: var(--primary); margin-bottom: 1rem;">Posts</h3>
-        {posts_html}
-    </main>
-    <script>
-    async function toggleFollow(username) {{
-        const btn = document.getElementById('follow-btn');
-        try {{
-            const res = await fetch('/api/usuario/' + username + '/seguir', {{method: 'POST'}});
-            const data = await res.json();
-            btn.textContent = data.following ? 'Deixar de Seguir' : 'Seguir';
-        }} catch(e) {{
-            console.error(e);
-        }}
-    }}
-    </script>
-{page_footer(current_user is not None)}"""
+            return render_template('perfil.html', content_html=posts_html, user=user)
         except Exception as e:
             return self._not_found_page(f'/u/{username}')
 
     async def _novo_post_page(self, db, current_user, request, method):
-        """Página para criar novo post."""
+        """Página para criar novo post - usando template externo."""
         if not current_user:
             return redirect('/login')
         
@@ -3221,7 +3164,6 @@ class Default(WorkerEntrypoint):
             return redirect('/login')
         
         error_msg = ""
-        success_msg = ""
         
         if method == 'POST':
             if not db or not DB_AVAILABLE:
@@ -3246,29 +3188,8 @@ class Default(WorkerEntrypoint):
                     console.error(f"[NovoPost Error] {e}")
                     error_msg = "Erro ao processar post"
         
-        error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
-        
-        return f"""{page_head("Novo Post — Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <main>
-        <div class="card" style="max-width: 600px; margin: 0 auto;">
-            <h2 style="color: var(--primary); margin-bottom: 1rem;">Criar Post</h2>
-            {error_html}
-            <form method="POST" action="/novo-post">
-                <div class="form-group">
-                    <label>O que você está pensando?</label>
-                    <textarea name="conteudo" rows="5" style="width:100%;padding:0.8rem;border:1.5px solid #d9e1ea;border-radius:12px;font-family:'Nunito',sans-serif;font-size:0.95rem;resize:vertical;" placeholder="Escreva algo..." required></textarea>
-                </div>
-                <div style="display:flex;gap:1rem;justify-content:flex-end;margin-top:1rem;">
-                    <a href="/" class="btn" style="background:#f1edff;color:var(--primary);">Cancelar</a>
-                    <button type="submit" class="button-primary" style="width:auto;padding:0.7rem 1.5rem;">Publicar</button>
-                </div>
-            </form>
-        </div>
-    </main>
-{page_footer(True)}"""
+        flash_html = create_error_html(error_msg) if error_msg else ""
+        return render_template('criar_post.html', flash_html=flash_html)
 
     async def _meu_perfil_page(self, db, current_user):
         """Página do perfil do usuário logado - usando template externo."""
