@@ -82,7 +82,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
     <div class="container">
         <div class="header">
             <h1>Configurações</h1>
-            <div class="muted">@</div>
+            <div class="muted">@<!-- VAR_PLACEHOLDER --></div>
         </div>
 
         <div id="banner" class="alert"></div>
@@ -93,27 +93,27 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
             <button class="tab-btn" data-tab="aparencia">Aparência</button>
         </div>
 
-        <form id="form-config" method="post" action="" enctype="multipart/form-data">
+        <form id="form-config" method="post" action="/editar-perfil-api" enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="" />
             <div class="content">
                 <!-- Conta -->
                 <section id="sec-conta" class="section active">
                     <div class="field">
                         <label for="username">Nome de usuário</label>
-                        <input type="text" id="username" name="username" value="" required placeholder="@seuuser">
+                        <input type="text" id="username" name="username" value="<!-- VAR_PLACEHOLDER -->" required placeholder="@seuuser">
                         <div class="muted">Dica: não use símbolos além de ponto e sublinhado.</div>
                     </div>
                     <div class="field">
                         <label for="email">E-mail</label>
-                        <input type="email" id="email" name="email" value="" required placeholder="voce@exemplo.com">
+                        <input type="email" id="email" name="email" value="<!-- VAR_PLACEHOLDER -->" required placeholder="voce@exemplo.com">
                         
                         <div class="muted" style="margin-top:6px; display:flex; align-items:center; gap:8px;">
                             <span style="color:#b45309; background:#fef3c7; border:1px solid #fde68a; padding:4px 8px; border-radius:999px; font-weight:600;">E-mail não confirmado</span>
                             <button type="button" id="btn-resend-verify" class="btn" style="background:#9B5DE5;">Reenviar verificação</button>
                         </div>
-                        <!-- ELSE -->
+                        
                         <div class="muted" style="margin-top:6px;">E-mail confirmado ✅</div>
-                        <!-- ENDIF -->
+                        
                     </div>
                     <div class="actions">
                         <button class="btn" type="submit">Salvar</button>
@@ -294,7 +294,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
                 btnResend.disabled = true;
                 btnResend.textContent = 'Enviando...';
                 try {
-                    const resp = await fetch("", { method: 'POST' });
+                    const resp = await fetch("/resend-verification-email", { method: 'POST' });
                     if (resp.ok) {
                         showBanner('E-mail de verificação reenviado. Confira sua caixa de entrada/spam.', true);
                         btnResend.textContent = 'Enviado!';

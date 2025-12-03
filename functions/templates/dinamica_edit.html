@@ -43,27 +43,27 @@
   </header>
   <main>
     <div class="card">
-      <h2 style="margin:0 0 .6rem; font-size:1.2rem; color:#9B5DE5;">Editar ""</h2>
-      <form id="dynEditForm" method="POST" action="" enctype="multipart/form-data" style="display:grid; gap:.6rem; grid-template-columns:1fr; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
+      <h2 style="margin:0 0 .6rem; font-size:1.2rem; color:#9B5DE5;">Editar "<!-- VAR_PLACEHOLDER -->"</h2>
+      <form id="dynEditForm" method="POST" action="<!-- VAR_PLACEHOLDER -->" enctype="multipart/form-data" style="display:grid; gap:.6rem; grid-template-columns:1fr; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
         <input type="hidden" name="csrf_token" value="" />
         
         <div style="padding:.6rem; background:#f0f0f0; border-radius:8px;">
-          <strong>Tipo:</strong> <span class="chip"></span>
+          <strong>Tipo:</strong> <span class="chip"><!-- VAR_PLACEHOLDER --></span>
           <div class="muted-sm" style="margin-top:.3rem;">O tipo da dinâmica não pode ser alterado após criação.</div>
         </div>
         
         <label style="font-weight:800; color:#9B5DE5;">Título</label>
-        <input type="text" name="titulo" value="" required />
+        <input type="text" name="titulo" value="<!-- VAR_PLACEHOLDER -->" required />
         
         <label style="font-weight:800; color:#9B5DE5;">Descrição (opcional)</label>
-        <textarea name="descricao" rows="2"></textarea>
+        <textarea name="descricao" rows="2"><!-- VAR_PLACEHOLDER --></textarea>
         
         
         <div id="poll_opts">
           <label style="font-weight:800; color:#9B5DE5;">Opções (1 por linha)</label>
-          <textarea name="opcoes" rows="3" placeholder="Opção A&#10;Opção B"></textarea>
+          <textarea name="opcoes" rows="3" placeholder="Opção A&#10;Opção B"><!-- VAR_PLACEHOLDER --></textarea>
         </div>
-        <!-- ELIF -->
+        
         <div id="form_builder">
           <div class="muted-sm">Edite as perguntas do formulário. Tipos: resposta curta, parágrafo, múltipla escolha.</div>
           <div id="q_list"></div>
@@ -72,28 +72,29 @@
           </div>
           <input type="hidden" name="config_json" id="config_json" />
         </div>
-        <!-- ELIF -->
+        
         <div id="quemsouleu_builder">
           <div class="muted-sm">Edite os itens da dinâmica "Quem soul eu"</div>
           <label style="font-weight:800; color:#9B5DE5; margin-top:.8rem;">O que a pessoa deve descobrir?</label>
-          <input type="text" name="questao_tipo" id="questao_tipo" value="" placeholder="Ex: gênero, orientação sexual, pronome..." />
+          <input type="text" name="questao_tipo" id="questao_tipo" value="<!-- VAR_PLACEHOLDER -->" placeholder="Ex: gênero, orientação sexual, pronome..." />
           <label style="font-weight:800; color:#9B5DE5; margin-top:.8rem;">Moral/Mensagem Final</label>
-          <textarea name="moral" id="moral" rows="3" placeholder="Mensagem que aparecerá ao final da dinâmica..."></textarea>
+          <textarea name="moral" id="moral" rows="3" placeholder="Mensagem que aparecerá ao final da dinâmica..."><!-- VAR_PLACEHOLDER --></textarea>
           <div id="items_list" style="margin-top:1rem;"></div>
           <div class="builder-actions">
             <button type="button" class="btn" id="add_item">+ Item (Frase ou Foto)</button>
           </div>
           <input type="hidden" name="quemsouleu_config_json" id="quemsouleu_config_json" />
         </div>
-        <!-- ENDIF -->
+        
         
         <div style="display:flex; gap:.6rem; margin-top:.4rem;">
           <button type="submit" class="btn primary">Salvar alterações</button>
-          <a href="/dinamicas" class="btn">Cancelar</a>
+          <a href="/dinamicas-home" class="btn">Cancelar</a>
         </div>
       </form>
     </div>
-  </main>
+  <!-- CONTENT_PLACEHOLDER -->
+</main>
   
   
   <script>
@@ -105,7 +106,7 @@
     const form = document.getElementById('dynEditForm');
 
     // Carregar campos existentes
-    const existingFields = ;
+    const existingFields = [];
     let seq = Math.max(...existingFields.map(f => f.id || 0), 0) + 1;
     const fields = existingFields.map(f => ({
       id: f.id,
@@ -183,7 +184,7 @@
     render();
   })();
   </script>
-  <!-- ELIF -->
+  
   <script>
   (function(){
     const itemsList = document.getElementById('items_list');
@@ -192,7 +193,7 @@
     const form = document.getElementById('dynEditForm');
 
     // Load existing items
-    const existingItems = ;
+    const existingItems = [];
     let itemSeq = Math.max(...existingItems.map(i => i.id || 0), 0) + 1;
     const items = existingItems.map(i => ({
       id: i.id,
@@ -297,6 +298,6 @@
     renderItems();
   })();
   </script>
-  <!-- ENDIF -->
+  
 </body>
 </html>

@@ -27,7 +27,19 @@ except ImportError:
 
 # Versão do código - usado para tracking de deployment
 # Atualize este valor a cada commit para verificar se o deploy foi feito
-SCRIPT_VERSION = "v2025.12.01.a"
+SCRIPT_VERSION = "v2025.12.03.a"
+
+# Importar template processor para carregar templates HTML externos
+# Isso separa o HTML do código Python para facilitar manutenção
+try:
+    from functions._template_processor import render_template, load_template, create_error_html, create_success_html
+    TEMPLATES_AVAILABLE = True
+except ImportError:
+    TEMPLATES_AVAILABLE = False
+    def render_template(name, **ctx): return f"<h1>Template {name} não disponível</h1>"
+    def load_template(name): return f"<h1>Template {name} não disponível</h1>"
+    def create_error_html(msg): return f'<div class="error">{msg}</div>'
+    def create_success_html(msg): return f'<div class="success">{msg}</div>'
 
 # NOTA: Este 'workers' é o módulo built-in do Cloudflare Workers Python,
 # NÃO a pasta local (que foi renomeada para 'gramatike_d1').
@@ -863,6 +875,7 @@ class Default(WorkerEntrypoint):
                 "/login": lambda: self._login_page(db, current_user, request, method),
                 "/cadastro": lambda: self._cadastro_page(db, current_user, request, method),
                 "/dinamicas": lambda: self._dinamicas_page(db, current_user),
+                "/dinamicas/admin": lambda: self._dinamica_admin_page(db, current_user),
                 "/exercicios": lambda: self._exercicios_page(db, current_user),
                 "/artigos": lambda: self._artigos_page(db, current_user),
                 "/apostilas": lambda: self._apostilas_page(db, current_user),
@@ -872,8 +885,13 @@ class Default(WorkerEntrypoint):
                 "/perfil": lambda: self._meu_perfil_page(db, current_user),
                 "/configuracoes": lambda: self._configuracoes_page(db, current_user),
                 "/admin": lambda: self._admin_page(db, current_user),
+                "/admin/usuarios": lambda: self._gerenciar_usuarios_page(db, current_user),
                 "/esqueci-senha": lambda: self._esqueci_senha_page(db, current_user, request, method),
                 "/reset-senha": lambda: self._reset_senha_page(db, current_user, request, method),
+                "/suporte": lambda: self._suporte_page(db, current_user),
+                "/videos": lambda: self._videos_page(db, current_user),
+                "/redacao": lambda: self._redacao_page(db, current_user),
+                "/manutencao": lambda: self._manutencao_page(),
             }
 
             handler = page_routes.get(path)
@@ -887,6 +905,30 @@ class Default(WorkerEntrypoint):
             if path.startswith('/u/'):
                 username = path[3:]
                 result = await self._profile_page(db, current_user, username)
+                return html_response(result) if not isinstance(result, Response) else result
+            
+            # Rota dinâmica para post detail
+            if path.startswith('/post/'):
+                post_id = path[6:]
+                result = await self._post_detail_page(db, current_user, post_id)
+                return html_response(result) if not isinstance(result, Response) else result
+            
+            # Rota dinâmica para novidade detail
+            if path.startswith('/novidade/'):
+                novidade_id = path[10:]
+                result = await self._novidade_detail_page(db, current_user, novidade_id)
+                return html_response(result) if not isinstance(result, Response) else result
+            
+            # Rota dinâmica para visualizar dinâmica
+            if path.startswith('/dinamica/') and '/editar' not in path:
+                dinamica_id = path[10:]
+                result = await self._dinamica_view_page(db, current_user, dinamica_id)
+                return html_response(result) if not isinstance(result, Response) else result
+            
+            # Rota dinâmica para editar dinâmica
+            if path.startswith('/dinamica/') and path.endswith('/editar'):
+                dinamica_id = path[10:-7]  # Remove '/dinamica/' e '/editar'
+                result = await self._dinamica_edit_page(db, current_user, dinamica_id)
                 return html_response(result) if not isinstance(result, Response) else result
             
             return html_response(self._not_found_page(path), status=404)
@@ -2078,62 +2120,10 @@ class Default(WorkerEntrypoint):
         return redirect('/login', headers={"Set-Cookie": clear_session_cookie()})
 
     async def _index_page(self, db, current_user):
-        """Página inicial - Feed/Rede Social."""
-        # Se usuário não está autenticado, mostra a landing page
+        """Página inicial - Feed/Rede Social - usando template externo."""
+        # Se usuário não está autenticado, mostra a landing page usando template externo
         if current_user is None or not current_user:
-            return f"""{page_head("Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <div class="content-wrapper">
-    <main>
-        <div class="card" style="text-align: center; margin-bottom: 2rem;">
-            <h2 style="color: var(--primary); margin-bottom: 0.5rem;">Bem-vinde ao Gramátike!</h2>
-            <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
-                Plataforma educacional de gramática portuguesa com foco em inclusão e gênero neutro.
-            </p>
-            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                <a href="/login" class="btn btn-primary">Entrar</a>
-                <a href="/cadastro" class="btn btn-primary">Criar Conta</a>
-            </div>
-        </div>
-        
-        <h2 style="text-align: center; color: var(--primary); margin: 2rem 0 1.5rem;">Explore</h2>
-        <div class="modules-grid">
-            <a href="/educacao" class="module-card">
-                <div class="icon">📚</div>
-                <h3>Educação</h3>
-                <p>Aprenda gramática de forma inclusiva</p>
-            </a>
-            <a href="/dinamicas" class="module-card">
-                <div class="icon">🎮</div>
-                <h3>Dinâmicas</h3>
-                <p>Jogos e atividades</p>
-            </a>
-            <a href="/exercicios" class="module-card">
-                <div class="icon">✏️</div>
-                <h3>Exercícios</h3>
-                <p>Pratique gramática</p>
-            </a>
-            <a href="/artigos" class="module-card">
-                <div class="icon">📰</div>
-                <h3>Artigos</h3>
-                <p>Conteúdo educacional</p>
-            </a>
-            <a href="/apostilas" class="module-card">
-                <div class="icon">📖</div>
-                <h3>Apostilas</h3>
-                <p>Material de estudo</p>
-            </a>
-            <a href="/" class="module-card">
-                <div class="icon">💬</div>
-                <h3>Portal Gramátike</h3>
-                <p>Acesse a comunidade</p>
-            </a>
-        </div>
-    </main>
-    </div>
-{page_footer(False)}"""
+            return render_template('landing.html')
 
         # Usuário está autenticado - mostra o feed com posts
         posts = []
@@ -2213,10 +2203,8 @@ class Default(WorkerEntrypoint):
             divulgacoes_html = '<div class="placeholder">Nenhuma divulgação.</div>'
         
         # Info do usuário para JS - escaped para segurança
-        user_username = escape_html(current_user.get('username', ''))
         user_username_js = escape_js_string(current_user.get('username', ''))
         user_id = int(current_user.get('id', 0))
-        user_nome = escape_html(current_user.get('nome') or '@' + current_user.get('username', ''))
         user_foto = normalize_image_url(current_user.get('foto_perfil'))
         
         # Admin button (only for admin/superadmin)
@@ -2232,612 +2220,18 @@ class Default(WorkerEntrypoint):
                             </svg>
                         </button>'''
         
-        extra_css = """
-        .like-btn.liked { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
-        /* Quick nav gradient buttons */
-        .quick-nav-btn {{
-            flex: 1;
-            text-decoration: none;
-            background: linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%);
-            padding: 1rem 1.1rem;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 0.7rem;
-            font-size: 1rem;
-            font-weight: 800;
-            color: #ffffff;
-            letter-spacing: 0.4px;
-            transition: all 0.25s ease;
-            box-shadow: 0 6px 20px rgba(155,93,229,0.35);
-            border: none;
-        }}
-        .quick-nav-disabled {{
-            flex: 1;
-            background: linear-gradient(135deg, #b8a4c9 0%, #9d8ab5 100%);
-            padding: 1rem 1.1rem;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 0.7rem;
-            font-size: 1rem;
-            font-weight: 800;
-            color: #ffffff;
-            letter-spacing: 0.4px;
-            box-shadow: 0 6px 20px rgba(155,93,229,0.25);
-            border: none;
-            opacity: 0.85;
-        }}
-        /* Profile links */
-        .profile-link {{
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            text-decoration: none;
-            padding: 0.5rem 0.7rem;
-            border-radius: 14px;
-            background: #f8f5ff;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--primary);
-            transition: 0.18s;
-        }}
-        .profile-link:hover {{ background: #f0ebff; }}
-        """
-        
-        return f"""{page_head("Gramátike", extra_css)}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-        <a href="/perfil" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);width:64px;height:64px;border-radius:50%;overflow:hidden;border:3px solid rgba(255,255,255,0.35);box-shadow:0 4px 14px rgba(0,0,0,0.25);">
-            <img src="{user_foto}" alt="Perfil" style="width:100%;height:100%;object-fit:cover;">
-        </a>
-    </header>
-    <div class="content-wrapper">
-    <main>
-        <!-- Triângulo toggle para mostrar/esconder card de ações (mobile only) -->
-        <div id="mobile-toggle-triangle" onclick="toggleMobileActionsCard()">
-            <div id="triangle-icon">
-                <svg id="triangle-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-            </div>
-        </div>
-        
-        <!-- Card de Ações Rápidas (mobile only) -->
-        <div id="mobile-actions-card">
-            <div class="mobile-actions-row">
-                <button onclick="location.href='/suporte'" class="action-btn" title="Suporte">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                </button>
-                <button onclick="location.href='/configuracoes'" class="action-btn" title="Configurações">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                </button>
-                <button onclick="toggleMobileTicTacToe()" class="action-btn" title="Jogo da Velha">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M6 12h4"></path><path d="M14 12h4"></path><path d="M8 8v8"></path><path d="M16 8v8"></path></svg>
-                </button>
-                <button onclick="toggleMobileNotifications()" class="action-btn" title="Notificações" style="position:relative;">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                    <span id="mobile-notif-badge" class="action-badge" style="display:none;">0</span>
-                </button>
-                <button onclick="toggleMobileAmigues()" class="action-btn" title="Amigues">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                </button>
-            </div>
-            <!-- Amigues mobile panel -->
-            <div id="mobile-amigues-panel" style="display:none;">
-                <h3 style="margin:0 0 0.8rem;font-size:1rem;font-weight:800;letter-spacing:0.5px;color:var(--primary);text-align:center;">Amigues</h3>
-                <div id="mobile-amigues-list" style="display:flex;flex-direction:column;gap:0.65rem;min-height:20px;"></div>
-                <div id="mobile-amigues-empty" style="display:none;font-size:0.7rem;opacity:0.7;line-height:1.3;text-align:center;">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
-            </div>
-            <!-- Tic-Tac-Toe mobile panel -->
-            <div id="mobile-ttt-panel" style="display:none;">
-                <h3 style="margin:0 0 0.55rem;font-size:0.95rem;letter-spacing:0.5px;font-weight:800;color:var(--primary);text-align:center;"># Jogo da Velha</h3>
-                <p style="margin:0.2rem 0 0.7rem;font-size:0.7rem;color:#555;font-weight:600;text-align:center;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
-                <div id="mobile_ttt_status" style="font-size:0.72rem;font-weight:800;color:var(--primary);letter-spacing:0.4px;margin:0 0 0.6rem;text-align:center;">Sua vez: você é X</div>
-                <div id="mobile_ttt_board" class="ttt-board">
-                    <button type="button" data-i="0" class="ttt-cell"></button>
-                    <button type="button" data-i="1" class="ttt-cell"></button>
-                    <button type="button" data-i="2" class="ttt-cell"></button>
-                    <button type="button" data-i="3" class="ttt-cell"></button>
-                    <button type="button" data-i="4" class="ttt-cell"></button>
-                    <button type="button" data-i="5" class="ttt-cell"></button>
-                    <button type="button" data-i="6" class="ttt-cell"></button>
-                    <button type="button" data-i="7" class="ttt-cell"></button>
-                    <button type="button" data-i="8" class="ttt-cell"></button>
-                </div>
-                <button id="mobile_ttt_reset" type="button" style="margin-top:0.8rem;background:var(--primary);color:#fff;border:none;border-radius:14px;padding:0.5rem 0.9rem;font-size:0.7rem;font-weight:800;letter-spacing:0.4px;cursor:pointer;width:100%;">Reiniciar</button>
-            </div>
-            <!-- Notifications mobile panel -->
-            <div id="mobile-notifications-panel" style="display:none;">
-                <h3 style="margin:0 0 0.8rem;font-size:1rem;font-weight:800;letter-spacing:0.5px;color:var(--primary);text-align:center;">Notificações</h3>
-                <div id="mobile-notifications-list" style="display:flex;flex-direction:column;gap:0.6rem;max-height:300px;overflow-y:auto;">
-                    <div style="text-align:center;color:#999;font-size:0.75rem;padding:1rem;">Nenhuma notificação</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="search-box">
-            <input type="text" id="search-input" placeholder="Pesquisar..." onkeydown="if(event.key==='Enter')executarBusca()">
-            <button class="search-btn" onclick="executarBusca()">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </button>
-            <a href="/novo-post" class="search-btn" aria-label="Criar postagem" title="Criar postagem" style="text-decoration:none;">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-            </a>
-        </div>
-        
-        <div class="layout">
-            <div id="feed-list">
-                {posts_html}
-            </div>
-            <aside class="side-col">
-                <!-- Navegação rápida: Educação e Em breve -->
-                <div style="display:flex;gap:0.8rem;margin:0 0 1.2rem;">
-                    <a href="/educacao" style="flex:1;text-decoration:none;background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%);padding:1rem 1.1rem;border-radius:20px;display:flex;align-items:center;gap:0.7rem;font-size:1rem;font-weight:800;color:#ffffff;letter-spacing:0.4px;transition:all 0.25s ease;box-shadow:0 6px 20px rgba(155,93,229,0.35);border:none;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                        </svg>
-                        Educação
-                    </a>
-                    <div style="flex:1;background:linear-gradient(135deg, #b8a4c9 0%, #9d8ab5 100%);padding:1rem 1.1rem;border-radius:20px;display:flex;align-items:center;gap:0.7rem;font-size:1rem;font-weight:800;color:#ffffff;letter-spacing:0.4px;box-shadow:0 6px 20px rgba(155,93,229,0.25);border:none;opacity:0.85;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        Em breve
-                    </div>
-                </div>
-                <!-- Card Amigues (com botões de ações e lista de amigos) -->
-                <div class="side-card" style="padding:1.3rem 1.3rem 1.1rem;margin-bottom:1rem;">
-                    <!-- Botões de ações rápidas -->
-                    <div style="display:flex;align-items:center;justify-content:center;gap:0.6rem;margin:0 0 0.8rem;">
-                        <button onclick="location.href='/suporte'" class="action-btn" title="Suporte" aria-label="Suporte">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                            </svg>
-                        </button>
-                        <button onclick="location.href='/configuracoes'" class="action-btn" title="Configurações" aria-label="Configurações">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="3"></circle>
-                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                            </svg>
-                        </button>
-                        <button onclick="toggleNotifications()" class="action-btn" title="Notificações" aria-label="Notificações" style="position:relative;">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                            </svg>
-                            <span id="notifications-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ff9800;color:#fff;font-size:0.6rem;padding:2px 5px;border-radius:10px;font-weight:700;">0</span>
-                        </button>
-                        {admin_btn_html}
-                    </div>
-                    <!-- Painel de notificações -->
-                    <div id="notifications-panel" style="display:none;margin-bottom:0.8rem;border-bottom:1px solid var(--border);padding-bottom:0.8rem;">
-                        <div id="notifications-list" style="display:flex;flex-direction:column;gap:0.6rem;max-height:200px;overflow-y:auto;">
-                            <div style="text-align:center;color:#999;font-size:0.75rem;padding:0.5rem;">Nenhuma notificação</div>
-                        </div>
-                    </div>
-                    <!-- Divisor -->
-                    <div style="height:1px;background:var(--border);margin:0 0 0.8rem;"></div>
-                    <!-- Seção Amigues -->
-                    <h3 style="margin:0 0 0.8rem;font-size:1rem;font-weight:800;letter-spacing:0.5px;color:var(--primary);text-align:center;">Amigues</h3>
-                    <div id="amigues-list" style="display:flex;flex-direction:column;gap:0.65rem;min-height:20px;"></div>
-                    <div id="amigues-empty" style="font-size:0.7rem;opacity:0.7;line-height:1.3;text-align:center;">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
-                </div>
-                <div class="side-card">
-                    <h3>📣 Novidades</h3>
-                    {divulgacoes_html}
-                </div>
-                <!-- Jogo da Velha -->
-                <div class="side-card">
-                    <h3 style="margin:0.15rem 0 0.55rem;font-size:0.95rem;letter-spacing:0.5px;font-weight:800;color:var(--primary);"># Jogo da Velha</h3>
-                    <p style="margin:0.2rem 0 0.7rem;font-size:0.7rem;color:#555;font-weight:600;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
-                    <div id="ttt_status" style="font-size:0.72rem;font-weight:800;color:var(--primary);letter-spacing:0.4px;margin:0 0 0.6rem;">Sua vez: você é X</div>
-                    <div id="ttt_board" class="ttt-board">
-                        <button type="button" data-i="0" class="ttt-cell"></button>
-                        <button type="button" data-i="1" class="ttt-cell"></button>
-                        <button type="button" data-i="2" class="ttt-cell"></button>
-                        <button type="button" data-i="3" class="ttt-cell"></button>
-                        <button type="button" data-i="4" class="ttt-cell"></button>
-                        <button type="button" data-i="5" class="ttt-cell"></button>
-                        <button type="button" data-i="6" class="ttt-cell"></button>
-                        <button type="button" data-i="7" class="ttt-cell"></button>
-                        <button type="button" data-i="8" class="ttt-cell"></button>
-                    </div>
-                    <button id="ttt_reset" type="button" style="margin-top:0.8rem;background:var(--primary);color:#fff;border:none;border-radius:14px;padding:0.5rem 0.9rem;font-size:0.7rem;font-weight:800;letter-spacing:0.4px;cursor:pointer;width:100%;">Reiniciar</button>
-                </div>
-            </aside>
-        </div>
-    </main>
-    </div>
-    <script>
-    window.currentUser = "{user_username_js}";
-    window.currentUserId = {user_id};
-    
-    // Helper function to escape HTML in JS
-    function escapeHtml(text) {{
-        if (!text) return '';
-        const map = {{'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;'}};
-        return String(text).replace(/[&<>"']/g, c => map[c]);
-    }}
-    
-    async function likePost(postId) {{
-        try {{
-            const res = await fetch('/api/posts/' + postId + '/like', {{method: 'POST'}});
-            const data = await res.json();
-            // Reload to update
-            location.reload();
-        }} catch(e) {{
-            console.error(e);
-        }}
-    }}
-    
-    async function toggleComments(postId) {{
-        const div = document.getElementById('comments-' + postId);
-        if(div.style.display === 'none') {{
-            div.style.display = 'block';
-            try {{
-                const res = await fetch('/api/posts/' + postId + '/comentarios');
-                const data = await res.json();
-                const comentarios = data.comentarios || [];
-                if(comentarios.length === 0) {{
-                    div.innerHTML = '<p style="font-size:0.75rem;color:var(--text-dim);">Nenhum comentário.</p>';
-                }} else {{
-                    div.innerHTML = comentarios.map(c => '<div style="background:#f9fafb;padding:0.5rem 0.7rem;border-radius:10px;margin-bottom:0.4rem;font-size:0.8rem;"><strong style="color:var(--primary);">@' + escapeHtml(c.usuario) + '</strong><p style="margin:0.2rem 0 0;">' + escapeHtml(c.conteudo) + '</p></div>').join('');
-                }}
-            }} catch(e) {{
-                div.innerHTML = '<p style="font-size:0.75rem;color:#c00;">Erro ao carregar comentários.</p>';
-            }}
-        }} else {{
-            div.style.display = 'none';
-        }}
-    }}
-    
-    function executarBusca() {{
-        const termo = document.getElementById('search-input').value.trim();
-        if(termo) {{
-            // Recarrega com filtro
-            location.href = '/?q=' + encodeURIComponent(termo);
-        }}
-    }}
-    
-    // Mobile Actions Card Toggle
-    function toggleMobileActionsCard() {{
-        const card = document.getElementById('mobile-actions-card');
-        const triangleSvg = document.getElementById('triangle-svg');
-        if (card.classList.contains('visible')) {{
-            card.classList.remove('visible');
-            if (triangleSvg) triangleSvg.style.transform = 'rotate(0deg)';
-        }} else {{
-            card.classList.add('visible');
-            if (triangleSvg) triangleSvg.style.transform = 'rotate(180deg)';
-        }}
-    }}
-    
-    // Mobile Amigues Toggle
-    function toggleMobileAmigues() {{
-        const panel = document.getElementById('mobile-amigues-panel');
-        const tttPanel = document.getElementById('mobile-ttt-panel');
-        const notifPanel = document.getElementById('mobile-notifications-panel');
-        if (tttPanel) tttPanel.style.display = 'none';
-        if (notifPanel) notifPanel.style.display = 'none';
-        if (panel.style.display === 'none') {{
-            panel.style.display = 'block';
-            loadMobileAmigues();
-        }} else {{
-            panel.style.display = 'none';
-        }}
-    }}
-    
-    // Mobile Tic-Tac-Toe Toggle
-    function toggleMobileTicTacToe() {{
-        const panel = document.getElementById('mobile-ttt-panel');
-        const amiguesPanel = document.getElementById('mobile-amigues-panel');
-        const notifPanel = document.getElementById('mobile-notifications-panel');
-        if (amiguesPanel) amiguesPanel.style.display = 'none';
-        if (notifPanel) notifPanel.style.display = 'none';
-        if (panel.style.display === 'none') {{
-            panel.style.display = 'block';
-        }} else {{
-            panel.style.display = 'none';
-        }}
-    }}
-    
-    // Mobile Notifications Toggle
-    function toggleMobileNotifications() {{
-        const panel = document.getElementById('mobile-notifications-panel');
-        const amiguesPanel = document.getElementById('mobile-amigues-panel');
-        const tttPanel = document.getElementById('mobile-ttt-panel');
-        if (amiguesPanel) amiguesPanel.style.display = 'none';
-        if (tttPanel) tttPanel.style.display = 'none';
-        if (panel.style.display === 'none') {{
-            panel.style.display = 'block';
-            loadNotifications('mobile-notifications-list', 'mobile-notif-badge');
-        }} else {{
-            panel.style.display = 'none';
-        }}
-    }}
-    
-    // Desktop Notifications Toggle
-    function toggleNotifications() {{
-        const panel = document.getElementById('notifications-panel');
-        if (panel.style.display === 'none') {{
-            panel.style.display = 'block';
-            loadNotifications('notifications-list', 'notifications-badge');
-        }} else {{
-            panel.style.display = 'none';
-        }}
-    }}
-    
-    // Load notifications
-    async function loadNotifications(listId, badgeId) {{
-        const list = document.getElementById(listId);
-        const badge = document.getElementById(badgeId);
-        try {{
-            const res = await fetch('/api/notifications');
-            const data = await res.json();
-            const notifications = data.notifications || [];
-            if (notifications.length === 0) {{
-                list.innerHTML = '<div style="text-align:center;color:#999;font-size:0.75rem;padding:1rem;">Nenhuma notificação</div>';
-                if (badge) badge.style.display = 'none';
-            }} else {{
-                list.innerHTML = notifications.map(n => 
-                    '<a href="' + escapeHtml(n.link || '#') + '" class="notif-item"><div style="font-size:0.75rem;color:#333;line-height:1.4;">' + escapeHtml(n.message || n.mensagem) + '</div><div style="font-size:0.65rem;color:#999;margin-top:0.3rem;">' + escapeHtml(n.time || n.data || '') + '</div></a>'
-                ).join('');
-                if (badge) {{
-                    badge.textContent = notifications.length;
-                    badge.style.display = 'inline-block';
-                }}
-            }}
-        }} catch (e) {{
-            list.innerHTML = '<div style="text-align:center;color:#f44;font-size:0.75rem;padding:1rem;">Erro ao carregar</div>';
-        }}
-    }}
-    
-    // Load amigues for mobile
-    async function loadMobileAmigues() {{
-        const wrap = document.getElementById('mobile-amigues-list');
-        const empty = document.getElementById('mobile-amigues-empty');
-        try {{
-            const res = await fetch('/api/amigues');
-            if (res.status === 401) {{
-                empty.style.display = 'block';
-                return;
-            }}
-            const data = await res.json();
-            const list = data.amigues || [];
-            if (list.length === 0) {{
-                empty.style.display = 'block';
-                return;
-            }}
-            empty.style.display = 'none';
-            wrap.innerHTML = list.slice(0, 12).map(u => {{
-                const fp = (u.foto_perfil || '').trim() || '/static/img/perfil.png';
-                const src = /^https?:\\/\\//i.test(fp) ? fp : ('/static/' + fp);
-                return '<div style="display:flex;align-items:center;gap:0.7rem;padding:0.5rem 0.6rem;border-radius:16px;background:#f9fafb;border:1px solid #e5e7eb;"><img src="' + escapeHtml(src) + '" alt="Avatar" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.15);"><div style="flex:1;min-width:0;"><a href="/perfil/' + escapeHtml(u.username || u.id) + '" style="display:block;font-weight:700;font-size:0.7rem;color:var(--primary);text-decoration:none;letter-spacing:0.4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(u.username) + '</a></div></div>';
-            }}).join('');
-        }} catch (e) {{
-            empty.style.display = 'block';
-        }}
-    }}
-    
-    // Load amigues for desktop
-    async function loadAmigues() {{
-        const wrap = document.getElementById('amigues-list');
-        const empty = document.getElementById('amigues-empty');
-        if (!wrap) return;
-        try {{
-            const res = await fetch('/api/amigues');
-            if (res.status === 401) {{
-                empty.style.display = 'block';
-                return;
-            }}
-            const data = await res.json();
-            const list = data.amigues || [];
-            if (list.length === 0) {{
-                empty.style.display = 'block';
-                return;
-            }}
-            empty.style.display = 'none';
-            wrap.innerHTML = list.slice(0, 12).map(u => {{
-                const fp = (u.foto_perfil || '').trim() || '/static/img/perfil.png';
-                const src = /^https?:\\/\\//i.test(fp) ? fp : ('/static/' + fp);
-                return '<a href="/perfil/' + escapeHtml(u.username || u.id) + '" style="display:flex;align-items:center;gap:0.6rem;text-decoration:none;padding:0.35rem 0.4rem;border-radius:14px;transition:background 0.18s;"><img src="' + escapeHtml(src) + '" alt="' + escapeHtml(u.username) + '" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.15);background:#eee;"><span style="display:flex;flex-direction:column;"><strong style="font-size:0.75rem;letter-spacing:0.4px;color:var(--text);">@' + escapeHtml(u.username) + '</strong><span style="font-size:0.6rem;opacity:0.65;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(u.nome || '') + '</span></span></a>';
-            }}).join('');
-        }} catch (e) {{
-            empty.style.display = 'block';
-        }}
-    }}
-    
-    // Tic-Tac-Toe Game (Desktop)
-    (function() {{
-        var boardEl = document.getElementById('ttt_board');
-        var statusEl = document.getElementById('ttt_status');
-        var resetEl = document.getElementById('ttt_reset');
-        if(!boardEl || !statusEl || !resetEl) return;
-        var board = new Array(9).fill('');
-        var HUMAN = 'X', AI = 'O';
-        var gameOver = false;
-        function setStatus(msg){{ if(statusEl) statusEl.textContent = msg; }}
-        function render(){{
-            var cells = boardEl.querySelectorAll('button[data-i]');
-            cells.forEach(function(btn){{
-                var i = +btn.getAttribute('data-i');
-                var v = board[i];
-                btn.textContent = v || '';
-                btn.disabled = !!v || gameOver;
-            }});
-        }}
-        var wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-        function winner(b){{
-            for(var k=0;k<wins.length;k++){{
-                var a=wins[k][0], c=wins[k][1], d=wins[k][2];
-                if(b[a] && b[a]===b[c] && b[c]===b[d]) return b[a];
-            }}
-            return null;
-        }}
-        function empties(b){{ var r=[]; for(var i=0;i<9;i++){{ if(!b[i]) r.push(i);}} return r; }}
-        function isDraw(b){{ return empties(b).length===0 && !winner(b); }}
-        function tryWinMove(b, p){{
-            var e = empties(b);
-            for(var i=0;i<e.length;i++){{
-                var idx = e[i];
-                b[idx] = p;
-                var w = winner(b);
-                b[idx] = '';
-                if(w===p) return idx;
-            }}
-            return -1;
-        }}
-        function aiPick(){{
-            var idx = tryWinMove(board, AI); if(idx!==-1) return idx;
-            idx = tryWinMove(board, HUMAN); if(idx!==-1) return idx;
-            if(!board[4]) return 4;
-            var corners = [0,2,6,8];
-            for(var i=0;i<corners.length;i++){{ if(!board[corners[i]]) return corners[i]; }}
-            var sides = [1,3,5,7];
-            for(var j=0;j<sides.length;j++){{ if(!board[sides[j]]) return sides[j]; }}
-            return -1;
-        }}
-        function endIfNeeded(){{
-            var w = winner(board);
-            if(w){{ gameOver=true; setStatus(w===HUMAN ? 'Você venceu!' : 'Robo venceu!'); render(); return true; }}
-            if(isDraw(board)){{ gameOver=true; setStatus('Empate.'); render(); return true; }}
-            return false;
-        }}
-        function humanMove(i){{
-            if(gameOver || board[i]) return;
-            board[i] = HUMAN;
-            render();
-            if(endIfNeeded()) return;
-            setStatus('Robo pensando...');
-            setTimeout(function(){{
-                var m = aiPick();
-                if(m>=0){{ board[m] = AI; }}
-                render();
-                if(!endIfNeeded()) setStatus('Sua vez: você é X');
-            }}, 220);
-        }}
-        boardEl.addEventListener('click', function(ev){{
-            var t = ev.target;
-            if(!(t && t.matches('button[data-i]'))) return;
-            var i = +t.getAttribute('data-i');
-            humanMove(i);
-        }});
-        resetEl.addEventListener('click', function(){{
-            board = new Array(9).fill('');
-            gameOver=false;
-            setStatus('Sua vez: você é X');
-            render();
-        }});
-        setStatus('Sua vez: você é X');
-        render();
-    }})();
-    
-    // Tic-Tac-Toe Game (Mobile)
-    (function() {{
-        var boardEl = document.getElementById('mobile_ttt_board');
-        var statusEl = document.getElementById('mobile_ttt_status');
-        var resetEl = document.getElementById('mobile_ttt_reset');
-        if(!boardEl || !statusEl || !resetEl) return;
-        var board = new Array(9).fill('');
-        var HUMAN = 'X', AI = 'O';
-        var gameOver = false;
-        function setStatus(msg){{ if(statusEl) statusEl.textContent = msg; }}
-        function render(){{
-            var cells = boardEl.querySelectorAll('button[data-i]');
-            cells.forEach(function(btn){{
-                var i = +btn.getAttribute('data-i');
-                var v = board[i];
-                btn.textContent = v || '';
-                btn.disabled = !!v || gameOver;
-            }});
-        }}
-        var wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-        function winner(b){{
-            for(var k=0;k<wins.length;k++){{
-                var a=wins[k][0], c=wins[k][1], d=wins[k][2];
-                if(b[a] && b[a]===b[c] && b[c]===b[d]) return b[a];
-            }}
-            return null;
-        }}
-        function empties(b){{ var r=[]; for(var i=0;i<9;i++){{ if(!b[i]) r.push(i);}} return r; }}
-        function isDraw(b){{ return empties(b).length===0 && !winner(b); }}
-        function tryWinMove(b, p){{
-            var e = empties(b);
-            for(var i=0;i<e.length;i++){{
-                var idx = e[i];
-                b[idx] = p;
-                var w = winner(b);
-                b[idx] = '';
-                if(w===p) return idx;
-            }}
-            return -1;
-        }}
-        function aiPick(){{
-            var idx = tryWinMove(board, AI); if(idx!==-1) return idx;
-            idx = tryWinMove(board, HUMAN); if(idx!==-1) return idx;
-            if(!board[4]) return 4;
-            var corners = [0,2,6,8];
-            for(var i=0;i<corners.length;i++){{ if(!board[corners[i]]) return corners[i]; }}
-            var sides = [1,3,5,7];
-            for(var j=0;j<sides.length;j++){{ if(!board[sides[j]]) return sides[j]; }}
-            return -1;
-        }}
-        function endIfNeeded(){{
-            var w = winner(board);
-            if(w){{ gameOver=true; setStatus(w===HUMAN ? 'Você venceu!' : 'Robo venceu!'); render(); return true; }}
-            if(isDraw(board)){{ gameOver=true; setStatus('Empate.'); render(); return true; }}
-            return false;
-        }}
-        function humanMove(i){{
-            if(gameOver || board[i]) return;
-            board[i] = HUMAN;
-            render();
-            if(endIfNeeded()) return;
-            setStatus('Robo pensando...');
-            setTimeout(function(){{
-                var m = aiPick();
-                if(m>=0){{ board[m] = AI; }}
-                render();
-                if(!endIfNeeded()) setStatus('Sua vez: você é X');
-            }}, 220);
-        }}
-        boardEl.addEventListener('click', function(ev){{
-            var t = ev.target;
-            if(!(t && t.matches('button[data-i]'))) return;
-            var i = +t.getAttribute('data-i');
-            humanMove(i);
-        }});
-        resetEl.addEventListener('click', function(){{
-            board = new Array(9).fill('');
-            gameOver=false;
-            setStatus('Sua vez: você é X');
-            render();
-        }});
-        setStatus('Sua vez: você é X');
-        render();
-    }})();
-    
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {{
-        loadAmigues();
-        loadNotifications('notifications-list', 'notifications-badge');
-    }});
-    </script>
-{page_footer(True)}"""
+        # Usar template externo com placeholders
+        return render_template('feed.html',
+            feed_html=posts_html,
+            divulgacoes_html=divulgacoes_html,
+            user_foto=user_foto,
+            user_username_js=user_username_js,
+            user_id=user_id,
+            admin_btn_html=admin_btn_html,
+            footer_html=page_footer(True))
 
     async def _educacao_page(self, db, current_user):
-        """Página Educação - Hub educacional."""
+        """Página Educação - Hub educacional - usando template externo."""
         # Buscar dados do banco se disponível
         palavras = []
         novidades = []
@@ -2859,83 +2253,17 @@ class Default(WorkerEntrypoint):
             for c in contents:
                 contents_html += f"""
                 <div class="feed-item">
-                    <div class="fi-meta">{c.get('tipo', 'artigo').upper()}</div>
-                    <h3 class="fi-title">{c.get('titulo', '')}</h3>
-                    <p class="fi-body">{(c.get('resumo') or '')[:200]}...</p>
+                    <div class="fi-meta">{escape_html(c.get('tipo', 'artigo')).upper()}</div>
+                    <h3 class="fi-title">{escape_html(c.get('titulo', ''))}</h3>
+                    <p class="fi-body">{escape_html((c.get('resumo') or '')[:200])}...</p>
                 </div>"""
         else:
             contents_html = '<div class="empty">Nenhum conteúdo encontrado.</div>'
         
-        # Palavras do dia
-        palavras_html = ""
-        if palavras:
-            for p in palavras:
-                palavras_html += f"""
-                <div style="padding: 0.5rem 0;">
-                    <strong style="color: var(--primary);">{p.get('palavra', '')}</strong>
-                    <p style="font-size: 0.75rem; color: var(--text-dim);">{p.get('significado', '')[:100]}...</p>
-                </div>"""
-        else:
-            palavras_html = '<div class="placeholder">Nenhuma palavra disponível</div>'
-        
-        # Novidades
-        novidades_html = ""
-        if novidades:
-            for n in novidades:
-                novidades_html += f"""
-                <div style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
-                    <strong style="font-size: 0.8rem;">{n.get('titulo', '')}</strong>
-                </div>"""
-        else:
-            novidades_html = '<div class="placeholder">Nenhuma novidade.</div>'
-        
-        return f"""{page_head("Gramátike Edu")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike Edu</h1>
-        <nav class="edu-nav">
-            <a href="/educacao" class="active">🏠 Início</a>
-            <a href="/apostilas">📖 Apostilas</a>
-            <a href="/exercicios">✏️ Exercícios</a>
-            <a href="/artigos">📰 Artigos</a>
-        </nav>
-    </header>
-    <div class="content-wrapper">
-    <main>
-        <div class="search-box">
-            <input type="text" placeholder="Buscar posts do @gramatike...">
-            <button class="search-btn">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </button>
-        </div>
-        
-        <div class="layout">
-            <div>
-                {contents_html}
-            </div>
-            <aside class="side-col">
-                <div class="quick-nav">
-                    <a href="/dinamicas">🎮 Dinâmicas</a>
-                    <a href="/">💬 Gramátike</a>
-                </div>
-                <div class="side-card">
-                    <h3>💡 Palavras do Dia</h3>
-                    {palavras_html}
-                </div>
-                <div class="side-card">
-                    <h3>📣 Novidades</h3>
-                    {novidades_html}
-                </div>
-            </aside>
-        </div>
-    </main>
-    </div>
-{page_footer(current_user is not None)}"""
+        return render_template('gramatike_edu.html', content_html=contents_html)
 
     async def _login_page(self, db, current_user, request, method):
-        """Página de Login."""
+        """Página de Login - usando template externo."""
         # Se já logado, redireciona
         if current_user:
             return redirect('/')
@@ -2984,49 +2312,12 @@ class Default(WorkerEntrypoint):
                     else:
                         error_msg = "Erro ao processar login. Tente novamente."
         
-        error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
-        
-        extra_css = """
-        .login-wrapper { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:2.2rem 1.2rem 3.5rem; }
-        .login-card { width:100%; max-width:380px; background:#fff; border-radius:18px; padding:2.2rem 2rem 2.4rem; box-shadow:0 10px 26px -4px rgba(0,0,0,.12); }
-        .login-card h2 { margin:0 0 1.4rem; font-size:1.55rem; font-weight:800; text-align:center; }
-        .signup-hint { text-align:center; margin-top:1.6rem; font-size:.85rem; }
-        .signup-hint a { color: var(--primary); text-decoration: none; font-weight: 700; }
-        .signup-hint a:hover { text-decoration: underline; }
-        header.site-head { display: none; }
-        footer { display: none; }
-        """
-        return f"""{page_head("Entrar • Gramátike", extra_css)}
-    <div class="login-wrapper">
-        <div class="login-card">
-            {error_html}
-            <h2>Entrar</h2>
-            <form method="POST" action="/login">
-                <div class="form-group">
-                    <label>Usuárie / Email</label>
-                    <input type="text" name="email" placeholder="Usuárie ou email" required>
-                </div>
-                <div class="form-group">
-                    <label>Senha</label>
-                    <input type="password" name="password" placeholder="••••••••" required>
-                </div>
-                <div style="text-align: right; margin-top: 0.5rem;">
-                    <a href="/esqueci-senha" style="font-size: 0.75rem; color: #666; text-decoration: none;">Esqueceu a senha?</a>
-                </div>
-                <button type="submit" class="button-primary" style="margin-top: 1rem;">Entrar</button>
-            </form>
-            <div class="signup-hint">
-                Ainda não tem conta? <a href="/cadastro">Cadastre-se</a>
-            </div>
-            <p style="font-size: 0.6rem; color: #999; text-align: center; margin-top: 1.5rem;">{SCRIPT_VERSION}</p>
-        </div>
-    </div>
-    {mobile_nav(False)}
-</body>
-</html>"""
+        # Usar template externo
+        flash_html = create_error_html(error_msg) if error_msg else ""
+        return render_template('login.html', flash_html=flash_html)
 
     async def _cadastro_page(self, db, current_user, request, method):
-        """Página de Cadastro."""
+        """Página de Cadastro - usando template externo."""
         # Se já logado, redireciona
         if current_user:
             return redirect('/')
@@ -3075,54 +2366,16 @@ class Default(WorkerEntrypoint):
                     else:
                         error_msg = "Erro ao processar cadastro. Tente novamente."
         
-        error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
-        success_html = f'<div class="success-msg" style="background:#e8f5e9;color:#2e7d32;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{success_msg}</div>' if success_msg else ""
-        
-        extra_css = """
-        .login-wrapper { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:2.2rem 1.2rem 3.5rem; }
-        .login-card { width:100%; max-width:380px; background:#fff; border-radius:18px; padding:2.2rem 2rem 2.4rem; box-shadow:0 10px 26px -4px rgba(0,0,0,.12); }
-        .login-card h2 { margin:0 0 1.4rem; font-size:1.55rem; font-weight:800; text-align:center; }
-        .signup-hint { text-align:center; margin-top:1.6rem; font-size:.85rem; }
-        .signup-hint a { color: var(--primary); text-decoration: none; font-weight: 700; }
-        header.site-head { display: none; }
-        footer { display: none; }
-        """
-        return f"""{page_head("Cadastro • Gramátike", extra_css)}
-    <div class="login-wrapper">
-        <div class="login-card">
-            {error_html}
-            {success_html}
-            <h2>Criar Conta</h2>
-            <form method="POST" action="/cadastro">
-                <div class="form-group">
-                    <label>Nome (opcional)</label>
-                    <input type="text" name="nome" placeholder="Seu nome">
-                </div>
-                <div class="form-group">
-                    <label>Nome de Usuárie *</label>
-                    <input type="text" name="username" placeholder="seu_usuario" required>
-                </div>
-                <div class="form-group">
-                    <label>Email *</label>
-                    <input type="email" name="email" placeholder="seu@email.com" required>
-                </div>
-                <div class="form-group">
-                    <label>Senha *</label>
-                    <input type="password" name="password" placeholder="••••••••" required minlength="6">
-                </div>
-                <button type="submit" class="button-primary" style="margin-top: 1rem;">Criar Conta</button>
-            </form>
-            <div class="signup-hint">
-                Já tem conta? <a href="/login">Entrar</a>
-            </div>
-        </div>
-    </div>
-    {mobile_nav(False)}
-</body>
-</html>"""
+        # Usar template externo
+        flash_html = ""
+        if error_msg:
+            flash_html = create_error_html(error_msg)
+        elif success_msg:
+            flash_html = create_success_html(success_msg)
+        return render_template('cadastro.html', flash_html=flash_html)
 
     async def _dinamicas_page(self, db, current_user):
-        """Página de Dinâmicas."""
+        """Página de Dinâmicas - usando template externo."""
         dynamics_html = ""
         
         if db and DB_AVAILABLE:
@@ -3133,9 +2386,9 @@ class Default(WorkerEntrypoint):
                         tipo_emoji = {"poll": "📊", "form": "📝", "oneword": "💬"}.get(d.get('tipo'), '🎮')
                         dynamics_html += f"""
                         <div class="feed-item">
-                            <div class="fi-meta">{tipo_emoji} {d.get('tipo', 'dinâmica').upper()}</div>
-                            <h3 class="fi-title">{d.get('titulo', '')}</h3>
-                            <p class="fi-body">{d.get('descricao') or 'Participe desta dinâmica!'}</p>
+                            <div class="fi-meta">{tipo_emoji} {escape_html(d.get('tipo', 'dinâmica')).upper()}</div>
+                            <h3 class="fi-title">{escape_html(d.get('titulo', ''))}</h3>
+                            <p class="fi-body">{escape_html(d.get('descricao') or 'Participe desta dinâmica!')}</p>
                             <div style="margin-top: 1rem;">
                                 <span style="font-size: 0.7rem; color: var(--text-dim);">
                                     {d.get('response_count', 0)} participações
@@ -3148,17 +2401,10 @@ class Default(WorkerEntrypoint):
         if not dynamics_html:
             dynamics_html = '<div class="empty">Nenhuma dinâmica disponível no momento.</div>'
         
-        return f"""{page_head("Dinâmicas — Gramátike Edu")}
-    <header class="site-head">
-        <h1 class="logo">Dinâmicas</h1>
-    </header>
-    <main>
-        {dynamics_html}
-    </main>
-{page_footer(current_user is not None)}"""
+        return render_template('dinamicas.html', content_html=dynamics_html)
 
     async def _exercicios_page(self, db, current_user):
-        """Página de Exercícios."""
+        """Página de Exercícios - usando template externo."""
         topics_html = ""
         
         if db and DB_AVAILABLE:
@@ -3168,8 +2414,8 @@ class Default(WorkerEntrypoint):
                     for t in topics:
                         topics_html += f"""
                         <div class="feed-item">
-                            <h3 class="fi-title">{t.get('nome', '')}</h3>
-                            <p class="fi-body">{t.get('descricao') or 'Tópico de exercícios'}</p>
+                            <h3 class="fi-title">{escape_html(t.get('nome', ''))}</h3>
+                            <p class="fi-body">{escape_html(t.get('descricao') or 'Tópico de exercícios')}</p>
                             <div style="margin-top: 0.8rem;">
                                 <span style="font-size: 0.7rem; color: var(--text-dim); background: #f1edff; padding: 0.3rem 0.6rem; border-radius: 10px;">
                                     {t.get('question_count', 0)} questões
@@ -3182,32 +2428,10 @@ class Default(WorkerEntrypoint):
         if not topics_html:
             topics_html = '<div class="empty">Nenhum exercício disponível.</div>'
         
-        return f"""{page_head("Gramátike Edu — Exercícios")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike Edu</h1>
-        <nav class="edu-nav">
-            <a href="/educacao">🏠 Início</a>
-            <a href="/apostilas">📖 Apostilas</a>
-            <a href="/exercicios" class="active">✏️ Exercícios</a>
-            <a href="/artigos">📰 Artigos</a>
-        </nav>
-    </header>
-    <main>
-        <div class="search-box">
-            <input type="text" placeholder="Pesquisar exercícios...">
-            <button class="search-btn">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </button>
-        </div>
-        {topics_html}
-    </main>
-{page_footer(current_user is not None)}"""
+        return render_template('exercicios.html', content_html=topics_html)
 
     async def _artigos_page(self, db, current_user):
-        """Página de Artigos."""
+        """Página de Artigos - usando template externo."""
         artigos_html = ""
         
         if db and DB_AVAILABLE:
@@ -3218,8 +2442,8 @@ class Default(WorkerEntrypoint):
                         artigos_html += f"""
                         <div class="feed-item">
                             <div class="fi-meta">ARTIGO</div>
-                            <h3 class="fi-title">{a.get('titulo', '')}</h3>
-                            <p class="fi-body">{(a.get('resumo') or '')[:200]}...</p>
+                            <h3 class="fi-title">{escape_html(a.get('titulo', ''))}</h3>
+                            <p class="fi-body">{escape_html((a.get('resumo') or '')[:200])}...</p>
                         </div>"""
             except:
                 pass
@@ -3227,32 +2451,10 @@ class Default(WorkerEntrypoint):
         if not artigos_html:
             artigos_html = '<div class="empty">Nenhum artigo disponível.</div>'
         
-        return f"""{page_head("Gramátike Edu — Artigos")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike Edu</h1>
-        <nav class="edu-nav">
-            <a href="/educacao">🏠 Início</a>
-            <a href="/apostilas">📖 Apostilas</a>
-            <a href="/exercicios">✏️ Exercícios</a>
-            <a href="/artigos" class="active">📰 Artigos</a>
-        </nav>
-    </header>
-    <main>
-        <div class="search-box">
-            <input type="text" placeholder="Pesquisar artigos...">
-            <button class="search-btn">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </button>
-        </div>
-        {artigos_html}
-    </main>
-{page_footer(current_user is not None)}"""
+        return render_template('artigos.html', content_html=artigos_html)
 
     async def _apostilas_page(self, db, current_user):
-        """Página de Apostilas."""
+        """Página de Apostilas - usando template externo."""
         apostilas_html = ""
         
         if db and DB_AVAILABLE:
@@ -3260,12 +2462,13 @@ class Default(WorkerEntrypoint):
                 apostilas = await get_edu_contents(db, tipo='apostila', page=1, per_page=20)
                 if apostilas:
                     for a in apostilas:
+                        url = escape_html(a.get("url", ""))
                         apostilas_html += f"""
                         <div class="feed-item">
                             <div class="fi-meta">📖 APOSTILA</div>
-                            <h3 class="fi-title">{a.get('titulo', '')}</h3>
-                            <p class="fi-body">{(a.get('resumo') or '')[:200]}...</p>
-                            {'<a href="' + a.get("url", "") + '" class="btn btn-primary" style="margin-top: 0.8rem; font-size: 0.75rem;">Baixar PDF</a>' if a.get("url") else ''}
+                            <h3 class="fi-title">{escape_html(a.get('titulo', ''))}</h3>
+                            <p class="fi-body">{escape_html((a.get('resumo') or '')[:200])}...</p>
+                            {'<a href="' + url + '" class="btn btn-primary" style="margin-top: 0.8rem; font-size: 0.75rem;">Baixar PDF</a>' if url else ''}
                         </div>"""
             except:
                 pass
@@ -3273,32 +2476,10 @@ class Default(WorkerEntrypoint):
         if not apostilas_html:
             apostilas_html = '<div class="empty">Nenhuma apostila disponível.</div>'
         
-        return f"""{page_head("Gramátike Edu — Apostilas")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike Edu</h1>
-        <nav class="edu-nav">
-            <a href="/educacao">🏠 Início</a>
-            <a href="/apostilas" class="active">📖 Apostilas</a>
-            <a href="/exercicios">✏️ Exercícios</a>
-            <a href="/artigos">📰 Artigos</a>
-        </nav>
-    </header>
-    <main>
-        <div class="search-box">
-            <input type="text" placeholder="Pesquisar apostilas...">
-            <button class="search-btn">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </button>
-        </div>
-        {apostilas_html}
-    </main>
-{page_footer(current_user is not None)}"""
+        return render_template('apostilas.html', content_html=apostilas_html)
 
     async def _podcasts_page(self, db, current_user):
-        """Página de Podcasts."""
+        """Página de Podcasts - usando template externo."""
         podcasts_html = ""
         
         if db and DB_AVAILABLE:
@@ -3306,12 +2487,13 @@ class Default(WorkerEntrypoint):
                 podcasts = await get_edu_contents(db, tipo='podcast', page=1, per_page=20)
                 if podcasts:
                     for p in podcasts:
+                        url = escape_html(p.get("url", ""))
                         podcasts_html += f"""
                         <div class="feed-item">
                             <div class="fi-meta">🎧 PODCAST</div>
-                            <h3 class="fi-title">{p.get('titulo', '')}</h3>
-                            <p class="fi-body">{(p.get('resumo') or '')[:200]}...</p>
-                            {'<a href="' + p.get("url", "") + '" class="btn btn-primary" style="margin-top: 0.8rem; font-size: 0.75rem;" target="_blank">Ouvir</a>' if p.get("url") else ''}
+                            <h3 class="fi-title">{escape_html(p.get('titulo', ''))}</h3>
+                            <p class="fi-body">{escape_html((p.get('resumo') or '')[:200])}...</p>
+                            {'<a href="' + url + '" class="btn btn-primary" style="margin-top: 0.8rem; font-size: 0.75rem;" target="_blank">Ouvir</a>' if url else ''}
                         </div>"""
             except:
                 pass
@@ -3319,32 +2501,116 @@ class Default(WorkerEntrypoint):
         if not podcasts_html:
             podcasts_html = '<div class="empty">Nenhum podcast disponível.</div>'
         
-        return f"""{page_head("Gramátike Edu — Podcasts")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike Edu</h1>
-        <nav class="edu-nav">
-            <a href="/educacao">🏠 Início</a>
-            <a href="/apostilas">📖 Apostilas</a>
-            <a href="/exercicios">✏️ Exercícios</a>
-            <a href="/artigos">📰 Artigos</a>
-        </nav>
-    </header>
-    <main>
-        <div class="search-box">
-            <input type="text" placeholder="Pesquisar podcasts...">
-            <button class="search-btn">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </button>
-        </div>
-        {podcasts_html}
-    </main>
-{page_footer(current_user is not None)}"""
+        return render_template('podcasts.html', content_html=podcasts_html)
+
+    async def _suporte_page(self, db, current_user):
+        """Página de Suporte - usando template externo."""
+        return render_template('suporte.html')
+
+    async def _videos_page(self, db, current_user):
+        """Página de Vídeos - usando template externo."""
+        return render_template('videos.html')
+
+    async def _redacao_page(self, db, current_user):
+        """Página de Redação - usando template externo."""
+        return render_template('redacao.html')
+
+    async def _post_detail_page(self, db, current_user, post_id):
+        """Página de detalhes do post - usando template externo."""
+        if not db or not DB_AVAILABLE:
+            return self._not_found_page(f'/post/{post_id}')
+        
+        try:
+            post_id_int = int(post_id)
+            post = await get_post_by_id(db, post_id_int)
+            if not post:
+                return self._not_found_page(f'/post/{post_id}')
+            
+            # Gerar HTML do post
+            post_html = f"""
+            <div class="feed-item">
+                <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:0.8rem;">
+                    <img src="{normalize_image_url(post.get('foto_perfil'))}" alt="@{escape_html(post.get('usuario', ''))}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+                    <strong style="color:var(--primary);">@{escape_html(post.get('usuario', ''))}</strong>
+                </div>
+                <p class="fi-body">{escape_html(post.get('conteudo', ''))}</p>
+                <div style="margin-top: 0.8rem; font-size: 0.7rem; color: var(--text-dim);">
+                    ❤️ {post.get('like_count', 0)} • 💬 {post.get('comment_count', 0)}
+                </div>
+            </div>"""
+            
+            return render_template('post_detail.html', content_html=post_html)
+        except (ValueError, Exception) as e:
+            return self._not_found_page(f'/post/{post_id}')
+
+    async def _novidade_detail_page(self, db, current_user, novidade_id):
+        """Novidade detail page - using external template."""
+        # TODO: Implement get_novidade_by_id in _database.py to enable dynamic content
+        return render_template('novidade_detail.html', content_html='<div class="empty">Novidade não encontrada.</div>')
+
+    async def _dinamica_admin_page(self, db, current_user):
+        """Página de administração de dinâmicas - usando template externo."""
+        if not current_user:
+            return redirect('/login')
+        
+        is_admin = current_user.get('is_admin', False) or current_user.get('is_superadmin', False)
+        if not is_admin:
+            return render_template('acesso_restrito.html',
+                message='Você não tem permissão para acessar esta página.',
+                button_url='/dinamicas',
+                button_text='Voltar para Dinâmicas')
+        
+        return render_template('dinamica_admin.html')
+
+    async def _dinamica_view_page(self, db, current_user, dinamica_id):
+        """Página de visualização de dinâmica - usando template externo."""
+        if not db or not DB_AVAILABLE:
+            return self._not_found_page(f'/dinamica/{dinamica_id}')
+        
+        try:
+            dinamica_id_int = int(dinamica_id)
+            dinamica = await get_dynamic_by_id(db, dinamica_id_int)
+            if not dinamica:
+                return self._not_found_page(f'/dinamica/{dinamica_id}')
+            
+            return render_template('dinamica_view.html', dinamica=dinamica)
+        except (ValueError, Exception) as e:
+            return self._not_found_page(f'/dinamica/{dinamica_id}')
+
+    async def _dinamica_edit_page(self, db, current_user, dinamica_id):
+        """Página de edição de dinâmica - usando template externo."""
+        if not current_user:
+            return redirect('/login')
+        
+        is_admin = current_user.get('is_admin', False) or current_user.get('is_superadmin', False)
+        if not is_admin:
+            return render_template('acesso_restrito.html',
+                message='Você não tem permissão para editar dinâmicas.',
+                button_url='/dinamicas',
+                button_text='Voltar para Dinâmicas')
+        
+        return render_template('dinamica_edit.html')
+
+    async def _gerenciar_usuarios_page(self, db, current_user):
+        """Página de gerenciamento de usuários - usando template externo."""
+        if not current_user:
+            return redirect('/login')
+        
+        is_admin = current_user.get('is_admin', False) or current_user.get('is_superadmin', False)
+        if not is_admin:
+            return render_template('acesso_restrito.html',
+                message='Você não tem permissão para gerenciar usuários.',
+                button_url='/',
+                button_text='Voltar ao início')
+        
+        return render_template('gerenciar_usuarios.html')
+
+    async def _manutencao_page(self):
+        """Maintenance page - using external template."""
+        return render_template('maintenance.html')
 
     async def _profile_page(self, db, current_user, username):
-        """Página de perfil de usuárie."""
+        """Página de perfil de usuárie - usando template externo."""
         if not db or not DB_AVAILABLE:
             return self._not_found_page(f'/u/{username}')
         
@@ -3356,25 +2622,13 @@ class Default(WorkerEntrypoint):
             # Buscar posts de usuárie
             posts = await get_posts(db, user_id=user['id'], per_page=20)
             
-            # Buscar seguidories/seguindo
-            followers = await get_followers(db, user['id'])
-            following = await get_following(db, user['id'])
-            
-            # Verificar se usuárie logade segue
-            is_following_user = False
-            is_own_profile = False
-            if current_user:
-                is_own_profile = current_user['id'] == user['id']
-                if not is_own_profile:
-                    is_following_user = await is_following(db, current_user['id'], user['id'])
-            
             # Gerar HTML dos posts
             posts_html = ""
             if posts:
                 for p in posts:
                     posts_html += f"""
                     <div class="feed-item">
-                        <p class="fi-body">{p.get('conteudo', '')}</p>
+                        <p class="fi-body">{escape_html(p.get('conteudo', ''))}</p>
                         <div style="margin-top: 0.8rem; font-size: 0.7rem; color: var(--text-dim);">
                             ❤️ {p.get('like_count', 0)} • 💬 {p.get('comment_count', 0)}
                         </div>
@@ -3382,57 +2636,12 @@ class Default(WorkerEntrypoint):
             else:
                 posts_html = '<div class="empty">Nenhum post ainda.</div>'
             
-            # Botão de seguir/editar
-            action_btn = ""
-            if current_user:
-                if is_own_profile:
-                    action_btn = '<a href="/editar-perfil" class="btn btn-primary">Editar Perfil</a>'
-                else:
-                    btn_text = "Deixar de Seguir" if is_following_user else "Seguir"
-                    action_btn = f'<button onclick="toggleFollow(\'{username}\')" class="btn btn-primary" id="follow-btn">{btn_text}</button>'
-            
-            return f"""{page_head(f"@{username} — Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <main>
-        <div class="card" style="text-align: center; margin-bottom: 1.5rem;">
-            <img src="{user.get('foto_perfil', '/static/img/perfil.png')}" 
-                 alt="@{username}" 
-                 style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1rem; object-fit: cover;">
-            <h2 style="color: var(--primary); margin-bottom: 0.3rem;">
-                {user.get('nome') or '@' + username}
-            </h2>
-            <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.8rem;">@{username}</p>
-            {f'<p style="margin-bottom: 1rem;">{user.get("bio", "")}</p>' if user.get('bio') else ''}
-            <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 1rem; font-size: 0.85rem;">
-                <span><strong>{len(followers)}</strong> seguidories</span>
-                <span><strong>{len(following)}</strong> seguindo</span>
-            </div>
-            {action_btn}
-        </div>
-        
-        <h3 style="color: var(--primary); margin-bottom: 1rem;">Posts</h3>
-        {posts_html}
-    </main>
-    <script>
-    async function toggleFollow(username) {{
-        const btn = document.getElementById('follow-btn');
-        try {{
-            const res = await fetch('/api/usuario/' + username + '/seguir', {{method: 'POST'}});
-            const data = await res.json();
-            btn.textContent = data.following ? 'Deixar de Seguir' : 'Seguir';
-        }} catch(e) {{
-            console.error(e);
-        }}
-    }}
-    </script>
-{page_footer(current_user is not None)}"""
+            return render_template('perfil.html', content_html=posts_html, user=user)
         except Exception as e:
             return self._not_found_page(f'/u/{username}')
 
     async def _novo_post_page(self, db, current_user, request, method):
-        """Página para criar novo post."""
+        """Página para criar novo post - usando template externo."""
         if not current_user:
             return redirect('/login')
         
@@ -3443,7 +2652,6 @@ class Default(WorkerEntrypoint):
             return redirect('/login')
         
         error_msg = ""
-        success_msg = ""
         
         if method == 'POST':
             if not db or not DB_AVAILABLE:
@@ -3468,47 +2676,20 @@ class Default(WorkerEntrypoint):
                     console.error(f"[NovoPost Error] {e}")
                     error_msg = "Erro ao processar post"
         
-        error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
-        
-        return f"""{page_head("Novo Post — Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <main>
-        <div class="card" style="max-width: 600px; margin: 0 auto;">
-            <h2 style="color: var(--primary); margin-bottom: 1rem;">Criar Post</h2>
-            {error_html}
-            <form method="POST" action="/novo-post">
-                <div class="form-group">
-                    <label>O que você está pensando?</label>
-                    <textarea name="conteudo" rows="5" style="width:100%;padding:0.8rem;border:1.5px solid #d9e1ea;border-radius:12px;font-family:'Nunito',sans-serif;font-size:0.95rem;resize:vertical;" placeholder="Escreva algo..." required></textarea>
-                </div>
-                <div style="display:flex;gap:1rem;justify-content:flex-end;margin-top:1rem;">
-                    <a href="/" class="btn" style="background:#f1edff;color:var(--primary);">Cancelar</a>
-                    <button type="submit" class="button-primary" style="width:auto;padding:0.7rem 1.5rem;">Publicar</button>
-                </div>
-            </form>
-        </div>
-    </main>
-{page_footer(True)}"""
+        flash_html = create_error_html(error_msg) if error_msg else ""
+        return render_template('criar_post.html', flash_html=flash_html)
 
     async def _meu_perfil_page(self, db, current_user):
-        """Página do perfil do usuário logado."""
+        """Página do perfil do usuário logado - usando template externo."""
         if not current_user:
             return redirect('/login')
         
         user = current_user
-        username = user.get('username', '')
         
         posts = []
-        followers = []
-        following = []
-        
         if db and DB_AVAILABLE:
             try:
                 posts = await get_posts(db, user_id=user['id'], per_page=20)
-                followers = await get_followers(db, user['id'])
-                following = await get_following(db, user['id'])
             except:
                 pass
         
@@ -3527,132 +2708,35 @@ class Default(WorkerEntrypoint):
         else:
             posts_html = '<div class="empty">Você ainda não fez nenhum post.</div>'
         
-        # Usar helper para URL da foto
-        foto_perfil = normalize_image_url(user.get('foto_perfil'))
-        username_escaped = escape_html(username)
-        user_nome = escape_html(user.get('nome') or '@' + username)
-        user_bio = escape_html(user.get('bio', ''))
-        
-        return f"""{page_head(f"Meu Perfil — Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <main>
-        <div class="card" style="text-align: center; margin-bottom: 1.5rem;">
-            <img src="{foto_perfil}" 
-                 alt="@{username_escaped}" 
-                 style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1rem; object-fit: cover;">
-            <h2 style="color: var(--primary); margin-bottom: 0.3rem;">
-                {user_nome}
-            </h2>
-            <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.8rem;">@{username_escaped}</p>
-            {f'<p style="margin-bottom: 1rem;">{user_bio}</p>' if user_bio else ''}
-            <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 1rem; font-size: 0.85rem;">
-                <span><strong>{len(followers)}</strong> seguidores</span>
-                <span><strong>{len(following)}</strong> seguindo</span>
-            </div>
-            <a href="/configuracoes" class="btn btn-primary">Editar Perfil</a>
-        </div>
-        
-        <h3 style="color: var(--primary); margin-bottom: 1rem;">Meus Posts</h3>
-        {posts_html}
-        
-        <div style="text-align:center;margin-top:2rem;">
-            <a href="/logout" style="font-size:0.85rem;color:#c00;text-decoration:none;font-weight:700;">Sair da Conta</a>
-        </div>
-    </main>
-{page_footer(True)}"""
+        return render_template('meu_perfil.html', content_html=posts_html, current_user=current_user)
 
     async def _configuracoes_page(self, db, current_user):
-        """Página de configurações do usuário."""
+        """Página de configurações do usuário - usando template externo."""
         if not current_user:
             return redirect('/login')
         
-        user = current_user
-        # Escape user data for safe display
-        username = escape_html(user.get('username', ''))
-        email = escape_html(user.get('email', ''))
-        nome = escape_html(user.get('nome', 'Não informado'))
-        
-        return f"""{page_head("Configurações — Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <main>
-        <div class="card" style="max-width: 500px; margin: 0 auto;">
-            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Configurações</h2>
-            
-            <div style="margin-bottom: 2rem;">
-                <h3 style="font-size: 1rem; margin-bottom: 0.8rem;">Informações da Conta</h3>
-                <p style="font-size: 0.85rem; margin-bottom: 0.5rem;"><strong>Usuárie:</strong> @{username}</p>
-                <p style="font-size: 0.85rem; margin-bottom: 0.5rem;"><strong>Email:</strong> {email}</p>
-                <p style="font-size: 0.85rem;"><strong>Nome:</strong> {nome}</p>
-            </div>
-            
-            <div style="border-top: 1px solid var(--border); padding-top: 1.5rem;">
-                <h3 style="font-size: 1rem; margin-bottom: 0.8rem;">Ações</h3>
-                <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-                    <a href="/perfil" class="btn" style="background:#f1edff;color:var(--primary);text-align:center;">← Voltar ao Perfil</a>
-                    <a href="/" class="btn" style="background:#f1edff;color:var(--primary);text-align:center;">Ir para o Feed</a>
-                    <a href="/logout" class="btn" style="background:#ffebee;color:#c00;text-align:center;">Sair da Conta</a>
-                </div>
-            </div>
-        </div>
-    </main>
-{page_footer(True)}"""
+        # Passar dados do usuário para o template
+        return render_template('configuracoes.html', current_user=current_user)
 
     def _not_found_page(self, path):
-        """Página 404."""
-        return f"""{page_head("Página não encontrada — Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <main>
-        <div class="card" style="text-align: center;">
-            <h2 style="color: var(--primary);">Página não encontrada</h2>
-            <p style="color: var(--text-dim); margin: 1rem 0;">
-                A página <code style="background: #f1edff; padding: 2px 8px; border-radius: 6px;">{path}</code> não existe.
-            </p>
-            <a href="/" class="btn btn-primary">Voltar ao início</a>
-        </div>
-    </main>
-{page_footer(False)}"""
+        """Página 404 - usando template externo."""
+        return render_template('404.html', path=escape_html(path))
 
     async def _admin_page(self, db, current_user):
-        """Admin Dashboard page - VERSÃO COMPLETA com todas as abas."""
+        """Admin Dashboard page - usando template externo."""
         # Check if user is admin
         if not current_user:
-            return f"""{page_head("Acesso Restrito — Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <main>
-        <div class="card" style="text-align: center;">
-            <h2 style="color: var(--primary);">Acesso Restrito</h2>
-            <p style="color: var(--text-dim); margin: 1rem 0;">
-                Você precisa estar logado para acessar esta página.
-            </p>
-            <a href="/login" class="btn btn-primary">Fazer Login</a>
-        </div>
-    </main>
-{page_footer(False)}"""
+            return render_template('acesso_restrito.html', 
+                message='Você precisa estar logado para acessar esta página.',
+                button_url='/login',
+                button_text='Fazer Login')
         
         is_admin = current_user.get('is_admin', False) or current_user.get('is_superadmin', False)
         if not is_admin:
-            return f"""{page_head("Acesso Restrito — Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <main>
-        <div class="card" style="text-align: center;">
-            <h2 style="color: var(--primary);">Acesso Restrito</h2>
-            <p style="color: var(--text-dim); margin: 1rem 0;">
-                Você não tem permissão para acessar o painel de administração.
-            </p>
-            <a href="/" class="btn btn-primary">Voltar ao início</a>
-        </div>
-    </main>
-{page_footer(False)}"""
+            return render_template('acesso_restrito.html',
+                message='Você não tem permissão para acessar o painel de administração.',
+                button_url='/',
+                button_text='Voltar ao início')
         
         # Get admin stats
         stats = await get_admin_stats(db) if db else {}
@@ -3688,153 +2772,16 @@ class Default(WorkerEntrypoint):
                 </td>
             </tr>'''
         
-        return f"""{page_head("Painel de Controle — Gramátike", """
-        .admin-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0; }}
-        .admin-stat {{ background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; text-align: center; }}
-        .admin-stat h3 {{ color: var(--primary); font-size: 2rem; margin: 0; }}
-        .admin-stat p {{ color: var(--text-dim); margin: 0.5rem 0 0; font-size: 0.9rem; }}
-        .admin-section {{ background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; margin: 1.5rem 0; }}
-        .admin-section h2 {{ color: var(--primary); margin: 0 0 1rem; font-size: 1.2rem; }}
-        .tabs {{ margin-top:1.4rem; display:flex; flex-wrap:wrap; gap:.65rem; justify-content:center; border:none; padding:0; }}
-        .tab-link {{ text-decoration:none; font-weight:700; font-size:.7rem; letter-spacing:.55px; padding:.65rem 1.05rem .62rem; background:#ffffff14; color:#fff; border:1px solid #ffffff25; backdrop-filter:blur(4px); border-radius:22px; display:inline-flex; align-items:center; gap:.35rem; box-shadow:0 2px 6px rgba(0,0,0,.28); transition:.25s; cursor:pointer; }}
-        .tab-link:hover {{ background:#555; color:#fff; }}
-        .tab-link.active {{ background:#fff; color:#333; box-shadow:0 6px 18px -4px rgba(0,0,0,.55); }}
-        .tab-panel {{ display:none; }}
-        .tab-panel.active {{ display:block; }}
-        table.admin-users {{ width:100%; border-collapse:collapse; font-size:0.85rem; margin:1rem 0; }}
-        table.admin-users th, table.admin-users td {{ padding:10px 12px; border:1px solid var(--border); text-align:left; }}
-        table.admin-users th {{ background:var(--bg-alt); font-weight:600; }}
-        .badge {{ display:inline-block; padding:3px 8px; border-radius:12px; font-size:0.6rem; font-weight:600; letter-spacing:.5px; }}
-        .badge-admin {{ background:var(--primary); color:#fff; }}
-        .badge-superadmin {{ background:linear-gradient(120deg,#ffb347,#ff6b6b); color:#fff; }}
-        .action-btn {{ cursor:pointer; background:#ffffff; border:1px solid var(--border); padding:6px 12px; border-radius:6px; font-size:0.7rem; font-weight:600; margin-right:0.5rem; }}
-        .action-btn:hover {{ background:#f0f6ff; border-color:#9bb9ee; }}
-        .action-btn.danger {{ border-color:#e7b1b1; color:#d04444; }}
-        .action-btn.danger:hover {{ background:#ffecec; border-color:#f5a2a2; }}
-        """)}
-    <header class="site-head">
-        <h1 class="logo">Painel de Controle</h1>
-        <a href="/" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);color:#fff;text-decoration:none;font-weight:700;">← Voltar</a>
-    </header>
-    
-    <nav class="tabs" role="tablist">
-        <a href="javascript:void(0)" data-tab="geral" class="tab-link active" role="tab" aria-selected="true">📊 Geral</a>
-        <a href="javascript:void(0)" data-tab="analytics" class="tab-link" role="tab">📈 Analytics</a>
-        <a href="javascript:void(0)" data-tab="edu" class="tab-link" role="tab">📚 Edu</a>
-        <a href="javascript:void(0)" data-tab="gramatike" class="tab-link" role="tab">✏️ Gramátike</a>
-        <a href="javascript:void(0)" data-tab="publi" class="tab-link" role="tab">📢 Publi</a>
-    </nav>
-    
-    <div class="content-wrapper">
-    <main style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
-        
-        <!-- ABA GERAL -->
-        <section class="tab-panel active" id="tab-geral" role="tabpanel">
-            <h2>Visão Geral</h2>
-            
-            <div class="admin-grid">
-                <div class="admin-stat">
-                    <h3>{total_users}</h3>
-                    <p>Usuáries</p>
-                </div>
-                <div class="admin-stat">
-                    <h3>{total_posts}</h3>
-                    <p>Posts</p>
-                </div>
-                <div class="admin-stat">
-                    <h3>{total_comments}</h3>
-                    <p>Comentários</p>
-                </div>
-            </div>
-            
-            <div class="admin-section">
-                <h2>Usuáries Cadastrades</h2>
-                <table class="admin-users">
-                    <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {users_html}
-                    </tbody>
-                </table>
-            </div>
-        </section>
-        
-        <!-- ABA ANALYTICS -->
-        <section class="tab-panel" id="tab-analytics" role="tabpanel">
-            <h2>Analytics</h2>
-            <div class="admin-section">
-                <p>Estatísticas e métricas do sistema aparecerão aqui.</p>
-                <p style="color: var(--text-dim); font-size: 0.9rem;">Total de Posts: {total_posts}</p>
-                <p style="color: var(--text-dim); font-size: 0.9rem;">Total de Comentários: {total_comments}</p>
-            </div>
-        </section>
-        
-        <!-- ABA EDU -->
-        <section class="tab-panel" id="tab-edu" role="tabpanel">
-            <h2>Conteúdos Educacionais</h2>
-            <div class="admin-section">
-                <p>Gerenciamento de artigos, apostilas, podcasts e novidades.</p>
-                <div style="margin-top:1rem;">
-                    <a href="/educacao" class="action-btn">Ver Conteúdos</a>
-                </div>
-            </div>
-        </section>
-        
-        <!-- ABA GRAMÁTIKE -->
-        <section class="tab-panel" id="tab-gramatike" role="tabpanel">
-            <h2>Exercícios Gramátike</h2>
-            <div class="admin-section">
-                <p>Gerenciamento de exercícios, questões e tópicos.</p>
-                <div style="margin-top:1rem;">
-                    <a href="/exercicios" class="action-btn">Ver Exercícios</a>
-                </div>
-            </div>
-        </section>
-        
-        <!-- ABA PUBLI -->
-        <section class="tab-panel" id="tab-publi" role="tabpanel">
-            <h2>Publicidade e Divulgação</h2>
-            <div class="admin-section">
-                <p>Gerenciamento de cards de destaque e promoções.</p>
-            </div>
-        </section>
-        
-    </main>
-    </div>
-    
-    <script>
-    // Sistema de abas
-    document.addEventListener('DOMContentLoaded', function() {{
-        const tabLinks = document.querySelectorAll('.tab-link');
-        const tabPanels = document.querySelectorAll('.tab-panel');
-        
-        tabLinks.forEach(link => {{
-            link.addEventListener('click', function(e) {{
-                e.preventDefault();
-                const targetTab = this.getAttribute('data-tab');
-                
-                // Remove active de todas as abas
-                tabLinks.forEach(l => l.classList.remove('active'));
-                tabPanels.forEach(p => p.classList.remove('active'));
-                
-                // Adiciona active na aba clicada
-                this.classList.add('active');
-                document.getElementById('tab-' + targetTab).classList.add('active');
-            }});
-        }});
-    }});
-    </script>
-    
-{page_footer(False)}"""
+        # Usar template externo com placeholders
+        return render_template('admin_panel.html',
+            total_users=total_users,
+            total_posts=total_posts,
+            total_comments=total_comments,
+            users_table_html=users_html,
+            footer_html=page_footer(False))
 
     async def _esqueci_senha_page(self, db, current_user, request, method):
-        """Página Esqueci Minha Senha."""
+        """Página Esqueci Minha Senha - usando template externo."""
         # Se já logado, redireciona para a página inicial
         if current_user:
             return redirect('/')
@@ -3882,49 +2829,17 @@ class Default(WorkerEntrypoint):
                 message = "Erro ao processar solicitação. Tente novamente."
                 message_type = "error"
         
-        message_html = ""
+        # Usar template externo
+        flash_html = ""
         if message:
-            bg_color = "#e8f5e9" if message_type == "success" else "#ffebee"
-            text_color = "#2e7d32" if message_type == "success" else "#c62828"
-            message_html = f'<div style="background: {bg_color}; color: {text_color}; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.9rem;">{message}</div>'
-        
-        extra_css = """
-        .esqueci-wrapper { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:2.2rem 1.2rem 3.5rem; }
-        .esqueci-card { width:100%; max-width:400px; background:#fff; border-radius:18px; padding:2rem; box-shadow:0 10px 26px -4px rgba(0,0,0,.12); }
-        .esqueci-card h2 { margin:0 0 1.5rem; font-size:1.4rem; font-weight:800; text-align:center; color: var(--primary); }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem; color: #666; }
-        .form-group input { width: 100%; padding: 0.75rem; border: 1.5px solid #d9e1ea; border-radius: 10px; font-size: 0.9rem; }
-        .form-group input:focus { outline: none; border-color: var(--primary); }
-        .button-primary { width: 100%; background: var(--primary); color: #fff; border: none; padding: 0.9rem; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
-        .button-primary:hover { background: #7d3dc9; }
-        .back-link { display: block; text-align: center; margin-top: 1.5rem; color: var(--primary); text-decoration: none; font-size: 0.9rem; }
-        .back-link:hover { text-decoration: underline; }
-        header.site-head { display: none; }
-        footer { display: none; }
-        """
-        
-        return f"""{page_head("Esqueci Minha Senha — Gramátike", extra_css)}
-    <div class="esqueci-wrapper">
-        <div class="esqueci-card">
-            {message_html}
-            <h2>Esqueci minha senha</h2>
-            <form method="POST" action="/esqueci-senha">
-                <div class="form-group">
-                    <label for="email">Digite seu e-mail cadastrado:</label>
-                    <input type="email" id="email" name="email" required placeholder="seu@email.com">
-                </div>
-                <button type="submit" class="button-primary">Enviar link de recuperação</button>
-            </form>
-            <a href="/login" class="back-link">Voltar ao login</a>
-        </div>
-    </div>
-    {mobile_nav(False)}
-</body>
-</html>"""
+            if message_type == "success":
+                flash_html = create_success_html(message)
+            else:
+                flash_html = create_error_html(message)
+        return render_template('esqueci_senha.html', flash_html=flash_html)
 
     async def _reset_senha_page(self, db, current_user, request, method):
-        """Página Redefinir Senha."""
+        """Página Redefinir Senha - usando template externo."""
         # Se já logado, redireciona para a página inicial
         if current_user:
             return redirect('/')
@@ -3993,62 +2908,11 @@ class Default(WorkerEntrypoint):
             message = "Serviço temporariamente indisponível."
             message_type = "error"
         
-        message_html = ""
+        # Usar template externo
+        flash_html = ""
         if message:
-            bg_color = "#e8f5e9" if message_type == "success" else "#ffebee"
-            text_color = "#2e7d32" if message_type == "success" else "#c62828"
-            message_html = f'<div style="background: {bg_color}; color: {text_color}; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.9rem;">{message}</div>'
-        
-        extra_css = """
-        .reset-wrapper { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:2.2rem 1.2rem 3.5rem; }
-        .reset-card { width:100%; max-width:480px; background:#fff; border-radius:18px; padding:2rem; box-shadow:0 10px 26px -4px rgba(0,0,0,.12); }
-        .reset-card h2 { margin:0 0 1.5rem; font-size:1.4rem; font-weight:800; text-align:center; color: var(--primary); }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 0.4rem; color: #666; }
-        .form-group input { width: 100%; padding: 0.75rem; border: 1.5px solid #d9e1ea; border-radius: 10px; font-size: 0.9rem; }
-        .form-group input:focus { outline: none; border-color: var(--primary); }
-        .button-primary { width: 100%; background: var(--primary); color: #fff; border: none; padding: 0.9rem; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
-        .button-primary:hover { background: #7d3dc9; }
-        header.site-head { display: none; }
-        footer { display: none; }
-        """
-        
-        # If token is invalid, show error page
-        if message_type == "error" and token_data is None:
-            return f"""{page_head("Redefinir Senha — Gramátike", extra_css)}
-    <div class="reset-wrapper">
-        <div class="reset-card">
-            {message_html}
-            <h2>Redefinir senha</h2>
-            <p style="text-align: center; color: #666;">
-                O link de redefinição de senha é inválido ou expirou. 
-                <a href="/esqueci-senha" style="color: var(--primary);">Solicite um novo link</a>.
-            </p>
-        </div>
-    </div>
-    {mobile_nav(False)}
-</body>
-</html>"""
-        
-        return f"""{page_head("Redefinir Senha — Gramátike", extra_css)}
-    <div class="reset-wrapper">
-        <div class="reset-card">
-            {message_html}
-            <h2>Redefinir senha</h2>
-            <form method="POST" action="/reset-senha">
-                <input type="hidden" name="token" value="{escape_html(token)}">
-                <div class="form-group">
-                    <label for="password">Nova senha</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                <div class="form-group">
-                    <label for="password2">Confirmar nova senha</label>
-                    <input type="password" id="password2" name="password2" required>
-                </div>
-                <button type="submit" class="button-primary">Salvar nova senha</button>
-            </form>
-        </div>
-    </div>
-    {mobile_nav(False)}
-</body>
-</html>"""
+            if message_type == "success":
+                flash_html = create_success_html(message)
+            else:
+                flash_html = create_error_html(message)
+        return render_template('reset_senha.html', flash_html=flash_html)

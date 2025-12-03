@@ -11,7 +11,7 @@ compatibility_flags = [
 
 # Assets estáticos (CSS, JS, imagens)
 [assets]
-directory = "static"
+directory = "gramatike_app/static"
 binding = "ASSETS"
 
 # Variáveis de ambiente (valores reais devem ser configurados via dashboard)

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Respostas — </title>
+  <title>Respostas — <!-- VAR_PLACEHOLDER --></title>
   <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/gramatike_common.css">
   <style>
@@ -33,26 +33,26 @@
 </head>
 <body>
   <header class="site-head">
-    <h1 class="logo"></h1>
+    <h1 class="logo"><!-- VAR_PLACEHOLDER --></h1>
   </header>
   <main>
     <div class="row" style="justify-content:space-between; margin-bottom:1rem;">
       <div class="row">
-        <span class="chip"></span>
-        <span class="pill">Ativa</span><!-- ELSE --><span class="pill">Inativa</span><!-- ENDIF -->
+        <span class="chip"><!-- VAR_PLACEHOLDER --></span>
+        <span class="pill">Ativa</span><span class="pill">Inativa</span>
       </div>
       <div class="row">
-        <a class="btn" href="/dinamicas">Voltar</a>
-        <a class="btn" href="">Baixar CSV</a>
-        <a class="btn" href="">Abrir pública</a>
+        <a class="btn" href="/dinamicas-home">Voltar</a>
+        <a class="btn" href="<!-- VAR_PLACEHOLDER -->">Baixar CSV</a>
+        <a class="btn" href="<!-- VAR_PLACEHOLDER -->">Abrir pública</a>
       </div>
     </div>
 
     
       <div class="card" style="margin-bottom:1rem;">
-        <div class="muted"></div>
+        <div class="muted"><!-- VAR_PLACEHOLDER --></div>
       </div>
-    <!-- ENDIF -->
+    
 
     
       <div class="card" style="margin-bottom:1rem;">
@@ -60,46 +60,46 @@
         
           <ul>
             
-              <li><strong><!-- VAR: w --></strong>: <!-- VAR: c --></li>
-            <!-- END_FOR_LOOP -->
+              <li><strong><!-- VAR_PLACEHOLDER --></strong>: <!-- VAR_PLACEHOLDER --></li>
+            
           </ul>
-        <!-- ELSE -->
+        
           <p class="muted">Sem respostas ainda.</p>
-        <!-- ENDIF -->
+        
       </div>
-    <!-- ELIF -->
+    
       <div class="card" style="margin-bottom:1rem;">
         <h3 style="margin-top:0;">Parciais da enquete</h3>
         
         
         
-          <!-- FOR_LOOP: opts -->
-            {% set bar_color = colors[loop.index0 % colors|length] %}
+          
+            
             <div style="margin:.35rem 0;">
               <div style="display:flex; justify-content:space-between;">
-                <strong><!-- VAR: opt --></strong>
-                <span class="badge"></span>
+                <strong><!-- VAR_PLACEHOLDER --></strong>
+                <span class="badge"><!-- VAR_PLACEHOLDER --></span>
               </div>
               <div style="height:8px; background:#eee; border-radius:6px; overflow:hidden;">
                 
-                <!-- END_FOR_LOOP -->
                 
-                {% set pct_str = '%.1f' % pct %}
-                <div class="bar-fill" data-w="<!-- VAR: pct_str -->" style="height:100%; background:<!-- VAR: bar_color -->;"></div>
+                
+                
+                <div class="bar-fill" data-w="<!-- VAR_PLACEHOLDER -->" style="height:100%; background:<!-- VAR_PLACEHOLDER -->;"></div>
               </div>
             </div>
-          <!-- END_FOR_LOOP -->
-        <!-- ELSE -->
+          
+        
           <p class="muted">Sem votos ainda.</p>
-        <!-- ENDIF -->
+        
       </div>
-    <!-- ELIF -->
+    
       
       <div class="card" style="margin-bottom:1rem;">
         <h3 style="margin-top:0;">Taxa de Acertos</h3>
         <div style="padding:1rem; background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; margin-bottom:1rem;">
           <div style="font-size:1.8rem; font-weight:800; color:#9B5DE5; text-align:center;">
-            %
+            <!-- VAR_PLACEHOLDER -->%
           </div>
           <div style="text-align:center; color:#666; font-size:.85rem; margin-top:.3rem;">Taxa de Acertos Geral</div>
         </div>
@@ -108,38 +108,38 @@
           <div style="margin-bottom:1rem; padding:.8rem; background:#f9f9f9; border-radius:8px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem;">
               <div>
-                <strong>Item </strong>
-                <span class="chip" style="margin-left:.4rem;"></span>
+                <strong>Item <!-- VAR_PLACEHOLDER --></strong>
+                <span class="chip" style="margin-left:.4rem;"><!-- VAR_PLACEHOLDER --></span>
               </div>
-              <div style="font-size:1.2rem; font-weight:800; color:#9B5DE5;">%</div>
+              <div style="font-size:1.2rem; font-weight:800; color:#9B5DE5;"><!-- VAR_PLACEHOLDER -->%</div>
             </div>
             
-              <div style="font-style:italic; color:#666; margin-bottom:.3rem;">""</div>
-            <!-- ELSE -->
-              <div style="color:#666; margin-bottom:.3rem;">Foto: <a href="" target="_blank">ver imagem</a></div>
-            <!-- ENDIF -->
+              <div style="font-style:italic; color:#666; margin-bottom:.3rem;">"<!-- VAR_PLACEHOLDER --><!-- VAR_PLACEHOLDER -->"</div>
+            
+              <div style="color:#666; margin-bottom:.3rem;">Foto: <a href="<!-- VAR_PLACEHOLDER -->" target="_blank">ver imagem</a></div>
+            
             <div style="color:#666; font-size:.85rem;">
-              Resposta correta: <strong></strong>
+              Resposta correta: <strong><!-- VAR_PLACEHOLDER --></strong>
               
               <div style="font-size:.8rem; margin-top:.2rem; color:#888;">
-                Alternativas: 
+                Alternativas: <!-- VAR_PLACEHOLDER -->
               </div>
-              <!-- ENDIF -->
+              
             </div>
             <div style="color:#888; font-size:.8rem; margin-top:.3rem;">
-               de  acertaram
+              <!-- VAR_PLACEHOLDER --> de <!-- VAR_PLACEHOLDER --> acertaram
             </div>
           </div>
-        <!-- END_FOR_LOOP -->
+        
       </div>
-      <!-- ENDIF -->
-    <!-- ENDIF -->
+      
+    
 
     <div class="card">
       <h3 style="margin-top:0;">Respostas</h3>
       
         <p class="muted">Sem respostas ainda.</p>
-      <!-- ELSE -->
+      
         <table class="table">
           <thead>
             <tr>
@@ -150,63 +150,64 @@
           </thead>
           <tbody>
             
-              <!-- FOR_LOOP: rows -->
+              
               <tr>
-                <td>@</td>
-                <td></td>
+                <td>@<!-- VAR_PLACEHOLDER --></td>
+                <td><!-- VAR_PLACEHOLDER --></td>
                 <td>
                   
-                    , <!-- ENDIF -->, <!-- ENDIF -->
-                  <!-- ELSE -->
-                    
-                  <!-- ENDIF -->
+                    <!-- VAR_PLACEHOLDER -->, <!-- VAR_PLACEHOLDER -->, <!-- VAR_PLACEHOLDER -->
+                  
+                    <!-- VAR_PLACEHOLDER -->
+                  
                 </td>
               </tr>
-              <!-- END_FOR_LOOP -->
-            <!-- ELIF -->
               
-              <!-- FOR_LOOP: rows -->
+            
+              
+              
               
               <tr>
-                <td>@</td>
-                <td></td>
-                <td></td>
+                <td>@<!-- VAR_PLACEHOLDER --></td>
+                <td><!-- VAR_PLACEHOLDER --></td>
+                <td><!-- VAR_PLACEHOLDER --></td>
               </tr>
-              <!-- END_FOR_LOOP -->
-            <!-- ELIF -->
-              <!-- FOR_LOOP: rows -->
+              
+            
+              
               <tr>
-                <td>@</td>
-                <td></td>
+                <td>@<!-- VAR_PLACEHOLDER --></td>
+                <td><!-- VAR_PLACEHOLDER --></td>
                 <td>
                   
-                  <!-- FOR_LOOP: respostas -->
-                    <div><strong>Item :</strong> <!-- VAR: resp --></div>
-                  <!-- END_FOR_LOOP -->
+                  
+                    <div><strong>Item <!-- VAR_PLACEHOLDER -->:</strong> <!-- VAR_PLACEHOLDER --></div>
+                  
                 </td>
               </tr>
-              <!-- END_FOR_LOOP -->
-            <!-- ELSE -->
               
-              <!-- END_FOR_LOOP -->
-              <!-- FOR_LOOP: rows -->
+            
+              
+              
+              
                 <tr>
-                  <td>@</td>
-                  <td></td>
+                  <td>@<!-- VAR_PLACEHOLDER --></td>
+                  <td><!-- VAR_PLACEHOLDER --></td>
                   <td>
                     
                       
-                      <div><strong>:</strong> </div>
-                    <!-- END_FOR_LOOP -->
+                      <div><strong><!-- VAR_PLACEHOLDER -->:</strong> <!-- VAR_PLACEHOLDER --></div>
+                    
                   </td>
                 </tr>
-              <!-- END_FOR_LOOP -->
-            <!-- ENDIF -->
+              
+            
           </tbody>
         </table>
-      <!-- ENDIF -->
+      
     </div>
-  </main>
+  <!-- CONTENT_PLACEHOLDER -->
+</main>
   <script>
   (function(){
     // aplica largura das barras da enquete sem usar expressões no CSS inline

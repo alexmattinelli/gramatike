@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gramátike</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --font-base: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-brand: 'Mansalva', cursive;
+}
+body, p, label, input, button, a, span, li, td, th, div { font-family: var(--font-base) !important; }
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-base); font-weight:800; line-height:1.15; margin:0 0 .75em; }
+.logo, h1.logo { font-family: var(--font-brand) !important; font-weight:400; letter-spacing:1px; margin:0; }
+button { font-family: var(--font-base); font-weight:600; }
+</style>
+<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+<link rel="icon" type="image/png" href="/static/favicon.png">
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/gramatike_common.css">
+<link rel="manifest" href="/static/manifest.webmanifest">
+<meta name="theme-color" content="#9B5DE5">
+<link rel="apple-touch-icon" href="/static/img/icons/icon-192.png">
+<script src="/static/js/theme.js"></script>
+<script src="/static/js/pwa.js" defer></script>
+<style>
+  :root {
+    --primary: #9B5DE5;
+    --primary-dark: #9B5DE5;
+    --text: #222;
+    --text-secondary: #666;
+    --text-dim: #888;
+    --bg: #f7f8ff;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --input: #ffffff;
+    --shadow: rgba(130, 87, 229, 0.12);
+  }
+  body.dark {
+    --text: #e5e7eb;
+    --text-dim: #aaa;
+    --bg: #0f172a;
+    --card: #1e293b;
+    --border: #334155;
+  }
+  html, body { height:100%; overflow-x:hidden; }
+  body { font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); margin:0; display:flex; flex-direction:column; min-height:100vh; }
+  .content-wrapper { background: var(--bg); flex:1; border-top-left-radius:35px; border-top-right-radius:35px; margin-top:-30px; padding-top:30px; position:relative; z-index:1; }
+  header.site-head { background: var(--primary); padding:28px clamp(16px,4vw,40px) 46px; border-radius:0; position:relative; display:flex; flex-direction:column; align-items:center; }
+  .logo { font-family: var(--font-brand) !important; font-size:2.5rem; color:#fff; letter-spacing:1px; font-weight:400; }
+  @media (max-width: 980px){ 
+    header.site-head { padding:18px clamp(12px,3vw,24px) 28px; }
+    .logo { font-size:1.8rem; }
+  }
+  .like-btn.liked { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
+  .feed-item { background: #fff; border: 1px solid var(--border); padding: 1.2rem 1.4rem; border-radius: 20px; margin-bottom: 1.2rem; box-shadow: 0 8px 20px -4px rgba(0,0,0,0.08); }
+  body.dark .feed-item { background: var(--card); }
+  .side-card { background: #fff; border: 1px solid var(--border); padding: 1.2rem; border-radius: 20px; margin-bottom: 1rem; box-shadow: 0 6px 16px -4px rgba(0,0,0,0.06); }
+  body.dark .side-card { background: var(--card); }
+  .action-btn { background: #f8f5ff; border: 1px solid #e5e0f5; padding: 0.6rem; border-radius: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--primary); transition: 0.18s; }
+  .action-btn:hover { background: #f0ebff; }
+  .ttt-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 180px; margin: 0 auto; }
+  .ttt-cell { aspect-ratio: 1; background: #f8f5ff; border: 2px solid var(--primary); border-radius: 12px; font-size: 1.8rem; font-weight: 800; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .ttt-cell:disabled { opacity: 0.6; cursor: default; }
+  .empty { text-align: center; color: var(--text-dim); font-size: 0.85rem; padding: 1rem; }
+  .notif-item { display: block; padding: 0.5rem 0.6rem; border-radius: 10px; background: #f9fafb; margin-bottom: 0.4rem; text-decoration: none; color: inherit; }
+  body.dark .notif-item { background: #334155; }
+  /* Mobile actions card */
+  #mobile-toggle-triangle { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 50px; height: 50px; background: var(--primary); border-radius: 50%; z-index: 500; cursor: pointer; box-shadow: 0 6px 20px rgba(155,93,229,0.5); }
+  #triangle-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+  #triangle-svg { transition: transform 0.3s; }
+  #mobile-actions-card { display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 400px; background: #fff; border-radius: 24px; padding: 1rem; box-shadow: 0 12px 40px rgba(0,0,0,0.25); z-index: 499; }
+  #mobile-actions-card.visible { display: block; }
+  body.dark #mobile-actions-card { background: var(--card); }
+  .mobile-actions-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+  @media (max-width: 980px) {
+    #mobile-toggle-triangle { display: block; }
+  }
+  /* Layout */
+  .layout { display: flex; gap: 1.5rem; max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  #feed-list { flex: 1; min-width: 0; }
+  .side-col { width: 320px; flex-shrink: 0; }
+  @media (max-width: 980px) {
+    .layout { flex-direction: column; padding: 1rem; }
+    .side-col { display: none; }
+  }
+  /* Search box */
+  .search-box { display: flex; gap: 0.6rem; max-width: 600px; margin: 0 auto 1.5rem; padding: 0 1rem; }
+  .search-box input { flex: 1; padding: 0.8rem 1.2rem; border: 1px solid var(--border); border-radius: 50px; font-size: 0.9rem; background: var(--input); color: var(--text); }
+  .search-btn { background: var(--primary); color: #fff; border: none; padding: 0.8rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+</style>
+<!-- EXTRA_CSS_PLACEHOLDER -->
+</head>
+<body>
+    <header class="site-head">
+        <h1 class="logo">Gramátike</h1>
+        <a href="/perfil" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);width:64px;height:64px;border-radius:50%;overflow:hidden;border:3px solid rgba(255,255,255,0.35);box-shadow:0 4px 14px rgba(0,0,0,0.25);">
+            <img src="<!-- USER_FOTO_PLACEHOLDER -->" alt="Perfil" style="width:100%;height:100%;object-fit:cover;">
+        </a>
+    </header>
+    <div class="content-wrapper">
+    <main>
+        <!-- Triângulo toggle para mostrar/esconder card de ações (mobile only) -->
+        <div id="mobile-toggle-triangle" onclick="toggleMobileActionsCard()">
+            <div id="triangle-icon">
+                <svg id="triangle-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+        </div>
+        
+        <!-- Card de Ações Rápidas (mobile only) -->
+        <div id="mobile-actions-card">
+            <div class="mobile-actions-row">
+                <button onclick="location.href='/suporte'" class="action-btn" title="Suporte">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </button>
+                <button onclick="location.href='/configuracoes'" class="action-btn" title="Configurações">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </button>
+                <button onclick="toggleMobileTicTacToe()" class="action-btn" title="Jogo da Velha">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M6 12h4"></path><path d="M14 12h4"></path><path d="M8 8v8"></path><path d="M16 8v8"></path></svg>
+                </button>
+                <button onclick="toggleMobileNotifications()" class="action-btn" title="Notificações" style="position:relative;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    <span id="mobile-notif-badge" class="action-badge" style="display:none;">0</span>
+                </button>
+                <button onclick="toggleMobileAmigues()" class="action-btn" title="Amigues">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </button>
+            </div>
+            <!-- Amigues mobile panel -->
+            <div id="mobile-amigues-panel" style="display:none;">
+                <h3 style="margin:0 0 0.8rem;font-size:1rem;font-weight:800;letter-spacing:0.5px;color:var(--primary);text-align:center;">Amigues</h3>
+                <div id="mobile-amigues-list" style="display:flex;flex-direction:column;gap:0.65rem;min-height:20px;"></div>
+                <div id="mobile-amigues-empty" style="display:none;font-size:0.7rem;opacity:0.7;line-height:1.3;text-align:center;">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
+            </div>
+            <!-- Tic-Tac-Toe mobile panel -->
+            <div id="mobile-ttt-panel" style="display:none;">
+                <h3 style="margin:0 0 0.55rem;font-size:0.95rem;letter-spacing:0.5px;font-weight:800;color:var(--primary);text-align:center;"># Jogo da Velha</h3>
+                <p style="margin:0.2rem 0 0.7rem;font-size:0.7rem;color:#555;font-weight:600;text-align:center;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
+                <div id="mobile_ttt_status" style="font-size:0.72rem;font-weight:800;color:var(--primary);letter-spacing:0.4px;margin:0 0 0.6rem;text-align:center;">Sua vez: você é X</div>
+                <div id="mobile_ttt_board" class="ttt-board">
+                    <button type="button" data-i="0" class="ttt-cell"></button>
+                    <button type="button" data-i="1" class="ttt-cell"></button>
+                    <button type="button" data-i="2" class="ttt-cell"></button>
+                    <button type="button" data-i="3" class="ttt-cell"></button>
+                    <button type="button" data-i="4" class="ttt-cell"></button>
+                    <button type="button" data-i="5" class="ttt-cell"></button>
+                    <button type="button" data-i="6" class="ttt-cell"></button>
+                    <button type="button" data-i="7" class="ttt-cell"></button>
+                    <button type="button" data-i="8" class="ttt-cell"></button>
+                </div>
+                <button id="mobile_ttt_reset" type="button" style="margin-top:0.8rem;background:var(--primary);color:#fff;border:none;border-radius:14px;padding:0.5rem 0.9rem;font-size:0.7rem;font-weight:800;letter-spacing:0.4px;cursor:pointer;width:100%;">Reiniciar</button>
+            </div>
+            <!-- Notifications mobile panel -->
+            <div id="mobile-notifications-panel" style="display:none;">
+                <h3 style="margin:0 0 0.8rem;font-size:1rem;font-weight:800;letter-spacing:0.5px;color:var(--primary);text-align:center;">Notificações</h3>
+                <div id="mobile-notifications-list" style="display:flex;flex-direction:column;gap:0.6rem;max-height:300px;overflow-y:auto;">
+                    <div style="text-align:center;color:#999;font-size:0.75rem;padding:1rem;">Nenhuma notificação</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Pesquisar..." onkeydown="if(event.key==='Enter')executarBusca()">
+            <button class="search-btn" onclick="executarBusca()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
+            <a href="/novo-post" class="search-btn" aria-label="Criar postagem" title="Criar postagem" style="text-decoration:none;">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </a>
+        </div>
+        
+        <div class="layout">
+            <div id="feed-list">
+                <!-- FEED_PLACEHOLDER -->
+            </div>
+            <aside class="side-col">
+                <!-- Navegação rápida: Educação e Em breve -->
+                <div style="display:flex;gap:0.8rem;margin:0 0 1.2rem;">
+                    <a href="/educacao" style="flex:1;text-decoration:none;background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%);padding:1rem 1.1rem;border-radius:20px;display:flex;align-items:center;gap:0.7rem;font-size:1rem;font-weight:800;color:#ffffff;letter-spacing:0.4px;transition:all 0.25s ease;box-shadow:0 6px 20px rgba(155,93,229,0.35);border:none;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                        Educação
+                    </a>
+                    <div style="flex:1;background:linear-gradient(135deg, #b8a4c9 0%, #9d8ab5 100%);padding:1rem 1.1rem;border-radius:20px;display:flex;align-items:center;gap:0.7rem;font-size:1rem;font-weight:800;color:#ffffff;letter-spacing:0.4px;box-shadow:0 6px 20px rgba(155,93,229,0.25);border:none;opacity:0.85;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        Em breve
+                    </div>
+                </div>
+                <!-- Card Amigues (com botões de ações e lista de amigos) -->
+                <div class="side-card" style="padding:1.3rem 1.3rem 1.1rem;margin-bottom:1rem;">
+                    <!-- Botões de ações rápidas -->
+                    <div style="display:flex;align-items:center;justify-content:center;gap:0.6rem;margin:0 0 0.8rem;">
+                        <button onclick="location.href='/suporte'" class="action-btn" title="Suporte" aria-label="Suporte">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                        </button>
+                        <button onclick="location.href='/configuracoes'" class="action-btn" title="Configurações" aria-label="Configurações">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                        </button>
+                        <button onclick="toggleNotifications()" class="action-btn" title="Notificações" aria-label="Notificações" style="position:relative;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span id="notifications-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ff9800;color:#fff;font-size:0.6rem;padding:2px 5px;border-radius:10px;font-weight:700;">0</span>
+                        </button>
+                        <!-- ADMIN_BTN_PLACEHOLDER -->
+                    </div>
+                    <!-- Painel de notificações -->
+                    <div id="notifications-panel" style="display:none;margin-bottom:0.8rem;border-bottom:1px solid var(--border);padding-bottom:0.8rem;">
+                        <div id="notifications-list" style="display:flex;flex-direction:column;gap:0.6rem;max-height:200px;overflow-y:auto;">
+                            <div style="text-align:center;color:#999;font-size:0.75rem;padding:0.5rem;">Nenhuma notificação</div>
+                        </div>
+                    </div>
+                    <!-- Divisor -->
+                    <div style="height:1px;background:var(--border);margin:0 0 0.8rem;"></div>
+                    <!-- Seção Amigues -->
+                    <h3 style="margin:0 0 0.8rem;font-size:1rem;font-weight:800;letter-spacing:0.5px;color:var(--primary);text-align:center;">Amigues</h3>
+                    <div id="amigues-list" style="display:flex;flex-direction:column;gap:0.65rem;min-height:20px;"></div>
+                    <div id="amigues-empty" style="font-size:0.7rem;opacity:0.7;line-height:1.3;text-align:center;">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
+                </div>
+                <div class="side-card">
+                    <h3>📣 Novidades</h3>
+                    <!-- DIVULGACOES_PLACEHOLDER -->
+                </div>
+                <!-- Jogo da Velha -->
+                <div class="side-card">
+                    <h3 style="margin:0.15rem 0 0.55rem;font-size:0.95rem;letter-spacing:0.5px;font-weight:800;color:var(--primary);"># Jogo da Velha</h3>
+                    <p style="margin:0.2rem 0 0.7rem;font-size:0.7rem;color:#555;font-weight:600;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
+                    <div id="ttt_status" style="font-size:0.72rem;font-weight:800;color:var(--primary);letter-spacing:0.4px;margin:0 0 0.6rem;">Sua vez: você é X</div>
+                    <div id="ttt_board" class="ttt-board">
+                        <button type="button" data-i="0" class="ttt-cell"></button>
+                        <button type="button" data-i="1" class="ttt-cell"></button>
+                        <button type="button" data-i="2" class="ttt-cell"></button>
+                        <button type="button" data-i="3" class="ttt-cell"></button>
+                        <button type="button" data-i="4" class="ttt-cell"></button>
+                        <button type="button" data-i="5" class="ttt-cell"></button>
+                        <button type="button" data-i="6" class="ttt-cell"></button>
+                        <button type="button" data-i="7" class="ttt-cell"></button>
+                        <button type="button" data-i="8" class="ttt-cell"></button>
+                    </div>
+                    <button id="ttt_reset" type="button" style="margin-top:0.8rem;background:var(--primary);color:#fff;border:none;border-radius:14px;padding:0.5rem 0.9rem;font-size:0.7rem;font-weight:800;letter-spacing:0.4px;cursor:pointer;width:100%;">Reiniciar</button>
+                </div>
+            </aside>
+        </div>
+    </main>
+    </div>
+    <script>
+    window.currentUser = "<!-- USER_USERNAME_JS_PLACEHOLDER -->";
+    window.currentUserId = <!-- USER_ID_PLACEHOLDER -->;
+    </script>
+    <script src="/static/js/feed.js"></script>
+<!-- FOOTER_PLACEHOLDER -->
+</body>
+</html>

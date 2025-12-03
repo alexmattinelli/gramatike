@@ -82,8 +82,8 @@
     <header class="site-head">
         <h1 class="logo">Gramátike Edu</h1>
         
-            <a href="/admin" style="position:absolute; top:14px; right:16px; background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; text-decoration:none; letter-spacing:.5px;">🛠️ Painel</a>
-        <!-- ENDIF -->
+            <a href="<!-- VAR_PLACEHOLDER -->" style="position:absolute; top:14px; right:16px; background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; text-decoration:none; letter-spacing:.5px;">🛠️ Painel</a>
+        
         <nav class="edu-nav" aria-label="Seções educacionais">
             <a href="/educacao">🏠 Início</a>
             <a href="/apostilas">📚 Apostilas</a>
@@ -96,16 +96,16 @@
     </header>
     <main>
         <!-- Título removido a pedido -->
-        <!-- IF: topics -->
+        
             <div class="topics-bar">
-                <!-- FOR_LOOP: topics -->
-                    <a href="#topico-"></a>
-                <!-- END_FOR_LOOP -->
+                
+                    <a href="#topico-<!-- VAR_PLACEHOLDER -->"><!-- VAR_PLACEHOLDER --></a>
+                
             </div>
-        <!-- ENDIF -->
+        
         <div class="search-box">
             <form method="get" action="">
-                <input type="text" name="q" value="<!-- VAR: q -->" placeholder="Pesquisar título ou descrição..." />
+                <input type="text" name="q" value="<!-- VAR_PLACEHOLDER -->" placeholder="Pesquisar título ou descrição..." />
                 <button type="submit" class="icon-btn" aria-label="Buscar" title="Buscar">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="11" cy="11" r="7"></circle>
@@ -116,10 +116,10 @@
         </div>
     <!-- Lista -->
         <ul class="podcast-list">
-            <!-- FOR_LOOP: conteudos -->
             
-            <li class="podcast-item" id="topico-">
-                <div class="podcast-title"></div>
+            
+            <li class="podcast-item" id="topico-<!-- VAR_PLACEHOLDER -->">
+                <div class="podcast-title"><!-- VAR_PLACEHOLDER --></div>
                 {# Garante que variáveis não vazem entre itens #}
                 
                 
@@ -131,20 +131,21 @@
                     <span style="width:4px;height:4px;background:#4b5d73;border-radius:50%;display:inline-block;margin:0 1px;"></span>
                 </button>
                 <div class="item-menu" role="menu">
-                    <button type="button" data-edit="">Editar</button>
-                    <form method="POST" action="/admin/edu/content//delete" onsubmit="return confirm('Excluir este podcast?');">
-                        <input type="hidden" name="next" value="" />
+                    <button type="button" data-edit="<!-- VAR_PLACEHOLDER -->">Editar</button>
+                    <form method="POST" action="/admin/edu/content/<!-- VAR_PLACEHOLDER -->/delete" onsubmit="return confirm('Excluir este podcast?');">
+                        <input type="hidden" name="csrf_token" value="" />
+                        <input type="hidden" name="next" value="<!-- VAR_PLACEHOLDER -->" />
                         <button type="submit" class="danger">Excluir</button>
                     </form>
                 </div>
-                <!-- ENDIF -->
+                
                 {# Spotify embed direto #}
                 
                     
                     
                     
-                        
-                    <!-- ELSE -->
+                        <!-- VAR_PLACEHOLDER -->
+                    
                         
                         
                             
@@ -152,81 +153,82 @@
                                 
                                 
                                 
-                            <!-- ENDIF -->
-                        <!-- ELSE -->
-                            <!-- ELIF --><!-- ELIF --><!-- ELIF --><!-- ELIF --><!-- ELIF --><!-- ENDIF -->
-                            <!-- IF: kind -->
+                            
+                        
+                            
+                            
                                 
                                 
-                            <!-- ENDIF -->
-                        <!-- ENDIF -->
-                        <!-- IF: embed_src -->
-                            <iframe title="Spotify" style="border-radius:12px; margin-top:.5rem;" src="<!-- VAR: embed_src -->" width="100%" height="352" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-                        <!-- ELSE -->
-                            <a href="<!-- VAR: raw_sp -->" target="_blank" rel="noopener" style="font-size:.7rem;font-weight:700;display:inline-block;margin-top:.4rem;">Abrir no Spotify ▶</a>
-                        <!-- ENDIF -->
-                    <!-- ENDIF -->
-                <!-- ELIF -->
+                            
+                        
+                        
+                            <iframe title="Spotify" style="border-radius:12px; margin-top:.5rem;" src="<!-- VAR_PLACEHOLDER -->" width="100%" height="352" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                        
+                            <a href="<!-- VAR_PLACEHOLDER -->" target="_blank" rel="noopener" style="font-size:.7rem;font-weight:700;display:inline-block;margin-top:.4rem;">Abrir no Spotify ▶</a>
+                        
+                    
+                
                     
                     
                     
                         
                         
                             
-                        <!-- ENDIF -->
-                    <!-- ELSE -->
                         
-                        <!-- ELIF --><!-- ELIF --><!-- ELIF --><!-- ELIF --><!-- ELIF --><!-- ENDIF -->
-                        <!-- IF: kind -->
+                    
+                        
+                        
+                        
                             
                             
-                        <!-- ENDIF -->
-                    <!-- ENDIF -->
-                    <!-- IF: embed_src -->
-                        <iframe title="Spotify" style="border-radius:12px; margin-top:.5rem;" src="<!-- VAR: embed_src -->" width="100%" height="352" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-                    <!-- ELSE -->
-                        <a href="<!-- VAR: spot -->" target="_blank" rel="noopener" style="font-size:.7rem;font-weight:700;display:inline-block;margin-top:.4rem;">Abrir no Spotify ▶</a>
-                    <!-- ENDIF -->
+                        
+                    
+                    
+                        <iframe title="Spotify" style="border-radius:12px; margin-top:.5rem;" src="<!-- VAR_PLACEHOLDER -->" width="100%" height="352" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                    
+                        <a href="<!-- VAR_PLACEHOLDER -->" target="_blank" rel="noopener" style="font-size:.7rem;font-weight:700;display:inline-block;margin-top:.4rem;">Abrir no Spotify ▶</a>
+                    
                 {# Campo extra com áudio (audio_url, audio, audio_mp3) #}
-                <!-- ELIF -->
+                
                     
                     <audio controls preload="none" style="margin-top:.6rem; width:100%; border-radius:12px;">
-                        <source src="<!-- VAR: au -->" type="audio/">
+                        <source src="<!-- VAR_PLACEHOLDER -->" type="audio/<!-- VAR_PLACEHOLDER -->">
                         Seu navegador não suporta áudio.
                     </audio>
                 {# URL crua contendo extensão de áudio em qualquer posição (mesmo com query) #}
-                <!-- ELIF -->
+                
                     <audio controls preload="none" style="margin-top:.6rem; width:100%; border-radius:12px;">
-                        <source src="">
+                        <source src="<!-- VAR_PLACEHOLDER -->">
                         Seu navegador não suporta áudio.
                     </audio>
                 {# iframe salvo em url #}
-                <!-- ELIF -->
+                
                     {# Se um iframe foi salvo por engano em url, renderiza-o #}
-                    
-                <!-- ELIF -->
+                    <!-- VAR_PLACEHOLDER -->
+                
                     <audio controls preload="none">
-                        <source src="" type="audio/mpeg" />
+                        <source src="<!-- VAR_PLACEHOLDER -->" type="audio/mpeg" />
                         Seu navegador não suporta áudio.
                     </audio>
-                <!-- ELIF -->
-                    <a href="" target="_blank" rel="noopener" style="font-size:.8rem;">Abrir link</a>
-                <!-- ELSE -->
+                
+                    <a href="<!-- VAR_PLACEHOLDER -->" target="_blank" rel="noopener" style="font-size:.8rem;">Abrir link</a>
+                
                     <span style="font-size:.65rem; color:#777;">Sem mídia.</span>
-                <!-- ENDIF -->
-                                                <p></p><!-- ENDIF -->
+                
+                                                <p><!-- VAR_PLACEHOLDER --></p>
                                                 
-                                                    <p class="meta-author">Autore: </p>
-                                                <!-- ENDIF -->
+                                                    <p class="meta-author">Autore: <!-- VAR_PLACEHOLDER --></p>
+                                                
             </li>
-            <!-- ELSE -->
+            
                                         <li class="podcast-item"><span style="font-size:.7rem; color:var(--text-dim); font-weight:600;">Nenhum podcast publicado.</span></li>
-            <!-- END_FOR_LOOP -->
+            
         </ul>
         
         <dialog id="editPodcastDialog">
             <form id="editPodcastForm" method="post">
                 <h3>Editar Podcast</h3>
+                <input type="hidden" name="csrf_token" value="" />
                 <input type="hidden" name="content_id" id="ep_id" />
                 <label style="display:block; font-size:.8rem; margin:.4rem 0 .2rem;">Título</label>
                 <input name="titulo" id="ep_titulo" required />
@@ -239,7 +241,7 @@
                 <label style="display:block; font-size:.8rem; margin:.6rem 0 .2rem;">Tópico</label>
                 <select name="topic_id" id="ep_topic">
                     <option value="">(Tópico)</option>
-                    <!-- FOR_LOOP: topics --><option value=""></option><!-- END_FOR_LOOP -->
+                    <option value="<!-- VAR_PLACEHOLDER -->"><!-- VAR_PLACEHOLDER --></option>
                 </select>
                 <menu style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
                     <button type="button" id="ep_cancel">Cancelar</button>
@@ -337,22 +339,23 @@
             });
         })();
         </script>
-        <!-- ENDIF -->
+        
         <div style="margin-top:2.2rem; display:flex; justify-content:center; gap:.65rem; flex-wrap:wrap;">
             
                 
                 
-                    <a href="/podcasts<!-- VAR: base_q -->page=1" style="text-decoration:none; font-size:.65rem; font-weight:800; letter-spacing:.5px; padding:.55rem .9rem .5rem; background:#f1edff; border:1px solid #e2d6f9; color:#9B5DE5; border-radius:18px;">« Primeiro</a>
-                    <a href="/podcasts<!-- VAR: base_q -->page=" style="text-decoration:none; font-size:.65rem; font-weight:800; letter-spacing:.5px; padding:.55rem .9rem .5rem; background:#f1edff; border:1px solid #e2d6f9; color:#9B5DE5; border-radius:18px;">‹ Anterior</a>
-                <!-- ENDIF -->
-                <span style="font-size:.6rem; font-weight:800; letter-spacing:.55px; color:#7d3dc9; padding:.55rem .8rem .5rem; background:#fff; border:1px solid #e2d6f9; border-radius:18px;">Página <!-- VAR: page --> / <!-- VAR: last_page --></span>
+                    <a href="/podcasts<!-- VAR_PLACEHOLDER --><!-- VAR_PLACEHOLDER -->page=1" style="text-decoration:none; font-size:.65rem; font-weight:800; letter-spacing:.5px; padding:.55rem .9rem .5rem; background:#f1edff; border:1px solid #e2d6f9; color:#9B5DE5; border-radius:18px;">« Primeiro</a>
+                    <a href="/podcasts<!-- VAR_PLACEHOLDER --><!-- VAR_PLACEHOLDER -->page=<!-- VAR_PLACEHOLDER -->" style="text-decoration:none; font-size:.65rem; font-weight:800; letter-spacing:.5px; padding:.55rem .9rem .5rem; background:#f1edff; border:1px solid #e2d6f9; color:#9B5DE5; border-radius:18px;">‹ Anterior</a>
                 
-                    <a href="/podcasts<!-- VAR: base_q -->page=" style="text-decoration:none; font-size:.65rem; font-weight:800; letter-spacing:.5px; padding:.55rem .9rem .5rem; background:#f1edff; border:1px solid #e2d6f9; color:#9B5DE5; border-radius:18px;">Próxima ›</a>
-                    <a href="/podcasts<!-- VAR: base_q -->page=<!-- VAR: last_page -->" style="text-decoration:none; font-size:.65rem; font-weight:800; letter-spacing:.5px; padding:.55rem .9rem .5rem; background:#f1edff; border:1px solid #e2d6f9; color:#9B5DE5; border-radius:18px;">Última »</a>
-                <!-- ENDIF -->
-            <!-- ENDIF -->
+                <span style="font-size:.6rem; font-weight:800; letter-spacing:.55px; color:#7d3dc9; padding:.55rem .8rem .5rem; background:#fff; border:1px solid #e2d6f9; border-radius:18px;">Página <!-- VAR_PLACEHOLDER --> / <!-- VAR_PLACEHOLDER --></span>
+                
+                    <a href="/podcasts<!-- VAR_PLACEHOLDER --><!-- VAR_PLACEHOLDER -->page=<!-- VAR_PLACEHOLDER -->" style="text-decoration:none; font-size:.65rem; font-weight:800; letter-spacing:.5px; padding:.55rem .9rem .5rem; background:#f1edff; border:1px solid #e2d6f9; color:#9B5DE5; border-radius:18px;">Próxima ›</a>
+                    <a href="/podcasts<!-- VAR_PLACEHOLDER --><!-- VAR_PLACEHOLDER -->page=<!-- VAR_PLACEHOLDER -->" style="text-decoration:none; font-size:.65rem; font-weight:800; letter-spacing:.5px; padding:.55rem .9rem .5rem; background:#f1edff; border:1px solid #e2d6f9; color:#9B5DE5; border-radius:18px;">Última »</a>
+                
+            
         </div>
-    </main>
+    <!-- CONTENT_PLACEHOLDER -->
+</main>
     <footer>
         © 2025 Gramátike • Linguagem Viva e de Todes
     </footer>

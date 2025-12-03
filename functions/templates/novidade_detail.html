@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title> — Portal Gramátike</title>
+    <title><!-- VAR_PLACEHOLDER --> — Portal Gramátike</title>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="icon" type="image/png" href="/static/favicon.png">
     <link rel="apple-touch-icon" href="/static/img/icons/icon-192.png">
@@ -73,30 +73,30 @@
         
         <article>
             <div class="article-header">
-                <h1 class="article-title"></h1>
+                <h1 class="article-title"><!-- VAR_PLACEHOLDER --></h1>
                 <div class="article-meta">
-                    <time></time>
+                    <time><!-- VAR_PLACEHOLDER --></time>
                     
-                        <span> • Por </span>
-                    <!-- ENDIF -->
+                        <span> • Por <!-- VAR_PLACEHOLDER --></span>
+                    
                 </div>
             </div>
             
             <div class="article-body">
                 
-                    <div class="content"></div>
-                <!-- ELSE -->
+                    <div class="content"><!-- VAR_PLACEHOLDER --></div>
+                
                     <p><em>Sem descrição disponível.</em></p>
-                <!-- ENDIF -->
                 
                 
-                    <a href="" class="article-link" target="_blank" rel="noopener">
+                
+                    <a href="<!-- VAR_PLACEHOLDER -->" class="article-link" target="_blank" rel="noopener">
                         🔗 Acessar conteúdo
                     </a>
-                <!-- ENDIF -->
+                
             </div>
             
-            <!-- IF: is_admin -->
+            
             <div class="admin-actions">
                 <button class="btn-edit" onclick="document.getElementById('editDialog').showModal()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -105,29 +105,30 @@
                     </svg>
                     Editar
                 </button>
-                <form method="POST" action="" onsubmit="return confirm('Tem certeza que deseja excluir esta novidade?');" style="margin:0;">
+                <form method="POST" action="<!-- VAR_PLACEHOLDER -->" onsubmit="return confirm('Tem certeza que deseja excluir esta novidade?');" style="margin:0;">
                     <input type="hidden" name="csrf_token" value="" />
                     <button type="submit" class="btn-delete">🗑️ Excluir</button>
                 </form>
             </div>
-            <!-- ENDIF -->
+            
         </article>
-    </main>
+    <!-- CONTENT_PLACEHOLDER -->
+</main>
     
     <footer>
         © 2025 Gramátike • Linguagem Viva e de Todes
     </footer>
     
-    <!-- IF: is_admin -->
+    
     <dialog id="editDialog" style="border:none; border-radius:20px; padding:0; max-width:800px; width:90%;">
-        <form method="POST" action="" style="padding:2rem;">
+        <form method="POST" action="<!-- VAR_PLACEHOLDER -->" style="padding:2rem;">
             <input type="hidden" name="csrf_token" value="" />
             <input type="hidden" name="descricao" id="descricao-input" />
             <h3 style="margin:0 0 1.5rem; color:#9B5DE5;">Editar Novidade</h3>
             
             <label style="display:block; margin-bottom:1rem;">
                 <span style="display:block; font-size:.8rem; font-weight:700; color:#666; margin-bottom:.3rem;">Título</span>
-                <input type="text" name="titulo" value="" required style="width:100%; padding:.7rem; border:1px solid #cfd7e2; border-radius:10px; font-size:.9rem;" />
+                <input type="text" name="titulo" value="<!-- VAR_PLACEHOLDER -->" required style="width:100%; padding:.7rem; border:1px solid #cfd7e2; border-radius:10px; font-size:.9rem;" />
             </label>
             
             <label style="display:block; margin-bottom:1rem;">
@@ -137,7 +138,7 @@
             
             <label style="display:block; margin-bottom:1.5rem;">
                 <span style="display:block; font-size:.8rem; font-weight:700; color:#666; margin-bottom:.3rem;">Link</span>
-                <input type="url" name="link" value="" style="width:100%; padding:.7rem; border:1px solid #cfd7e2; border-radius:10px; font-size:.9rem;" />
+                <input type="url" name="link" value="<!-- VAR_PLACEHOLDER -->" style="width:100%; padding:.7rem; border:1px solid #cfd7e2; border-radius:10px; font-size:.9rem;" />
             </label>
             
             <div style="display:flex; gap:.8rem; justify-content:flex-end;">
@@ -163,13 +164,13 @@
         });
         
         // Load existing content
-        quill.root.innerHTML =  || '';
+        quill.root.innerHTML = '' || '';
         
         // Update hidden input on form submit
         document.querySelector('#editDialog form').addEventListener('submit', function() {
             document.getElementById('descricao-input').value = quill.root.innerHTML;
         });
     </script>
-    <!-- ENDIF -->
+    
 </body>
 </html>

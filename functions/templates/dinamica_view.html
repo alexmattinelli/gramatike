@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title> — Dinâmica</title>
+  <title><!-- VAR_PLACEHOLDER --> — Dinâmica</title>
   <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/gramatike_common.css">
   <style>
@@ -46,26 +46,26 @@
 </head>
 <body>
   <header class="site-head">
-    <h1 class="logo"></h1>
+    <h1 class="logo"><!-- VAR_PLACEHOLDER --></h1>
   </header>
   <main>
     <div class="card" style="margin-bottom:1rem;">
-      <p class="muted" style="margin-top:0;"></p><!-- ENDIF -->
+      <p class="muted" style="margin-top:0;"><!-- VAR_PLACEHOLDER --></p>
       
-        <!-- IF: user_response -->
+        
           <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
-            <strong>✓ Você já respondeu:</strong> , <!-- ENDIF -->, <!-- ENDIF -->
+            <strong>✓ Você já respondeu:</strong> <!-- VAR_PLACEHOLDER -->, <!-- VAR_PLACEHOLDER -->, <!-- VAR_PLACEHOLDER -->
           </div>
           
             <h3 style="margin-top:1.5rem; margin-bottom:1.2rem;">Nuvem de palavras</h3>
             <div id="word-cloud" class="cloud" aria-label="Nuvem de palavras"></div>
-            <div id="wc-data" data-entries='' style="display:none"></div>
+            <div id="wc-data" data-entries='<!-- VAR_PLACEHOLDER -->' style="display:none"></div>
             <noscript>
               <h4 style="margin-top:.8rem;">Top palavras</h4>
               <ul>
                 
-                  <li><strong><!-- VAR: w --></strong>: <!-- VAR: c --></li>
-                <!-- END_FOR_LOOP -->
+                  <li><strong><!-- VAR_PLACEHOLDER --></strong>: <!-- VAR_PLACEHOLDER --></li>
+                
               </ul>
             </noscript>
             <script>
@@ -109,9 +109,9 @@
                 }catch(e){ /* ignore */ }
               })();
             </script>
-          <!-- ENDIF -->
-        <!-- ELSE -->
-          <form method="POST" action="">
+          
+        
+          <form method="POST" action="<!-- VAR_PLACEHOLDER -->">
             <input type="hidden" name="csrf_token" value="" />
             <label style="font-weight:700; margin-bottom:.4rem; display:block;">Palavra 1</label>
             <input type="text" name="word1" required style="width:100%; padding:.6rem; border:1px solid var(--border); border-radius:8px; margin-bottom:1rem;" />
@@ -124,14 +124,14 @@
             
             <button type="submit" class="btn primary">Enviar</button>
           </form>
-        <!-- ENDIF -->
-      <!-- ELIF -->
-        <!-- IF: user_response -->
+        
+      
+        
           
           
           
           <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
-            <strong>✓ Você já votou:</strong> <!-- VAR: user_option_text -->
+            <strong>✓ Você já votou:</strong> <!-- VAR_PLACEHOLDER -->
           </div>
           
             
@@ -139,20 +139,20 @@
             
             <h3 style="margin-top:1rem;">Parciais</h3>
             <div class="poll-bars" role="list" aria-label="Resultados parciais da enquete">
-              <!-- FOR_LOOP: options_list -->
+              
                 
                 
-                {% set bar_color = colors[loop.index0 % colors|length] %}
+                
                 <div class="poll-row" role="listitem">
-                  <div class="poll-label"><!-- VAR: opt --></div>
-                  <div class="poll-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<!-- VAR: pct -->" aria-label="<!-- VAR: opt -->: <!-- VAR: pct -->%">
-                    <div class="poll-fill" data-pct="" style="background:<!-- VAR: bar_color -->;"></div>
+                  <div class="poll-label"><!-- VAR_PLACEHOLDER --></div>
+                  <div class="poll-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<!-- VAR_PLACEHOLDER -->" aria-label="<!-- VAR_PLACEHOLDER -->: <!-- VAR_PLACEHOLDER -->%">
+                    <div class="poll-fill" data-pct="<!-- VAR_PLACEHOLDER -->" style="background:<!-- VAR_PLACEHOLDER -->;"></div>
                   </div>
-                  <div class="poll-pct">% (<!-- VAR: c -->)</div>
+                  <div class="poll-pct"><!-- VAR_PLACEHOLDER -->% (<!-- VAR_PLACEHOLDER -->)</div>
                 </div>
-              <!-- END_FOR_LOOP -->
+              
             </div>
-            <div class="muted" style="margin-top:.4rem; font-size:.75rem;">Total de votos: <!-- VAR: total --></div>
+            <div class="muted" style="margin-top:.4rem; font-size:.75rem;">Total de votos: <!-- VAR_PLACEHOLDER --></div>
             <script>
               (function(){
                 try{
@@ -164,51 +164,51 @@
                 }catch(e){}
               })();
             </script>
-          <!-- ENDIF -->
-        <!-- ELSE -->
-          <form method="POST" action="" class="options">
+          
+        
+          <form method="POST" action="<!-- VAR_PLACEHOLDER -->" class="options">
             <input type="hidden" name="csrf_token" value="" />
             
-            <!-- FOR_LOOP: options_list -->
+            
               <label style="display:flex; align-items:center; gap:.5rem;">
-                <input type="radio" name="option" value="" required /> <!-- VAR: opt -->
+                <input type="radio" name="option" value="<!-- VAR_PLACEHOLDER -->" required /> <!-- VAR_PLACEHOLDER -->
               </label>
-            <!-- END_FOR_LOOP -->
+            
             <button type="submit" class="btn primary" style="margin-top:.6rem;">Votar</button>
           </form>
-        <!-- ENDIF -->
-      <!-- ELIF -->
-        <form method="POST" action="" class="dinamica-form" style="display:flex;flex-direction:column;gap:12px;">
+        
+      
+        <form method="POST" action="<!-- VAR_PLACEHOLDER -->" class="dinamica-form" style="display:flex;flex-direction:column;gap:12px;">
           <input type="hidden" name="csrf_token" value="" />
           
-          <!-- FOR_LOOP: fields -->
+          
             <div class="q-card" style="padding:10px;border:1px solid #e3e3e3;border-radius:8px;">
               <label style="font-weight:600;display:block;margin-bottom:6px;">
-                
-                <span style="color:#d00">*</span><!-- ENDIF -->
+                <!-- VAR_PLACEHOLDER -->
+                <span style="color:#d00">*</span>
               </label>
               
-                <input type="text" name="q_" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" required<!-- ENDIF --> />
-              <!-- ELIF -->
-                <textarea name="q_" rows="4" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" required<!-- ENDIF -->></textarea>
-              <!-- ELIF -->
+                <input type="text" name="q_<!-- VAR_PLACEHOLDER -->" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" required />
+              
+                <textarea name="q_<!-- VAR_PLACEHOLDER -->" rows="4" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" required></textarea>
+              
                 
                   <label style="display:flex;align-items:center;gap:8px;margin:4px 0;">
-                    <input type="radio" name="q_" value="<!-- VAR: opt -->" required<!-- ENDIF --> />
-                    <span><!-- VAR: opt --></span>
+                    <input type="radio" name="q_<!-- VAR_PLACEHOLDER -->" value="<!-- VAR_PLACEHOLDER -->" required />
+                    <span><!-- VAR_PLACEHOLDER --></span>
                   </label>
-                <!-- END_FOR_LOOP -->
-              <!-- ELSE -->
-                <input type="text" name="q_" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" required<!-- ENDIF --> />
-              <!-- ENDIF -->
+                
+              
+                <input type="text" name="q_<!-- VAR_PLACEHOLDER -->" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" required />
+              
             </div>
-          <!-- ELSE -->
+          
             <p>Formulário sem perguntas configuradas.</p>
-          <!-- END_FOR_LOOP -->
+          
           <button type="submit" class="btn primary" style="align-self:flex-start;padding:10px 16px;border:none;border-radius:8px;cursor:pointer;">Enviar</button>
         </form>
-      <!-- ELIF -->
-        <!-- IF: user_response -->
+      
+        
           <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
             <strong>✓ Você já completou esta dinâmica!</strong>
           </div>
@@ -219,22 +219,22 @@
             <h3 style="margin-top:1.5rem; margin-bottom:1rem; color:#9B5DE5;">Suas Respostas</h3>
             
             
-            <!-- FOR_LOOP: items -->
+            
               <div class="builder-card" style="margin-bottom:.8rem;">
-                <div style="font-weight:700; color:#9B5DE5; margin-bottom:.5rem;">Item </div>
+                <div style="font-weight:700; color:#9B5DE5; margin-bottom:.5rem;">Item <!-- VAR_PLACEHOLDER --></div>
                 
-                  <p style="margin:.3rem 0;"><em>""</em></p>
-                <!-- ELSE -->
-                  <img src="" alt="Item " style="max-width:100%; height:auto; border-radius:8px; margin:.5rem 0;" />
-                <!-- ENDIF -->
+                  <p style="margin:.3rem 0;"><em>"<!-- VAR_PLACEHOLDER -->"</em></p>
+                
+                  <img src="<!-- VAR_PLACEHOLDER -->" alt="Item <!-- VAR_PLACEHOLDER -->" style="max-width:100%; height:auto; border-radius:8px; margin:.5rem 0;" />
+                
                 <div style="margin-top:.5rem;">
-                  <strong>Sua resposta:</strong> 
+                  <strong>Sua resposta:</strong> <!-- VAR_PLACEHOLDER -->
                 </div>
               </div>
-            <!-- END_FOR_LOOP -->
+            
             <div style="background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; padding:1rem; margin-top:1.5rem;">
               <h4 style="margin:0 0 .5rem; color:#9B5DE5; display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Moral da História</h4>
-              <p style="margin:0;"></p>
+              <p style="margin:0;"><!-- VAR_PLACEHOLDER --></p>
             </div>
           </div>
           <script>
@@ -244,25 +244,25 @@
               this.textContent = div.style.display === 'none' ? 'Ver Minhas Respostas' : 'Ocultar Respostas';
             });
           </script>
-        <!-- ELSE -->
+        
           <div id="quemsouleuInstrucoes">
             <div style="background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; padding:1rem; margin-bottom:1rem;">
               <h3 style="margin:0 0 .5rem; color:#9B5DE5;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Instruções</h3>
-              <p style="margin:0;">Você verá  item<!-- ELSE -->itens<!-- ENDIF --> (frases ou fotos). Para cada um, digite sua resposta sobre: <strong></strong></p>
+              <p style="margin:0;">Você verá <!-- VAR_PLACEHOLDER --> itemitens (frases ou fotos). Para cada um, digite sua resposta sobre: <strong><!-- VAR_PLACEHOLDER --></strong></p>
             </div>
             <button class="btn primary" id="iniciarBtn">Começar</button>
           </div>
           <div id="quemsouleuJogo" style="display:none;">
             <div id="itemAtual"></div>
-            <form id="quemsouleuForm" method="POST" action="" style="margin-top:1rem;">
+            <form id="quemsouleuForm" method="POST" action="<!-- VAR_PLACEHOLDER -->" style="margin-top:1rem;">
               <input type="hidden" name="csrf_token" value="" />
               <div id="respostasInputs"></div>
             </form>
           </div>
           <script>
           (function(){
-            var items = ;
-            var questaoTipo = ;
+            var items = [];
+            var questaoTipo = [];
             var currentIdx = 0;
             var respostas = new Array(items.length).fill('');
             
@@ -346,10 +346,11 @@
             }
           })();
           </script>
-        <!-- ENDIF -->
-      <!-- ENDIF -->
+        
+      
     </div>
-  </main>
+  <!-- CONTENT_PLACEHOLDER -->
+</main>
   <footer style="background:#9B5DE5; color:#fff; text-align:center; padding:1rem 0 1.1rem; font-size:.8rem; border-top-left-radius:28px; border-top-right-radius:28px; margin-top:40px;">© 2025 Gramátike • Linguagem Viva e de Todes</footer>
   <style>@media (max-width: 980px){ footer { display:none !important; } }</style>
 </body>

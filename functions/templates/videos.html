@@ -84,8 +84,8 @@
   <header class="site-head">
     <h1 class="logo">Gramátike Edu</h1>
     
-      <a href="/admin" style="position:absolute; top:14px; right:16px; background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; text-decoration:none; letter-spacing:.5px;">🛠️ Painel</a>
-    <!-- ENDIF -->
+      <a href="<!-- VAR_PLACEHOLDER -->" style="position:absolute; top:14px; right:16px; background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; text-decoration:none; letter-spacing:.5px;">🛠️ Painel</a>
+    
     <nav class="edu-nav" aria-label="Seções educacionais">
   <a href="/educacao">🏠 Início</a>
       <a href="/apostilas">📚 Apostilas</a>
@@ -98,14 +98,14 @@
   </header>
   <main>
   <!-- Título removido a pedido -->
-    <!-- IF: topics -->
+    
       <div class="topics-bar">
-        <!-- FOR_LOOP: topics --><a href="#topico-"></a><!-- END_FOR_LOOP -->
+        <a href="#topico-<!-- VAR_PLACEHOLDER -->"><!-- VAR_PLACEHOLDER --></a>
       </div>
-    <!-- ENDIF -->
+    
     <div class="search-box">
       <form method="get" action="">
-        <input type="text" name="q" value="<!-- VAR: q -->" placeholder="Pesquisar título ou descrição..." />
+        <input type="text" name="q" value="<!-- VAR_PLACEHOLDER -->" placeholder="Pesquisar título ou descrição..." />
         <button type="submit" class="icon-btn" aria-label="Buscar" title="Buscar">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="11" cy="11" r="7"></circle>
@@ -115,9 +115,9 @@
       </form>
     </div>
     <div class="videos-grid">
-      <!-- FOR_LOOP: conteudos -->
+      
         
-        <div class="video-card" id="topico-">
+        <div class="video-card" id="topico-<!-- VAR_PLACEHOLDER -->">
           
             <button class="item-menu-trigger" aria-label="Menu">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -127,66 +127,66 @@
               </svg>
             </button>
             <div class="item-menu" role="menu">
-              <button type="button" data-edit="">Editar</button>
-              <form method="POST" action="/admin/edu/content//delete" onsubmit="return confirm('Excluir este vídeo?');">
+              <button type="button" data-edit="<!-- VAR_PLACEHOLDER -->">Editar</button>
+              <form method="POST" action="/admin/edu/content/<!-- VAR_PLACEHOLDER -->/delete" onsubmit="return confirm('Excluir este vídeo?');">
                 <input type="hidden" name="csrf_token" value="" />
-                <input type="hidden" name="next" value="" />
+                <input type="hidden" name="next" value="<!-- VAR_PLACEHOLDER -->" />
                 <button type="submit" class="danger">Excluir</button>
               </form>
             </div>
-          <!-- ENDIF -->
           
-            <div class="thumb-wrap" data-embed="" data-url="" style="cursor:pointer;">
-              <img src="" alt="Thumb de " />
+          
+            <div class="thumb-wrap" data-embed="<!-- VAR_PLACEHOLDER -->" data-url="<!-- VAR_PLACEHOLDER -->" style="cursor:pointer;">
+              <img src="<!-- VAR_PLACEHOLDER -->" alt="Thumb de <!-- VAR_PLACEHOLDER -->" />
               <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
                 <div style="width:62px; height:62px; background:rgba(0,0,0,.55); border-radius:50%; display:flex; align-items:center; justify-content:center;">
                   <span style="color:#fff; font-size:24px; margin-left:2px;">▶</span>
                 </div>
               </div>
             </div>
-          <!-- ELIF -->
+          
             
             
               {# Evita carregar iframe YouTube direto para não mostrar bloqueio; usa placeholder #}
               
                 
-              <!-- ELIF -->
+              
                 
-              <!-- ELIF -->
+              
                 
-              <!-- ELSE -->
+              
                 
-              <!-- ENDIF -->
-              <div class="thumb-wrap" data-embed="<!-- VAR: ve -->" style="cursor:pointer;">
-                <img src="https://i.ytimg.com/vi/<!-- VAR: vid -->/hqdefault.jpg" alt="Thumb de " />
+              
+              <div class="thumb-wrap" data-embed="<!-- VAR_PLACEHOLDER -->" style="cursor:pointer;">
+                <img src="https://i.ytimg.com/vi/<!-- VAR_PLACEHOLDER -->/hqdefault.jpg" alt="Thumb de <!-- VAR_PLACEHOLDER -->" />
                 <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
                   <div style="width:62px; height:62px; background:rgba(0,0,0,.55); border-radius:50%; display:flex; align-items:center; justify-content:center;">
                     <span style="color:#fff; font-size:24px; margin-left:2px;">▶</span>
                   </div>
                 </div>
               </div>
-            <!-- ELSE -->
-              <iframe class="video-iframe" title="Vídeo incorporado" src="<!-- VAR: ve -->" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-            <!-- ENDIF -->
-          <!-- ELIF -->
-            <blockquote class="tiktok-embed" cite="" style="max-width:605px;min-width:325px;">
-              <section>Veja no TikTok: <a href="" target="_blank" rel="noopener"></a></section>
+            
+              <iframe class="video-iframe" title="Vídeo incorporado" src="<!-- VAR_PLACEHOLDER -->" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            
+          
+            <blockquote class="tiktok-embed" cite="<!-- VAR_PLACEHOLDER -->" style="max-width:605px;min-width:325px;">
+              <section>Veja no TikTok: <a href="<!-- VAR_PLACEHOLDER -->" target="_blank" rel="noopener"><!-- VAR_PLACEHOLDER --></a></section>
             </blockquote>
             <script async src="https://www.tiktok.com/embed.js"></script>
-          <!-- ELIF -->
-            <a href="" target="_blank" rel="noopener" style="display:inline-block; font-size:.7rem; font-weight:700; letter-spacing:.4px;">Abrir vídeo</a>
-          <!-- ELSE -->
-            <div class="video-iframe" style="display:flex; align-items:center; justify-content:center; color:#999; font-size:.8rem;">Sem mídia</div>
-          <!-- ENDIF -->
-          <div class="video-title"></div>
           
-            <div class="video-meta">Autore: </div>
-          <!-- ENDIF -->
-          <div class="video-meta"></div><!-- ENDIF -->
+            <a href="<!-- VAR_PLACEHOLDER -->" target="_blank" rel="noopener" style="display:inline-block; font-size:.7rem; font-weight:700; letter-spacing:.4px;">Abrir vídeo</a>
+          
+            <div class="video-iframe" style="display:flex; align-items:center; justify-content:center; color:#999; font-size:.8rem;">Sem mídia</div>
+          
+          <div class="video-title"><!-- VAR_PLACEHOLDER --></div>
+          
+            <div class="video-meta">Autore: <!-- VAR_PLACEHOLDER --></div>
+          
+          <div class="video-meta"><!-- VAR_PLACEHOLDER --></div>
         </div>
-      <!-- ELSE -->
+      
         <div class="video-card"><span style="font-size:.75rem; color:#666;">Nenhum vídeo publicado.</span></div>
-      <!-- END_FOR_LOOP -->
+      
     </div>
     
     <dialog id="editVideoDialog">
@@ -205,7 +205,7 @@
         <label>Tópico</label>
         <select name="topic_id" id="ev_topic">
           <option value="">(Tópico)</option>
-          <!-- FOR_LOOP: topics --><option value=""></option><!-- END_FOR_LOOP -->
+          <option value="<!-- VAR_PLACEHOLDER -->"><!-- VAR_PLACEHOLDER --></option>
         </select>
         <div style="display:grid; grid-template-columns:1fr; gap:.6rem; margin-top:.6rem;">
           <div>
@@ -226,8 +226,9 @@
         </menu>
       </form>
     </dialog>
-    <!-- ENDIF -->
-  </main>
+    
+  <!-- CONTENT_PLACEHOLDER -->
+</main>
   <footer>© 2025 Gramátike • Linguagem Viva e de Todes</footer>
   <script>
   (function(){
@@ -548,7 +549,7 @@
           ev_id.value=data.id; ev_titulo.value=data.titulo||''; ev_resumo.value=data.resumo||''; ev_autor.value=(data.extra && data.extra.author)?data.extra.author:''; ev_url.value=data.url||'';
           [...ev_topic.options].forEach(o=>o.selected=String(o.value)===String(data.topic_id||''));
           const th=data.extra && data.extra.thumb?data.extra.thumb:null;
-          if(th){ ev_thumb_preview.style.display='block'; ev_thumb_img.src= th.startsWith('http')?th:`${th}`; ev_remove_chk.checked=false; }
+          if(th){ ev_thumb_preview.style.display='block'; ev_thumb_img.src= th.startsWith('http')?th:`/static/${th}`; ev_remove_chk.checked=false; }
           else { ev_thumb_preview.style.display='none'; ev_thumb_img.src=''; ev_remove_chk.checked=false; }
           dlg.showModal();
         }catch(err){ alert('Falha ao carregar'); }

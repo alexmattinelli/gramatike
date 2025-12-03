@@ -31,27 +31,27 @@ form.resposta button:hover { background:#9B5DE5; filter:brightness(0.95); }
 <header>
   <h1>Tickets de Suporte</h1>
   <nav style="display:flex; gap:.6rem;">
-    <a href="/admin" style="color:#fff; font-size:.75rem; text-decoration:none; font-weight:600; background:#ffffff22; padding:.45rem .8rem; border-radius:40px;">Dashboard</a>
-    <a href="/" style="color:#fff; font-size:.75rem; text-decoration:none; font-weight:600; background:#ffffff22; padding:.45rem .8rem; border-radius:40px;">Início</a>
+    <a href="<!-- VAR_PLACEHOLDER -->" style="color:#fff; font-size:.75rem; text-decoration:none; font-weight:600; background:#ffffff22; padding:.45rem .8rem; border-radius:40px;">Dashboard</a>
+    <a href="/index" style="color:#fff; font-size:.75rem; text-decoration:none; font-weight:600; background:#ffffff22; padding:.45rem .8rem; border-radius:40px;">Início</a>
   </nav>
 </header>
 <div class="table-wrap">
-  <!-- IF: tickets -->
-    <!-- FOR_LOOP: tickets -->
+  
+    
       <div class="ticket">
         <div class="ticket-header">
-          <span class="ticket-status "></span>
-          <span class="badge-user"></span>
-          <span class="ticket-meta"># • </span>
-          <span class="ticket-meta" style="margin-left:auto;"></span><!-- ENDIF -->
+          <span class="ticket-status <!-- VAR_PLACEHOLDER -->"><!-- VAR_PLACEHOLDER --></span>
+          <span class="badge-user"><!-- VAR_PLACEHOLDER --></span>
+          <span class="ticket-meta">#<!-- VAR_PLACEHOLDER --> • <!-- VAR_PLACEHOLDER --></span>
+          <span class="ticket-meta" style="margin-left:auto;"><!-- VAR_PLACEHOLDER --></span>
         </div>
-        <div class="ticket-msg"></div>
+        <div class="ticket-msg"><!-- VAR_PLACEHOLDER --></div>
         
           <div style="background:#f1f5f9; padding:.6rem .7rem; border:1px solid #dde4ec; border-radius:8px; font-size:.72rem; line-height:1.35; color:#26323f; margin-bottom:.6rem;">
-            <strong>Resposta:</strong><br>
+            <strong>Resposta:</strong><br><!-- VAR_PLACEHOLDER -->
           </div>
-        <!-- ENDIF -->
-        <form class="resposta" method="post" action="">
+        
+        <form class="resposta" method="post" action="<!-- VAR_PLACEHOLDER -->">
           <input type="hidden" name="csrf_token" value="" />
           <textarea name="resposta" placeholder="Responder / atualizar resposta..."></textarea>
           <div style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;">
@@ -65,10 +65,10 @@ form.resposta button:hover { background:#9B5DE5; filter:brightness(0.95); }
           </div>
         </form>
       </div>
-    <!-- END_FOR_LOOP -->
-  <!-- ELSE -->
+    
+  
     <div class="empty">Nenhum ticket encontrado.</div>
-  <!-- ENDIF -->
+  
 </div>
 </body>
 </html>
