@@ -3501,42 +3501,12 @@ class Default(WorkerEntrypoint):
 {page_footer(True)}"""
 
     async def _configuracoes_page(self, db, current_user):
-        """Página de configurações do usuário."""
+        """Página de configurações do usuário - usando template externo."""
         if not current_user:
             return redirect('/login')
         
-        user = current_user
-        # Escape user data for safe display
-        username = escape_html(user.get('username', ''))
-        email = escape_html(user.get('email', ''))
-        nome = escape_html(user.get('nome', 'Não informado'))
-        
-        return f"""{page_head("Configurações — Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <main>
-        <div class="card" style="max-width: 500px; margin: 0 auto;">
-            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Configurações</h2>
-            
-            <div style="margin-bottom: 2rem;">
-                <h3 style="font-size: 1rem; margin-bottom: 0.8rem;">Informações da Conta</h3>
-                <p style="font-size: 0.85rem; margin-bottom: 0.5rem;"><strong>Usuárie:</strong> @{username}</p>
-                <p style="font-size: 0.85rem; margin-bottom: 0.5rem;"><strong>Email:</strong> {email}</p>
-                <p style="font-size: 0.85rem;"><strong>Nome:</strong> {nome}</p>
-            </div>
-            
-            <div style="border-top: 1px solid var(--border); padding-top: 1.5rem;">
-                <h3 style="font-size: 1rem; margin-bottom: 0.8rem;">Ações</h3>
-                <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-                    <a href="/perfil" class="btn" style="background:#f1edff;color:var(--primary);text-align:center;">← Voltar ao Perfil</a>
-                    <a href="/" class="btn" style="background:#f1edff;color:var(--primary);text-align:center;">Ir para o Feed</a>
-                    <a href="/logout" class="btn" style="background:#ffebee;color:#c00;text-align:center;">Sair da Conta</a>
-                </div>
-            </div>
-        </div>
-    </main>
-{page_footer(True)}"""
+        # Passar dados do usuário para o template
+        return render_template('configuracoes.html', current_user=current_user)
 
     def _not_found_page(self, path):
         """Página 404."""
@@ -3771,7 +3741,7 @@ class Default(WorkerEntrypoint):
 {page_footer(False)}"""
 
     async def _esqueci_senha_page(self, db, current_user, request, method):
-        """Página Esqueci Minha Senha."""
+        """Página Esqueci Minha Senha - usando template externo."""
         # Se já logado, redireciona para a página inicial
         if current_user:
             return redirect('/')
@@ -3819,46 +3789,14 @@ class Default(WorkerEntrypoint):
                 message = "Erro ao processar solicitação. Tente novamente."
                 message_type = "error"
         
-        message_html = ""
+        # Usar template externo
+        flash_html = ""
         if message:
-            bg_color = "#e8f5e9" if message_type == "success" else "#ffebee"
-            text_color = "#2e7d32" if message_type == "success" else "#c62828"
-            message_html = f'<div style="background: {bg_color}; color: {text_color}; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.9rem;">{message}</div>'
-        
-        extra_css = """
-        .esqueci-wrapper { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:2.2rem 1.2rem 3.5rem; }
-        .esqueci-card { width:100%; max-width:400px; background:#fff; border-radius:18px; padding:2rem; box-shadow:0 10px 26px -4px rgba(0,0,0,.12); }
-        .esqueci-card h2 { margin:0 0 1.5rem; font-size:1.4rem; font-weight:800; text-align:center; color: var(--primary); }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem; color: #666; }
-        .form-group input { width: 100%; padding: 0.75rem; border: 1.5px solid #d9e1ea; border-radius: 10px; font-size: 0.9rem; }
-        .form-group input:focus { outline: none; border-color: var(--primary); }
-        .button-primary { width: 100%; background: var(--primary); color: #fff; border: none; padding: 0.9rem; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
-        .button-primary:hover { background: #7d3dc9; }
-        .back-link { display: block; text-align: center; margin-top: 1.5rem; color: var(--primary); text-decoration: none; font-size: 0.9rem; }
-        .back-link:hover { text-decoration: underline; }
-        header.site-head { display: none; }
-        footer { display: none; }
-        """
-        
-        return f"""{page_head("Esqueci Minha Senha — Gramátike", extra_css)}
-    <div class="esqueci-wrapper">
-        <div class="esqueci-card">
-            {message_html}
-            <h2>Esqueci minha senha</h2>
-            <form method="POST" action="/esqueci-senha">
-                <div class="form-group">
-                    <label for="email">Digite seu e-mail cadastrado:</label>
-                    <input type="email" id="email" name="email" required placeholder="seu@email.com">
-                </div>
-                <button type="submit" class="button-primary">Enviar link de recuperação</button>
-            </form>
-            <a href="/login" class="back-link">Voltar ao login</a>
-        </div>
-    </div>
-    {mobile_nav(False)}
-</body>
-</html>"""
+            if message_type == "success":
+                flash_html = create_success_html(message)
+            else:
+                flash_html = create_error_html(message)
+        return render_template('esqueci_senha.html', flash_html=flash_html)
 
     async def _reset_senha_page(self, db, current_user, request, method):
         """Página Redefinir Senha."""

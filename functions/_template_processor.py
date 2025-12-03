@@ -48,9 +48,13 @@ def render_template(template_name, **context):
     flash_html = context.get('flash_html', '')
     html = html.replace('<!-- FLASH_MESSAGES_PLACEHOLDER -->', flash_html)
     
+    # Replace CONTENT_PLACEHOLDER with dynamic content
+    content_html = context.get('content_html', '')
+    html = html.replace('<!-- CONTENT_PLACEHOLDER -->', content_html)
+    
     # Replace VAR placeholders: <!-- VAR: name --> with actual values
     for key, value in context.items():
-        if key != 'flash_html':
+        if key not in ['flash_html', 'content_html', 'user', 'current_user']:
             placeholder = f'<!-- VAR: {key} -->'
             html = html.replace(placeholder, str(value) if value else '')
     
@@ -73,4 +77,5 @@ def create_error_html(message):
 def create_success_html(message):
     """Create a styled success message HTML snippet."""
     return f'''<ul class="flash-messages"><li class="flash-success">{message}</li></ul>'''
+
 
