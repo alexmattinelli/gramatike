@@ -3140,8 +3140,8 @@ class Default(WorkerEntrypoint):
             return self._not_found_page(f'/post/{post_id}')
 
     async def _novidade_detail_page(self, db, current_user, novidade_id):
-        """Página de detalhes da novidade - usando template externo."""
-        # Por enquanto retorna template estático, pois get_novidade_by_id não existe
+        """Novidade detail page - using external template."""
+        # TODO: Implement get_novidade_by_id in _database.py to enable dynamic content
         return render_template('novidade_detail.html', content_html='<div class="empty">Novidade não encontrada.</div>')
 
     async def _dinamica_admin_page(self, db, current_user):
@@ -3201,8 +3201,8 @@ class Default(WorkerEntrypoint):
         
         return render_template('gerenciar_usuarios.html')
 
-    def _manutencao_page(self):
-        """Página de manutenção - usando template externo."""
+    async def _manutencao_page(self):
+        """Maintenance page - using external template."""
         return render_template('maintenance.html')
 
     async def _profile_page(self, db, current_user, username):
