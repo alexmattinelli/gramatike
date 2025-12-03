@@ -1135,24 +1135,51 @@ class Default(WorkerEntrypoint):
                         console.error("[posts_multi] current_user.id is None")
                         return json_response({"error": "Usuárie inválide", "success": False}, 400)
                     
-                    # Parse FormData
-                    form_data = await request.formData()
+                    # Parse request body - try formData first, then JSON fallback
+                    conteudo = None
                     
-                    # Get content - handle JsProxy and JavaScript undefined values
-                    conteudo_raw = form_data.get('conteudo')
-                    
-                    # Check if value is missing (None in Python)
-                    if conteudo_raw is None:
-                        return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
-                    
-                    # Convert JsProxy to Python string if needed
-                    if hasattr(conteudo_raw, 'to_py'):
+                    # Try to use formData() if available (Cloudflare Workers native Request)
+                    if hasattr(request, 'formData') and callable(getattr(request, 'formData', None)):
                         try:
-                            conteudo = conteudo_raw.to_py()
-                        except (TypeError, AttributeError):
-                            conteudo = None
-                    else:
-                        conteudo = str(conteudo_raw) if conteudo_raw else None
+                            form_data = await request.formData()
+                            conteudo_raw = form_data.get('conteudo')
+                            
+                            # Convert JsProxy to Python string if needed
+                            if conteudo_raw is not None:
+                                if hasattr(conteudo_raw, 'to_py'):
+                                    try:
+                                        conteudo = conteudo_raw.to_py()
+                                    except (TypeError, AttributeError):
+                                        conteudo = str(conteudo_raw) if conteudo_raw else None
+                                else:
+                                    conteudo = str(conteudo_raw) if conteudo_raw else None
+                        except Exception as form_err:
+                            console.warn(f"[posts_multi] formData() failed: {form_err}, trying JSON fallback")
+                    
+                    # Fallback: try JSON parsing
+                    if conteudo is None:
+                        try:
+                            body = await request.json()
+                            if hasattr(body, 'to_py'):
+                                body = body.to_py()
+                            conteudo = body.get('conteudo') if isinstance(body, dict) else None
+                        except Exception as json_err:
+                            console.warn(f"[posts_multi] JSON parse failed: {json_err}")
+                    
+                    # Last fallback: try parsing as text/form-urlencoded
+                    if conteudo is None:
+                        try:
+                            body_text = await request.text()
+                            if hasattr(body_text, 'to_py'):
+                                body_text = body_text.to_py()
+                            if body_text and isinstance(body_text, str):
+                                # Try to parse as form-urlencoded (parse_qs already imported at top)
+                                parsed = parse_qs(body_text)
+                                conteudo_list = parsed.get('conteudo', [])
+                                if conteudo_list:
+                                    conteudo = conteudo_list[0]
+                        except Exception as text_err:
+                            console.warn(f"[posts_multi] Text parse failed: {text_err}")
                     
                     # Handle JavaScript undefined represented as string 'undefined'
                     if conteudo is None or conteudo == 'undefined' or conteudo == '':

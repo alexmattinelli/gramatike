@@ -541,6 +541,33 @@ button { font-family: var(--font-base); font-weight:600; }
     display: none !important;
   }
   
+  /* Quando o header está oculto, ajustar o content-wrapper */
+  .content-wrapper {
+    margin-top: 0 !important; /* Remove margem negativa quando header oculto */
+    padding-top: 1rem !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+  }
+  
+  /* Adicionar faixa roxa no topo em mobile para manter a identidade visual */
+  /* Altura de 50px com padding de 50px para alinhamento perfeito */
+  body::before {
+    content: "";
+    display: block;
+    height: 50px;
+    background: var(--primary);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 0;
+  }
+  
+  /* Ajustar body para compensar a faixa (mesmo valor da altura) */
+  body {
+    padding-top: 50px;
+  }
+  
   /* Mostrar triângulo toggle no mobile */
   #mobile-toggle-triangle {
     display: block !important;
