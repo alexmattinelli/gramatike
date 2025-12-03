@@ -886,6 +886,9 @@ class Default(WorkerEntrypoint):
                 "/admin": lambda: self._admin_page(db, current_user),
                 "/esqueci-senha": lambda: self._esqueci_senha_page(db, current_user, request, method),
                 "/reset-senha": lambda: self._reset_senha_page(db, current_user, request, method),
+                "/suporte": lambda: self._suporte_page(db, current_user),
+                "/videos": lambda: self._videos_page(db, current_user),
+                "/redacao": lambda: self._redacao_page(db, current_user),
             }
 
             handler = page_routes.get(path)
@@ -899,6 +902,18 @@ class Default(WorkerEntrypoint):
             if path.startswith('/u/'):
                 username = path[3:]
                 result = await self._profile_page(db, current_user, username)
+                return html_response(result) if not isinstance(result, Response) else result
+            
+            # Rota dinâmica para post detail
+            if path.startswith('/post/'):
+                post_id = path[6:]
+                result = await self._post_detail_page(db, current_user, post_id)
+                return html_response(result) if not isinstance(result, Response) else result
+            
+            # Rota dinâmica para novidade detail
+            if path.startswith('/novidade/'):
+                novidade_id = path[10:]
+                result = await self._novidade_detail_page(db, current_user, novidade_id)
                 return html_response(result) if not isinstance(result, Response) else result
             
             return html_response(self._not_found_page(path), status=404)
@@ -3068,6 +3083,51 @@ class Default(WorkerEntrypoint):
             podcasts_html = '<div class="empty">Nenhum podcast disponível.</div>'
         
         return render_template('podcasts.html', content_html=podcasts_html)
+
+    async def _suporte_page(self, db, current_user):
+        """Página de Suporte - usando template externo."""
+        return render_template('suporte.html')
+
+    async def _videos_page(self, db, current_user):
+        """Página de Vídeos - usando template externo."""
+        return render_template('videos.html')
+
+    async def _redacao_page(self, db, current_user):
+        """Página de Redação - usando template externo."""
+        return render_template('redacao.html')
+
+    async def _post_detail_page(self, db, current_user, post_id):
+        """Página de detalhes do post - usando template externo."""
+        if not db or not DB_AVAILABLE:
+            return self._not_found_page(f'/post/{post_id}')
+        
+        try:
+            post_id_int = int(post_id)
+            post = await get_post_by_id(db, post_id_int)
+            if not post:
+                return self._not_found_page(f'/post/{post_id}')
+            
+            # Gerar HTML do post
+            post_html = f"""
+            <div class="feed-item">
+                <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:0.8rem;">
+                    <img src="{normalize_image_url(post.get('foto_perfil'))}" alt="@{escape_html(post.get('usuario', ''))}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+                    <strong style="color:var(--primary);">@{escape_html(post.get('usuario', ''))}</strong>
+                </div>
+                <p class="fi-body">{escape_html(post.get('conteudo', ''))}</p>
+                <div style="margin-top: 0.8rem; font-size: 0.7rem; color: var(--text-dim);">
+                    ❤️ {post.get('like_count', 0)} • 💬 {post.get('comment_count', 0)}
+                </div>
+            </div>"""
+            
+            return render_template('post_detail.html', content_html=post_html)
+        except (ValueError, Exception) as e:
+            return self._not_found_page(f'/post/{post_id}')
+
+    async def _novidade_detail_page(self, db, current_user, novidade_id):
+        """Página de detalhes da novidade - usando template externo."""
+        # Por enquanto retorna template estático, pois get_novidade_by_id não existe
+        return render_template('novidade_detail.html', content_html='<div class="empty">Novidade não encontrada.</div>')
 
     async def _profile_page(self, db, current_user, username):
         """Página de perfil de usuárie - usando template externo."""
