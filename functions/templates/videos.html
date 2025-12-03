@@ -548,7 +548,7 @@
           ev_id.value=data.id; ev_titulo.value=data.titulo||''; ev_resumo.value=data.resumo||''; ev_autor.value=(data.extra && data.extra.author)?data.extra.author:''; ev_url.value=data.url||'';
           [...ev_topic.options].forEach(o=>o.selected=String(o.value)===String(data.topic_id||''));
           const th=data.extra && data.extra.thumb?data.extra.thumb:null;
-          if(th){ ev_thumb_preview.style.display='block'; ev_thumb_img.src= th.startsWith('http')?th:`<!-- VAR_PLACEHOLDER -->${th}`; ev_remove_chk.checked=false; }
+          if(th){ ev_thumb_preview.style.display='block'; ev_thumb_img.src= th.startsWith('http')?th:`/static/${th}`; ev_remove_chk.checked=false; }
           else { ev_thumb_preview.style.display='none'; ev_thumb_img.src=''; ev_remove_chk.checked=false; }
           dlg.showModal();
         }catch(err){ alert('Falha ao carregar'); }
