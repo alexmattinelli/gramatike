@@ -27,7 +27,19 @@ except ImportError:
 
 # Versão do código - usado para tracking de deployment
 # Atualize este valor a cada commit para verificar se o deploy foi feito
-SCRIPT_VERSION = "v2025.12.01.a"
+SCRIPT_VERSION = "v2025.12.03.a"
+
+# Importar template processor para carregar templates HTML externos
+# Isso separa o HTML do código Python para facilitar manutenção
+try:
+    from functions._template_processor import render_template, load_template, create_error_html, create_success_html
+    TEMPLATES_AVAILABLE = True
+except ImportError:
+    TEMPLATES_AVAILABLE = False
+    def render_template(name, **ctx): return f"<h1>Template {name} não disponível</h1>"
+    def load_template(name): return f"<h1>Template {name} não disponível</h1>"
+    def create_error_html(msg): return f'<div class="error">{msg}</div>'
+    def create_success_html(msg): return f'<div class="success">{msg}</div>'
 
 # NOTA: Este 'workers' é o módulo built-in do Cloudflare Workers Python,
 # NÃO a pasta local (que foi renomeada para 'gramatike_d1').
@@ -2935,7 +2947,7 @@ class Default(WorkerEntrypoint):
 {page_footer(current_user is not None)}"""
 
     async def _login_page(self, db, current_user, request, method):
-        """Página de Login."""
+        """Página de Login - usando template externo."""
         # Se já logado, redireciona
         if current_user:
             return redirect('/')
@@ -2984,49 +2996,12 @@ class Default(WorkerEntrypoint):
                     else:
                         error_msg = "Erro ao processar login. Tente novamente."
         
-        error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
-        
-        extra_css = """
-        .login-wrapper { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:2.2rem 1.2rem 3.5rem; }
-        .login-card { width:100%; max-width:380px; background:#fff; border-radius:18px; padding:2.2rem 2rem 2.4rem; box-shadow:0 10px 26px -4px rgba(0,0,0,.12); }
-        .login-card h2 { margin:0 0 1.4rem; font-size:1.55rem; font-weight:800; text-align:center; }
-        .signup-hint { text-align:center; margin-top:1.6rem; font-size:.85rem; }
-        .signup-hint a { color: var(--primary); text-decoration: none; font-weight: 700; }
-        .signup-hint a:hover { text-decoration: underline; }
-        header.site-head { display: none; }
-        footer { display: none; }
-        """
-        return f"""{page_head("Entrar • Gramátike", extra_css)}
-    <div class="login-wrapper">
-        <div class="login-card">
-            {error_html}
-            <h2>Entrar</h2>
-            <form method="POST" action="/login">
-                <div class="form-group">
-                    <label>Usuárie / Email</label>
-                    <input type="text" name="email" placeholder="Usuárie ou email" required>
-                </div>
-                <div class="form-group">
-                    <label>Senha</label>
-                    <input type="password" name="password" placeholder="••••••••" required>
-                </div>
-                <div style="text-align: right; margin-top: 0.5rem;">
-                    <a href="/esqueci-senha" style="font-size: 0.75rem; color: #666; text-decoration: none;">Esqueceu a senha?</a>
-                </div>
-                <button type="submit" class="button-primary" style="margin-top: 1rem;">Entrar</button>
-            </form>
-            <div class="signup-hint">
-                Ainda não tem conta? <a href="/cadastro">Cadastre-se</a>
-            </div>
-            <p style="font-size: 0.6rem; color: #999; text-align: center; margin-top: 1.5rem;">{SCRIPT_VERSION}</p>
-        </div>
-    </div>
-    {mobile_nav(False)}
-</body>
-</html>"""
+        # Usar template externo
+        flash_html = create_error_html(error_msg) if error_msg else ""
+        return render_template('login.html', flash_html=flash_html)
 
     async def _cadastro_page(self, db, current_user, request, method):
-        """Página de Cadastro."""
+        """Página de Cadastro - usando template externo."""
         # Se já logado, redireciona
         if current_user:
             return redirect('/')
@@ -3075,51 +3050,13 @@ class Default(WorkerEntrypoint):
                     else:
                         error_msg = "Erro ao processar cadastro. Tente novamente."
         
-        error_html = f'<div class="error-msg" style="background:#ffebee;color:#c62828;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{error_msg}</div>' if error_msg else ""
-        success_html = f'<div class="success-msg" style="background:#e8f5e9;color:#2e7d32;padding:0.8rem;border-radius:10px;margin-bottom:1rem;font-size:0.85rem;">{success_msg}</div>' if success_msg else ""
-        
-        extra_css = """
-        .login-wrapper { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:2.2rem 1.2rem 3.5rem; }
-        .login-card { width:100%; max-width:380px; background:#fff; border-radius:18px; padding:2.2rem 2rem 2.4rem; box-shadow:0 10px 26px -4px rgba(0,0,0,.12); }
-        .login-card h2 { margin:0 0 1.4rem; font-size:1.55rem; font-weight:800; text-align:center; }
-        .signup-hint { text-align:center; margin-top:1.6rem; font-size:.85rem; }
-        .signup-hint a { color: var(--primary); text-decoration: none; font-weight: 700; }
-        header.site-head { display: none; }
-        footer { display: none; }
-        """
-        return f"""{page_head("Cadastro • Gramátike", extra_css)}
-    <div class="login-wrapper">
-        <div class="login-card">
-            {error_html}
-            {success_html}
-            <h2>Criar Conta</h2>
-            <form method="POST" action="/cadastro">
-                <div class="form-group">
-                    <label>Nome (opcional)</label>
-                    <input type="text" name="nome" placeholder="Seu nome">
-                </div>
-                <div class="form-group">
-                    <label>Nome de Usuárie *</label>
-                    <input type="text" name="username" placeholder="seu_usuario" required>
-                </div>
-                <div class="form-group">
-                    <label>Email *</label>
-                    <input type="email" name="email" placeholder="seu@email.com" required>
-                </div>
-                <div class="form-group">
-                    <label>Senha *</label>
-                    <input type="password" name="password" placeholder="••••••••" required minlength="6">
-                </div>
-                <button type="submit" class="button-primary" style="margin-top: 1rem;">Criar Conta</button>
-            </form>
-            <div class="signup-hint">
-                Já tem conta? <a href="/login">Entrar</a>
-            </div>
-        </div>
-    </div>
-    {mobile_nav(False)}
-</body>
-</html>"""
+        # Usar template externo
+        flash_html = ""
+        if error_msg:
+            flash_html = create_error_html(error_msg)
+        elif success_msg:
+            flash_html = create_success_html(success_msg)
+        return render_template('cadastro.html', flash_html=flash_html)
 
     async def _dinamicas_page(self, db, current_user):
         """Página de Dinâmicas."""
