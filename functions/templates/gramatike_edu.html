@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gramátike Edu</title>
+  <!-- Fonts preload for faster loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <link rel="apple-touch-icon" href="/static/img/icons/icon-192.png">
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="stylesheet" href="/static/gramatike_common.css">
+  <meta name="theme-color" content="#9B5DE5">
+  <script src="/static/js/pwa.js" defer></script>
+  <style>
+    :root { --primary:#9B5DE5; --primary-dark:#7d3dc9; --bg:#f7f8ff; --card:#ffffff; --border:#e5e7eb; --text:#222; --text-dim:#666; }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; overflow-x:hidden; width:100%; max-width:100vw; }
+    body { font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.55; display:flex; flex-direction:column; min-height:100vh; }
+    h1,h2,h3 { font-weight:800; margin:0 0 .9rem; line-height:1.12; }
+    header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; }
+    .logo { font-family:'Mansalva', cursive; font-size:2.6rem; color:#fff; letter-spacing:1px; font-weight:400; margin:0; }
+    /* Profile Avatar in Header */
+    .profile-avatar-link { position:absolute; right:24px; top:38%; transform:translateY(-50%); display:inline-flex; align-items:center; justify-content:center; width:58px; height:58px; border-radius:50%; border:3px solid #ffffff55; box-shadow:0 4px 14px rgba(0,0,0,.25); overflow:hidden; background:#ffffff22; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); cursor:pointer; text-decoration:none; transition: box-shadow .25s, transform .18s; }
+    .profile-avatar-link:hover { box-shadow:0 6px 20px rgba(0,0,0,.32); }
+    .profile-avatar-link img { width:100%; height:100%; object-fit:cover; display:block; }
+    .profile-avatar-link span.initial { font-size:1.6rem; font-weight:800; color:#fff; }
+    @media (max-width:640px){ .profile-avatar-link { width:46px; height:46px; right:16px; } }
+    @media (max-width: 980px){ .profile-avatar-link { display:none !important; } }
+    /* Mobile: Header mais compacto */
+    @media (max-width: 980px){ 
+      header.site-head { padding:12px clamp(12px,3vw,24px) 18px; }
+      .logo { font-size:1.5rem; }
+      /* Ocultar navegação EDU em mobile */
+      .edu-nav { display:none !important; }
+    }
+    .edu-nav { margin-top:1.1rem; display:flex; flex-wrap:wrap; gap:.65rem; justify-content:center; }
+  .edu-nav a { text-decoration:none; font-weight:700; font-size:.7rem; letter-spacing:.55px; padding:.65rem 1.05rem .62rem; background:#ffffff18; color:#fff; border:1px solid #ffffff30; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); border-radius:22px; display:inline-flex; align-items:center; gap:.35rem; box-shadow:0 4px 12px rgba(0,0,0,.18); transition:.25s; font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; }
+    .edu-nav a:hover, .edu-nav a.active { background:#fff; color:#7d3dc9; }
+  main { width:100%; max-width:1380px; margin:2rem auto 4.2rem; padding:0 clamp(14px,3vw,44px); flex:1; }
+  .layout { display:grid; grid-template-columns: minmax(0,1fr) 330px; gap:2.2rem; align-items:start; }
+  @media (max-width:1080px){ .layout { grid-template-columns:1fr; } }
+  .page-title { text-align:center; font-size:2.1rem; color:#9B5DE5; margin:0 0 1.8rem; letter-spacing:.5px; }
+  .search-box form { display:flex; max-width:880px; margin:0 auto 2.1rem; }
+  .search-box .search-wrap { flex:1; display:flex; gap:.55rem; }
+  .search-box input { flex:1; height:48px; border:1px solid var(--border); border-radius:16px; padding:0 1rem; font-size:.9rem; background:var(--card); font-weight:500; }
+  .search-btn { height:48px; border:none; background:var(--primary); color:#fff; padding:0 1.15rem; border-radius:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:.4rem; box-shadow:0 4px 12px rgba(130,87,229,.45); }
+  .search-btn.icon-btn { width:48px; justify-content:center; padding:0; }
+  .search-btn:hover { background:var(--primary-dark); }
+  .feed-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1.3rem; }
+  .feed-item { background:var(--card); border:1px solid var(--border); border-radius:28px; padding:1.3rem 1.5rem 1.2rem; position:relative; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); transition:.28s; overflow:hidden; }
+  /* gradiente removido dos itens do feed */
+  .feed-item::before { content:""; display:none; }
+  .feed-item:hover { box-shadow:0 18px 42px -12px rgba(0,0,0,.26); transform:translateY(-3px); }
+  /* NOVIDADE: não mover nem animar no hover */
+  .feed-item.is-novidade { transition:none; }
+  .feed-item.is-novidade:hover { transform:none; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); }
+  .fi-title { font-size:1rem; font-weight:800; letter-spacing:.45px; color:#9B5DE5; margin:0 0 .5rem; line-height:1.3; }
+  .fi-meta { font-size:.6rem; letter-spacing:.55px; font-weight:800; text-transform:uppercase; color:#7d3dc9; margin:0 0 .45rem; }
+  .fi-body { font-size:.75rem; line-height:1.5; color:var(--text-dim); font-weight:500; margin:0; white-space:pre-line; word-break:break-word; }
+  /* Preserve HTML formatting in content */
+  .fi-body p { margin:.4rem 0; }
+  .fi-body strong, .fi-body b { font-weight:800; color:var(--text); }
+  .fi-body em, .fi-body i { font-style:italic; }
+  .fi-body u { text-decoration:underline; }
+  .fi-body ul, .fi-body ol { margin:.4rem 0; padding-left:1.5rem; }
+  .fi-body li { margin:.2rem 0; }
+  .fi-body h1, .fi-body h2, .fi-body h3 { font-size:.85rem; font-weight:800; margin:.6rem 0 .4rem; color:#9B5DE5; }
+  .fi-body a { color:#2563eb; text-decoration:underline; }
+  .fi-body a:hover { color:#1e40af; }
+  .fi-tags { margin:.55rem 0 0; display:flex; flex-wrap:wrap; gap:.4rem; }
+  .fi-tags span { font-size:.55rem; letter-spacing:.55px; font-weight:800; padding:.4rem .65rem .35rem; background:#f1edff; color:#9B5DE5; border:1px solid #e1d4fb; border-radius:18px; }
+  .side-col { display:flex; flex-direction:column; gap:1.4rem; position:sticky; top:12px; }
+  .side-card { background:var(--card); border:1px solid var(--border); border-radius:28px; padding:1.1rem 1.15rem .95rem; box-shadow:0 6px 18px -8px rgba(0,0,0,.08); position:relative; overflow:hidden; }
+  /* gradiente removido */
+  .side-card::before { display:none; }
+  .side-card h3 { margin:.15rem 0 .55rem; font-size:.85rem; letter-spacing:.5px; font-weight:800; color:#9B5DE5; }
+  .side-card p { margin:.3rem 0 .55rem; font-size:.65rem; line-height:1.35; color:var(--text-dim); font-weight:500; }
+  /* atalhos acima do card de informações */
+  .quick-nav { display:flex; gap:.5rem; margin:0 0 .6rem; }
+  .quick-nav a { text-decoration:none; font-weight:800; font-size:.62rem; letter-spacing:.4px; padding:.45rem .75rem .4rem; border-radius:16px; border:1px solid var(--border); background:#fff; color:#9B5DE5; box-shadow:0 4px 10px rgba(0,0,0,.06); }
+  .quick-nav a:hover { background:#f7f2ff; border-color:#e1d4fb; }
+  /* Ocultar quick-nav em mobile */
+  @media (max-width: 980px){ 
+    #quick-nav { display:none !important; }
+  }
+  
+  .placeholder { font-size:.6rem; font-weight:700; letter-spacing:.5px; color:#999; padding:.65rem .85rem; border:1px dashed #d2c5ef; border-radius:18px; background:#faf7ff; }
+  .empty { font-size:.7rem; font-weight:600; color:#666; text-align:center; padding:2rem 0; }
+  
+  /* Pagination buttons (same style as admin) */
+  .pag-btn { padding:.55rem .9rem; border-radius:18px; background:#9B5DE5; color:#fff; text-decoration:none; display:inline-block; font-weight:600; font-size:.7rem; letter-spacing:.3px; cursor:pointer; border:none; transition:background .2s; }
+  .pag-btn:hover { background:#7d3dc9; }
+  
+  /* Menu dropdown responsive adjustments */
+  @media (max-width:480px){ 
+    #menu-dropdown { min-width:180px; font-size:.7rem; }
+    #menu-dropdown a { padding:9px 12px; font-size:.7rem; }
+    #menu-dropdown svg { width:16px; height:16px; }
+  }
+  
+  @media (max-width:720px){ .feed-item{ padding:1rem 1.05rem .9rem; } .side-col { position:static; } }
+  footer { margin-top:4rem; background:#9B5DE5; color:#fff; text-align:center; padding:1.4rem 1rem 1.6rem; font-size:.75rem; letter-spacing:.5px; font-weight:700; border-top-left-radius:38px; border-top-right-radius:38px; }
+  @media (max-width: 980px){ footer { display:none !important; } }
+    @media (max-width:720px){ header.site-head { padding:24px 18px 38px; } .logo { font-size:2.2rem; } .modules-grid { grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); } }
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <h1 class="logo">Gramátike Edu</h1>
+    <!-- IF: user -->
+      <a href="/perfil" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
+        
+          
+          <img src="" alt="Avatar de <!-- USER_username -->" loading="lazy">
+        <!-- ELSE -->
+          <span class="initial"></span>
+        <!-- ENDIF -->
+      </a>
+    <!-- ENDIF -->
+    
+      <!-- Menu Dropdown (mobile) / Painel button (desktop) -->
+      <div style="position:absolute; top:14px; left:16px;">
+        <button id="menu-toggle" onclick="toggleMenu()" style="background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; cursor:pointer; letter-spacing:.5px; display:flex; align-items:center; gap:6px;">
+          <svg id="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+          <svg id="painel-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span id="menu-text">Menu</span>
+        </button>
+        <div id="menu-dropdown" style="display:none; position:absolute; right:0; top:calc(100% + 8px); background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.18); min-width:200px; z-index:100;">
+          <a href="/artigos" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            Artigos
+          </a>
+          <a href="/exercicios" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            Exercícios
+          </a>
+          <a href="/apostilas" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            Apostilas
+          </a>
+          <a href="/dinamicas" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19.439 15.439c.389-.389.586-.585.638-.866a1 1 0 0 0 0-.414c-.052-.281-.249-.477-.638-.866l-1.88-1.88c-.389-.389-.585-.586-.866-.638a1 1 0 0 0-.414 0c-.281.052-.477.249-.866.638l-1.88 1.88c-.389.389-.586.585-.638.866a1 1 0 0 0 0 .414c.052.281.249.477.638.866l1.88 1.88c.389.389.585.586.866.638a1 1 0 0 0 .414 0c.281-.052.477-.249.866-.638l1.88-1.88z"></path>
+              <path d="M11.5 8.5c.833-.833 1.25-1.25 1.5-1.768a3 3 0 0 0 0-2.464C12.75 3.75 12.333 3.333 11.5 2.5 10.667 1.667 10.25 1.25 9.732 1c-.784-.378-1.68-.378-2.464 0C6.75 1.25 6.333 1.667 5.5 2.5s-1.25 1.167-1.5 1.768a3 3 0 0 0 0 2.464c.25.601.667 1.018 1.5 1.768.833.75 1.25 1.167 1.768 1.5a3 3 0 0 0 2.464 0c.601-.333 1.018-.75 1.768-1.5z"></path>
+              <path d="M5.5 21.5c.833.833 1.25 1.25 1.768 1.5a3 3 0 0 0 2.464 0c.601-.25 1.018-.667 1.768-1.5.75-.833 1.167-1.25 1.5-1.768a3 3 0 0 0 0-2.464c-.333-.601-.75-1.018-1.5-1.768-.75-.75-1.167-1.167-1.768-1.5a3 3 0 0 0-2.464 0C6.75 13.25 6.333 13.667 5.5 14.5c-.833.833-1.25 1.25-1.5 1.768a3 3 0 0 0 0 2.464c.25.601.667 1.018 1.5 1.768z"></path>
+            </svg>
+            Dinâmicas
+          </a>
+          <a href="/admin" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+            </svg>
+            Painel
+          </a>
+        </div>
+      </div>
+    <!-- ENDIF -->
+    <nav class="edu-nav" aria-label="Seções educacionais">
+  <a href="/educacao" class="active">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+      <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </svg>
+    Início
+  </a>
+      <a href="/apostilas">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+        Apostilas
+      </a>
+      <a href="/exercicios">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        Exercícios
+      </a>
+  {# Temporariamente desabilitados: Podcasts, Redação e Vídeos
+  <a href="/podcasts"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>Podcasts</a>
+  <a href="/redacao"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Redação</a>
+  <a href="/videos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Vídeos</a>
+  #}
+      <a href="/artigos">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        Artigos
+      </a>
+    </nav>
+  </header>
+  <main>
+  <!-- Título duplicado removido para evitar repetição -->
+    <div class="search-box">
+      <form method="get" action="" onsubmit="return false;" id="gk_search_form" aria-label="Buscar posts do @gramatike">
+        <div class="search-wrap">
+          <input type="text" id="gk_search_input" placeholder="Buscar posts do @gramatike..." autocomplete="off" aria-label="Campo de busca" />
+          <button type="button" class="search-btn icon-btn" id="gk_search_btn" aria-label="Buscar" title="Buscar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+    <div class="layout">
+      <div>
+        <ul class="feed-list" id="gk_feed_list">
+          <li class="feed-item" style="display:none" id="gk_feed_template">
+            <div class="fi-meta"></div>
+            <div class="fi-title"></div>
+            <p class="fi-body"></p>
+            <div class="fi-tags"></div>
+          </li>
+          <li class="empty" id="gk_empty_state">Nada encontrado.</li>
+        </ul>
+      </div>
+      <aside class="side-col">
+  <div id="quick-nav" style="display:flex; gap:.7rem; margin:0;" aria-label="Atalhos">
+          <a href="/dinamicas" style="flex:1; text-decoration:none; background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.8rem; font-weight:700; color:#fff; letter-spacing:.3px; transition:.18s; box-shadow:0 4px 14px rgba(155,93,229,.35);">
+            <span style="display:inline-flex; width:30px; height:30px; border-radius:12px; background:rgba(255,255,255,.2); align-items:center; justify-content:center; color:#fff;">
+              <!-- SVG estilo Gramátike para Dinâmicas (ícone de peças) -->
+              <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true" role="img">
+                <path d="M16 14h8v-2a4 4 0 1 1 8 0v2h6a2 2 0 0 1 2 2v6h-2a4 4 0 1 0 0 8h2v6a2 2 0 0 1-2 2h-6v-2a4 4 0 1 0-8 0v2h-6a2 2 0 0 1-2-2v-6h2a4 4 0 1 0 0-8h-2v-6a2 2 0 0 1 2-2Z" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" fill="rgba(255,255,255,0.15)"/>
+              </svg>
+            </span>
+            Dinâmicas
+          </a>
+          <a href="/" aria-label="Ir para Portal Gramátike" style="flex:1; text-decoration:none; background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.8rem; font-weight:700; color:#fff; letter-spacing:.3px; transition:.18s; box-shadow:0 4px 14px rgba(155,93,229,.35);">
+            <span style="display:inline-flex; width:30px; height:30px; border-radius:12px; background:rgba(255,255,255,.2); align-items:center; justify-content:center; color:#fff;">
+              <!-- SVG Chat (Portal Gramatike) -->
+              <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true" role="img">
+                <path d="M10 10h28a2 2 0 0 1 2 2v18a2 2 0 0 1-2 2H22l-8 6v-6h-4a2 2 0 0 1-2-2V12a2 2 0 0 1 2-2Z" stroke="#fff" stroke-width="2.4" stroke-linejoin="round" fill="rgba(255,255,255,0.15)"/>
+                <circle cx="18" cy="21" r="2" fill="#fff"/>
+                <circle cx="24" cy="21" r="2" fill="#fff"/>
+                <circle cx="30" cy="21" r="2" fill="#fff"/>
+              </svg>
+            </span>
+            Portal Gramátike
+          </a>
+        </div>
+        <div class="side-card" id="palavra-do-dia-card">
+          <h3 style="display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Palavras do Dia</h3>
+          <div id="palavra-do-dia-content">
+            <div style="text-align:center; padding:1rem;">
+              <div style="font-size:.65rem; color:#999;">Carregando...</div>
+            </div>
+          </div>
+        </div>
+        <div class="side-card">
+          <h3 style="display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 13v-2Z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg> Novidades</h3>
+          
+          <!-- IF: tem_conteudo -->
+            <div style="display:flex; flex-direction:column; gap:.9rem;">
+              {# Divulgações EDU (inclui Aviso Rápido com "imagem" gerada) #}
+              
+              <div class="promo-card" style="background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
+                <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#9B5DE5; margin:0 0 .35rem;"></strong>
+                
+                  
+                  <img src="<!-- VAR: imgsrc -->" alt="" style="width:100%; border-radius:14px; margin:0 0 .5rem; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />
+                <!-- ENDIF -->
+                <p style="margin:0 0 .5rem; font-size:.6rem; line-height:1.32; color:#555; font-weight:600;"></p><!-- ENDIF -->
+                <a href="" target="_blank" rel="noopener" style="display:inline-block; font-size:.55rem; font-weight:700; background:#9B5DE5; color:#fff; padding:.45rem .8rem .4rem; border-radius:14px; text-decoration:none; letter-spacing:.5px;">Abrir →</a><!-- ENDIF -->
+              </div>
+              <!-- END_FOR_LOOP -->
+            </div>
+          <!-- ELSE -->
+            <div class="placeholder">Nenhuma divulgação ativa.</div>
+          <!-- ENDIF -->
+        </div>
+      </aside>
+    </div>
+  </main>
+  <script>
+  // Menu toggle function
+  // Update button text/icon based on screen size
+  function updateMenuButton() {
+    const isMobile = window.innerWidth <= 980;
+    const menuText = document.getElementById('menu-text');
+    const menuIcon = document.getElementById('menu-icon');
+    const painelIcon = document.getElementById('painel-icon');
+    const dropdown = document.getElementById('menu-dropdown');
+    
+    if (isMobile) {
+      // Mobile: Show "Menu" with hamburger icon and enable dropdown
+      if (menuText) menuText.textContent = 'Menu';
+      if (menuIcon) menuIcon.style.display = 'block';
+      if (painelIcon) painelIcon.style.display = 'none';
+    } else {
+      // Desktop: Show "Painel" with dashboard icon, no dropdown
+      if (menuText) menuText.textContent = 'Painel';
+      if (menuIcon) menuIcon.style.display = 'none';
+      if (painelIcon) painelIcon.style.display = 'block';
+      if (dropdown) dropdown.style.display = 'none';
+    }
+  }
+  
+  function toggleMenu() {
+    const isMobile = window.innerWidth <= 980;
+    
+    if (isMobile) {
+      // Mobile: Toggle dropdown
+      const dropdown = document.getElementById('menu-dropdown');
+      if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+      }
+    } else {
+      // Desktop: Go directly to Painel
+      window.location.href = "/admin";
+    }
+  }
+  
+  // Update button on load and resize
+  updateMenuButton();
+  window.addEventListener('resize', updateMenuButton);
+  
+  // Close menu when clicking outside
+  document.addEventListener('click', function(e) {
+    const menuToggle = document.getElementById('menu-toggle');
+    const dropdown = document.getElementById('menu-dropdown');
+    if (dropdown && menuToggle && !menuToggle.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+
+  (function(){
+  const input = document.getElementById('gk_search_input');
+  const btn = document.getElementById('gk_search_btn');
+    const list = document.getElementById('gk_feed_list');
+    const tpl = document.getElementById('gk_feed_template');
+    const empty = document.getElementById('gk_empty_state');
+    let timer=null;
+    let currentPage = 1;
+    let totalPages = 1;
+    
+    // Dynamic posts per page based on screen size
+    function getPerPage() {
+      const isMobile = window.innerWidth <= 980;
+      return isMobile ? 3 : 10;
+    }
+    
+    async function search(q, page = 1){
+      try {
+  const perPage = getPerPage();
+  const resp = await fetch(`/api/gramatike/search?q=${encodeURIComponent(q||'')}&include_edu=0&page=${page}&per_page=${perPage}`);
+        if(!resp.ok) throw new Error('fail');
+        const data = await resp.json();
+        currentPage = data.page || 1;
+        totalPages = data.total_pages || 1;
+        render(data.items||[]);
+        renderPagination();
+      } catch(e){ render([]); renderPagination(); }
+    }
+    
+    function renderPagination() {
+      let paginationHTML = document.getElementById('pagination-container');
+      if (!paginationHTML) {
+        paginationHTML = document.createElement('div');
+        paginationHTML.id = 'pagination-container';
+        paginationHTML.style.cssText = 'margin-top:1.5rem; display:flex; gap:.4rem; justify-content:center; align-items:center; flex-wrap:wrap; font-size:.7rem;';
+        list.parentNode.appendChild(paginationHTML);
+      }
+      
+      if (totalPages <= 1) {
+        paginationHTML.innerHTML = '';
+        return;
+      }
+      
+      let html = '';
+      
+      // Previous button
+      if (currentPage > 1) {
+        html += `<button onclick="changePage(${currentPage - 1})" class="pag-btn">← Anterior</button>`;
+      }
+      
+      // Page numbers with limit based on screen size
+      const isMobile = window.innerWidth <= 980;
+      const maxPages = isMobile ? 3 : 10;
+      
+      let startPage = 1;
+      let endPage = totalPages;
+      
+      if (totalPages > maxPages) {
+        const half = Math.floor(maxPages / 2);
+        startPage = Math.max(1, currentPage - half);
+        endPage = Math.min(totalPages, startPage + maxPages - 1);
+        
+        // Adjust if we're near the end
+        if (endPage - startPage + 1 < maxPages) {
+          startPage = Math.max(1, endPage - maxPages + 1);
+        }
+      }
+      
+      // Show first page if not in range
+      if (startPage > 1) {
+        html += `<button onclick="changePage(1)" class="pag-btn">1</button>`;
+        if (startPage > 2) {
+          html += `<span class="pag-btn" style="background:transparent; color:#666; pointer-events:none; border:none;">...</span>`;
+        }
+      }
+      
+      // Show page numbers in range
+      for (let i = startPage; i <= endPage; i++) {
+        if (i === currentPage) {
+          html += `<span class="pag-btn" style="background:#9B5DE5; color:#fff; pointer-events:none;">${i}</span>`;
+        } else {
+          html += `<button onclick="changePage(${i})" class="pag-btn">${i}</button>`;
+        }
+      }
+      
+      // Show last page if not in range
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          html += `<span class="pag-btn" style="background:transparent; color:#666; pointer-events:none; border:none;">...</span>`;
+        }
+        html += `<button onclick="changePage(${totalPages})" class="pag-btn">${totalPages}</button>`;
+      }
+      
+      // Next button
+      if (currentPage < totalPages) {
+        html += `<button onclick="changePage(${currentPage + 1})" class="pag-btn">Próximo →</button>`;
+      }
+      
+      paginationHTML.innerHTML = html;
+    }
+    
+    window.changePage = function(page) {
+      search(input.value.trim(), page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    
+    function render(items){
+      [...list.querySelectorAll('.feed-item')].forEach(el=>{ if(el!==tpl) el.remove(); });
+      if(!items.length){ empty.style.display='block'; return; } else empty.style.display='none';
+      items.forEach(it=>{
+        const node = tpl.cloneNode(true); node.id=''; node.style.display='block';
+  if ((it.source||'').toLowerCase() === 'novidade') { node.classList.add('is-novidade'); }
+        // Map source to display name with proper accents
+        const sourceMap = {
+          'dinamica': 'DINÂMICA',
+          'novidade': 'PORTAL GRAMÁTIKE',
+          'post': 'POST',
+          'artigo': 'ARTIGO',
+          'apostila': 'APOSTILA',
+          'podcast': 'PODCAST',
+          'video': 'VÍDEO'
+        };
+        const displaySource = sourceMap[(it.source||'').toLowerCase()] || (it.source||'').toUpperCase();
+        node.querySelector('.fi-meta').textContent = displaySource;
+        // For POST source type: no title, add "Confira" as a tag
+        if ((it.source||'').toLowerCase() === 'post') {
+          node.querySelector('.fi-title').style.display = 'none';
+        } else {
+          node.querySelector('.fi-title').textContent = it.title || '(Sem título)';
+        }
+        node.querySelector('.fi-body').innerHTML = it.snippet || (it.resumo||'');
+        const tags = node.querySelector('.fi-tags');
+        // For POST source type, add "Confira" as first tag
+        if ((it.source||'').toLowerCase() === 'post') {
+          const conferirTag = document.createElement('span');
+          conferirTag.textContent = 'Confira';
+          conferirTag.style.cursor = 'pointer';
+          tags.appendChild(conferirTag);
+        }
+        (it.tags||[]).forEach(t=>{ const s=document.createElement('span'); s.textContent=t; tags.appendChild(s); });
+        if(it.url){ node.addEventListener('click', ()=>{ window.location = it.url; }); node.style.cursor='pointer'; }
+        list.insertBefore(node, empty);
+      });
+    }
+  input.addEventListener('input', ()=>{ clearTimeout(timer); timer=setTimeout(()=>search(input.value.trim(), 1), 320); });
+  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); search(input.value.trim(), 1); }});
+  if(btn){ btn.addEventListener('click', ()=> search(input.value.trim(), 1)); }
+    // carga inicial
+    search('', 1);
+  })();
+
+  // Palavras do Dia
+  (function(){
+    const container = document.getElementById('palavra-do-dia-content');
+    if(!container) return;
+    
+    // Carrega palavra do dia
+    fetch('/api/palavra-do-dia')
+      .then(r => r.json())
+      .then(data => {
+        if(data.error){
+          container.innerHTML = '<div style="text-align:center; padding:1rem; font-size:.65rem; color:#999;">Nenhuma palavra disponível</div>';
+          return;
+        }
+        
+        const { id, palavra, significado, ja_interagiu } = data;
+        
+        if(ja_interagiu){
+          // Usuárie já interagiu hoje
+          container.innerHTML = `
+            <div style="padding:.8rem; background:#f1edff; border-radius:16px; text-align:center;">
+              <div style="font-size:1.1rem; font-weight:800; color:#9B5DE5; margin-bottom:.5rem;">${palavra}</div>
+              <div style="font-size:.65rem; color:#666; margin-bottom:.8rem;">${significado}</div>
+              <div style="font-size:.65rem; font-weight:700; color:#9B5DE5;">Incrível! Hoje você aprendeu uma nova forma de incluir todes</div>
+            </div>
+          `;
+        } else {
+          // Mostra opções de interação
+          container.innerHTML = `
+            <div style="padding:.8rem;">
+              <div style="font-size:1.1rem; font-weight:800; color:#9B5DE5; margin-bottom:.5rem; text-align:center;">${palavra}</div>
+              <div style="display:flex; flex-direction:column; gap:.6rem; margin-top:.8rem;">
+                <button onclick="mostrarFormularioFrase(${id}, '${palavra}')" style="padding:.65rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; font-size:.7rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:.4rem; transition:.2s;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Quero criar uma frase
+                </button>
+                <button onclick="mostrarSignificado(${id}, '${significado}')" style="padding:.65rem; background:#fff; color:#9B5DE5; border:1.5px solid #9B5DE5; border-radius:14px; font-size:.7rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:.4rem; transition:.2s;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Quero saber o significado
+                </button>
+              </div>
+            </div>
+          `;
+        }
+      })
+      .catch(() => {
+        container.innerHTML = '<div style="text-align:center; padding:1rem; font-size:.65rem; color:#999;">Erro ao carregar</div>';
+      });
+  })();
+
+  // Funções para interação com Palavras do Dia
+  window.mostrarFormularioFrase = function(palavraId, palavra){
+    const container = document.getElementById('palavra-do-dia-content');
+    container.innerHTML = `
+      <div style="padding:.8rem;">
+        <div style="font-size:.9rem; font-weight:800; color:#9B5DE5; margin-bottom:.6rem; text-align:center;">Crie uma frase com "${palavra}"</div>
+        <textarea id="frase-input" placeholder="Digite sua frase aqui..." style="width:100%; min-height:80px; padding:.6rem; border:1.5px solid #e5e7eb; border-radius:12px; font-size:.65rem; font-family:inherit; resize:vertical;"></textarea>
+        <div style="display:flex; gap:.5rem; margin-top:.6rem;">
+          <button onclick="enviarFrase(${palavraId})" style="flex:1; padding:.6rem; background:#9B5DE5; color:#fff; border:none; border-radius:12px; font-size:.65rem; font-weight:700; cursor:pointer;">Enviar</button>
+          <button onclick="location.reload()" style="flex:1; padding:.6rem; background:#f3f4f6; color:#666; border:none; border-radius:12px; font-size:.65rem; font-weight:700; cursor:pointer;">Cancelar</button>
+        </div>
+      </div>
+    `;
+  };
+
+  window.mostrarSignificado = function(palavraId, significado){
+    const container = document.getElementById('palavra-do-dia-content');
+    container.innerHTML = `
+      <div style="padding:.8rem;">
+        <div style="padding:.8rem; background:#f1edff; border-radius:14px; margin-bottom:.8rem;">
+          <div style="font-size:.65rem; line-height:1.5; color:#333;">${significado}</div>
+        </div>
+        <button onclick="registrarVisualizacao(${palavraId})" style="width:100%; padding:.65rem; background:#9B5DE5; color:#fff; border:none; border-radius:12px; font-size:.65rem; font-weight:700; cursor:pointer;">Entendi!</button>
+      </div>
+    `;
+  };
+
+  window.enviarFrase = function(palavraId){
+    const fraseInput = document.getElementById('frase-input');
+    const frase = fraseInput ? fraseInput.value.trim() : '';
+    
+    if(!frase){
+      alert('Por favor, escreva uma frase.');
+      return;
+    }
+    
+    fetch('/api/palavra-do-dia/interagir', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ palavra_id: palavraId, tipo: 'frase', frase })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.error){
+        alert(data.error);
+        return;
+      }
+      const container = document.getElementById('palavra-do-dia-content');
+      container.innerHTML = `
+        <div style="padding:.8rem; text-align:center;">
+          <div style="font-size:.8rem; font-weight:700; color:#9B5DE5; margin-bottom:.5rem;">${data.mensagem}</div>
+          <div style="padding:.7rem; background:#f9fafb; border-radius:12px; margin-top:.6rem;">
+            <div style="font-size:.6rem; color:#666; font-style:italic;">"${frase}"</div>
+          </div>
+        </div>
+      `;
+    })
+    .catch(() => alert('Erro ao enviar frase'));
+  };
+
+  window.registrarVisualizacao = function(palavraId){
+    fetch('/api/palavra-do-dia/interagir', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ palavra_id: palavraId, tipo: 'significado' })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.error){
+        alert(data.error);
+        return;
+      }
+      const container = document.getElementById('palavra-do-dia-content');
+      container.innerHTML = `
+        <div style="padding:.8rem; text-align:center;">
+          <div style="font-size:.8rem; font-weight:700; color:#9B5DE5;">${data.mensagem}</div>
+        </div>
+      `;
+    })
+    .catch(() => alert('Erro ao registrar visualização'));
+  };
+  </script>
+
+  <!-- Barra de navegação inferior mobile (tipo app/rede social) -->
+  <style>
+    /* Barra de navegação inferior para mobile */
+    .mobile-bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      background: #9B5DE5;
+      border-radius: 24px;
+      padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+      box-shadow: 0 4px 20px rgba(155, 93, 229, 0.4);
+      z-index: 1000;
+    }
+
+    @media (max-width: 980px){
+      .mobile-bottom-nav {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+      }
+      
+      /* Ocultar o cabeçalho em mobile */
+      header.edu-header {
+        display: none !important;
+      }
+      
+      /* Adicionar padding no main para compensar a barra inferior flutuante */
+      main {
+        margin-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+      }
+      
+      /* Garantir que o footer não sobreponha a barra inferior */
+      footer {
+        display: none !important;
+      }
+    }
+
+    .mobile-bottom-nav a,
+    .mobile-bottom-nav button {
+      all: unset;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px 12px;
+      cursor: pointer;
+      color: #ffffff;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      transition: opacity 0.2s;
+      text-decoration: none;
+    }
+
+    .mobile-bottom-nav a:active,
+    .mobile-bottom-nav button:active {
+      transform: scale(0.95);
+    }
+
+    .mobile-bottom-nav a svg,
+    .mobile-bottom-nav button svg {
+      color: #ffffff;
+      transition: opacity 0.2s;
+    }
+
+    .mobile-bottom-nav a:hover,
+    .mobile-bottom-nav button:hover {
+      opacity: 0.85;
+    }
+
+    .mobile-bottom-nav a:hover svg,
+    .mobile-bottom-nav button:hover svg {
+      opacity: 0.85;
+    }
+  </style>
+  
+  <nav class="mobile-bottom-nav" aria-label="Navegação principal mobile">
+    <a href="/" aria-label="Feed" title="Feed">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span>Início</span>
+    </a>
+    
+    <a href="/educacao" aria-label="Educação" title="Educação" style="opacity: 1;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+      </svg>
+      <span>Educação</span>
+    </a>
+    
+    <a href="" aria-label="Criar post" title="Criar post" style="background: #ffffff; color: #9B5DE5; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    </a>
+    
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px 12px; color: #ffffff; opacity: 0.75; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.3px; text-decoration: none;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+      <span>Em breve</span>
+    </div>
+    
+    <!-- IF: user -->
+    <a href="/perfil" aria-label="Perfil" title="Perfil">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+      <span>Perfil</span>
+    </a>
+    <!-- ELSE -->
+    <a href="/login" aria-label="Entrar" title="Entrar">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+        <polyline points="10 17 15 12 10 7"></polyline>
+        <line x1="15" y1="12" x2="3" y2="12"></line>
+      </svg>
+      <span>Entrar</span>
+    </a>
+    <!-- ENDIF -->
+  </nav>
+
+  <footer>© 2025 Gramátike • Linguagem Viva e de Todes</footer>
+</body>
+</html>
+
