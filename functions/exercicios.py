@@ -1,15 +1,18 @@
-import os
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-from starlette.responses import Response
+"""
+Exercícios page handler for Cloudflare Workers
+"""
+try:
+    from workers import Response
+except ImportError:
+    from starlette.responses import Response
+
+from ._template_processor import render_template
+
 
 async def on_request(request, env, context):
-    templates_path = os.path.join(os.path.dirname(__file__), '../gramatike_app/templates')
-    env_jinja = Environment(
-        loader=FileSystemLoader(templates_path),
-        autoescape=select_autoescape(['html', 'xml'])
-    )
-    template = env_jinja.get_template('exercicios.html')
-    html = template.render(title='Exercícios')
-    return Response(html, media_type="text/html")
+    """Handle exercícios page requests."""
+    html = render_template('exercicios.html')
+    return Response(html, headers={'Content-Type': 'text/html; charset=utf-8'})
+
 
 handler = on_request

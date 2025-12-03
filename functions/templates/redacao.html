@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gramátike Edu — Redação</title>
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <link rel="apple-touch-icon" href="/static/img/icons/icon-192.png">
+    <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/gramatike_common.css">
+    <style>
+        :root { --primary:#9B5DE5; --primary-dark:#7d3dc9; --border:#e5e7eb; --bg:#f7f8ff; --card:#ffffff; --text:#222; --dim:#666; --danger:#ff7e5f; }
+        * { box-sizing:border-box; }
+        html, body { margin:0; padding:0; overflow-x:hidden; width:100%; max-width:100vw; }
+        body { font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.55; display:flex; flex-direction:column; min-height:100vh; }
+        header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; }
+        .logo { font-family:'Mansalva',cursive; font-size:2.6rem; color:#fff; font-weight:400; letter-spacing:1px; margin:0; }
+        .edu-nav { margin-top:1.1rem; display:flex; flex-wrap:wrap; gap:.65rem; justify-content:center; }
+    .edu-nav a { text-decoration:none; font-weight:700; font-size:.7rem; letter-spacing:.55px; padding:.65rem 1.05rem .62rem; background:#ffffff18; color:#fff; border:1px solid #ffffff30; border-radius:22px; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); display:inline-flex; align-items:center; gap:.35rem; box-shadow:0 4px 12px rgba(0,0,0,.18); transition:.25s; font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; }
+        .edu-nav a:hover, .edu-nav a.active { background:#fff; color:#7d3dc9; }
+    main { width:100%; max-width:1280px; margin:2rem auto 4rem; padding:0 clamp(12px,3vw,40px); flex:1; }
+    h2.page-title { text-align:center; font-size:2rem; color:#9B5DE5; margin:0 0 2rem; }
+        form.redacao-form { background:var(--card); border:1px solid var(--border); padding:1.8rem 1.7rem 2.2rem; border-radius:34px; box-shadow:0 16px 40px -12px rgba(0,0,0,.18); max-width:960px; margin:0 auto; }
+        form.redacao-form label { display:block; font-size:.72rem; font-weight:800; letter-spacing:.55px; margin:.2rem 0 .35rem; text-transform:uppercase; color:#5a6070; }
+        form.redacao-form select, form.redacao-form input[type=text] { width:100%; padding:.75rem 1rem; border:1px solid var(--border); border-radius:18px; font-family:inherit; font-size:.85rem; background:#fff; font-weight:600; }
+        #tema_enunciado { display:none; white-space:pre-wrap; background:#fff; border:1px solid #dcdcdc; padding:.9rem 1rem .95rem; border-radius:18px; margin:-.3rem 0 1.1rem; font-size:.8rem; line-height:1.35; box-shadow:0 4px 10px -4px rgba(0,0,0,.08); }
+        .a4-wrapper { display:flex; gap:.75rem; align-items:stretch; margin:.4rem 0 1.1rem; --linha-altura:25px; }
+        .a4-lines { flex:0 0 42px; }
+        .a4-lines ol { list-style:none; margin:0; padding:6px 4px; display:grid; grid-template-columns:1fr; gap:0; }
+        .a4-lines li { height:25px; font-size:11px; text-align:right; padding-right:6px; font-weight:600; color:#9aa2b1; font-family:'Nunito'; }
+        .a4-editor { flex:1; position:relative; }
+        .a4-editor::before { content:""; position:absolute; inset:0; background:repeating-linear-gradient(#ffffff 0px,#ffffff calc(var(--linha-altura) - 1px),#eef2f7 calc(var(--linha-altura) - 1px),#eef2f7 var(--linha-altura)); pointer-events:none; z-index:0; border-radius:18px; }
+        .a4-editor textarea { position:relative; z-index:1; width:100%; height:calc(var(--linha-altura) * 30); border:none; outline:none; resize:none; font-size:16px; line-height:var(--linha-altura); font-family:'Nunito'; padding:2px 18px 8px 18px; background:transparent; overflow:hidden; }
+        .a4-editor textarea:focus { box-shadow:inset 0 0 0 2px #d6c4ff; }
+        #contador-linhas { font-size:.65rem; font-weight:800; letter-spacing:.55px; color:#5a5f68; margin:-.65rem 0 1.2rem 4px; }
+        .actions { display:flex; flex-wrap:wrap; gap:.85rem; margin-top:1.2rem; }
+        .actions button { border:none; background:#9B5DE5; color:#fff; font-weight:800; letter-spacing:.5px; padding:.85rem 1.4rem .8rem; border-radius:18px; cursor:pointer; font-size:.7rem; box-shadow:0 14px 32px -8px rgba(155,93,229,.55); transition:.3s; text-transform:uppercase; }
+        .actions button:hover { filter:brightness(1.07); transform:translateY(-2px); }
+    footer { margin-top:4.4rem; background:#9B5DE5; color:#fff; text-align:center; padding:1.4rem 1rem 1.6rem; font-size:.75rem; letter-spacing:.5px; font-weight:700; border-top-left-radius:38px; border-top-right-radius:38px; }
+    @media (max-width: 980px){ footer { display:none !important; } }
+        @media (max-width:860px){ .a4-wrapper{ flex-direction:row; } .a4-lines{ flex:0 0 38px; } .a4-lines li{ font-size:10px; } .a4-editor textarea{ font-size:15px; line-height:22px; height:calc(22px * 30); } }
+        @media (max-width:720px){ header.site-head{ padding:12px 18px 18px; } .logo{ font-size:1.5rem; } form.redacao-form{ padding:1.4rem 1.2rem 1.8rem; } }
+    </style>
+</head>
+<body>
+    <header class="site-head">
+        <h1 class="logo">Gramátike Edu</h1>
+        
+            <a href="/admin" style="position:absolute; top:14px; right:16px; background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; text-decoration:none; letter-spacing:.5px;">🛠️ Painel</a>
+        <!-- ENDIF -->
+        <nav class="edu-nav" aria-label="Seções educacionais">
+            <a href="/educacao">🏠 Início</a>
+            <a href="/apostilas">📚 Apostilas</a>
+            <a href="/exercicios">🧠 Exercícios</a>
+            <a href="/podcasts"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>Podcasts</a>
+            <a href="/redacao" class="active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Redação</a>
+            <a href="/videos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Vídeos</a>
+            <a href="/artigos">📑 Artigos</a>
+        </nav>
+    </header>
+    <main>
+    <!-- Título removido a pedido -->
+        <form method="post" class="redacao-form">
+            <label for="tema_select">Tema</label>
+            <select id="tema_select" name="tema_id">
+                <option value="">Selecione um tema...</option>
+                <!-- FOR_LOOP: temas -->
+                    <option value="" data-corpo=""></option>
+                <!-- END_FOR_LOOP -->
+            </select>
+            
+            <div class="pagination" style="margin:.8rem 0 1.2rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; font-size:.65rem; font-weight:800; letter-spacing:.4px;">
+                <span style="color:#9B5DE5;">Temas:</span>
+                <span style="color:#444;">Página <!-- VAR: page --> de <!-- VAR: last_page --></span>
+                <span style="flex:1 0 100%; height:0;"></span>
+                <style>.pg-btn{padding:.45rem .75rem; border-radius:14px; background:#9B5DE5; color:#fff; text-decoration:none;} .pg-btn.disabled{pointer-events:none; opacity:.45;}</style>
+                <a href="?page=1" class="pg-btn disabled<!-- ENDIF -->">« Primeiro</a>
+                <a href="?page=" class="pg-btn disabled<!-- ENDIF -->">‹ Anterior</a>
+                <a href="?page=" class="pg-btn disabled<!-- ENDIF -->">Próxima ›</a>
+                <a href="?page=<!-- VAR: last_page -->" class="pg-btn disabled<!-- ENDIF -->">Última »</a>
+            </div>
+            <!-- ENDIF -->
+            <div id="tema_enunciado"></div>
+            <label for="titulo">Seu Título</label>
+            <input type="text" id="titulo" name="titulo" placeholder="(Opcional) Você pode propor um título" />
+            <label for="texto">Texto (máx 30 linhas visíveis)</label>
+            <div class="a4-wrapper">
+                <div class="a4-lines">
+                    <ol>
+                        <li></li><!-- END_FOR_LOOP -->
+                    </ol>
+                </div>
+                <div class="a4-editor">
+                    <textarea id="texto" name="texto" required aria-label="Redação com até 30 linhas" maxlength="6000"></textarea>
+                </div>
+            </div>
+            <div id="contador-linhas">Linhas: 0 / 30</div>
+            <div class="actions">
+                <button type="submit">Enviar</button>
+            </div>
+        </form>
+    </main>
+    <footer>© 2025 Gramátike • Linguagem Viva e de Todes</footer>
+    <script>
+    (function(){
+        const TA = document.getElementById('texto');
+        const contador = document.getElementById('contador-linhas');
+        const MAX = 30;
+        const selectTema = document.getElementById('tema_select');
+        const enunciadoBox = document.getElementById('tema_enunciado');
+        function contarLinhasFisicas(){
+            const lh = parseInt(getComputedStyle(TA).lineHeight,10) || 24;
+            const bruto = TA.scrollHeight - 10; // compensar padding
+            return Math.min(MAX+5, Math.max(1, Math.round(bruto / lh)));
+        }
+        function atualizar(){
+            const linhas = contarLinhasFisicas();
+            contador.textContent = 'Linhas: ' + Math.min(linhas,MAX) + ' / ' + MAX;
+            if(linhas > MAX){
+                let val = TA.value; let passos = 0;
+                while(contarLinhasFisicas() > MAX && val.length && passos < 1200){
+                    val = val.slice(0,-1); TA.value = val; passos++; }
+            }
+        }
+        function atualizarEnunciado(){
+            const opt = selectTema.options[selectTema.selectedIndex];
+            if(opt && opt.value){
+                const corpo = opt.getAttribute('data-corpo') || '';
+                const txt = corpo.trim();
+                enunciadoBox.textContent = txt;
+                enunciadoBox.style.display = txt ? 'block' : 'none';
+            } else { enunciadoBox.style.display='none'; enunciadoBox.textContent=''; }
+        }
+        selectTema && selectTema.addEventListener('change', atualizarEnunciado);
+        TA.addEventListener('keydown', e => { if(e.key==='Enter'){ if(contarLinhasFisicas() >= MAX){ e.preventDefault(); } } });
+        TA.addEventListener('input', atualizar);
+        atualizar(); atualizarEnunciado();
+    })();
+    </script>
+</body>
+</html>
