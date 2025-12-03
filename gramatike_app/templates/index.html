@@ -550,10 +550,11 @@ button { font-family: var(--font-base); font-weight:600; }
   }
   
   /* Adicionar faixa roxa no topo em mobile para manter a identidade visual */
+  /* Altura de 50px com padding de 50px para alinhamento perfeito */
   body::before {
     content: "";
     display: block;
-    height: 60px;
+    height: 50px;
     background: var(--primary);
     position: fixed;
     top: 0;
@@ -562,9 +563,9 @@ button { font-family: var(--font-base); font-weight:600; }
     z-index: 0;
   }
   
-  /* Ajustar body para compensar a faixa */
+  /* Ajustar body para compensar a faixa (mesmo valor da altura) */
   body {
-    padding-top: 40px;
+    padding-top: 50px;
   }
   
   /* Mostrar triângulo toggle no mobile */

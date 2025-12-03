@@ -81,8 +81,9 @@ button { font-family: var(--font-base); font-weight:600; }
     /* Ajustes do cabeçalho em mobile */
     header.site-head { display: none !important; }
     .content-wrapper { margin-top: 0 !important; padding-top: 1rem !important; border-top-left-radius: 0 !important; border-top-right-radius: 0 !important; }
-    body::before { content: ""; display: block; height: 60px; background: var(--primary); position: fixed; top: 0; left: 0; right: 0; z-index: 0; }
-    body { padding-top: 40px; }
+    /* Faixa roxa no topo (50px altura e padding para alinhamento) */
+    body::before { content: ""; display: block; height: 50px; background: var(--primary); position: fixed; top: 0; left: 0; right: 0; z-index: 0; }
+    body { padding-top: 50px; }
   }
   /* Layout */
   .layout { display: flex; gap: 1.5rem; max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
