@@ -1872,9 +1872,7 @@ function loadMobileAmigues() {
   }).then(list => {
     const wrap = document.getElementById('mobile-amigues-list');
     const empty = document.getElementById('mobile-amigues-empty');
-    if (!wrap || !empty) return;
     if (!Array.isArray(list) || list.length === 0) {
-      wrap.innerHTML = '';
       empty.style.display = 'block';
       return;
     }
@@ -1883,20 +1881,14 @@ function loadMobileAmigues() {
       const fp = (u.foto_perfil || '').trim() || 'img/perfil.png';
       const src = /^https?:\/\//i.test(fp) ? fp : (`/static/${fp}`);
       return `
-      <a href="/perfil/${u.id}" style="display:flex;align-items:center;gap:.6rem;text-decoration:none;padding:.35rem .4rem;border-radius:14px;transition:background .18s;">
-        <img src="${src}" alt="${u.username}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.15);background:#eee;">
-        <span style="display:flex;flex-direction:column;">
-          <strong style="font-size:.75rem;letter-spacing:.4px;color:var(--text);">@${u.username}</strong>
-          <span style="font-size:.6rem;opacity:.65;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(u.nome||'').replace(/</g,'&lt;')}</span>
-        </span>
-      </a>`;
+        <div style="display:flex;align-items:center;gap:.7rem;padding:.5rem .6rem;border-radius:16px;background:#f9fafb;border:1px solid #e5e7eb;">
+          <img src="${src}" alt="Avatar de ${u.username}" loading="lazy" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.15);" />
+          <div style="flex:1;min-width:0;">
+            <a href="/perfil/${u.username}" style="display:block;font-weight:700;font-size:.7rem;color:var(--primary);text-decoration:none;letter-spacing:.4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.username}</a>
+          </div>
+        </div>`;
     }).join('');
-  }).catch(() => {
-    const wrap = document.getElementById('mobile-amigues-list');
-    const empty = document.getElementById('mobile-amigues-empty');
-    if (wrap) wrap.innerHTML = '';
-    if (empty) empty.style.display = 'block';
-  });
+  }).catch(() => {});
 }
 
 // Mobile Tic-Tac-Toe Game
