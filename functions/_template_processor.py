@@ -52,9 +52,17 @@ def render_template(template_name, **context):
     content_html = context.get('content_html', '')
     html = html.replace('<!-- CONTENT_PLACEHOLDER -->', content_html)
     
+    # Replace FEED_PLACEHOLDER with feed posts
+    feed_html = context.get('feed_html', '')
+    html = html.replace('<!-- FEED_PLACEHOLDER -->', feed_html)
+    
+    # Replace DIVULGACOES_PLACEHOLDER with divulgacoes
+    divulgacoes_html = context.get('divulgacoes_html', '')
+    html = html.replace('<!-- DIVULGACOES_PLACEHOLDER -->', divulgacoes_html)
+    
     # Replace VAR placeholders: <!-- VAR: name --> with actual values
     for key, value in context.items():
-        if key not in ['flash_html', 'content_html', 'user', 'current_user']:
+        if key not in ['flash_html', 'content_html', 'feed_html', 'divulgacoes_html', 'user', 'current_user']:
             placeholder = f'<!-- VAR: {key} -->'
             html = html.replace(placeholder, str(value) if value else '')
     
@@ -62,7 +70,7 @@ def render_template(template_name, **context):
     user = context.get('user') or context.get('current_user')
     if user:
         if isinstance(user, dict):
-            for attr in ['username', 'nome', 'email', 'foto_perfil', 'bio']:
+            for attr in ['username', 'nome', 'email', 'foto_perfil', 'bio', 'id']:
                 placeholder = f'<!-- USER_{attr} -->'
                 html = html.replace(placeholder, str(user.get(attr, '')) if user.get(attr) else '')
     
