@@ -63,11 +63,17 @@
     </header>
     
     <main>
-        <a href="/admin" class="back-link">← Voltar ao Painel</a>
+        <a href="<!-- VAR_PLACEHOLDER -->" class="back-link">← Voltar ao Painel</a>
         
         <h2>Gerenciar Usuáries</h2>
         
-        <!-- FLASH_MESSAGES_PLACEHOLDER -->
+        
+            
+                
+                    <div class="flash"><!-- VAR_PLACEHOLDER --></div>
+                
+            
+        
         
         <table class="admin-users">
             <thead>
@@ -80,40 +86,41 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- FOR_LOOP: usuarios -->
+                
                 <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td><!-- VAR_PLACEHOLDER --></td>
+                    <td><!-- VAR_PLACEHOLDER --></td>
+                    <td><!-- VAR_PLACEHOLDER --></td>
                     <td>
                         
                             <span class="badge badge-superadmin">Superadmin</span>
-                        <!-- ELIF -->
+                        
                             <span class="badge badge-admin">Admin</span>
-                        <!-- ELSE -->
+                        
                             <span class="badge">Usuárie</span>
-                        <!-- ENDIF -->
+                        
                     </td>
                     <td>
                         
                         <form method="post" style="display:inline;">
-                            <input type="hidden" name="user_id" value="">
+                            <input type="hidden" name="csrf_token" value="">
+                            <input type="hidden" name="user_id" value="<!-- VAR_PLACEHOLDER -->">
                             <button type="submit" class="action-btn">
-                                Remover Admin<!-- ELSE -->Tornar Admin<!-- ENDIF -->
+                                Remover AdminTornar Admin
                             </button>
                         </form>
-                        <!-- ELSE -->
+                        
                             <span style="color:var(--text-soft); font-size:.7rem;">—</span>
-                        <!-- ENDIF -->
+                        
                     </td>
                 </tr>
-                <!-- END_FOR_LOOP -->
+                
             </tbody>
         </table>
     </main>
     
     <footer class="footer-bar">
-        ©  Gramátike
+        © <!-- VAR_PLACEHOLDER --> Gramátike
     </footer>
 </body>
 </html>

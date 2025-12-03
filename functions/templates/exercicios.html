@@ -122,7 +122,7 @@
                       </svg>
                       Apostilas
                     </a>
-                    <a href="/dinamicas" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+                    <a href="/dinamicas-home" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19.439 15.439c.389-.389.586-.585.638-.866a1 1 0 0 0 0-.414c-.052-.281-.249-.477-.638-.866l-1.88-1.88c-.389-.389-.585-.586-.866-.638a1 1 0 0 0-.414 0c-.281.052-.477.249-.866.638l-1.88 1.88c-.389.389-.586.585-.638.866a1 1 0 0 0 0 .414c.052.281.249.477.638.866l1.88 1.88c.389.389.585.586.866.638a1 1 0 0 0 .414 0c.281-.052.477-.249.866-.638l1.88-1.88z"></path>
                         <path d="M11.5 8.5c.833-.833 1.25-1.25 1.5-1.768a3 3 0 0 0 0-2.464C12.75 3.75 12.333 3.333 11.5 2.5 10.667 1.667 10.25 1.25 9.732 1c-.784-.378-1.68-.378-2.464 0C6.75 1.25 6.333 1.667 5.5 2.5s-1.25 1.167-1.5 1.768a3 3 0 0 0 0 2.464c.25.601.667 1.018 1.5 1.768.833.75 1.25 1.167 1.768 1.5a3 3 0 0 0 2.464 0c.601-.333 1.018-.75 1.768-1.5z"></path>
@@ -130,7 +130,7 @@
                       </svg>
                       Dinâmicas
                     </a>
-                    <a href="/admin" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+                    <a href="<!-- VAR_PLACEHOLDER -->" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
                       </svg>
@@ -138,7 +138,7 @@
                     </a>
                   </div>
                 </div>
-                <!-- ENDIF -->
+                
                 <nav class="edu-nav" aria-label="Seções educacionais">
                         <a href="/educacao">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -183,7 +183,7 @@
                 <!-- Título removido a pedido -->
                 <div class="search-box">
                         <form method="get" action="">
-                                <input type="text" name="q" placeholder="Pesquisar título ou descrição..." value="<!-- VAR: q -->" />
+                                <input type="text" name="q" placeholder="Pesquisar título ou descrição..." value="<!-- VAR_PLACEHOLDER -->" />
                                 <button type="submit" class="icon-btn" aria-label="Buscar" title="Buscar">
                                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                                 <circle cx="11" cy="11" r="7"></circle>
@@ -192,10 +192,10 @@
                                 </button>
                         </form>
                 </div>
-                <!-- IF: etopics -->
+                
                         <div class="topicos-nav">
-                                <!-- FOR_LOOP: etopics --><a href="#etopico-"></a><!-- END_FOR_LOOP -->
-                                <!-- IF: q -->
+                                <a href="#etopico-<!-- VAR_PLACEHOLDER -->"><!-- VAR_PLACEHOLDER --></a>
+                                
                                 <a href="?" class="clear-filters" style="background:#ffe4e1; color:#b42318; border-color:#ffb8b1; display:inline-flex; align-items:center; gap:.35rem;">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -203,29 +203,29 @@
                                     </svg>
                                     Limpar Filtros
                                 </a>
-                                <!-- ENDIF -->
+                                
                         </div>
-                <!-- ENDIF -->
-
-                <!-- FOR_LOOP: estrutura -->
                 
-                <div id="etopico-" style="margin-bottom:2.5rem;">
+
+                
+                
+                <div id="etopico-<!-- VAR_PLACEHOLDER -->" style="margin-bottom:2.5rem;">
                         
                                 
                                         
                                         <div class="exercise">
-                                                <h4></h4>
+                                                <h4><!-- VAR_PLACEHOLDER --></h4>
                                                 
                                                         <div class="question" style="position:relative;">
-                                                                . 
+                                                                <!-- VAR_PLACEHOLDER -->. <!-- VAR_PLACEHOLDER -->
                                                                 
-                                                                        <span class="dificuldade-badge dificuldade-">
+                                                                        <span class="dificuldade-badge dificuldade-<!-- VAR_PLACEHOLDER -->">
                                                                                 Fácil
-                                                                                <!-- ELIF -->Média
-                                                                                <!-- ELIF -->Difícil
-                                                                                <!-- ENDIF -->
+                                                                                Média
+                                                                                Difícil
+                                                                                
                                                                         </span>
-                                                                <!-- ENDIF -->
+                                                                
                                                                 
                                                                 <button class="item-menu-trigger" aria-label="Menu">
                                                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -235,36 +235,36 @@
                                                                     </svg>
                                                                 </button>
                                                                 <div class="item-menu" role="menu">
-                                                                        <button type="button" data-edit="">Editar</button>
-                                                                        <button type="button" data-view-answer="" data-resposta="">Ver Resposta</button>
-                                                                        <form method="POST" action="/admin/edu/question//delete" onsubmit="return confirm('Excluir esta questão?');">
+                                                                        <button type="button" data-edit="<!-- VAR_PLACEHOLDER -->">Editar</button>
+                                                                        <button type="button" data-view-answer="<!-- VAR_PLACEHOLDER -->" data-resposta="<!-- VAR_PLACEHOLDER -->">Ver Resposta</button>
+                                                                        <form method="POST" action="/admin/edu/question/<!-- VAR_PLACEHOLDER -->/delete" onsubmit="return confirm('Excluir esta questão?');">
                                                                                 <input type="hidden" name="csrf_token" value="" />
-                                                                                <input type="hidden" name="next" value="" />
+                                                                                <input type="hidden" name="next" value="<!-- VAR_PLACEHOLDER -->" />
                                                                                 <button type="submit" class="danger">Excluir</button>
                                                                         </form>
                                                                 </div>
-                                                                <!-- ENDIF -->
+                                                                
                                                         </div>
-                                                        <div data-qid="" class="q-block" data-tipo="" data-opcoes="" data-resposta=""></div>
-                                                <!-- END_FOR_LOOP -->
+                                                        <div data-qid="<!-- VAR_PLACEHOLDER -->" class="q-block" data-tipo="<!-- VAR_PLACEHOLDER -->" data-opcoes="<!-- VAR_PLACEHOLDER -->" data-resposta="<!-- VAR_PLACEHOLDER -->"></div>
+                                                
                                         </div>
-                                        <!-- ENDIF -->
-                                <!-- END_FOR_LOOP -->
-                        <!-- ENDIF -->
+                                        
+                                
+                        
                         
                         <div class="exercise">
                                 <h4>Sem sessão</h4>
                                 
                                         <div class="question" style="position:relative;">
-                                                . 
+                                                <!-- VAR_PLACEHOLDER -->. <!-- VAR_PLACEHOLDER -->
                                                 
-                                                        <span class="dificuldade-badge dificuldade-">
+                                                        <span class="dificuldade-badge dificuldade-<!-- VAR_PLACEHOLDER -->">
                                                                 Fácil
-                                                                <!-- ELIF -->Média
-                                                                <!-- ELIF -->Difícil
-                                                                <!-- ENDIF -->
+                                                                Média
+                                                                Difícil
+                                                                
                                                         </span>
-                                                <!-- ENDIF -->
+                                                
                                                 
                                                 <button class="item-menu-trigger" aria-label="Menu">
                                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -274,24 +274,24 @@
                                                     </svg>
                                                 </button>
                                                 <div class="item-menu" role="menu">
-                                                        <button type="button" data-edit="">Editar</button>
-                                                        <button type="button" data-view-answer="" data-resposta="">Ver Resposta</button>
-                                                        <form method="POST" action="/admin/edu/question//delete" onsubmit="return confirm('Excluir esta questão?');">
+                                                        <button type="button" data-edit="<!-- VAR_PLACEHOLDER -->">Editar</button>
+                                                        <button type="button" data-view-answer="<!-- VAR_PLACEHOLDER -->" data-resposta="<!-- VAR_PLACEHOLDER -->">Ver Resposta</button>
+                                                        <form method="POST" action="/admin/edu/question/<!-- VAR_PLACEHOLDER -->/delete" onsubmit="return confirm('Excluir esta questão?');">
                                                                 <input type="hidden" name="csrf_token" value="" />
-                                                                <input type="hidden" name="next" value="" />
+                                                                <input type="hidden" name="next" value="<!-- VAR_PLACEHOLDER -->" />
                                                                 <button type="submit" class="danger">Excluir</button>
                                                         </form>
                                                 </div>
-                                                <!-- ENDIF -->
+                                                
                                         </div>
-                                        <div data-qid="" class="q-block" data-tipo="" data-opcoes="" data-resposta=""></div>
-                                <!-- END_FOR_LOOP -->
+                                        <div data-qid="<!-- VAR_PLACEHOLDER -->" class="q-block" data-tipo="<!-- VAR_PLACEHOLDER -->" data-opcoes="<!-- VAR_PLACEHOLDER -->" data-resposta="<!-- VAR_PLACEHOLDER -->"></div>
+                                
                         </div>
-                        <!-- ENDIF -->
+                        
                 </div>
-                <!-- ENDIF -->
-                <!-- END_FOR_LOOP -->
-                <p>Nenhum exercício.</p><!-- ENDIF -->
+                
+                
+                <p>Nenhum exercício.</p>
                 </main>
 
         <!-- Modal de Edição de Questão -->
@@ -419,7 +419,7 @@
         </style>
         
         <nav class="mobile-bottom-nav" aria-label="Navegação principal mobile">
-          <a href="/" aria-label="Feed" title="Feed">
+          <a href="/index" aria-label="Feed" title="Feed">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -435,7 +435,7 @@
             <span>Educação</span>
           </a>
           
-          <a href="" aria-label="Criar post" title="Criar post" style="background: #ffffff; color: #9B5DE5; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+          <a href="/novo-post" aria-label="Criar post" title="Criar post" style="background: #ffffff; color: #9B5DE5; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -450,15 +450,15 @@
             <span>Em breve</span>
           </div>
           
-          <!-- IF: user -->
-          <a href="/perfil" aria-label="Perfil" title="Perfil">
+          
+          <a href="/meu-perfil" aria-label="Perfil" title="Perfil">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
             <span>Perfil</span>
           </a>
-          <!-- ELSE -->
+          
           <a href="/login" aria-label="Entrar" title="Entrar">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
@@ -467,7 +467,7 @@
             </svg>
             <span>Entrar</span>
           </a>
-          <!-- ENDIF -->
+          
         </nav>
 
         <footer>© 2025 Gramátike • Linguagem Viva e de Todes</footer>
@@ -829,8 +829,8 @@ function toggleMenu() {
   } else {
     // Desktop: Go directly to Painel
     
-    window.location.href = "/admin";
-    <!-- ENDIF -->
+    window.location.href = "<!-- VAR_PLACEHOLDER -->";
+    
   }
 }
 

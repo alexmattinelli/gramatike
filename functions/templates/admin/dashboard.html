@@ -189,7 +189,7 @@
             <h2 style="margin-top:0;">Usuáries</h2>
             <div class="card" style="margin:0 0 1rem; display:flex; flex-direction:column; gap:.6rem;">
                 <h4>Promover a Admin</h4>
-                <form method="POST" action="" class="inline-form" style="align-items:flex-end;">
+                <form method="POST" action="<!-- VAR_PLACEHOLDER -->" class="inline-form" style="align-items:flex-end;">
                     <input type="hidden" name="csrf_token" value="" />
                     <div style="flex:1; min-width:220px;">
                         <label style="display:block; font-size:.6rem; font-weight:600; letter-spacing:.5px; text-transform:uppercase; margin:0 0 4px; color:var(--text-soft);">Username ou Email</label>
@@ -200,7 +200,7 @@
             </div>
             <div class="card" style="margin:0 0 1rem;">
                 <h4>Moderação — Palavras bloqueadas</h4>
-                <form method="POST" action="" class="inline-form" style="align-items:flex-end; gap:.6rem;">
+                <form method="POST" action="<!-- VAR_PLACEHOLDER -->" class="inline-form" style="align-items:flex-end; gap:.6rem;">
                     <input type="hidden" name="csrf_token" value="" />
                     <div style="flex:2; min-width:220px;">
                         <label style="display:block; font-size:.6rem; font-weight:700; letter-spacing:.5px; text-transform:uppercase; margin:0 0 4px; color:var(--text-soft);">Termo</label>
@@ -218,7 +218,7 @@
                     <button type="submit">Adicionar</button>
                 </form>
                 <div style="margin-top:.8rem;">
-                    <!-- IF: blocked_words -->
+                    
                         <table class="admin-users" style="font-size:.72rem;">
                             <thead>
                                 <tr>
@@ -229,41 +229,41 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- FOR_LOOP: blocked_words -->
+                                
                                 <tr>
-                                    <td data-label="Termo"></td>
-                                    <td data-label="Categoria"></td>
-                                    <td data-label="Criado em"></td>
+                                    <td data-label="Termo"><!-- VAR_PLACEHOLDER --></td>
+                                    <td data-label="Categoria"><!-- VAR_PLACEHOLDER --></td>
+                                    <td data-label="Criado em"><!-- VAR_PLACEHOLDER --></td>
                                     <td data-label="Ações">
-                                        <form class="inline" method="POST" action="" onsubmit="return confirm('Remover termo bloqueado?');">
+                                        <form class="inline" method="POST" action="<!-- VAR_PLACEHOLDER -->" onsubmit="return confirm('Remover termo bloqueado?');">
                                             <input type="hidden" name="csrf_token" value="" />
                                             <button type="submit" class="action-btn danger">Excluir</button>
                                         </form>
                                     </td>
                                 </tr>
-                                <!-- END_FOR_LOOP -->
+                                
                             </tbody>
                         </table>
                         
                         <div class="pagination" style="margin-top:1rem; display:flex; gap:.4rem; justify-content:center; align-items:center; flex-wrap:wrap; font-size:.7rem;">
                             
-                                <a href="/admin" class="pag-btn">← Anterior</a>
-                            <!-- ENDIF -->
+                                <a href="<!-- VAR_PLACEHOLDER -->" class="pag-btn">← Anterior</a>
+                            
                             
                                 
-                                    <span class="pag-btn disabled" style="background:var(--accent); color:#fff;"><!-- VAR: page_num --></span>
-                                <!-- ELSE -->
-                                    <a href="/admin" class="pag-btn"><!-- VAR: page_num --></a>
-                                <!-- ENDIF -->
-                            <!-- END_FOR_LOOP -->
+                                    <span class="pag-btn disabled" style="background:var(--accent); color:#fff;"><!-- VAR_PLACEHOLDER --></span>
+                                
+                                    <a href="<!-- VAR_PLACEHOLDER -->" class="pag-btn"><!-- VAR_PLACEHOLDER --></a>
+                                
                             
-                                <a href="/admin" class="pag-btn">Próximo →</a>
-                            <!-- ENDIF -->
+                            
+                                <a href="<!-- VAR_PLACEHOLDER -->" class="pag-btn">Próximo →</a>
+                            
                         </div>
-                        <!-- ENDIF -->
-                    <!-- ELSE -->
+                        
+                    
                         <p class="small-muted" style="margin:0;">Nenhum termo personalizado cadastrado.</p>
-                    <!-- ENDIF -->
+                    
                 </div>
             </div>
             <table class="admin-users" role="grid" aria-describedby="legenda-usuarios">
@@ -271,77 +271,77 @@
                     <tr><th>ID</th><th>Username</th><th>Email</th><th>Privilégios</th><th>Ações</th></tr>
                 </thead>
                 <tbody>
-                <!-- FOR_LOOP: usuaries -->
+                
                     <tr>
-                        <td data-label="ID"></td>
-                        <td data-label="Username"> <span class="badge badge-superadmin">SUPERADMIN</span><!-- ELIF --><span class="badge badge-admin">ADMIN</span><!-- ENDIF --></td>
-                        <td data-label="Email"></td>
+                        <td data-label="ID"><!-- VAR_PLACEHOLDER --></td>
+                        <td data-label="Username"><!-- VAR_PLACEHOLDER --> <span class="badge badge-superadmin">SUPERADMIN</span><span class="badge badge-admin">ADMIN</span></td>
+                        <td data-label="Email"><!-- VAR_PLACEHOLDER --></td>
                         <td data-label="Privilégios">
-                            Superadmin<!-- ELIF -->Admin<!-- ELSE --><span class="muted">Padrão</span><!-- ENDIF -->
-                            <br><span class="badge" style="background:#222;color:#fff;">BANIDO</span><!-- ELIF --><br><span class="badge" style="background:#f5a540;color:#fff;">SUSPENSO</span><!-- ENDIF -->
+                            SuperadminAdmin<span class="muted">Padrão</span>
+                            <br><span class="badge" style="background:#222;color:#fff;">BANIDO</span><br><span class="badge" style="background:#f5a540;color:#fff;">SUSPENSO</span>
                         </td>
                         <td data-label="Ações">
                             
                                 <div class="actions-stack">
-                                    <form class="inline" method="POST" action="">
+                                    <form class="inline" method="POST" action="/gerenciar-usuarios">
                                         <input type="hidden" name="csrf_token" value="" />
-                                        <input type="hidden" name="user_id" value="" />
-                                        <button type="submit" class="action-btn">Remover Admin<!-- ELSE -->Tornar Admin<!-- ENDIF --></button>
+                                        <input type="hidden" name="user_id" value="<!-- VAR_PLACEHOLDER -->" />
+                                        <button type="submit" class="action-btn">Remover AdminTornar Admin</button>
                                     </form>
                                     
-                                        <form class="inline" method="POST" action="">
+                                        <form class="inline" method="POST" action="<!-- VAR_PLACEHOLDER -->">
                                             <input type="hidden" name="csrf_token" value="" />
                                             <button type="submit" class="action-btn">Desbanir</button>
                                         </form>
-                                    <!-- ELSE -->
-                                        <form class="inline" method="POST" action="">
+                                    
+                                        <form class="inline" method="POST" action="<!-- VAR_PLACEHOLDER -->">
                                             <input type="hidden" name="csrf_token" value="" />
                                             <input type="hidden" name="reason" value="Violação de regras" />
                                             <button type="submit" class="action-btn danger">Banir</button>
                                         </form>
-                                    <!-- ENDIF -->
                                     
-                                        <form class="inline" method="POST" action="">
+                                    
+                                        <form class="inline" method="POST" action="<!-- VAR_PLACEHOLDER -->">
                                             <input type="hidden" name="csrf_token" value="" />
                                             <button type="submit" class="action-btn">Remover Susp.</button>
                                         </form>
-                                    <!-- ELSE -->
-                                        <form class="inline" method="POST" action="">
+                                    
+                                        <form class="inline" method="POST" action="<!-- VAR_PLACEHOLDER -->">
                                             <input type="hidden" name="csrf_token" value="" />
                                             <input style="width:48px" name="hours" placeholder="h" />
                                             <button type="submit" class="action-btn">Suspender</button>
                                         </form>
-                                    <!-- ENDIF -->
                                     
-                                    <form class="inline" method="POST" action="" onsubmit="return confirm('Excluir ?');">
+                                    
+                                    <form class="inline" method="POST" action="<!-- VAR_PLACEHOLDER -->" onsubmit="return confirm('Excluir <!-- VAR_PLACEHOLDER -->?');">
                                         <input type="hidden" name="csrf_token" value="" />
                                         <button type="submit" class="action-btn danger">Excluir</button>
                                     </form>
-                                    <!-- ENDIF -->
+                                    
                                 </div>
-                            <!-- ELSE --><span class="muted">Protegide</span><!-- ENDIF -->
+                            <span class="muted">Protegide</span>
                         </td>
                     </tr>
-                <!-- END_FOR_LOOP -->
+                
                 </tbody>
             </table>
-            <!-- IF: users_pagination -->
+            
             <div class="pagination" style="margin-top:1rem; display:flex; gap:.4rem; justify-content:center; align-items:center; flex-wrap:wrap; font-size:.7rem;">
                 
-                <a href="/admin" class="pag-btn">← Anterior</a>
-                <!-- ENDIF -->
+                <a href="<!-- VAR_PLACEHOLDER -->" class="pag-btn">← Anterior</a>
+                
                 
                     
-                        <span class="pag-btn disabled" style="background:var(--accent); color:#fff;"><!-- VAR: page_num --></span>
-                    <!-- ELSE -->
-                        <a href="/admin" class="pag-btn"><!-- VAR: page_num --></a>
-                    <!-- ENDIF -->
-                <!-- END_FOR_LOOP -->
+                        <span class="pag-btn disabled" style="background:var(--accent); color:#fff;"><!-- VAR_PLACEHOLDER --></span>
+                    
+                        <a href="<!-- VAR_PLACEHOLDER -->" class="pag-btn"><!-- VAR_PLACEHOLDER --></a>
+                    
                 
-                <a href="/admin" class="pag-btn">Próxima →</a>
-                <!-- ENDIF -->
+                
+                <a href="<!-- VAR_PLACEHOLDER -->" class="pag-btn">Próxima →</a>
+                
             </div>
-            <!-- ENDIF -->
+            
         </section>
 
         <section class="tab-panel" id="tab-analytics">
@@ -373,7 +373,7 @@
             <div class="cards-grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));">
                 <div class="card">
                     <h4 style="margin:0 0 .8rem; font-size:.85rem; letter-spacing:.5px;">Nova Divulgação</h4>
-                    <form method="POST" action="" class="publi-aviso-form" style="gap:.5rem;">
+                    <form method="POST" action="/admin-divulgacao-new" class="publi-aviso-form" style="gap:.5rem;">
                         <input type="hidden" name="csrf_token" value="" />
                         <input type="hidden" name="ativo" value="1" />
                         <!-- Campo 'Área' removido: destino controlado por 'Exibir em' -->
@@ -401,76 +401,76 @@
                         <input name="ordem" type="number" value="0" />
                         <button type="submit" class="btn-add-aviso">Criar Divulgação</button>
                         <div style="margin-top:.4rem;">
-                            <form method="POST" action="" enctype="multipart/form-data" style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+                            <form method="POST" action="/admin-divulgacao-upload" enctype="multipart/form-data" style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
                                 <input type="hidden" name="csrf_token" value="" />
                                 <label class="lbl" style="margin:0;">ou envie uma imagem:</label>
                                 <input type="file" name="arquivo" accept="image/*" />
                                 <button type="submit" class="action-btn" style="font-size:.62rem;">Upload</button>
                             </form>
                             
-                                <p class="small-muted" style="margin:.3rem 0 0;">Último arquivo: <code></code></p>
-                            <!-- ENDIF -->
+                                <p class="small-muted" style="margin:.3rem 0 0;">Último arquivo: <code><!-- VAR_PLACEHOLDER --></code></p>
+                            
                         </div>
                     </form>
                 </div>
                 <!-- Divulgações feitas ao lado do card de Nova Divulgação -->
                 <div class="card">
                     <h4 style="margin:0 0 .9rem; font-size:.85rem; letter-spacing:.5px;">Divulgações feitas</h4>
-                    <!-- IF: divulgacoes -->
+                    
                     <div style="display:flex; flex-direction:column; gap:.8rem; max-height:600px; overflow-y:auto;">
-                        <!-- FOR_LOOP: divulgacoes -->
+                        
                         <div class="promo-item" style="background:var(--bg-alt); border:1px solid var(--border); border-radius:14px; padding:.7rem .75rem .85rem; position:relative; display:flex; flex-direction:column; gap:.55rem;">
                             <div style="display:flex; justify-content:space-between; align-items:center; gap:.6rem;">
                                 <div>
-                                    <strong style="font-size:.7rem; letter-spacing:.4px;"></strong>
+                                    <strong style="font-size:.7rem; letter-spacing:.4px;"><!-- VAR_PLACEHOLDER --></strong>
                                     
                                         <span class="badge" style="background:#6b7280;color:#fff; margin-left:.35rem;">Arquivada</span>
-                                    <!-- ENDIF -->
-                                    <div class="small-muted" style="margin-top:.15rem;">Ordem: </div>
+                                    
+                                    <div class="small-muted" style="margin-top:.15rem;">Ordem: <!-- VAR_PLACEHOLDER --></div>
                                 </div>
-                                <form method="POST" action="" style="margin:0; display:flex; gap:.35rem; align-items:center;">
+                                <form method="POST" action="<!-- VAR_PLACEHOLDER -->" style="margin:0; display:flex; gap:.35rem; align-items:center;">
                                     <input type="hidden" name="csrf_token" value="" />
-                                    <input type="hidden" name="next" value="/admin#publi" />
-                                    <input type="hidden" name="ativo" value="" />
-                                    <button type="submit" class="action-btn promo-active<!-- ENDIF -->" style="font-size:.52rem; padding:3px 8px;"></button>
+                                    <input type="hidden" name="next" value="<!-- VAR_PLACEHOLDER -->#publi" />
+                                    <input type="hidden" name="ativo" value="<!-- VAR_PLACEHOLDER -->" />
+                                    <button type="submit" class="action-btn promo-active" style="font-size:.52rem; padding:3px 8px;"><!-- VAR_PLACEHOLDER --></button>
                                 </form>
                             </div>
-                            <p style="margin:0; font-size:.58rem; line-height:1.3; color:var(--text-soft);"></p><!-- ENDIF -->
+                            <p style="margin:0; font-size:.58rem; line-height:1.3; color:var(--text-soft);"><!-- VAR_PLACEHOLDER --></p>
                             
                                 
-                                <img src="<!-- VAR: imgsrc -->" alt="" style="max-width:100%; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />
-                            <!-- ENDIF -->
+                                <img src="<!-- VAR_PLACEHOLDER -->" alt="<!-- VAR_PLACEHOLDER -->" style="max-width:100%; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />
                             
-                                <a href="" target="_blank" rel="noopener" style="font-size:.55rem; font-weight:700; color:var(--accent); text-decoration:none;">Abrir link →</a>
-                            <!-- ENDIF -->
+                            
+                                <a href="<!-- VAR_PLACEHOLDER -->" target="_blank" rel="noopener" style="font-size:.55rem; font-weight:700; color:var(--accent); text-decoration:none;">Abrir link →</a>
+                            
                             <details style="margin-top:.25rem;">
                                 <summary class="small-muted" style="cursor:pointer;">Editar</summary>
-                                <form method="POST" action="" class="publi-aviso-form" style="margin-top:.5rem; gap:.45rem;">
+                                <form method="POST" action="<!-- VAR_PLACEHOLDER -->" class="publi-aviso-form" style="margin-top:.5rem; gap:.45rem;">
                                     <input type="hidden" name="csrf_token" value="" />
-                                    <input type="hidden" name="next" value="/admin#publi" />
+                                    <input type="hidden" name="next" value="<!-- VAR_PLACEHOLDER -->#publi" />
                                     <!-- Campo 'Área' removido nos edits -->
                     <label class="lbl">Exibir em</label>
                                     <div style="display:flex; gap:.6rem; flex-wrap:wrap;">
                                         <label style="display:flex; align-items:center; gap:.35rem; font-size:.65rem;">
-                        <input type="checkbox" name="show_on_index" value="1" checked<!-- ENDIF --> /> Card Gramátike (Início)
+                        <input type="checkbox" name="show_on_index" value="1" checked /> Card Gramátike (Início)
                                             <input type="hidden" name="show_on_index" value="0" />
                                         </label>
                                         <label style="display:flex; align-items:center; gap:.35rem; font-size:.65rem;">
-                        <input type="checkbox" name="show_on_edu" value="1" checked<!-- ENDIF --> /> Card Gramátike Edu
+                        <input type="checkbox" name="show_on_edu" value="1" checked /> Card Gramátike Edu
                                             <input type="hidden" name="show_on_edu" value="0" />
                                         </label>
                                         
                                     </div>
                                     <label class="lbl">Título</label>
-                                    <input name="titulo" value="" />
+                                    <input name="titulo" value="<!-- VAR_PLACEHOLDER -->" />
                                     <label class="lbl">Texto</label>
-                                    <textarea name="texto"></textarea>
+                                    <textarea name="texto"><!-- VAR_PLACEHOLDER --></textarea>
                                     <label class="lbl">Link</label>
-                                    <input name="link" value="" />
+                                    <input name="link" value="<!-- VAR_PLACEHOLDER -->" />
                                     <label class="lbl">Imagem</label>
-                                    <input name="imagem" value="" />
+                                    <input name="imagem" value="<!-- VAR_PLACEHOLDER -->" />
                                     <label class="lbl">Ordem</label>
-                                    <input name="ordem" type="number" value="" />
+                                    <input name="ordem" type="number" value="<!-- VAR_PLACEHOLDER -->" />
                                     <div style="display:flex; gap:.5rem;">
                                         <button type="submit" class="action-btn" style="font-size:.65rem;">Salvar</button>
                                     </div>
@@ -478,34 +478,34 @@
                             </details>
                             <div style="display:flex; gap:.4rem; flex-wrap:wrap;">
                                 
-                                <form method="POST" action="" onsubmit="return confirm('Arquivar esta divulgação?');" style="margin:0;">
+                                <form method="POST" action="<!-- VAR_PLACEHOLDER -->" onsubmit="return confirm('Arquivar esta divulgação?');" style="margin:0;">
                                     <input type="hidden" name="csrf_token" value="" />
-                                    <input type="hidden" name="next" value="/admin#publi" />
+                                    <input type="hidden" name="next" value="<!-- VAR_PLACEHOLDER -->#publi" />
                                     <input type="hidden" name="ativo" value="0" />
                                     <button type="submit" class="action-btn" style="font-size:.5rem; padding:3px 8px;">Arquivar</button>
                                 </form>
-                                <!-- ELSE -->
-                                <form method="POST" action="" style="margin:0;">
+                                
+                                <form method="POST" action="<!-- VAR_PLACEHOLDER -->" style="margin:0;">
                                     <input type="hidden" name="csrf_token" value="" />
-                                    <input type="hidden" name="next" value="/admin#publi" />
+                                    <input type="hidden" name="next" value="<!-- VAR_PLACEHOLDER -->#publi" />
                                     <input type="hidden" name="ativo" value="1" />
                                     <button type="submit" class="action-btn" style="font-size:.5rem; padding:3px 8px;">Reativar</button>
                                 </form>
-                                <!-- ENDIF -->
-                                <form method="POST" action="" onsubmit="return confirm('Remover divulgação?');" style="margin:0;">
+                                
+                                <form method="POST" action="<!-- VAR_PLACEHOLDER -->" onsubmit="return confirm('Remover divulgação?');" style="margin:0;">
                                     <input type="hidden" name="csrf_token" value="" />
-                                    <input type="hidden" name="next" value="/admin#publi" />
+                                    <input type="hidden" name="next" value="<!-- VAR_PLACEHOLDER -->#publi" />
                                     <button type="submit" class="action-btn danger" style="font-size:.5rem; padding:3px 8px;">Excluir</button>
                                 </form>
                             </div>
                         </div>
-                        <!-- ELSE -->
+                        
                             <p class="small-muted" style="font-size:.6rem;">Sem divulgações.</p>
-                        <!-- END_FOR_LOOP -->
+                        
                     </div>
-                    <!-- ELSE -->
+                    
                         <p class="small-muted" style="margin-top:1rem; font-size:.6rem;">Nenhuma divulgação cadastrada.</p>
-                    <!-- ENDIF -->
+                    
                 </div>
             </div>
             <script>
@@ -574,7 +574,7 @@
                 <div class="edu-two-col">
                     <div class="edu-box" style="grid-column:1/-1;">
                         <h3>Postar Novidade</h3>
-                        <form id="formNovidadeGmtk" method="POST" action="">
+                        <form id="formNovidadeGmtk" method="POST" action="<!-- VAR_PLACEHOLDER -->">
                             <input type="hidden" name="csrf_token" value="" />
                             <input type="hidden" name="descricao" id="novidade-descricao-input" />
                             <input name="titulo" placeholder="Título da novidade" required />
@@ -588,7 +588,7 @@
                     </div>
                     <div class="edu-box" style="grid-column:1/-1;">
                         <h3 style="display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Palavra do Dia</h3>
-                        <form method="POST" action="">
+                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->">
                             <input type="hidden" name="csrf_token" value="" />
                             <input name="palavra" placeholder="Palavra ou expressão" required />
                             <textarea name="significado" placeholder="Significado (explicação curta e inclusiva)" required></textarea>
@@ -728,14 +728,14 @@
                 <div class="edu-two-col">
                     <div class="edu-box">
                         <h3>Publicar Artigo</h3>
-                        <form method="POST" action="" enctype="multipart/form-data">
+                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->" enctype="multipart/form-data">
                             <input type="hidden" name="csrf_token" value="" />
                             <input type="hidden" name="tipo" value="artigo" />
                             <input name="titulo" placeholder="Título" required />
                             <input name="autor" placeholder="Autore (opcional)" />
                             <select name="topic_id">
                                 <option value="">(Tópico)</option>
-                                <option value=""></option><!-- END_FOR_LOOP -->
+                                <option value="<!-- VAR_PLACEHOLDER -->"><!-- VAR_PLACEHOLDER --></option>
                             </select>
                             <input name="url" placeholder="Link (fonte)" />
                             <textarea name="resumo" placeholder="Resumo"></textarea>
@@ -744,7 +744,7 @@
                     </div>
                     <div class="edu-box">
                         <h3>Criar Tópico</h3>
-                        <form method="POST" action="">
+                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->">
                             <input type="hidden" name="csrf_token" value="" />
                             <input type="hidden" name="area" value="artigo" />
                             <input name="nome" placeholder="Nome" required />
@@ -756,46 +756,46 @@
                 <!-- Gerenciar Tópicos de Artigos -->
                 <div class="edu-box" style="margin-top:1rem;">
                     <h3>Gerenciar Tópicos de Artigos</h3>
-                    <!-- IF: edu_topics -->
+                    
                         
-                        <!-- IF: artigo_topics -->
+                        
                             <div style="display:grid; gap:.8rem; grid-template-columns:1fr;">
-                                <!-- FOR_LOOP: artigo_topics -->
+                                
                                 <div style="background:#f9fbfd; border:1px solid #e3e9f0; border-radius:12px; padding:.9rem;">
                                     <div style="display:flex; justify-content:space-between; align-items:start; gap:.8rem;">
                                         <div style="flex:1;">
-                                            <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;"></div>
+                                            <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;"><!-- VAR_PLACEHOLDER --></div>
                                             
-                                                <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;"></div>
-                                            <!-- ENDIF -->
+                                                <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;"><!-- VAR_PLACEHOLDER --></div>
+                                            
                                         </div>
-                                        <button onclick="toggleTopicEdit('artigo-')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
+                                        <button onclick="toggleTopicEdit('artigo-<!-- VAR_PLACEHOLDER -->')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;">
                                                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                                             </svg>
                                             Editar
                                         </button>
                                     </div>
-                                    <div id="topic-edit-artigo-" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
-                                        <form method="POST" action="" style="display:flex; flex-direction:column; gap:.5rem;">
+                                    <div id="topic-edit-artigo-<!-- VAR_PLACEHOLDER -->" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
+                                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->" style="display:flex; flex-direction:column; gap:.5rem;">
                                             <input type="hidden" name="csrf_token" value="" />
                                             <label style="font-size:.7rem; font-weight:600; color:#666;">Nome</label>
-                                            <input name="nome" value="" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
+                                            <input name="nome" value="<!-- VAR_PLACEHOLDER -->" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
                                             <label style="font-size:.7rem; font-weight:600; color:#666;">Descrição</label>
-                                            <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;"></textarea>
+                                            <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;"><!-- VAR_PLACEHOLDER --></textarea>
                                             <div style="display:flex; gap:.5rem; margin-top:.3rem;">
                                                 <button type="submit" class="action-btn" style="background:var(--accent); color:#fff; border:none; font-size:.65rem; padding:.5rem .9rem;">Salvar</button>
-                                                <button type="button" onclick="toggleTopicEdit('artigo-')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
+                                                <button type="button" onclick="toggleTopicEdit('artigo-<!-- VAR_PLACEHOLDER -->')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
                                             </div>
                                         </form>
                                     </div>
                                 </div>
-                                <!-- END_FOR_LOOP -->
+                                
                             </div>
-                        <!-- ELSE -->
+                        
                             <p class="muted-inline">Nenhum tópico criado ainda.</p>
-                        <!-- ENDIF -->
-                    <!-- ENDIF -->
+                        
+                    
                 </div>
             </div>
             <!-- Apostilas -->
@@ -803,14 +803,14 @@
                 <div class="edu-two-col">
                     <div class="edu-box">
                         <h3>Publicar Apostila</h3>
-                        <form method="POST" action="" enctype="multipart/form-data">
+                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->" enctype="multipart/form-data">
                             <input type="hidden" name="csrf_token" value="" />
                             <input type="hidden" name="tipo" value="apostila" />
                             <input name="titulo" placeholder="Título" required />
                             <input name="autor" placeholder="Autore (opcional)" />
                             <select name="topic_id">
                                 <option value="">(Tópico)</option>
-                                <option value=""></option><!-- END_FOR_LOOP -->
+                                <option value="<!-- VAR_PLACEHOLDER -->"><!-- VAR_PLACEHOLDER --></option>
                             </select>
                             <input type="file" name="pdf" accept="application/pdf" />
                             <input name="url" placeholder="OU insira um link (URL)" />
@@ -820,7 +820,7 @@
                     </div>
                     <div class="edu-box">
                         <h3>Criar Tópico</h3>
-                        <form method="POST" action="">
+                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->">
                             <input type="hidden" name="csrf_token" value="" />
                             <input type="hidden" name="area" value="apostila" />
                             <input name="nome" placeholder="Nome" required />
@@ -832,46 +832,46 @@
                 <!-- Gerenciar Tópicos de Apostilas -->
                 <div class="edu-box" style="margin-top:1rem;">
                     <h3>Gerenciar Tópicos de Apostilas</h3>
-                    <!-- IF: edu_topics -->
+                    
                         
-                        <!-- IF: apostila_topics -->
+                        
                             <div style="display:grid; gap:.8rem; grid-template-columns:1fr;">
-                                <!-- FOR_LOOP: apostila_topics -->
+                                
                                 <div style="background:#f9fbfd; border:1px solid #e3e9f0; border-radius:12px; padding:.9rem;">
                                     <div style="display:flex; justify-content:space-between; align-items:start; gap:.8rem;">
                                         <div style="flex:1;">
-                                            <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;"></div>
+                                            <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;"><!-- VAR_PLACEHOLDER --></div>
                                             
-                                                <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;"></div>
-                                            <!-- ENDIF -->
+                                                <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;"><!-- VAR_PLACEHOLDER --></div>
+                                            
                                         </div>
-                                        <button onclick="toggleTopicEdit('apostila-')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
+                                        <button onclick="toggleTopicEdit('apostila-<!-- VAR_PLACEHOLDER -->')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;">
                                                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                                             </svg>
                                             Editar
                                         </button>
                                     </div>
-                                    <div id="topic-edit-apostila-" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
-                                        <form method="POST" action="" style="display:flex; flex-direction:column; gap:.5rem;">
+                                    <div id="topic-edit-apostila-<!-- VAR_PLACEHOLDER -->" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
+                                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->" style="display:flex; flex-direction:column; gap:.5rem;">
                                             <input type="hidden" name="csrf_token" value="" />
                                             <label style="font-size:.7rem; font-weight:600; color:#666;">Nome</label>
-                                            <input name="nome" value="" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
+                                            <input name="nome" value="<!-- VAR_PLACEHOLDER -->" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
                                             <label style="font-size:.7rem; font-weight:600; color:#666;">Descrição</label>
-                                            <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;"></textarea>
+                                            <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;"><!-- VAR_PLACEHOLDER --></textarea>
                                             <div style="display:flex; gap:.5rem; margin-top:.3rem;">
                                                 <button type="submit" class="action-btn" style="background:var(--accent); color:#fff; border:none; font-size:.65rem; padding:.5rem .9rem;">Salvar</button>
-                                                <button type="button" onclick="toggleTopicEdit('apostila-')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
+                                                <button type="button" onclick="toggleTopicEdit('apostila-<!-- VAR_PLACEHOLDER -->')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
                                             </div>
                                         </form>
                                     </div>
                                 </div>
-                                <!-- END_FOR_LOOP -->
+                                
                             </div>
-                        <!-- ELSE -->
+                        
                             <p class="muted-inline">Nenhum tópico criado ainda.</p>
-                        <!-- ENDIF -->
-                    <!-- ENDIF -->
+                        
+                    
                 </div>
             </div>
             <!-- Podcasts -->
@@ -879,14 +879,14 @@
                 <div class="edu-two-col">
                     <div class="edu-box">
                         <h3>Publicar Podcast</h3>
-                        <form method="POST" action="">
+                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->">
                             <input type="hidden" name="csrf_token" value="" />
                             <input type="hidden" name="tipo" value="podcast" />
                             <input name="titulo" placeholder="Título" required />
                             <input name="autor" placeholder="Autore (opcional)" />
                             <select name="topic_id">
                                 <option value="">(Tópico)</option>
-                                <option value=""></option><!-- END_FOR_LOOP -->
+                                <option value="<!-- VAR_PLACEHOLDER -->"><!-- VAR_PLACEHOLDER --></option>
                             </select>
                             <input name="url" id="podcast-url" placeholder="Link do Spotify ou URL de áudio (.mp3)" />
                             <small class="muted-inline">Cole um link/iframe do Spotify (gera player automático) ou um link direto .mp3.</small>
@@ -937,7 +937,7 @@
                     </div>
                     <div class="edu-box">
                         <h3>Criar Tópico</h3>
-                        <form method="POST" action="">
+                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->">
                             <input type="hidden" name="csrf_token" value="" />
                             <input type="hidden" name="area" value="podcast" />
                             <input name="nome" placeholder="Nome" required />
@@ -949,46 +949,46 @@
                 <!-- Gerenciar Tópicos de Podcasts -->
                 <div class="edu-box" style="margin-top:1rem;">
                     <h3>Gerenciar Tópicos de Podcasts</h3>
-                    <!-- IF: edu_topics -->
+                    
                         
-                        <!-- IF: podcast_topics -->
+                        
                             <div style="display:grid; gap:.8rem; grid-template-columns:1fr;">
-                                <!-- FOR_LOOP: podcast_topics -->
+                                
                                 <div style="background:#f9fbfd; border:1px solid #e3e9f0; border-radius:12px; padding:.9rem;">
                                     <div style="display:flex; justify-content:space-between; align-items:start; gap:.8rem;">
                                         <div style="flex:1;">
-                                            <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;"></div>
+                                            <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;"><!-- VAR_PLACEHOLDER --></div>
                                             
-                                                <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;"></div>
-                                            <!-- ENDIF -->
+                                                <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;"><!-- VAR_PLACEHOLDER --></div>
+                                            
                                         </div>
-                                        <button onclick="toggleTopicEdit('podcast-')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
+                                        <button onclick="toggleTopicEdit('podcast-<!-- VAR_PLACEHOLDER -->')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;">
                                                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                                             </svg>
                                             Editar
                                         </button>
                                     </div>
-                                    <div id="topic-edit-podcast-" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
-                                        <form method="POST" action="" style="display:flex; flex-direction:column; gap:.5rem;">
+                                    <div id="topic-edit-podcast-<!-- VAR_PLACEHOLDER -->" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
+                                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->" style="display:flex; flex-direction:column; gap:.5rem;">
                                             <input type="hidden" name="csrf_token" value="" />
                                             <label style="font-size:.7rem; font-weight:600; color:#666;">Nome</label>
-                                            <input name="nome" value="" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
+                                            <input name="nome" value="<!-- VAR_PLACEHOLDER -->" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
                                             <label style="font-size:.7rem; font-weight:600; color:#666;">Descrição</label>
-                                            <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;"></textarea>
+                                            <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;"><!-- VAR_PLACEHOLDER --></textarea>
                                             <div style="display:flex; gap:.5rem; margin-top:.3rem;">
                                                 <button type="submit" class="action-btn" style="background:var(--accent); color:#fff; border:none; font-size:.65rem; padding:.5rem .9rem;">Salvar</button>
-                                                <button type="button" onclick="toggleTopicEdit('podcast-')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
+                                                <button type="button" onclick="toggleTopicEdit('podcast-<!-- VAR_PLACEHOLDER -->')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
                                             </div>
                                         </form>
                                     </div>
                                 </div>
-                                <!-- END_FOR_LOOP -->
+                                
                             </div>
-                        <!-- ELSE -->
+                        
                             <p class="muted-inline">Nenhum tópico criado ainda.</p>
-                        <!-- ENDIF -->
-                    <!-- ENDIF -->
+                        
+                    
                 </div>
                 <div class="edu-box" style="margin-top:1rem;">
                     <h3>Podcasts Recentes</h3>
@@ -1067,7 +1067,7 @@
                             }
                             async function buscar(term=''){
                                 try{
-                                    const url = new URL("", location.origin);
+                                    const url = new URL("<!-- VAR_PLACEHOLDER -->", location.origin);
                                     url.searchParams.set('area','podcasts'); if(term) url.searchParams.set('q',term);
                                     const r = await fetch(url); const j = await r.json(); render(j.results||[]);
                                 }catch(e){ render([]); }
@@ -1129,7 +1129,7 @@
                 <div class="edu-two-col">
                     <div class="edu-box">
                         <h3>Novo Tema de Redação</h3>
-                        <form method="POST" action="">
+                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->">
                             <input type="hidden" name="tipo" value="redacao_tema" />
                             <input name="titulo" placeholder="Tema" required />
                             <textarea name="corpo" placeholder="Texto orientador / proposta"></textarea>
@@ -1138,7 +1138,7 @@
                     </div>
                     <div class="edu-box">
                         <h3>Criar Tópico</h3>
-                        <form method="POST" action="">
+                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->">
                             <input type="hidden" name="area" value="redacao" />
                             <input name="nome" placeholder="Nome" required />
                             <textarea name="descricao" placeholder="Descrição"></textarea>
@@ -1149,46 +1149,46 @@
                 <!-- Gerenciar Tópicos de Redação -->
                 <div class="edu-box" style="margin-top:1rem;">
                     <h3>Gerenciar Tópicos de Redação</h3>
-                    <!-- IF: edu_topics -->
+                    
                         
-                        <!-- IF: redacao_topics -->
+                        
                             <div style="display:grid; gap:.8rem; grid-template-columns:1fr;">
-                                <!-- FOR_LOOP: redacao_topics -->
+                                
                                 <div style="background:#f9fbfd; border:1px solid #e3e9f0; border-radius:12px; padding:.9rem;">
                                     <div style="display:flex; justify-content:space-between; align-items:start; gap:.8rem;">
                                         <div style="flex:1;">
-                                            <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;"></div>
+                                            <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;"><!-- VAR_PLACEHOLDER --></div>
                                             
-                                                <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;"></div>
-                                            <!-- ENDIF -->
+                                                <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;"><!-- VAR_PLACEHOLDER --></div>
+                                            
                                         </div>
-                                        <button onclick="toggleTopicEdit('redacao-')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
+                                        <button onclick="toggleTopicEdit('redacao-<!-- VAR_PLACEHOLDER -->')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;">
                                                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                                             </svg>
                                             Editar
                                         </button>
                                     </div>
-                                    <div id="topic-edit-redacao-" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
-                                        <form method="POST" action="" style="display:flex; flex-direction:column; gap:.5rem;">
+                                    <div id="topic-edit-redacao-<!-- VAR_PLACEHOLDER -->" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
+                                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->" style="display:flex; flex-direction:column; gap:.5rem;">
                                             <input type="hidden" name="csrf_token" value="" />
                                             <label style="font-size:.7rem; font-weight:600; color:#666;">Nome</label>
-                                            <input name="nome" value="" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
+                                            <input name="nome" value="<!-- VAR_PLACEHOLDER -->" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
                                             <label style="font-size:.7rem; font-weight:600; color:#666;">Descrição</label>
-                                            <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;"></textarea>
+                                            <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;"><!-- VAR_PLACEHOLDER --></textarea>
                                             <div style="display:flex; gap:.5rem; margin-top:.3rem;">
                                                 <button type="submit" class="action-btn" style="background:var(--accent); color:#fff; border:none; font-size:.65rem; padding:.5rem .9rem;">Salvar</button>
-                                                <button type="button" onclick="toggleTopicEdit('redacao-')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
+                                                <button type="button" onclick="toggleTopicEdit('redacao-<!-- VAR_PLACEHOLDER -->')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
                                             </div>
                                         </form>
                                     </div>
                                 </div>
-                                <!-- END_FOR_LOOP -->
+                                
                             </div>
-                        <!-- ELSE -->
+                        
                             <p class="muted-inline">Nenhum tópico criado ainda.</p>
-                        <!-- ENDIF -->
-                    <!-- ENDIF -->
+                        
+                    
                 </div>
             </div>
             <!-- Exercícios -->
@@ -1196,12 +1196,12 @@
                 <div class="edu-two-col">
                     <div class="edu-box" style="grid-column: span 2;">
                         <h3>Publicar Exercício</h3>
-                        <form id="form-exercicio" method="POST" action="" style="display:flex; flex-direction:column; gap:.6rem;">
+                        <form id="form-exercicio" method="POST" action="<!-- VAR_PLACEHOLDER -->" style="display:flex; flex-direction:column; gap:.6rem;">
                             <input type="hidden" name="csrf_token" value="" />
                             <div style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:flex-start;">
                                 <select name="topic_id" id="ex-topic" required style="flex:1; min-width:180px;">
                                     <option value="">Tópico (Exercício)</option>
-                                    <!-- FOR_LOOP: topics --><option value=""></option><!-- END_FOR_LOOP -->
+                                    <option value="<!-- VAR_PLACEHOLDER -->"><!-- VAR_PLACEHOLDER --></option>
                                 </select>
                                 <select name="section_id" id="ex-section" style="flex:1; min-width:180px; display:none;">
                                     <option value="">Sessão</option>
@@ -1230,7 +1230,7 @@
                             <textarea name="opcoes" id="ex-opcoes" hidden></textarea>
                             <button type="submit">Adicionar Exercício</button>
                         </form>
-                                                                        <script id="sections-data" type="application/json"></script>
+                                                                        <script id="sections-data" type="application/json"><!-- VAR_PLACEHOLDER --></script>
                                                                         <script>
                                                                         // Parse dos dados de sessões por tópico
                                                                         let sectionsData = {};
@@ -1391,7 +1391,7 @@
                     </div>
                     <div class="edu-box">
                         <h3>Criar Tópico de Exercício</h3>
-                        <form method="POST" action="">
+                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->">
                             <input type="hidden" name="csrf_token" value="" />
                             <input name="nome" placeholder="Nome" required />
                             <textarea name="descricao" placeholder="Descrição"></textarea>
@@ -1400,11 +1400,11 @@
                     </div>
                     <div class="edu-box">
                         <h3>Criar Sessão de Exercício</h3>
-                        <form method="POST" action="">
+                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->">
                             <input type="hidden" name="csrf_token" value="" />
                             <select name="topic_id" required>
                                 <option value="">(Tópico)</option>
-                                <!-- FOR_LOOP: topics --><option value=""></option><!-- END_FOR_LOOP -->
+                                <option value="<!-- VAR_PLACEHOLDER -->"><!-- VAR_PLACEHOLDER --></option>
                             </select>
                             <input name="nome" placeholder="Nome da sessão" required />
                             <textarea name="descricao" placeholder="Descrição"></textarea>
@@ -1416,83 +1416,83 @@
                 <!-- Gerenciar Tópicos de Exercícios -->
                 <div class="edu-box" style="margin-top:1rem;">
                     <h3>Gerenciar Tópicos de Exercícios</h3>
-                    <!-- IF: topics -->
+                    
                         <div style="display:grid; gap:.8rem; grid-template-columns:1fr;">
-                            <!-- FOR_LOOP: topics -->
+                            
                             <div style="background:#f9fbfd; border:1px solid #e3e9f0; border-radius:12px; padding:.9rem;">
                                 <div style="display:flex; justify-content:space-between; align-items:start; gap:.8rem;">
                                     <div style="flex:1;">
-                                        <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;"></div>
+                                        <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;"><!-- VAR_PLACEHOLDER --></div>
                                         
-                                            <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;"></div>
-                                        <!-- ENDIF -->
+                                            <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;"><!-- VAR_PLACEHOLDER --></div>
+                                        
                                     </div>
-                                    <button onclick="toggleTopicEdit('exercicio-')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
+                                    <button onclick="toggleTopicEdit('exercicio-<!-- VAR_PLACEHOLDER -->')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;">
                                             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                                         </svg>
                                         Editar
                                     </button>
                                 </div>
-                                <div id="topic-edit-exercicio-" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
-                                    <form method="POST" action="" style="display:flex; flex-direction:column; gap:.5rem;">
+                                <div id="topic-edit-exercicio-<!-- VAR_PLACEHOLDER -->" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
+                                    <form method="POST" action="<!-- VAR_PLACEHOLDER -->" style="display:flex; flex-direction:column; gap:.5rem;">
                                         <input type="hidden" name="csrf_token" value="" />
                                         <label style="font-size:.7rem; font-weight:600; color:#666;">Nome</label>
-                                        <input name="nome" value="" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
+                                        <input name="nome" value="<!-- VAR_PLACEHOLDER -->" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
                                         <label style="font-size:.7rem; font-weight:600; color:#666;">Descrição</label>
-                                        <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;"></textarea>
+                                        <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;"><!-- VAR_PLACEHOLDER --></textarea>
                                         <div style="display:flex; gap:.5rem; margin-top:.3rem;">
                                             <button type="submit" class="action-btn" style="background:var(--accent); color:#fff; border:none; font-size:.65rem; padding:.5rem .9rem;">Salvar</button>
-                                            <button type="button" onclick="toggleTopicEdit('exercicio-')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
+                                            <button type="button" onclick="toggleTopicEdit('exercicio-<!-- VAR_PLACEHOLDER -->')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
                                         </div>
                                     </form>
                                 </div>
                                 <!-- Gerenciar Sessões deste Tópico -->
                                 
-                                <!-- IF: topic_sections -->
+                                
                                 <div style="margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
                                     <div style="font-size:.75rem; font-weight:600; color:#666; margin-bottom:.5rem;">Sessões deste Tópico:</div>
                                     <div style="display:flex; flex-direction:column; gap:.5rem;">
-                                        <!-- FOR_LOOP: topic_sections -->
+                                        
                                         <div style="background:#fff; border:1px solid #e3e9f0; border-radius:8px; padding:.6rem;">
                                             <div style="display:flex; justify-content:space-between; align-items:start; gap:.5rem;">
                                                 <div style="flex:1;">
-                                                    <div style="font-weight:600; font-size:.75rem; color:#333;"></div>
+                                                    <div style="font-weight:600; font-size:.75rem; color:#333;"><!-- VAR_PLACEHOLDER --></div>
                                                     
-                                                        <div style="font-size:.65rem; color:#666; margin-top:.2rem;"></div>
-                                                    <!-- ENDIF -->
-                                                    <div style="font-size:.6rem; color:#999; margin-top:.2rem;">Ordem: </div>
+                                                        <div style="font-size:.65rem; color:#666; margin-top:.2rem;"><!-- VAR_PLACEHOLDER --></div>
+                                                    
+                                                    <div style="font-size:.6rem; color:#999; margin-top:.2rem;">Ordem: <!-- VAR_PLACEHOLDER --></div>
                                                 </div>
-                                                <button onclick="toggleTopicEdit('section-')" class="action-btn" style="font-size:.55rem; padding:3px 8px;">
+                                                <button onclick="toggleTopicEdit('section-<!-- VAR_PLACEHOLDER -->')" class="action-btn" style="font-size:.55rem; padding:3px 8px;">
                                                     Editar
                                                 </button>
                                             </div>
-                                            <div id="topic-edit-section-" style="display:none; margin-top:.6rem; padding-top:.6rem; border-top:1px solid #e3e9f0;">
-                                                <form method="POST" action="" style="display:flex; flex-direction:column; gap:.4rem;">
+                                            <div id="topic-edit-section-<!-- VAR_PLACEHOLDER -->" style="display:none; margin-top:.6rem; padding-top:.6rem; border-top:1px solid #e3e9f0;">
+                                                <form method="POST" action="<!-- VAR_PLACEHOLDER -->" style="display:flex; flex-direction:column; gap:.4rem;">
                                                     <input type="hidden" name="csrf_token" value="" />
                                                     <label style="font-size:.65rem; font-weight:600; color:#666;">Nome</label>
-                                                    <input name="nome" value="" placeholder="Nome" style="padding:.4rem; border:1px solid #cfd7e2; border-radius:6px; font-size:.68rem;" required />
+                                                    <input name="nome" value="<!-- VAR_PLACEHOLDER -->" placeholder="Nome" style="padding:.4rem; border:1px solid #cfd7e2; border-radius:6px; font-size:.68rem;" required />
                                                     <label style="font-size:.65rem; font-weight:600; color:#666;">Descrição</label>
-                                                    <textarea name="descricao" placeholder="Descrição" style="padding:.4rem; border:1px solid #cfd7e2; border-radius:6px; font-size:.68rem; min-height:50px;"></textarea>
+                                                    <textarea name="descricao" placeholder="Descrição" style="padding:.4rem; border:1px solid #cfd7e2; border-radius:6px; font-size:.68rem; min-height:50px;"><!-- VAR_PLACEHOLDER --></textarea>
                                                     <label style="font-size:.65rem; font-weight:600; color:#666;">Ordem</label>
-                                                    <input name="ordem" type="number" value="" placeholder="Ordem" style="padding:.4rem; border:1px solid #cfd7e2; border-radius:6px; font-size:.68rem;" />
+                                                    <input name="ordem" type="number" value="<!-- VAR_PLACEHOLDER -->" placeholder="Ordem" style="padding:.4rem; border:1px solid #cfd7e2; border-radius:6px; font-size:.68rem;" />
                                                     <div style="display:flex; gap:.4rem; margin-top:.2rem;">
                                                         <button type="submit" class="action-btn" style="background:var(--accent); color:#fff; border:none; font-size:.6rem; padding:.4rem .7rem;">Salvar</button>
-                                                        <button type="button" onclick="toggleTopicEdit('section-')" class="action-btn" style="font-size:.6rem; padding:.4rem .7rem;">Cancelar</button>
+                                                        <button type="button" onclick="toggleTopicEdit('section-<!-- VAR_PLACEHOLDER -->')" class="action-btn" style="font-size:.6rem; padding:.4rem .7rem;">Cancelar</button>
                                                     </div>
                                                 </form>
                                             </div>
                                         </div>
-                                        <!-- END_FOR_LOOP -->
+                                        
                                     </div>
                                 </div>
-                                <!-- ENDIF -->
+                                
                             </div>
-                            <!-- END_FOR_LOOP -->
+                            
                         </div>
-                    <!-- ELSE -->
+                    
                         <p class="muted-inline">Nenhum tópico criado ainda.</p>
-                    <!-- ENDIF -->
+                    
                 </div>
             </div>
             <!-- Vídeos -->
@@ -1500,13 +1500,13 @@
                 <div class="edu-two-col">
                     <div class="edu-box">
                         <h3>Publicar Vídeo</h3>
-                        <form method="POST" action="" enctype="multipart/form-data">
+                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->" enctype="multipart/form-data">
                             <input type="hidden" name="tipo" value="video" />
                             <input name="titulo" placeholder="Título" required />
                             <input name="autor" placeholder="Autore (opcional)" />
                             <select name="topic_id">
                                 <option value="">(Tópico)</option>
-                                <option value=""></option><!-- END_FOR_LOOP -->
+                                <option value="<!-- VAR_PLACEHOLDER -->"><!-- VAR_PLACEHOLDER --></option>
                             </select>
                             <input name="url" id="video-url" placeholder="Link do vídeo (YouTube, Vimeo, TikTok...)" required />
                             <div id="video-preview" style="margin-top:.6rem; padding:.6rem; border:1px dashed #cfd7e2; border-radius:10px; background:#f9fbfd; display:none;"></div>
@@ -1604,7 +1604,7 @@
                     </div>
                     <div class="edu-box">
                         <h3>Criar Tópico</h3>
-                        <form method="POST" action="">
+                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->">
                             <input type="hidden" name="area" value="video" />
                             <input name="nome" placeholder="Nome" required />
                             <textarea name="descricao" placeholder="Descrição"></textarea>
@@ -1615,46 +1615,46 @@
                 <!-- Gerenciar Tópicos de Vídeos -->
                 <div class="edu-box" style="margin-top:1rem;">
                     <h3>Gerenciar Tópicos de Vídeos</h3>
-                    <!-- IF: edu_topics -->
+                    
                         
-                        <!-- IF: video_topics -->
+                        
                             <div style="display:grid; gap:.8rem; grid-template-columns:1fr;">
-                                <!-- FOR_LOOP: video_topics -->
+                                
                                 <div style="background:#f9fbfd; border:1px solid #e3e9f0; border-radius:12px; padding:.9rem;">
                                     <div style="display:flex; justify-content:space-between; align-items:start; gap:.8rem;">
                                         <div style="flex:1;">
-                                            <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;"></div>
+                                            <div style="font-weight:700; font-size:.85rem; color:#333; margin-bottom:.3rem;"><!-- VAR_PLACEHOLDER --></div>
                                             
-                                                <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;"></div>
-                                            <!-- ENDIF -->
+                                                <div style="font-size:.7rem; color:#666; margin-bottom:.5rem;"><!-- VAR_PLACEHOLDER --></div>
+                                            
                                         </div>
-                                        <button onclick="toggleTopicEdit('video-')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
+                                        <button onclick="toggleTopicEdit('video-<!-- VAR_PLACEHOLDER -->')" class="action-btn" style="font-size:.6rem; padding:4px 10px;">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;">
                                                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                                             </svg>
                                             Editar
                                         </button>
                                     </div>
-                                    <div id="topic-edit-video-" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
-                                        <form method="POST" action="" style="display:flex; flex-direction:column; gap:.5rem;">
+                                    <div id="topic-edit-video-<!-- VAR_PLACEHOLDER -->" style="display:none; margin-top:.8rem; padding-top:.8rem; border-top:1px solid #e3e9f0;">
+                                        <form method="POST" action="<!-- VAR_PLACEHOLDER -->" style="display:flex; flex-direction:column; gap:.5rem;">
                                             <input type="hidden" name="csrf_token" value="" />
                                             <label style="font-size:.7rem; font-weight:600; color:#666;">Nome</label>
-                                            <input name="nome" value="" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
+                                            <input name="nome" value="<!-- VAR_PLACEHOLDER -->" placeholder="Nome" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem;" required />
                                             <label style="font-size:.7rem; font-weight:600; color:#666;">Descrição</label>
-                                            <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;"></textarea>
+                                            <textarea name="descricao" placeholder="Descrição" style="padding:.5rem; border:1px solid #cfd7e2; border-radius:8px; font-size:.72rem; min-height:60px;"><!-- VAR_PLACEHOLDER --></textarea>
                                             <div style="display:flex; gap:.5rem; margin-top:.3rem;">
                                                 <button type="submit" class="action-btn" style="background:var(--accent); color:#fff; border:none; font-size:.65rem; padding:.5rem .9rem;">Salvar</button>
-                                                <button type="button" onclick="toggleTopicEdit('video-')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
+                                                <button type="button" onclick="toggleTopicEdit('video-<!-- VAR_PLACEHOLDER -->')" class="action-btn" style="font-size:.65rem; padding:.5rem .9rem;">Cancelar</button>
                                             </div>
                                         </form>
                                     </div>
                                 </div>
-                                <!-- END_FOR_LOOP -->
+                                
                             </div>
-                        <!-- ELSE -->
+                        
                             <p class="muted-inline">Nenhum tópico criado ainda.</p>
-                        <!-- ENDIF -->
-                    <!-- ENDIF -->
+                        
+                    
                 </div>
                 <div class="edu-box" style="margin-top:1rem;">
                     <!-- Bloco de "Vídeos Recentes" removido a pedido -->
@@ -1704,76 +1704,76 @@
                             <tr><th>ID</th><th>Post</th><th>Autor</th><th>Denunciante</th><th>Motivo</th><th>Categoria</th><th>Data</th><th>Status</th><th>Ações</th></tr>
                         </thead>
                         <tbody>
-                        <!-- FOR_LOOP: reports -->
+                        
                             <tr>
-                                <td></td>
-                                <td>#</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                                <td><!-- VAR_PLACEHOLDER --></td>
+                                <td>#<!-- VAR_PLACEHOLDER --></td>
+                                <td><!-- VAR_PLACEHOLDER --></td>
+                                <td><!-- VAR_PLACEHOLDER --></td>
+                                <td><!-- VAR_PLACEHOLDER --></td>
                                 <td>
                                     
                                         
                                         
                                             <span class="badge" style="background:#8b0000;color:#fff;">Ódio</span>
-                                        <!-- ELIF -->
+                                        
                                             <span class="badge" style="background:#b23a48;color:#fff;">Violência</span>
-                                        <!-- ELIF -->
+                                        
                                             <span class="badge" style="background:#a66bbe;color:#fff;">Assédio</span>
-                                        <!-- ELIF -->
+                                        
                                             <span class="badge" style="background:#d97706;color:#fff;">Nudez</span>
-                                        <!-- ELIF -->
+                                        
                                             <span class="badge" style="background:#0ea5e9;color:#fff;">Spam</span>
-                                        <!-- ELIF -->
+                                        
                                             <span class="badge" style="background:#374151;color:#fff;">Autoextermínio</span>
-                                        <!-- ELSE -->
-                                            <span class="badge"></span>
-                                        <!-- ENDIF -->
-                                    <!-- ELSE -->—<!-- ENDIF -->
+                                        
+                                            <span class="badge"><!-- VAR_PLACEHOLDER --></span>
+                                        
+                                    —
                                 </td>
-                                <td></td>
-                                <td><span class="badge" style="background:#4caf50;color:#fff;">Resolvida</span><!-- ELSE --><span class="badge" style="background:#ff9800;color:#fff;">Aberta</span><!-- ENDIF --></td>
+                                <td><!-- VAR_PLACEHOLDER --></td>
+                                <td><span class="badge" style="background:#4caf50;color:#fff;">Resolvida</span><span class="badge" style="background:#ff9800;color:#fff;">Aberta</span></td>
                                 <td>
                                     
-                                        <form class="inline" method="POST" action="">
+                                        <form class="inline" method="POST" action="<!-- VAR_PLACEHOLDER -->">
                                             <input type="hidden" name="csrf_token" value="" />
                                             <button type="submit" class="action-btn">Resolver</button>
                                         </form>
-                                        <form class="inline" method="POST" action="" onsubmit="return confirm('Excluir post #?');">
+                                        <form class="inline" method="POST" action="<!-- VAR_PLACEHOLDER -->" onsubmit="return confirm('Excluir post #<!-- VAR_PLACEHOLDER -->?');">
                                             <input type="hidden" name="csrf_token" value="" />
                                             <button type="submit" class="action-btn danger">Excluir Post</button>
                                         </form>
                                         
-                                        <form class="inline" method="POST" action="" onsubmit="return confirm('Banir autore do post #?');">
+                                        <form class="inline" method="POST" action="<!-- VAR_PLACEHOLDER -->" onsubmit="return confirm('Banir autore do post #<!-- VAR_PLACEHOLDER -->?');">
                                             <input type="hidden" name="csrf_token" value="" />
-                                            <input type="hidden" name="reason" value="Denúncia: " />
+                                            <input type="hidden" name="reason" value="Denúncia: <!-- VAR_PLACEHOLDER -->" />
                                             <button type="submit" class="action-btn danger">Banir Autor</button>
                                         </form>
-                                        <form class="inline" method="POST" action="">
+                                        <form class="inline" method="POST" action="<!-- VAR_PLACEHOLDER -->">
                                             <input type="hidden" name="csrf_token" value="" />
                                             <input type="hidden" name="hours" value="24" />
                                             <button type="submit" class="action-btn">Suspender 24h</button>
                                         </form>
-                                        <!-- ENDIF -->
-                                    <!-- ELSE --><span class="muted">—</span><!-- ENDIF -->
+                                        
+                                    <span class="muted">—</span>
                                 </td>
                             </tr>
-                        <!-- ELSE -->
+                        
                             <tr><td colspan="9" class="muted">Nenhuma denúncia.</td></tr>
-                        <!-- END_FOR_LOOP -->
+                        
                         </tbody>
                     </table>
-                    <!-- IF: reports_pagination -->
+                    
                     <div style="margin-top:1rem; display:flex; gap:0.5rem; justify-content:center; align-items:center;">
                         
-                        <a href="/admin" class="action-btn">← Anterior</a>
-                        <!-- ENDIF -->
-                        <span style="font-size:0.75rem; color:var(--text-soft);">Página  de </span>
+                        <a href="<!-- VAR_PLACEHOLDER -->" class="action-btn">← Anterior</a>
                         
-                        <a href="/admin" class="action-btn">Próxima →</a>
-                        <!-- ENDIF -->
+                        <span style="font-size:0.75rem; color:var(--text-soft);">Página <!-- VAR_PLACEHOLDER --> de <!-- VAR_PLACEHOLDER --></span>
+                        
+                        <a href="<!-- VAR_PLACEHOLDER -->" class="action-btn">Próxima →</a>
+                        
                     </div>
-                    <!-- ENDIF -->
+                    
                 </div>
             </div>
         </section>
@@ -1814,7 +1814,7 @@
                     // Once Chart.js is loaded, fetch data and create all charts
                     
                     // 1. Crescimento de Usuáries (User Growth)
-                    fetch("")
+                    fetch("<!-- VAR_PLACEHOLDER -->")
                         .then(r => r.json())
                         .then(d => {
                             if(!d || !d.hasOwnProperty('labels') || !d.hasOwnProperty('data')) {
@@ -1868,7 +1868,7 @@
                         .catch(err => console.error('Erro ao carregar dados de usuários:', err));
                     
                     // 2. Criação de Conteúdo Edu (Edu Content Creation)
-                    fetch("")
+                    fetch("<!-- VAR_PLACEHOLDER -->")
                         .then(r => r.json())
                         .then(d => {
                             const ctx = document.getElementById('contentChart').getContext('2d');
@@ -1916,7 +1916,7 @@
                         .catch(err => console.error('Erro ao carregar dados de conteúdo:', err));
                     
                     // 3. Posts Criados (últimos 7 dias) (Posts Created - Last 7 days)
-                    fetch("")
+                    fetch("<!-- VAR_PLACEHOLDER -->")
                         .then(r => r.json())
                         .then(d => {
                             const ctx = document.getElementById('postsChart').getContext('2d');
@@ -1966,7 +1966,7 @@
                         .catch(err => console.error('Erro ao carregar dados de posts:', err));
                     
                     // 4. Atividade por Tipo (Activity by Type)
-                    fetch("")
+                    fetch("<!-- VAR_PLACEHOLDER -->")
                         .then(r => r.json())
                         .then(d => {
                             const ctx = document.getElementById('activityChart').getContext('2d');

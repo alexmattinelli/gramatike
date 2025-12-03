@@ -342,34 +342,34 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
           
           
           
-          <img src="" alt="Foto de perfil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
-        <!-- ELSE -->
+          <img src="<!-- VAR_PLACEHOLDER -->" alt="Foto de perfil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+        
           <span>👤</span>
-        <!-- ENDIF -->
+        
       </div>
       <div class="profile-info">
-  <h2 style="font-family: var(--font-brand); font-weight:400; letter-spacing:1px;">@</h2>
+  <h2 style="font-family: var(--font-brand); font-weight:400; letter-spacing:1px;">@<!-- VAR_PLACEHOLDER --></h2>
         <div style="display:flex;gap:1rem;margin-bottom:0.7rem;flex-wrap:nowrap;justify-content:center;">
           <span id="cnt-seguidores" style="white-space:nowrap;"><b>0</b> seguidories</span>
           <span id="cnt-seguindo" style="white-space:nowrap;"><b>0</b> seguindo</span>
         </div>
-        <p><strong></strong> <span style="color:#666"></span></p>
+        <p><strong></strong> <span style="color:#666"><!-- VAR_PLACEHOLDER --></span></p>
   {# Exibir gênero/pronome somente se não for 'Outro' #}
   
   
   
-  <p><strong></strong> <span style="color:#666"><!-- VAR: g --> / <!-- ENDIF --><!-- VAR: p --></span></p>
-  <!-- ENDIF -->
+  <p><strong></strong> <span style="color:#666"><!-- VAR_PLACEHOLDER --> / <!-- VAR_PLACEHOLDER --></span></p>
+  
         
-          <p style="margin-top:0.5rem;color:#444;font-style:italic;white-space:pre-line;"></p>
-        <!-- ENDIF -->
+          <p style="margin-top:0.5rem;color:#444;font-style:italic;white-space:pre-line;"><!-- VAR_PLACEHOLDER --></p>
+        
         <div style="margin-top:.7rem;">
           
             <button class="edit-btn" onclick="abrirEdicaoPerfil()">Editar Perfil</button>
-          <!-- ELSE -->
+          
             
-            <button id="btn-follow" data-state="" onclick="toggleFollow('')" style="color:#fff; border:none; padding:.5rem 1rem; border-radius:6px; cursor:pointer; font-weight:600; background:#4a6fa5;"></button>
-          <!-- ENDIF -->
+            <button id="btn-follow" data-state="<!-- VAR_PLACEHOLDER -->" onclick="toggleFollow('<!-- VAR_PLACEHOLDER -->')" style="color:#fff; border:none; padding:.5rem 1rem; border-radius:6px; cursor:pointer; font-weight:600; background:#4a6fa5;"><!-- VAR_PLACEHOLDER --></button>
+          
         </div>
       </div>
     </section>
@@ -397,33 +397,33 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
             <input type="text" name="username" value="<!-- USER_username -->" readonly style="width:100%;">
           </label>
           <label style="margin-bottom:0.3rem;">Nome:
-            <input type="text" name="nome" value="" style="width:100%;">
+            <input type="text" name="nome" value="<!-- VAR_PLACEHOLDER -->" style="width:100%;">
           </label>
           <label style="margin-bottom:0.3rem;">Email:
             <input type="email" name="email" value="<!-- USER_email -->" style="width:100%;">
           </label>
           <label style="margin-bottom:0.3rem;">Bio:
-            <textarea name="bio" style="width:100%;resize:vertical;min-height:40px;"></textarea>
+            <textarea name="bio" style="width:100%;resize:vertical;min-height:40px;"><!-- VAR_PLACEHOLDER --></textarea>
           </label>
           <label style="margin-bottom:0.3rem;">Data de nascimento:
-            <input type="date" name="data_nascimento" value="" style="width:100%;">
+            <input type="date" name="data_nascimento" value="<!-- VAR_PLACEHOLDER -->" style="width:100%;">
           </label>
           <label style="margin-bottom:0.3rem;">Gênero:
             <select name="genero" required style="width:100%;">
               <option value="">Selecione</option>
-              <option value="Não-binárie" selected<!-- ENDIF -->>Não-binárie</option>
-              <option value="Mulher" selected<!-- ENDIF -->>Mulher</option>
-              <option value="Homem" selected<!-- ENDIF -->>Homem</option>
-              <option value="Outro" selected<!-- ENDIF -->>Outro</option>
+              <option value="Não-binárie" selected>Não-binárie</option>
+              <option value="Mulher" selected>Mulher</option>
+              <option value="Homem" selected>Homem</option>
+              <option value="Outro" selected>Outro</option>
             </select>
           </label>
           <label style="margin-bottom:0.3rem;">Pronome:
             <select name="pronome" required style="width:100%;">
               <option value="">Selecione</option>
-              <option value="elu/delu" selected<!-- ENDIF -->>elu/delu</option>
-              <option value="ela/dela" selected<!-- ENDIF -->>ela/dela</option>
-              <option value="ele/dele" selected<!-- ENDIF -->>ele/dele</option>
-              <option value="Outro" selected<!-- ENDIF -->>Outro</option>
+              <option value="elu/delu" selected>elu/delu</option>
+              <option value="ela/dela" selected>ela/dela</option>
+              <option value="ele/dele" selected>ele/dele</option>
+              <option value="Outro" selected>Outro</option>
             </select>
           </label>
           <label style="margin-bottom:0.3rem;">Foto de perfil:
@@ -436,7 +436,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
         </div>
       </form>
     </div>
-    <!-- ENDIF -->
+    
   </main>
 
   <!-- Barra de navegação inferior mobile (tipo app/rede social) -->
@@ -581,7 +581,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
   </style>
   
   <nav class="mobile-bottom-nav" aria-label="Navegação principal mobile">
-    <a href="/" aria-label="Feed" title="Feed">
+    <a href="/index" aria-label="Feed" title="Feed">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
         <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -597,7 +597,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       <span>Educação</span>
     </a>
     
-    <a href="" aria-label="Criar post" title="Criar post" style="background: #ffffff; color: #9B5DE5; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <a href="/novo-post" aria-label="Criar post" title="Criar post" style="background: #ffffff; color: #9B5DE5; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="12" y1="5" x2="12" y2="19"></line>
         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -612,7 +612,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       <span>Em breve</span>
     </div>
     
-    <a href="/perfil" aria-label="Perfil" title="Perfil" style="color: var(--primary);">
+    <a href="/meu-perfil" aria-label="Perfil" title="Perfil" style="color: var(--primary);">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
         <circle cx="12" cy="7" r="4"></circle>
@@ -627,8 +627,8 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
 
   <script>
 
-    window.VIEW_USER_ID = "";
-    window.CURRENT_USER_ID = "";
+    window.VIEW_USER_ID = "<!-- VAR_PLACEHOLDER -->";
+    window.CURRENT_USER_ID = "<!-- VAR_PLACEHOLDER -->";
 
     // Renderiza imagens (uma ou múltiplas) separadas por '|'
     function renderPostImages(raw){
@@ -764,7 +764,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
           e.stopPropagation();
           const div=b.closest('.post');
           const id=div.getAttribute('data-post-id');
-          const shareUrl = window.location.origin + '/perfil/#post-' + id;
+          const shareUrl = window.location.origin + '/perfil/<!-- VAR_PLACEHOLDER -->#post-' + id;
           navigator.clipboard.writeText(shareUrl).then(()=>alert('Link copiado.'));
         });
       });
@@ -828,7 +828,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
           if (users.length === 0) {
             likesDiv.innerHTML = '';
           } else {
-            const currentUser = '';
+            const currentUser = '<!-- VAR_PLACEHOLDER -->';
             const curtiu = users.includes(currentUser);
             likesDiv.innerHTML = `<span style="color:#666;">`+
               (curtiu ? '<strong style="color:#7c3aed;">Você</strong>' : '') +
@@ -969,7 +969,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
     }
 
     function carregarContadores(){
-      const uid = '';
+      const uid = '<!-- VAR_PLACEHOLDER -->';
       // Postagens counter removed as per user request
       fetch(`/api/seguidores/${uid}`).then(r=>r.json()).then(list=>{ document.getElementById('cnt-seguidores').innerHTML = `<b>${list.length}</b> seguidories`; });
       fetch(`/api/seguindo/${uid}`).then(r=>r.json()).then(list=>{ document.getElementById('cnt-seguindo').innerHTML = `<b>${list.length}</b> seguindo`; });

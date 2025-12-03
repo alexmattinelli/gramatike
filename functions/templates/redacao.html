@@ -48,8 +48,8 @@
     <header class="site-head">
         <h1 class="logo">Gramátike Edu</h1>
         
-            <a href="/admin" style="position:absolute; top:14px; right:16px; background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; text-decoration:none; letter-spacing:.5px;">🛠️ Painel</a>
-        <!-- ENDIF -->
+            <a href="<!-- VAR_PLACEHOLDER -->" style="position:absolute; top:14px; right:16px; background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; text-decoration:none; letter-spacing:.5px;">🛠️ Painel</a>
+        
         <nav class="edu-nav" aria-label="Seções educacionais">
             <a href="/educacao">🏠 Início</a>
             <a href="/apostilas">📚 Apostilas</a>
@@ -66,22 +66,22 @@
             <label for="tema_select">Tema</label>
             <select id="tema_select" name="tema_id">
                 <option value="">Selecione um tema...</option>
-                <!-- FOR_LOOP: temas -->
-                    <option value="" data-corpo=""></option>
-                <!-- END_FOR_LOOP -->
+                
+                    <option value="<!-- VAR_PLACEHOLDER -->" data-corpo="<!-- VAR_PLACEHOLDER -->"><!-- VAR_PLACEHOLDER --></option>
+                
             </select>
             
             <div class="pagination" style="margin:.8rem 0 1.2rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; font-size:.65rem; font-weight:800; letter-spacing:.4px;">
                 <span style="color:#9B5DE5;">Temas:</span>
-                <span style="color:#444;">Página <!-- VAR: page --> de <!-- VAR: last_page --></span>
+                <span style="color:#444;">Página <!-- VAR_PLACEHOLDER --> de <!-- VAR_PLACEHOLDER --></span>
                 <span style="flex:1 0 100%; height:0;"></span>
                 <style>.pg-btn{padding:.45rem .75rem; border-radius:14px; background:#9B5DE5; color:#fff; text-decoration:none;} .pg-btn.disabled{pointer-events:none; opacity:.45;}</style>
-                <a href="?page=1" class="pg-btn disabled<!-- ENDIF -->">« Primeiro</a>
-                <a href="?page=" class="pg-btn disabled<!-- ENDIF -->">‹ Anterior</a>
-                <a href="?page=" class="pg-btn disabled<!-- ENDIF -->">Próxima ›</a>
-                <a href="?page=<!-- VAR: last_page -->" class="pg-btn disabled<!-- ENDIF -->">Última »</a>
+                <a href="?page=1" class="pg-btn disabled">« Primeiro</a>
+                <a href="?page=<!-- VAR_PLACEHOLDER -->" class="pg-btn disabled">‹ Anterior</a>
+                <a href="?page=<!-- VAR_PLACEHOLDER -->" class="pg-btn disabled">Próxima ›</a>
+                <a href="?page=<!-- VAR_PLACEHOLDER -->" class="pg-btn disabled">Última »</a>
             </div>
-            <!-- ENDIF -->
+            
             <div id="tema_enunciado"></div>
             <label for="titulo">Seu Título</label>
             <input type="text" id="titulo" name="titulo" placeholder="(Opcional) Você pode propor um título" />
@@ -89,7 +89,7 @@
             <div class="a4-wrapper">
                 <div class="a4-lines">
                     <ol>
-                        <li></li><!-- END_FOR_LOOP -->
+                        <li></li>
                     </ol>
                 </div>
                 <div class="a4-editor">

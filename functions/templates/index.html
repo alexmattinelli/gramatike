@@ -242,20 +242,20 @@ button { font-family: var(--font-base); font-weight:600; }
 
 <header class="site-head">
   <h1 class="logo" title="Gramátike">Gramátike</h1>
-  <!-- IF: user -->
-    <a href="/perfil" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
+  
+    <a href="/meu-perfil" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
       
         
-        <img src="" alt="Avatar de <!-- USER_username -->" loading="lazy">
-      <!-- ELSE -->
-        <span class="initial"></span>
-      <!-- ENDIF -->
+        <img src="<!-- VAR_PLACEHOLDER -->" alt="Avatar de <!-- USER_username -->" loading="lazy">
+      
+        <span class="initial"><!-- VAR_PLACEHOLDER --></span>
+      
     </a>
-  <!-- ELSE -->
+  
     <a href="/login" class="profile-avatar-link" aria-label="Entrar" data-tooltip="Entrar">
       <span class="initial">?</span>
     </a>
-  <!-- ENDIF -->
+  
 </header>
 
 <!-- Wrapper clarinho com borda curvada no topo -->
@@ -326,8 +326,8 @@ button { font-family: var(--font-base); font-weight:600; }
       <div id="mobile_ttt_status" style="font-size:.72rem; font-weight:800; color:#9B5DE5; letter-spacing:.4px; margin:0 0 .6rem; text-align:center;">Sua vez: você é X</div>
       <div id="mobile_ttt_board" role="grid" aria-label="Tabuleiro do Jogo da Velha" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:.5rem;">
         
-        <button type="button" data-i="<!-- VAR: i -->" role="gridcell" aria-label="casa  vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
-        <!-- END_FOR_LOOP -->
+        <button type="button" data-i="<!-- VAR_PLACEHOLDER -->" role="gridcell" aria-label="casa <!-- VAR_PLACEHOLDER --> vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+        
       </div>
       <button id="mobile_ttt_reset" type="button" style="margin-top:.8rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; padding:.5rem .9rem; font-size:.7rem; font-weight:800; letter-spacing:.4px; cursor:pointer; width:100%;">Reiniciar</button>
     </div>
@@ -342,7 +342,7 @@ button { font-family: var(--font-base); font-weight:600; }
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
       </button>
-      <a href="" class="new-post-btn" aria-label="Criar postagem" title="Criar postagem">
+      <a href="/novo-post" class="new-post-btn" aria-label="Criar postagem" title="Criar postagem">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -399,7 +399,7 @@ button { font-family: var(--font-base); font-weight:600; }
           <span id="notifications-badge" style="display:none; position:absolute; top:-4px; right:-4px; background:#ff9800; color:#fff; font-size:.6rem; padding:2px 5px; border-radius:10px; font-weight:700;">0</span>
         </button>
         
-        <button onclick="window.location.href='/admin'" class="search-btn icon-btn" title="Painel de Controle" aria-label="Painel de Controle">
+        <button onclick="window.location.href='<!-- VAR_PLACEHOLDER -->'" class="search-btn icon-btn" title="Painel de Controle" aria-label="Painel de Controle">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="3" y="3" width="7" height="7"></rect>
             <rect x="14" y="3" width="7" height="7"></rect>
@@ -407,7 +407,7 @@ button { font-family: var(--font-base); font-weight:600; }
             <rect x="3" y="14" width="7" height="7"></rect>
           </svg>
         </button>
-        <!-- ENDIF -->
+        
       </div>
       <!-- Painel de notificações -->
       <div id="notifications-panel" style="display:none; margin-bottom:.8rem; border-bottom:1px solid var(--border); padding-bottom:.8rem;">
@@ -425,24 +425,24 @@ button { font-family: var(--font-base); font-weight:600; }
     <div id="divulgacao-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.1rem 1.15rem .95rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:1.1rem;">
     <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 13v-2Z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg> Novidades</h3>
     
-      <!-- IF: tem_conteudo -->
+      
         <div style="display:flex; flex-direction:column; gap:.9rem;">
           {# Divulgações (inclui Aviso Rápido com imagem gerada) #}
           
           <div class="promo-card" style="background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
-            <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#9B5DE5; margin:0 0 .35rem;"></strong>
+            <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#9B5DE5; margin:0 0 .35rem;"><!-- VAR_PLACEHOLDER --></strong>
             
               
-              <img src="<!-- VAR: imgsrc -->" alt="" style="width:100%; border-radius:14px; margin:0 0 .5rem; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />
-            <!-- ENDIF -->
-            <p style="margin:0 0 .5rem; font-size:.6rem; line-height:1.32; color:#555; font-weight:600;"></p><!-- ENDIF -->
-            <a href="" target="_blank" rel="noopener" style="display:inline-block; font-size:.55rem; font-weight:700; background:#9B5DE5; color:#fff; padding:.45rem .8rem .4rem; border-radius:14px; text-decoration:none; letter-spacing:.5px;">Abrir →</a><!-- ENDIF -->
+              <img src="<!-- VAR_PLACEHOLDER -->" alt="<!-- VAR_PLACEHOLDER -->" style="width:100%; border-radius:14px; margin:0 0 .5rem; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />
+            
+            <p style="margin:0 0 .5rem; font-size:.6rem; line-height:1.32; color:#555; font-weight:600;"><!-- VAR_PLACEHOLDER --></p>
+            <a href="<!-- VAR_PLACEHOLDER -->" target="_blank" rel="noopener" style="display:inline-block; font-size:.55rem; font-weight:700; background:#9B5DE5; color:#fff; padding:.45rem .8rem .4rem; border-radius:14px; text-decoration:none; letter-spacing:.5px;">Abrir →</a>
           </div>
-          <!-- END_FOR_LOOP -->
+          
         </div>
-      <!-- ELSE -->
+      
         <div style="font-size:.6rem; font-weight:700; letter-spacing:.5px; color:#999; padding:.65rem .85rem; border:1px dashed #d2c5ef; border-radius:18px; background:#faf7ff;">Nenhuma divulgação ativa.</div>
-      <!-- ENDIF -->
+      
     </div>
     <div id="ttt-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.1rem 1.15rem .95rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:1.1rem;">
       <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary);"># Jogo da Velha</h3>
@@ -450,8 +450,8 @@ button { font-family: var(--font-base); font-weight:600; }
       <div id="ttt_status" style="font-size:.72rem; font-weight:800; color:#9B5DE5; letter-spacing:.4px; margin:0 0 .6rem;">Sua vez: você é X</div>
       <div id="ttt_board" role="grid" aria-label="Tabuleiro do Jogo da Velha" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:.5rem;">
         
-        <button type="button" data-i="<!-- VAR: i -->" role="gridcell" aria-label="casa  vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
-        <!-- END_FOR_LOOP -->
+        <button type="button" data-i="<!-- VAR_PLACEHOLDER -->" role="gridcell" aria-label="casa <!-- VAR_PLACEHOLDER --> vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+        
       </div>
       <button id="ttt_reset" type="button" style="margin-top:.8rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; padding:.5rem .9rem; font-size:.7rem; font-weight:800; letter-spacing:.4px; cursor:pointer; width:100%;">Reiniciar</button>
     </div>
@@ -637,7 +637,7 @@ button { font-family: var(--font-base); font-weight:600; }
 </style>
 <!-- Barra de navegação inferior mobile (tipo app/rede social) -->
 <nav class="mobile-bottom-nav" aria-label="Navegação principal mobile">
-  <a href="/" aria-label="Feed" title="Feed">
+  <a href="/index" aria-label="Feed" title="Feed">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
       <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -653,7 +653,7 @@ button { font-family: var(--font-base); font-weight:600; }
     <span>Educação</span>
   </a>
   
-  <a href="" aria-label="Criar post" title="Criar post" style="background: var(--primary); color: #ffffff; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #ffffff;">
+  <a href="/novo-post" aria-label="Criar post" title="Criar post" style="background: var(--primary); color: #ffffff; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #ffffff;">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <line x1="12" y1="5" x2="12" y2="19"></line>
       <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -668,15 +668,15 @@ button { font-family: var(--font-base); font-weight:600; }
     <span>Em breve</span>
   </div>
   
-  <!-- IF: user -->
-  <a href="/perfil" aria-label="Perfil" title="Perfil">
+  
+  <a href="/meu-perfil" aria-label="Perfil" title="Perfil">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
       <circle cx="12" cy="7" r="4"></circle>
     </svg>
     <span>Perfil</span>
   </a>
-  <!-- ELSE -->
+  
   <a href="/login" aria-label="Entrar" title="Entrar">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
@@ -685,7 +685,7 @@ button { font-family: var(--font-base); font-weight:600; }
     </svg>
     <span>Entrar</span>
   </a>
-  <!-- ENDIF -->
+  
 </nav>
 
 <!-- Footer simples (apenas texto) - oculto no mobile -->
@@ -695,8 +695,8 @@ button { font-family: var(--font-base); font-weight:600; }
 
 <script src="/static/js/feed.js"></script>
 <script>
-window.currentUser = "";
-window.currentUserId = "";
+window.currentUser = "<!-- VAR_PLACEHOLDER -->";
+window.currentUserId = "<!-- VAR_PLACEHOLDER -->";
 window.currentUserId = window.currentUserId ? parseInt(window.currentUserId) : null;
 // Lista local de quem eu já sigo (usernames)
 window.FOLLOWING = window.FOLLOWING || new Set();
@@ -1730,7 +1730,7 @@ async function loadNotifications() {
 }
 
 // Load notifications on page load
-<!-- IF: user -->
+
 document.addEventListener('DOMContentLoaded', () => {
   loadNotifications();
   // Refresh notifications every 2 minutes
@@ -1742,7 +1742,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize mobile tic-tac-toe
   initMobileTicTacToe();
 });
-<!-- ENDIF -->
+
 
 // Mobile Actions Card Functions
 function toggleMobileAmigues() {
