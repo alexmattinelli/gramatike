@@ -8,13 +8,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-  <link rel="icon" type="image/png" href="/static/favicon.png">
-  <link rel="apple-touch-icon" href="/static/img/icons/icon-192.png">
-  <link rel="manifest" href="/static/manifest.webmanifest">
-  <link rel="stylesheet" href="/static/gramatike_common.css">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
   <meta name="theme-color" content="#9B5DE5">
-  <script src="/static/js/pwa.js" defer></script>
+  <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
   <style>
     :root { --primary:#9B5DE5; --primary-dark:#7d3dc9; --bg:#f7f8ff; --card:#ffffff; --border:#e5e7eb; --text:#222; --text-dim:#666; }
     * { box-sizing:border-box; }
@@ -111,17 +111,17 @@
 <body>
   <header class="site-head">
     <h1 class="logo">Gramátike Edu</h1>
-    
-      <a href="/meu-perfil" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
-        
-          
-          <img src="<!-- VAR_PLACEHOLDER -->" alt="Avatar de <!-- USER_username -->" loading="lazy">
-        
-          <span class="initial"><!-- VAR_PLACEHOLDER --></span>
-        
+    {% if current_user.is_authenticated %}
+      <a href="{{ url_for('main.meu_perfil') }}" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
+        {% if current_user.foto_perfil %}
+          {% set is_abs = current_user.foto_perfil.startswith('http://') or current_user.foto_perfil.startswith('https://') %}
+          <img src="{{ current_user.foto_perfil if is_abs else url_for('static', filename=current_user.foto_perfil) }}" alt="Avatar de {{ current_user.username }}" loading="lazy">
+        {% else %}
+          <span class="initial">{{ (current_user.username or '?')[:1].upper() }}</span>
+        {% endif %}
       </a>
-    
-    
+    {% endif %}
+    {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
       <!-- Menu Dropdown (mobile) / Painel button (desktop) -->
       <div style="position:absolute; top:14px; left:16px;">
         <button id="menu-toggle" onclick="toggleMenu()" style="background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; cursor:pointer; letter-spacing:.5px; display:flex; align-items:center; gap:6px;">
@@ -139,7 +139,7 @@
           <span id="menu-text">Menu</span>
         </button>
         <div id="menu-dropdown" style="display:none; position:absolute; right:0; top:calc(100% + 8px); background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.18); min-width:200px; z-index:100;">
-          <a href="/artigos" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+          <a href="{{ url_for('main.artigos') }}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
               <polyline points="14 2 14 8 20 8"></polyline>
@@ -149,7 +149,7 @@
             </svg>
             Artigos
           </a>
-          <a href="/exercicios" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+          <a href="{{ url_for('main.exercicios') }}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
               <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
@@ -157,14 +157,14 @@
             </svg>
             Exercícios
           </a>
-          <a href="/apostilas" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+          <a href="{{ url_for('main.apostilas') }}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
             </svg>
             Apostilas
           </a>
-          <a href="/dinamicas-home" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+          <a href="{{ url_for('main.dinamicas_home') }}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; border-bottom:1px solid #f0f0f0; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M19.439 15.439c.389-.389.586-.585.638-.866a1 1 0 0 0 0-.414c-.052-.281-.249-.477-.638-.866l-1.88-1.88c-.389-.389-.585-.586-.866-.638a1 1 0 0 0-.414 0c-.281.052-.477.249-.866.638l-1.88 1.88c-.389.389-.586.585-.638.866a1 1 0 0 0 0 .414c.052.281.249.477.638.866l1.88 1.88c.389.389.585.586.866.638a1 1 0 0 0 .414 0c.281-.052.477-.249.866-.638l1.88-1.88z"></path>
               <path d="M11.5 8.5c.833-.833 1.25-1.25 1.5-1.768a3 3 0 0 0 0-2.464C12.75 3.75 12.333 3.333 11.5 2.5 10.667 1.667 10.25 1.25 9.732 1c-.784-.378-1.68-.378-2.464 0C6.75 1.25 6.333 1.667 5.5 2.5s-1.25 1.167-1.5 1.768a3 3 0 0 0 0 2.464c.25.601.667 1.018 1.5 1.768.833.75 1.25 1.167 1.768 1.5a3 3 0 0 0 2.464 0c.601-.333 1.018-.75 1.768-1.5z"></path>
@@ -172,7 +172,7 @@
             </svg>
             Dinâmicas
           </a>
-          <a href="<!-- VAR_PLACEHOLDER -->" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
+          <a href="{{ url_for('admin.dashboard') }}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; text-decoration:none; color:#333; font-size:.75rem; font-weight:600; transition:background .2s;" onmouseover="this.style.background='#f7f2ff'" onmouseout="this.style.background='transparent'">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
             </svg>
@@ -180,23 +180,23 @@
           </a>
         </div>
       </div>
-    
+    {% endif %}
     <nav class="edu-nav" aria-label="Seções educacionais">
-  <a href="/educacao" class="active">
+  <a href="{{ url_for('main.educacao') }}" class="active">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
       <polyline points="9 22 9 12 15 12 15 22"></polyline>
     </svg>
     Início
   </a>
-      <a href="/apostilas">
+      <a href="{{ url_for('main.apostilas') }}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
           <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
         </svg>
         Apostilas
       </a>
-      <a href="/exercicios">
+      <a href="{{ url_for('main.exercicios') }}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
           <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
@@ -204,12 +204,7 @@
         </svg>
         Exercícios
       </a>
-  {# Temporariamente desabilitados: Podcasts, Redação e Vídeos
-  <a href="/podcasts"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>Podcasts</a>
-  <a href="/redacao"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Redação</a>
-  <a href="/videos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Vídeos</a>
-  #}
-      <a href="/artigos">
+      <a href="{{ url_for('main.artigos') }}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
           <polyline points="14 2 14 8 20 8"></polyline>
@@ -250,7 +245,7 @@
       </div>
       <aside class="side-col">
   <div id="quick-nav" style="display:flex; gap:.7rem; margin:0;" aria-label="Atalhos">
-          <a href="/dinamicas-home" style="flex:1; text-decoration:none; background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.8rem; font-weight:700; color:#fff; letter-spacing:.3px; transition:.18s; box-shadow:0 4px 14px rgba(155,93,229,.35);">
+          <a href="{{ url_for('main.dinamicas_home') }}" style="flex:1; text-decoration:none; background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.8rem; font-weight:700; color:#fff; letter-spacing:.3px; transition:.18s; box-shadow:0 4px 14px rgba(155,93,229,.35);">
             <span style="display:inline-flex; width:30px; height:30px; border-radius:12px; background:rgba(255,255,255,.2); align-items:center; justify-content:center; color:#fff;">
               <!-- SVG estilo Gramátike para Dinâmicas (ícone de peças) -->
               <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true" role="img">
@@ -259,7 +254,7 @@
             </span>
             Dinâmicas
           </a>
-          <a href="/index" aria-label="Ir para Portal Gramátike" style="flex:1; text-decoration:none; background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.8rem; font-weight:700; color:#fff; letter-spacing:.3px; transition:.18s; box-shadow:0 4px 14px rgba(155,93,229,.35);">
+          <a href="{{ url_for('main.index') }}" aria-label="Ir para Portal Gramátike" style="flex:1; text-decoration:none; background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.8rem; font-weight:700; color:#fff; letter-spacing:.3px; transition:.18s; box-shadow:0 4px 14px rgba(155,93,229,.35);">
             <span style="display:inline-flex; width:30px; height:30px; border-radius:12px; background:rgba(255,255,255,.2); align-items:center; justify-content:center; color:#fff;">
               <!-- SVG Chat (Portal Gramatike) -->
               <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true" role="img">
@@ -282,30 +277,29 @@
         </div>
         <div class="side-card">
           <h3 style="display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 13v-2Z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg> Novidades</h3>
-          
-          
+          {% set tem_conteudo = (divulgacoes and divulgacoes|length>0) %}
+          {% if tem_conteudo %}
             <div style="display:flex; flex-direction:column; gap:.9rem;">
               {# Divulgações EDU (inclui Aviso Rápido com "imagem" gerada) #}
-              
+              {% for d in (divulgacoes or []) %}
               <div class="promo-card" style="background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
-                <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#9B5DE5; margin:0 0 .35rem;"><!-- VAR_PLACEHOLDER --></strong>
-                
-                  
-                  <img src="<!-- VAR_PLACEHOLDER -->" alt="<!-- VAR_PLACEHOLDER -->" style="width:100%; border-radius:14px; margin:0 0 .5rem; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />
-                
-                <p style="margin:0 0 .5rem; font-size:.6rem; line-height:1.32; color:#555; font-weight:600;"><!-- VAR_PLACEHOLDER --></p>
-                <a href="<!-- VAR_PLACEHOLDER -->" target="_blank" rel="noopener" style="display:inline-block; font-size:.55rem; font-weight:700; background:#9B5DE5; color:#fff; padding:.45rem .8rem .4rem; border-radius:14px; text-decoration:none; letter-spacing:.5px;">Abrir →</a>
+                <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#9B5DE5; margin:0 0 .35rem;">{{ d.titulo }}</strong>
+                {% if d.imagem %}
+                  {% set imgsrc = d.imagem if d.imagem.startswith('http') else url_for('static', filename=d.imagem) %}
+                  <img src="{{ imgsrc }}" alt="{{ d.titulo }}" style="width:100%; border-radius:14px; margin:0 0 .5rem; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />
+                {% endif %}
+                {% if d.texto %}<p style="margin:0 0 .5rem; font-size:.6rem; line-height:1.32; color:#555; font-weight:600;">{{ d.texto }}</p>{% endif %}
+                {% if d.link %}<a href="{{ d.link }}" target="_blank" rel="noopener" style="display:inline-block; font-size:.55rem; font-weight:700; background:#9B5DE5; color:#fff; padding:.45rem .8rem .4rem; border-radius:14px; text-decoration:none; letter-spacing:.5px;">Abrir →</a>{% endif %}
               </div>
-              
+              {% endfor %}
             </div>
-          
+          {% else %}
             <div class="placeholder">Nenhuma divulgação ativa.</div>
-          
+          {% endif %}
         </div>
       </aside>
     </div>
-  <!-- CONTENT_PLACEHOLDER -->
-</main>
+  </main>
   <script>
   // Menu toggle function
   // Update button text/icon based on screen size
@@ -341,7 +335,7 @@
       }
     } else {
       // Desktop: Go directly to Painel
-      window.location.href = "<!-- VAR_PLACEHOLDER -->";
+      window.location.href = "{{ url_for('admin.dashboard') }}";
     }
   }
   
@@ -719,7 +713,7 @@
   </style>
   
   <nav class="mobile-bottom-nav" aria-label="Navegação principal mobile">
-    <a href="/index" aria-label="Feed" title="Feed">
+    <a href="{{ url_for('main.index') }}" aria-label="Feed" title="Feed">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
         <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -727,7 +721,7 @@
       <span>Início</span>
     </a>
     
-    <a href="/educacao" aria-label="Educação" title="Educação" style="opacity: 1;">
+    <a href="{{ url_for('main.educacao') }}" aria-label="Educação" title="Educação" style="opacity: 1;">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
         <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
@@ -735,7 +729,7 @@
       <span>Educação</span>
     </a>
     
-    <a href="/novo-post" aria-label="Criar post" title="Criar post" style="background: #ffffff; color: #9B5DE5; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <a href="{{ url_for('main.novo_post') }}" aria-label="Criar post" title="Criar post" style="background: #ffffff; color: #9B5DE5; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="12" y1="5" x2="12" y2="19"></line>
         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -750,16 +744,16 @@
       <span>Em breve</span>
     </div>
     
-    
-    <a href="/meu-perfil" aria-label="Perfil" title="Perfil">
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('main.meu_perfil') }}" aria-label="Perfil" title="Perfil">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
         <circle cx="12" cy="7" r="4"></circle>
       </svg>
       <span>Perfil</span>
     </a>
-    
-    <a href="/login" aria-label="Entrar" title="Entrar">
+    {% else %}
+    <a href="{{ url_for('main.login') }}" aria-label="Entrar" title="Entrar">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
         <polyline points="10 17 15 12 10 7"></polyline>
@@ -767,7 +761,7 @@
       </svg>
       <span>Entrar</span>
     </a>
-    
+    {% endif %}
   </nav>
 
   <footer>© 2025 Gramátike • Linguagem Viva e de Todes</footer>

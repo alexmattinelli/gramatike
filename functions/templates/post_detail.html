@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Post #<!-- VAR_PLACEHOLDER --> — Gramátike Edu</title>
+  <title>Post #{{ post.id }} — Gramátike Edu</title>
   <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/gramatike_common.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
   <style>
     :root { --primary:#9B5DE5; --border:#e5e7eb; --card:#fff; --bg:#f7f8ff; --text:#222; }
     * { box-sizing:border-box; }
@@ -45,23 +45,22 @@
   <main>
     <article class="card">
       <div class="post-header">
-  
-  
-  
-  <img class="post-avatar" src="<!-- VAR_PLACEHOLDER -->" alt="avatar" />
-        <div class="post-username">@<!-- VAR_PLACEHOLDER --></div>
-        <div class="post-date"><!-- VAR_PLACEHOLDER --></div>
+  {% set autor_avatar = post.usuario_id and (post.usuario_obj.foto_perfil if post.usuario_obj is defined else None) or None %}
+  {% set avatar = autor_avatar or 'img/perfil.png' %}
+  {% set is_abs = avatar.startswith('http://') or avatar.startswith('https://') %}
+  <img class="post-avatar" src="{{ avatar if is_abs else url_for('static', filename=avatar) }}" alt="avatar" />
+        <div class="post-username">@{{ post.usuario or 'usuárie' }}</div>
+        <div class="post-date">{{ post.data.strftime('%d/%m/%Y %H:%M') if post.data else '' }}</div>
       </div>
-      <div class="post-content"><!-- VAR_PLACEHOLDER --></div>
-      
+      <div class="post-content">{{ post.conteudo }}</div>
+      {% if images %}
         <div class="post-media">
-          
-            <img src="<!-- VAR_PLACEHOLDER -->" alt="imagem do post" />
-          
+          {% for img in images %}
+            <img src="{{ url_for('static', filename=img) }}" alt="imagem do post" />
+          {% endfor %}
         </div>
-      
+      {% endif %}
     </article>
-  <!-- CONTENT_PLACEHOLDER -->
-</main>
+  </main>
 </body>
 </html>

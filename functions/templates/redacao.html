@@ -5,11 +5,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gramátike Edu — Redação</title>
-  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-  <link rel="icon" type="image/png" href="/static/favicon.png">
-  <link rel="apple-touch-icon" href="/static/img/icons/icon-192.png">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/gramatike_common.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
     <style>
         :root { --primary:#9B5DE5; --primary-dark:#7d3dc9; --border:#e5e7eb; --bg:#f7f8ff; --card:#ffffff; --text:#222; --dim:#666; --danger:#ff7e5f; }
         * { box-sizing:border-box; }
@@ -47,17 +47,17 @@
 <body>
     <header class="site-head">
         <h1 class="logo">Gramátike Edu</h1>
-        
-            <a href="<!-- VAR_PLACEHOLDER -->" style="position:absolute; top:14px; right:16px; background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; text-decoration:none; letter-spacing:.5px;">🛠️ Painel</a>
-        
+        {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+            <a href="{{ url_for('admin.dashboard') }}" style="position:absolute; top:14px; right:16px; background:#ffffff22; border:1px solid #ffffff42; color:#fff; padding:6px 10px; font-size:11px; font-weight:700; border-radius:8px; text-decoration:none; letter-spacing:.5px;">🛠️ Painel</a>
+        {% endif %}
         <nav class="edu-nav" aria-label="Seções educacionais">
-            <a href="/educacao">🏠 Início</a>
-            <a href="/apostilas">📚 Apostilas</a>
-            <a href="/exercicios">🧠 Exercícios</a>
-            <a href="/podcasts"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>Podcasts</a>
-            <a href="/redacao" class="active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Redação</a>
-            <a href="/videos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Vídeos</a>
-            <a href="/artigos">📑 Artigos</a>
+            <a href="{{ url_for('main.educacao') }}">🏠 Início</a>
+            <a href="{{ url_for('main.apostilas') }}">📚 Apostilas</a>
+            <a href="{{ url_for('main.exercicios') }}">🧠 Exercícios</a>
+            <a href="{{ url_for('main.podcasts') }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>Podcasts</a>
+            <a href="{{ url_for('main.redacao') }}" class="active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Redação</a>
+            <a href="{{ url_for('main.videos') }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Vídeos</a>
+            <a href="{{ url_for('main.artigos') }}">📑 Artigos</a>
         </nav>
     </header>
     <main>
@@ -66,22 +66,22 @@
             <label for="tema_select">Tema</label>
             <select id="tema_select" name="tema_id">
                 <option value="">Selecione um tema...</option>
-                
-                    <option value="<!-- VAR_PLACEHOLDER -->" data-corpo="<!-- VAR_PLACEHOLDER -->"><!-- VAR_PLACEHOLDER --></option>
-                
+                {% for t in temas %}
+                    <option value="{{ t.id }}" data-corpo="{{ (t.corpo or t.resumo or '')|replace('\n','&#10;') }}">{{ t.titulo }}</option>
+                {% endfor %}
             </select>
-            
+            {% if last_page and last_page > 1 %}
             <div class="pagination" style="margin:.8rem 0 1.2rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; font-size:.65rem; font-weight:800; letter-spacing:.4px;">
                 <span style="color:#9B5DE5;">Temas:</span>
-                <span style="color:#444;">Página <!-- VAR_PLACEHOLDER --> de <!-- VAR_PLACEHOLDER --></span>
+                <span style="color:#444;">Página {{ page }} de {{ last_page }}</span>
                 <span style="flex:1 0 100%; height:0;"></span>
                 <style>.pg-btn{padding:.45rem .75rem; border-radius:14px; background:#9B5DE5; color:#fff; text-decoration:none;} .pg-btn.disabled{pointer-events:none; opacity:.45;}</style>
-                <a href="?page=1" class="pg-btn disabled">« Primeiro</a>
-                <a href="?page=<!-- VAR_PLACEHOLDER -->" class="pg-btn disabled">‹ Anterior</a>
-                <a href="?page=<!-- VAR_PLACEHOLDER -->" class="pg-btn disabled">Próxima ›</a>
-                <a href="?page=<!-- VAR_PLACEHOLDER -->" class="pg-btn disabled">Última »</a>
+                <a href="?page=1" class="pg-btn {% if page==1 %}disabled{% endif %}">« Primeiro</a>
+                <a href="?page={{ page-1 }}" class="pg-btn {% if page==1 %}disabled{% endif %}">‹ Anterior</a>
+                <a href="?page={{ page+1 }}" class="pg-btn {% if page==last_page %}disabled{% endif %}">Próxima ›</a>
+                <a href="?page={{ last_page }}" class="pg-btn {% if page==last_page %}disabled{% endif %}">Última »</a>
             </div>
-            
+            {% endif %}
             <div id="tema_enunciado"></div>
             <label for="titulo">Seu Título</label>
             <input type="text" id="titulo" name="titulo" placeholder="(Opcional) Você pode propor um título" />
@@ -89,7 +89,7 @@
             <div class="a4-wrapper">
                 <div class="a4-lines">
                     <ol>
-                        <li></li>
+                        {% for i in range(30) %}<li></li>{% endfor %}
                     </ol>
                 </div>
                 <div class="a4-editor">
@@ -101,8 +101,7 @@
                 <button type="submit">Enviar</button>
             </div>
         </form>
-    <!-- CONTENT_PLACEHOLDER -->
-</main>
+    </main>
     <footer>© 2025 Gramátike • Linguagem Viva e de Todes</footer>
     <script>
     (function(){

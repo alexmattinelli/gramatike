@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><!-- VAR_PLACEHOLDER --> — Dinâmica</title>
+  <title>{{ d.titulo }} — Dinâmica</title>
   <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/gramatike_common.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
   <style>
     :root { --primary:#9B5DE5; --border:#e5e7eb; --card:#fff; --bg:#f7f8ff; --text:#222; }
     html, body { height:100%; max-width:100vw; overflow-x:hidden; }
@@ -46,26 +46,26 @@
 </head>
 <body>
   <header class="site-head">
-    <h1 class="logo"><!-- VAR_PLACEHOLDER --></h1>
+    <h1 class="logo">{{ d.titulo }}</h1>
   </header>
   <main>
     <div class="card" style="margin-bottom:1rem;">
-      <p class="muted" style="margin-top:0;"><!-- VAR_PLACEHOLDER --></p>
-      
-        
+      {% if d.descricao %}<p class="muted" style="margin-top:0;">{{ d.descricao }}</p>{% endif %}
+      {% if d.tipo == 'oneword' %}
+        {% if user_response %}
           <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
-            <strong>✓ Você já respondeu:</strong> <!-- VAR_PLACEHOLDER -->, <!-- VAR_PLACEHOLDER -->, <!-- VAR_PLACEHOLDER -->
+            <strong>✓ Você já respondeu:</strong> {{ user_response.word1 }}{% if user_response.word2 %}, {{ user_response.word2 }}{% endif %}{% if user_response.word3 %}, {{ user_response.word3 }}{% endif %}
           </div>
-          
+          {% if agg.counts %}
             <h3 style="margin-top:1.5rem; margin-bottom:1.2rem;">Nuvem de palavras</h3>
             <div id="word-cloud" class="cloud" aria-label="Nuvem de palavras"></div>
-            <div id="wc-data" data-entries='<!-- VAR_PLACEHOLDER -->' style="display:none"></div>
+            <div id="wc-data" data-entries='{{ agg.counts.most_common(80) | tojson | safe }}' style="display:none"></div>
             <noscript>
               <h4 style="margin-top:.8rem;">Top palavras</h4>
               <ul>
-                
-                  <li><strong><!-- VAR_PLACEHOLDER --></strong>: <!-- VAR_PLACEHOLDER --></li>
-                
+                {% for w,c in agg.counts.most_common(10) %}
+                  <li><strong>{{ w }}</strong>: {{ c }}</li>
+                {% endfor %}
               </ul>
             </noscript>
             <script>
@@ -109,10 +109,10 @@
                 }catch(e){ /* ignore */ }
               })();
             </script>
-          
-        
-          <form method="POST" action="<!-- VAR_PLACEHOLDER -->">
-            <input type="hidden" name="csrf_token" value="" />
+          {% endif %}
+        {% else %}
+          <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
             <label style="font-weight:700; margin-bottom:.4rem; display:block;">Palavra 1</label>
             <input type="text" name="word1" required style="width:100%; padding:.6rem; border:1px solid var(--border); border-radius:8px; margin-bottom:1rem;" />
             
@@ -124,35 +124,35 @@
             
             <button type="submit" class="btn primary">Enviar</button>
           </form>
-        
-      
-        
-          
-          
-          
+        {% endif %}
+      {% elif d.tipo == 'poll' %}
+        {% if user_response %}
+          {% set user_option_idx = user_response.option %}
+          {% set options_list = cfg.get('options', []) %}
+          {% set user_option_text = options_list[user_option_idx] if user_option_idx < (options_list|length) else 'Opção inválida' %}
           <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
-            <strong>✓ Você já votou:</strong> <!-- VAR_PLACEHOLDER -->
+            <strong>✓ Você já votou:</strong> {{ user_option_text }}
           </div>
-          
-            
-            
-            
+          {% if agg.counts %}
+            {% set total = (agg.counts | sum) if agg.counts else 0 %}
+            {% set colors = ['#9B5DE5', '#F15BB5', '#00BBF9', '#00F5FF', '#FEE440', '#FCA311'] %}
+            {% set options_list = cfg.get('options', []) %}
             <h3 style="margin-top:1rem;">Parciais</h3>
             <div class="poll-bars" role="list" aria-label="Resultados parciais da enquete">
-              
-                
-                
-                
+              {% for opt in options_list %}
+                {% set c = agg.counts[loop.index0] if agg.counts else 0 %}
+                {% set pct = ( (c * 100.0) / (total if total else 1) ) | round(0, 'floor') %}
+                {% set bar_color = colors[loop.index0 % colors|length] %}
                 <div class="poll-row" role="listitem">
-                  <div class="poll-label"><!-- VAR_PLACEHOLDER --></div>
-                  <div class="poll-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<!-- VAR_PLACEHOLDER -->" aria-label="<!-- VAR_PLACEHOLDER -->: <!-- VAR_PLACEHOLDER -->%">
-                    <div class="poll-fill" data-pct="<!-- VAR_PLACEHOLDER -->" style="background:<!-- VAR_PLACEHOLDER -->;"></div>
+                  <div class="poll-label">{{ opt }}</div>
+                  <div class="poll-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ pct }}" aria-label="{{ opt }}: {{ pct }}%">
+                    <div class="poll-fill" data-pct="{{ '%d' % pct }}" style="background:{{ bar_color }};"></div>
                   </div>
-                  <div class="poll-pct"><!-- VAR_PLACEHOLDER -->% (<!-- VAR_PLACEHOLDER -->)</div>
+                  <div class="poll-pct">{{ '%d' % pct }}% ({{ c }})</div>
                 </div>
-              
+              {% endfor %}
             </div>
-            <div class="muted" style="margin-top:.4rem; font-size:.75rem;">Total de votos: <!-- VAR_PLACEHOLDER --></div>
+            <div class="muted" style="margin-top:.4rem; font-size:.75rem;">Total de votos: {{ total }}</div>
             <script>
               (function(){
                 try{
@@ -164,51 +164,51 @@
                 }catch(e){}
               })();
             </script>
-          
-        
-          <form method="POST" action="<!-- VAR_PLACEHOLDER -->" class="options">
-            <input type="hidden" name="csrf_token" value="" />
-            
-            
+          {% endif %}
+        {% else %}
+          <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="options">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+            {% set options_list = cfg.get('options', []) %}
+            {% for opt in options_list %}
               <label style="display:flex; align-items:center; gap:.5rem;">
-                <input type="radio" name="option" value="<!-- VAR_PLACEHOLDER -->" required /> <!-- VAR_PLACEHOLDER -->
+                <input type="radio" name="option" value="{{ loop.index0 }}" required /> {{ opt }}
               </label>
-            
+            {% endfor %}
             <button type="submit" class="btn primary" style="margin-top:.6rem;">Votar</button>
           </form>
-        
-      
-        <form method="POST" action="<!-- VAR_PLACEHOLDER -->" class="dinamica-form" style="display:flex;flex-direction:column;gap:12px;">
-          <input type="hidden" name="csrf_token" value="" />
-          
-          
+        {% endif %}
+      {% elif d.tipo == 'form' %}
+        <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="dinamica-form" style="display:flex;flex-direction:column;gap:12px;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+          {% set fields = cfg.get('fields', []) %}
+          {% for q in fields %}
             <div class="q-card" style="padding:10px;border:1px solid #e3e3e3;border-radius:8px;">
               <label style="font-weight:600;display:block;margin-bottom:6px;">
-                <!-- VAR_PLACEHOLDER -->
-                <span style="color:#d00">*</span>
+                {{ q.label or ('Pergunta ' ~ loop.index) }}
+                {% if q.required %}<span style="color:#d00">*</span>{% endif %}
               </label>
-              
-                <input type="text" name="q_<!-- VAR_PLACEHOLDER -->" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" required />
-              
-                <textarea name="q_<!-- VAR_PLACEHOLDER -->" rows="4" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" required></textarea>
-              
-                
+              {% if q.type == 'short' %}
+                <input type="text" name="q_{{ q.id }}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" {% if q.required %}required{% endif %} />
+              {% elif q.type == 'paragraph' %}
+                <textarea name="q_{{ q.id }}" rows="4" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" {% if q.required %}required{% endif %}></textarea>
+              {% elif q.type == 'multiple_choice' %}
+                {% for opt in q.options %}
                   <label style="display:flex;align-items:center;gap:8px;margin:4px 0;">
-                    <input type="radio" name="q_<!-- VAR_PLACEHOLDER -->" value="<!-- VAR_PLACEHOLDER -->" required />
-                    <span><!-- VAR_PLACEHOLDER --></span>
+                    <input type="radio" name="q_{{ q.id }}" value="{{ opt }}" {% if q.required and loop.first %}required{% endif %} />
+                    <span>{{ opt }}</span>
                   </label>
-                
-              
-                <input type="text" name="q_<!-- VAR_PLACEHOLDER -->" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" required />
-              
+                {% endfor %}
+              {% else %}
+                <input type="text" name="q_{{ q.id }}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" {% if q.required %}required{% endif %} />
+              {% endif %}
             </div>
-          
+          {% else %}
             <p>Formulário sem perguntas configuradas.</p>
-          
+          {% endfor %}
           <button type="submit" class="btn primary" style="align-self:flex-start;padding:10px 16px;border:none;border-radius:8px;cursor:pointer;">Enviar</button>
         </form>
-      
-        
+      {% elif d.tipo == 'quemsouleu' %}
+        {% if user_response %}
           <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
             <strong>✓ Você já completou esta dinâmica!</strong>
           </div>
@@ -217,24 +217,24 @@
           </div>
           <div id="respostasDiv" style="display:none; margin-top:1rem;">
             <h3 style="margin-top:1.5rem; margin-bottom:1rem; color:#9B5DE5;">Suas Respostas</h3>
-            
-            
-            
+            {% set items = cfg.get('items', []) %}
+            {% set respostas = user_response.respostas %}
+            {% for item in items %}
               <div class="builder-card" style="margin-bottom:.8rem;">
-                <div style="font-weight:700; color:#9B5DE5; margin-bottom:.5rem;">Item <!-- VAR_PLACEHOLDER --></div>
-                
-                  <p style="margin:.3rem 0;"><em>"<!-- VAR_PLACEHOLDER -->"</em></p>
-                
-                  <img src="<!-- VAR_PLACEHOLDER -->" alt="Item <!-- VAR_PLACEHOLDER -->" style="max-width:100%; height:auto; border-radius:8px; margin:.5rem 0;" />
-                
+                <div style="font-weight:700; color:#9B5DE5; margin-bottom:.5rem;">Item {{ loop.index }}</div>
+                {% if item.tipo == 'frase' %}
+                  <p style="margin:.3rem 0;"><em>"{{ item.conteudo }}"</em></p>
+                {% else %}
+                  <img src="{{ item.conteudo }}" alt="Item {{ loop.index }}" style="max-width:100%; height:auto; border-radius:8px; margin:.5rem 0;" />
+                {% endif %}
                 <div style="margin-top:.5rem;">
-                  <strong>Sua resposta:</strong> <!-- VAR_PLACEHOLDER -->
+                  <strong>Sua resposta:</strong> {{ respostas[loop.index0] if respostas and loop.index0 < (respostas|length) else '(sem resposta)' }}
                 </div>
               </div>
-            
+            {% endfor %}
             <div style="background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; padding:1rem; margin-top:1.5rem;">
               <h4 style="margin:0 0 .5rem; color:#9B5DE5; display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Moral da História</h4>
-              <p style="margin:0;"><!-- VAR_PLACEHOLDER --></p>
+              <p style="margin:0;">{{ cfg.get('moral', '') }}</p>
             </div>
           </div>
           <script>
@@ -244,25 +244,25 @@
               this.textContent = div.style.display === 'none' ? 'Ver Minhas Respostas' : 'Ocultar Respostas';
             });
           </script>
-        
+        {% else %}
           <div id="quemsouleuInstrucoes">
             <div style="background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; padding:1rem; margin-bottom:1rem;">
               <h3 style="margin:0 0 .5rem; color:#9B5DE5;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Instruções</h3>
-              <p style="margin:0;">Você verá <!-- VAR_PLACEHOLDER --> itemitens (frases ou fotos). Para cada um, digite sua resposta sobre: <strong><!-- VAR_PLACEHOLDER --></strong></p>
+              <p style="margin:0;">Você verá {{ cfg.get('items', [])|length }} {% if cfg.get('items', [])|length == 1 %}item{% else %}itens{% endif %} (frases ou fotos). Para cada um, digite sua resposta sobre: <strong>{{ cfg.get('questao_tipo', '') }}</strong></p>
             </div>
             <button class="btn primary" id="iniciarBtn">Começar</button>
           </div>
           <div id="quemsouleuJogo" style="display:none;">
             <div id="itemAtual"></div>
-            <form id="quemsouleuForm" method="POST" action="<!-- VAR_PLACEHOLDER -->" style="margin-top:1rem;">
-              <input type="hidden" name="csrf_token" value="" />
+            <form id="quemsouleuForm" method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" style="margin-top:1rem;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
               <div id="respostasInputs"></div>
             </form>
           </div>
           <script>
           (function(){
-            var items = [];
-            var questaoTipo = [];
+            var items = {{ cfg.get('items', []) | tojson | safe }};
+            var questaoTipo = {{ cfg.get('questao_tipo', '') | tojson | safe }};
             var currentIdx = 0;
             var respostas = new Array(items.length).fill('');
             
@@ -346,11 +346,10 @@
             }
           })();
           </script>
-        
-      
+        {% endif %}
+      {% endif %}
     </div>
-  <!-- CONTENT_PLACEHOLDER -->
-</main>
+  </main>
   <footer style="background:#9B5DE5; color:#fff; text-align:center; padding:1rem 0 1.1rem; font-size:.8rem; border-top-left-radius:28px; border-top-right-radius:28px; margin-top:40px;">© 2025 Gramátike • Linguagem Viva e de Todes</footer>
   <style>@media (max-width: 980px){ footer { display:none !important; } }</style>
 </body>

@@ -5,8 +5,8 @@
         <title>Suporte</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-        <link rel="manifest" href="/static/manifest.webmanifest">
-        <link rel="stylesheet" href="/static/gramatike_common.css">
+        <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
         <meta name="theme-color" content="#9B5DE5">
         <style>
             :root { --bg:#f5f7fb; --text:#333; --accent:#9B5DE5; }
@@ -19,13 +19,13 @@
             textarea { min-height:120px; resize:vertical; }
             .btn { margin-top:1.1rem; width:100%; background:var(--accent); color:#fff; font-weight:800; font-size:.95rem; letter-spacing:.6px; padding:.9rem 1rem .95rem; border:none; border-radius:14px; cursor:pointer; box-shadow:0 2px 8px -2px #9B5DE599; }
         </style>
-    <script src="/static/js/pwa.js" defer></script>
+    <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
 </head>
 <body>
     <div class="wrap"><div class="card">
         <h1>Suporte</h1>
         <form method="post">
-            <input type="hidden" name="csrf_token" value="" />
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
             <label for="nome">Nome</label>
             <input type="text" id="nome" name="nome" required>
 

@@ -7,8 +7,8 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
 }
 </style>
     <meta charset="UTF-8">
-    <link rel="manifest" href="/static/manifest.webmanifest">
-    <link rel="stylesheet" href="/static/gramatike_common.css">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
     <meta name="theme-color" content="#9B5DE5">
     <title>Esqueci minha senha</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,31 +51,31 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
         }
         .back-link:hover { text-decoration: underline; }
     </style>
-    <script src="/static/js/pwa.js" defer></script>
+    <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
 </head>
 <body>
     <div class="container">
-        
-            
-                
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
                     <div style="padding: 10px 14px; margin-bottom: 16px; border-radius: 6px; font-size: 14px;
-                        
+                        {% if category == 'success' or category == 'info' %}
                             background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7;
-                        
+                        {% else %}
                             background: #ffebee; color: #c62828; border: 1px solid #ef9a9a;
-                        
-                    "><!-- VAR_PLACEHOLDER --></div>
-                
-            
-        
+                        {% endif %}
+                    ">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         <h2>Esqueci minha senha</h2>
         <form method="post">
-            <input type="hidden" name="csrf_token" value="" />
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
             <label for="email">Digite seu e-mail cadastrado:</label>
             <input type="email" id="email" name="email" required placeholder="seu@email.com">
             <button type="submit">Enviar link de recuperação</button>
         </form>
-    <a href="/login" class="back-link">Voltar ao login</a>
+    <a href="{{ url_for('main.login') }}" class="back-link">Voltar ao login</a>
     </div>
 </body>
 </html>
