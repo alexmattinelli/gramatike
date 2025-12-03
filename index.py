@@ -3059,7 +3059,7 @@ class Default(WorkerEntrypoint):
         return render_template('cadastro.html', flash_html=flash_html)
 
     async def _dinamicas_page(self, db, current_user):
-        """Página de Dinâmicas."""
+        """Página de Dinâmicas - usando template externo."""
         dynamics_html = ""
         
         if db and DB_AVAILABLE:
@@ -3070,9 +3070,9 @@ class Default(WorkerEntrypoint):
                         tipo_emoji = {"poll": "📊", "form": "📝", "oneword": "💬"}.get(d.get('tipo'), '🎮')
                         dynamics_html += f"""
                         <div class="feed-item">
-                            <div class="fi-meta">{tipo_emoji} {d.get('tipo', 'dinâmica').upper()}</div>
-                            <h3 class="fi-title">{d.get('titulo', '')}</h3>
-                            <p class="fi-body">{d.get('descricao') or 'Participe desta dinâmica!'}</p>
+                            <div class="fi-meta">{tipo_emoji} {escape_html(d.get('tipo', 'dinâmica')).upper()}</div>
+                            <h3 class="fi-title">{escape_html(d.get('titulo', ''))}</h3>
+                            <p class="fi-body">{escape_html(d.get('descricao') or 'Participe desta dinâmica!')}</p>
                             <div style="margin-top: 1rem;">
                                 <span style="font-size: 0.7rem; color: var(--text-dim);">
                                     {d.get('response_count', 0)} participações
@@ -3085,17 +3085,10 @@ class Default(WorkerEntrypoint):
         if not dynamics_html:
             dynamics_html = '<div class="empty">Nenhuma dinâmica disponível no momento.</div>'
         
-        return f"""{page_head("Dinâmicas — Gramátike Edu")}
-    <header class="site-head">
-        <h1 class="logo">Dinâmicas</h1>
-    </header>
-    <main>
-        {dynamics_html}
-    </main>
-{page_footer(current_user is not None)}"""
+        return render_template('dinamicas.html', content_html=dynamics_html)
 
     async def _exercicios_page(self, db, current_user):
-        """Página de Exercícios."""
+        """Página de Exercícios - usando template externo."""
         topics_html = ""
         
         if db and DB_AVAILABLE:
@@ -3105,8 +3098,8 @@ class Default(WorkerEntrypoint):
                     for t in topics:
                         topics_html += f"""
                         <div class="feed-item">
-                            <h3 class="fi-title">{t.get('nome', '')}</h3>
-                            <p class="fi-body">{t.get('descricao') or 'Tópico de exercícios'}</p>
+                            <h3 class="fi-title">{escape_html(t.get('nome', ''))}</h3>
+                            <p class="fi-body">{escape_html(t.get('descricao') or 'Tópico de exercícios')}</p>
                             <div style="margin-top: 0.8rem;">
                                 <span style="font-size: 0.7rem; color: var(--text-dim); background: #f1edff; padding: 0.3rem 0.6rem; border-radius: 10px;">
                                     {t.get('question_count', 0)} questões
@@ -3119,32 +3112,10 @@ class Default(WorkerEntrypoint):
         if not topics_html:
             topics_html = '<div class="empty">Nenhum exercício disponível.</div>'
         
-        return f"""{page_head("Gramátike Edu — Exercícios")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike Edu</h1>
-        <nav class="edu-nav">
-            <a href="/educacao">🏠 Início</a>
-            <a href="/apostilas">📖 Apostilas</a>
-            <a href="/exercicios" class="active">✏️ Exercícios</a>
-            <a href="/artigos">📰 Artigos</a>
-        </nav>
-    </header>
-    <main>
-        <div class="search-box">
-            <input type="text" placeholder="Pesquisar exercícios...">
-            <button class="search-btn">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </button>
-        </div>
-        {topics_html}
-    </main>
-{page_footer(current_user is not None)}"""
+        return render_template('exercicios.html', content_html=topics_html)
 
     async def _artigos_page(self, db, current_user):
-        """Página de Artigos."""
+        """Página de Artigos - usando template externo."""
         artigos_html = ""
         
         if db and DB_AVAILABLE:
@@ -3155,8 +3126,8 @@ class Default(WorkerEntrypoint):
                         artigos_html += f"""
                         <div class="feed-item">
                             <div class="fi-meta">ARTIGO</div>
-                            <h3 class="fi-title">{a.get('titulo', '')}</h3>
-                            <p class="fi-body">{(a.get('resumo') or '')[:200]}...</p>
+                            <h3 class="fi-title">{escape_html(a.get('titulo', ''))}</h3>
+                            <p class="fi-body">{escape_html((a.get('resumo') or '')[:200])}...</p>
                         </div>"""
             except:
                 pass
@@ -3164,32 +3135,10 @@ class Default(WorkerEntrypoint):
         if not artigos_html:
             artigos_html = '<div class="empty">Nenhum artigo disponível.</div>'
         
-        return f"""{page_head("Gramátike Edu — Artigos")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike Edu</h1>
-        <nav class="edu-nav">
-            <a href="/educacao">🏠 Início</a>
-            <a href="/apostilas">📖 Apostilas</a>
-            <a href="/exercicios">✏️ Exercícios</a>
-            <a href="/artigos" class="active">📰 Artigos</a>
-        </nav>
-    </header>
-    <main>
-        <div class="search-box">
-            <input type="text" placeholder="Pesquisar artigos...">
-            <button class="search-btn">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </button>
-        </div>
-        {artigos_html}
-    </main>
-{page_footer(current_user is not None)}"""
+        return render_template('artigos.html', content_html=artigos_html)
 
     async def _apostilas_page(self, db, current_user):
-        """Página de Apostilas."""
+        """Página de Apostilas - usando template externo."""
         apostilas_html = ""
         
         if db and DB_AVAILABLE:
@@ -3197,12 +3146,13 @@ class Default(WorkerEntrypoint):
                 apostilas = await get_edu_contents(db, tipo='apostila', page=1, per_page=20)
                 if apostilas:
                     for a in apostilas:
+                        url = escape_html(a.get("url", ""))
                         apostilas_html += f"""
                         <div class="feed-item">
                             <div class="fi-meta">📖 APOSTILA</div>
-                            <h3 class="fi-title">{a.get('titulo', '')}</h3>
-                            <p class="fi-body">{(a.get('resumo') or '')[:200]}...</p>
-                            {'<a href="' + a.get("url", "") + '" class="btn btn-primary" style="margin-top: 0.8rem; font-size: 0.75rem;">Baixar PDF</a>' if a.get("url") else ''}
+                            <h3 class="fi-title">{escape_html(a.get('titulo', ''))}</h3>
+                            <p class="fi-body">{escape_html((a.get('resumo') or '')[:200])}...</p>
+                            {'<a href="' + url + '" class="btn btn-primary" style="margin-top: 0.8rem; font-size: 0.75rem;">Baixar PDF</a>' if url else ''}
                         </div>"""
             except:
                 pass
@@ -3210,32 +3160,10 @@ class Default(WorkerEntrypoint):
         if not apostilas_html:
             apostilas_html = '<div class="empty">Nenhuma apostila disponível.</div>'
         
-        return f"""{page_head("Gramátike Edu — Apostilas")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike Edu</h1>
-        <nav class="edu-nav">
-            <a href="/educacao">🏠 Início</a>
-            <a href="/apostilas" class="active">📖 Apostilas</a>
-            <a href="/exercicios">✏️ Exercícios</a>
-            <a href="/artigos">📰 Artigos</a>
-        </nav>
-    </header>
-    <main>
-        <div class="search-box">
-            <input type="text" placeholder="Pesquisar apostilas...">
-            <button class="search-btn">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </button>
-        </div>
-        {apostilas_html}
-    </main>
-{page_footer(current_user is not None)}"""
+        return render_template('apostilas.html', content_html=apostilas_html)
 
     async def _podcasts_page(self, db, current_user):
-        """Página de Podcasts."""
+        """Página de Podcasts - usando template externo."""
         podcasts_html = ""
         
         if db and DB_AVAILABLE:
@@ -3243,12 +3171,13 @@ class Default(WorkerEntrypoint):
                 podcasts = await get_edu_contents(db, tipo='podcast', page=1, per_page=20)
                 if podcasts:
                     for p in podcasts:
+                        url = escape_html(p.get("url", ""))
                         podcasts_html += f"""
                         <div class="feed-item">
                             <div class="fi-meta">🎧 PODCAST</div>
-                            <h3 class="fi-title">{p.get('titulo', '')}</h3>
-                            <p class="fi-body">{(p.get('resumo') or '')[:200]}...</p>
-                            {'<a href="' + p.get("url", "") + '" class="btn btn-primary" style="margin-top: 0.8rem; font-size: 0.75rem;" target="_blank">Ouvir</a>' if p.get("url") else ''}
+                            <h3 class="fi-title">{escape_html(p.get('titulo', ''))}</h3>
+                            <p class="fi-body">{escape_html((p.get('resumo') or '')[:200])}...</p>
+                            {'<a href="' + url + '" class="btn btn-primary" style="margin-top: 0.8rem; font-size: 0.75rem;" target="_blank">Ouvir</a>' if url else ''}
                         </div>"""
             except:
                 pass
@@ -3256,29 +3185,7 @@ class Default(WorkerEntrypoint):
         if not podcasts_html:
             podcasts_html = '<div class="empty">Nenhum podcast disponível.</div>'
         
-        return f"""{page_head("Gramátike Edu — Podcasts")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike Edu</h1>
-        <nav class="edu-nav">
-            <a href="/educacao">🏠 Início</a>
-            <a href="/apostilas">📖 Apostilas</a>
-            <a href="/exercicios">✏️ Exercícios</a>
-            <a href="/artigos">📰 Artigos</a>
-        </nav>
-    </header>
-    <main>
-        <div class="search-box">
-            <input type="text" placeholder="Pesquisar podcasts...">
-            <button class="search-btn">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </button>
-        </div>
-        {podcasts_html}
-    </main>
-{page_footer(current_user is not None)}"""
+        return render_template('podcasts.html', content_html=podcasts_html)
 
     async def _profile_page(self, db, current_user, username):
         """Página de perfil de usuárie."""
@@ -3799,7 +3706,7 @@ class Default(WorkerEntrypoint):
         return render_template('esqueci_senha.html', flash_html=flash_html)
 
     async def _reset_senha_page(self, db, current_user, request, method):
-        """Página Redefinir Senha."""
+        """Página Redefinir Senha - usando template externo."""
         # Se já logado, redireciona para a página inicial
         if current_user:
             return redirect('/')
@@ -3868,62 +3775,11 @@ class Default(WorkerEntrypoint):
             message = "Serviço temporariamente indisponível."
             message_type = "error"
         
-        message_html = ""
+        # Usar template externo
+        flash_html = ""
         if message:
-            bg_color = "#e8f5e9" if message_type == "success" else "#ffebee"
-            text_color = "#2e7d32" if message_type == "success" else "#c62828"
-            message_html = f'<div style="background: {bg_color}; color: {text_color}; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.9rem;">{message}</div>'
-        
-        extra_css = """
-        .reset-wrapper { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:2.2rem 1.2rem 3.5rem; }
-        .reset-card { width:100%; max-width:480px; background:#fff; border-radius:18px; padding:2rem; box-shadow:0 10px 26px -4px rgba(0,0,0,.12); }
-        .reset-card h2 { margin:0 0 1.5rem; font-size:1.4rem; font-weight:800; text-align:center; color: var(--primary); }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 0.4rem; color: #666; }
-        .form-group input { width: 100%; padding: 0.75rem; border: 1.5px solid #d9e1ea; border-radius: 10px; font-size: 0.9rem; }
-        .form-group input:focus { outline: none; border-color: var(--primary); }
-        .button-primary { width: 100%; background: var(--primary); color: #fff; border: none; padding: 0.9rem; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
-        .button-primary:hover { background: #7d3dc9; }
-        header.site-head { display: none; }
-        footer { display: none; }
-        """
-        
-        # If token is invalid, show error page
-        if message_type == "error" and token_data is None:
-            return f"""{page_head("Redefinir Senha — Gramátike", extra_css)}
-    <div class="reset-wrapper">
-        <div class="reset-card">
-            {message_html}
-            <h2>Redefinir senha</h2>
-            <p style="text-align: center; color: #666;">
-                O link de redefinição de senha é inválido ou expirou. 
-                <a href="/esqueci-senha" style="color: var(--primary);">Solicite um novo link</a>.
-            </p>
-        </div>
-    </div>
-    {mobile_nav(False)}
-</body>
-</html>"""
-        
-        return f"""{page_head("Redefinir Senha — Gramátike", extra_css)}
-    <div class="reset-wrapper">
-        <div class="reset-card">
-            {message_html}
-            <h2>Redefinir senha</h2>
-            <form method="POST" action="/reset-senha">
-                <input type="hidden" name="token" value="{escape_html(token)}">
-                <div class="form-group">
-                    <label for="password">Nova senha</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                <div class="form-group">
-                    <label for="password2">Confirmar nova senha</label>
-                    <input type="password" id="password2" name="password2" required>
-                </div>
-                <button type="submit" class="button-primary">Salvar nova senha</button>
-            </form>
-        </div>
-    </div>
-    {mobile_nav(False)}
-</body>
-</html>"""
+            if message_type == "success":
+                flash_html = create_success_html(message)
+            else:
+                flash_html = create_error_html(message)
+        return render_template('reset_senha.html', flash_html=flash_html)
