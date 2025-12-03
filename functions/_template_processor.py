@@ -60,6 +60,28 @@ def render_template(template_name, **context):
     divulgacoes_html = context.get('divulgacoes_html', '')
     html = html.replace('<!-- DIVULGACOES_PLACEHOLDER -->', divulgacoes_html)
     
+    # Replace ADMIN_BTN_PLACEHOLDER with admin button if present
+    admin_btn_html = context.get('admin_btn_html', '')
+    html = html.replace('<!-- ADMIN_BTN_PLACEHOLDER -->', admin_btn_html)
+    
+    # Replace FOOTER_PLACEHOLDER with page footer
+    footer_html = context.get('footer_html', '')
+    html = html.replace('<!-- FOOTER_PLACEHOLDER -->', footer_html)
+    
+    # Replace EXTRA_CSS_PLACEHOLDER with additional CSS
+    extra_css = context.get('extra_css', '')
+    html = html.replace('<!-- EXTRA_CSS_PLACEHOLDER -->', f'<style>{extra_css}</style>' if extra_css else '')
+    
+    # Replace user-related placeholders
+    user_foto = context.get('user_foto', '/static/img/perfil.png')
+    html = html.replace('<!-- USER_FOTO_PLACEHOLDER -->', user_foto)
+    
+    user_username_js = context.get('user_username_js', '')
+    html = html.replace('<!-- USER_USERNAME_JS_PLACEHOLDER -->', user_username_js)
+    
+    user_id = context.get('user_id', 0)
+    html = html.replace('<!-- USER_ID_PLACEHOLDER -->', str(user_id))
+    
     # Replace VAR placeholders: <!-- VAR: name --> with actual values
     for key, value in context.items():
         if key not in ['flash_html', 'content_html', 'feed_html', 'divulgacoes_html', 'user', 'current_user']:
