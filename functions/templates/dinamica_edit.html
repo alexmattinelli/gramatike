@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Editar Dinâmica — Gramátike Edu</title>
   <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/gramatike_common.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
   <style>
     :root { --primary:#9B5DE5; --border:#e5e7eb; --card:#fff; --bg:#f7f8ff; --text:#222; }
     * { box-sizing:border-box; }
@@ -43,27 +43,27 @@
   </header>
   <main>
     <div class="card">
-      <h2 style="margin:0 0 .6rem; font-size:1.2rem; color:#9B5DE5;">Editar "<!-- VAR_PLACEHOLDER -->"</h2>
-      <form id="dynEditForm" method="POST" action="<!-- VAR_PLACEHOLDER -->" enctype="multipart/form-data" style="display:grid; gap:.6rem; grid-template-columns:1fr; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
-        <input type="hidden" name="csrf_token" value="" />
+      <h2 style="margin:0 0 .6rem; font-size:1.2rem; color:#9B5DE5;">Editar "{{ d.titulo }}"</h2>
+      <form id="dynEditForm" method="POST" action="{{ url_for('main.dinamica_update', dyn_id=d.id) }}" enctype="multipart/form-data" style="display:grid; gap:.6rem; grid-template-columns:1fr; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
         
         <div style="padding:.6rem; background:#f0f0f0; border-radius:8px;">
-          <strong>Tipo:</strong> <span class="chip"><!-- VAR_PLACEHOLDER --></span>
+          <strong>Tipo:</strong> <span class="chip">{{ d.tipo }}</span>
           <div class="muted-sm" style="margin-top:.3rem;">O tipo da dinâmica não pode ser alterado após criação.</div>
         </div>
         
         <label style="font-weight:800; color:#9B5DE5;">Título</label>
-        <input type="text" name="titulo" value="<!-- VAR_PLACEHOLDER -->" required />
+        <input type="text" name="titulo" value="{{ d.titulo }}" required />
         
         <label style="font-weight:800; color:#9B5DE5;">Descrição (opcional)</label>
-        <textarea name="descricao" rows="2"><!-- VAR_PLACEHOLDER --></textarea>
+        <textarea name="descricao" rows="2">{{ d.descricao or '' }}</textarea>
         
-        
+        {% if d.tipo == 'poll' %}
         <div id="poll_opts">
           <label style="font-weight:800; color:#9B5DE5;">Opções (1 por linha)</label>
-          <textarea name="opcoes" rows="3" placeholder="Opção A&#10;Opção B"><!-- VAR_PLACEHOLDER --></textarea>
+          <textarea name="opcoes" rows="3" placeholder="Opção A&#10;Opção B">{{ '\n'.join(cfg.get('options', [])) }}</textarea>
         </div>
-        
+        {% elif d.tipo == 'form' %}
         <div id="form_builder">
           <div class="muted-sm">Edite as perguntas do formulário. Tipos: resposta curta, parágrafo, múltipla escolha.</div>
           <div id="q_list"></div>
@@ -72,31 +72,30 @@
           </div>
           <input type="hidden" name="config_json" id="config_json" />
         </div>
-        
+        {% elif d.tipo == 'quemsouleu' %}
         <div id="quemsouleu_builder">
           <div class="muted-sm">Edite os itens da dinâmica "Quem soul eu"</div>
           <label style="font-weight:800; color:#9B5DE5; margin-top:.8rem;">O que a pessoa deve descobrir?</label>
-          <input type="text" name="questao_tipo" id="questao_tipo" value="<!-- VAR_PLACEHOLDER -->" placeholder="Ex: gênero, orientação sexual, pronome..." />
+          <input type="text" name="questao_tipo" id="questao_tipo" value="{{ cfg.get('questao_tipo', '') }}" placeholder="Ex: gênero, orientação sexual, pronome..." />
           <label style="font-weight:800; color:#9B5DE5; margin-top:.8rem;">Moral/Mensagem Final</label>
-          <textarea name="moral" id="moral" rows="3" placeholder="Mensagem que aparecerá ao final da dinâmica..."><!-- VAR_PLACEHOLDER --></textarea>
+          <textarea name="moral" id="moral" rows="3" placeholder="Mensagem que aparecerá ao final da dinâmica...">{{ cfg.get('moral', '') }}</textarea>
           <div id="items_list" style="margin-top:1rem;"></div>
           <div class="builder-actions">
             <button type="button" class="btn" id="add_item">+ Item (Frase ou Foto)</button>
           </div>
           <input type="hidden" name="quemsouleu_config_json" id="quemsouleu_config_json" />
         </div>
-        
+        {% endif %}
         
         <div style="display:flex; gap:.6rem; margin-top:.4rem;">
           <button type="submit" class="btn primary">Salvar alterações</button>
-          <a href="/dinamicas-home" class="btn">Cancelar</a>
+          <a href="{{ url_for('main.dinamicas_home') }}" class="btn">Cancelar</a>
         </div>
       </form>
     </div>
-  <!-- CONTENT_PLACEHOLDER -->
-</main>
+  </main>
   
-  
+  {% if d.tipo == 'form' %}
   <script>
   (function(){
     const builder = document.getElementById('form_builder');
@@ -106,7 +105,7 @@
     const form = document.getElementById('dynEditForm');
 
     // Carregar campos existentes
-    const existingFields = [];
+    const existingFields = {{ cfg.get('fields', [])|tojson }};
     let seq = Math.max(...existingFields.map(f => f.id || 0), 0) + 1;
     const fields = existingFields.map(f => ({
       id: f.id,
@@ -184,7 +183,7 @@
     render();
   })();
   </script>
-  
+  {% elif d.tipo == 'quemsouleu' %}
   <script>
   (function(){
     const itemsList = document.getElementById('items_list');
@@ -193,7 +192,7 @@
     const form = document.getElementById('dynEditForm');
 
     // Load existing items
-    const existingItems = [];
+    const existingItems = {{ cfg.get('items', [])|tojson }};
     let itemSeq = Math.max(...existingItems.map(i => i.id || 0), 0) + 1;
     const items = existingItems.map(i => ({
       id: i.id,
@@ -298,6 +297,6 @@
     renderItems();
   })();
   </script>
-  
+  {% endif %}
 </body>
 </html>

@@ -9,8 +9,8 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
   <meta charset="UTF-8">
   <title>Redefinir senha</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="/static/manifest.webmanifest">
-  <link rel="stylesheet" href="/static/gramatike_common.css">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
   <meta name="theme-color" content="#9B5DE5">
   <style>
     :root { --bg:#f7f8ff; --text:#222; --accent:#9B5DE5; --border:#cfd7e2; }
@@ -28,14 +28,14 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
     .btn { margin-top:.8rem; width:100%; background:var(--accent); color:#fff; font-weight:800; font-size:.95rem; letter-spacing:.6px; padding:.9rem 1rem; border:none; border-radius:12px; cursor:pointer; box-shadow:0 4px 12px -3px #9B5DE5AA; transition:background .2s; }
     .btn:hover { background:#7d3dc9; }
   </style>
-  <script src="/static/js/pwa.js" defer></script>
+  <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
 </head>
 <body>
   <div class="wrap"><div class="card">
     <h2>Redefinir senha</h2>
     <form method="post">
-      <input type="hidden" name="csrf_token" value="" />
-      <input type="hidden" name="token" value="<!-- VAR_PLACEHOLDER -->" />
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+      <input type="hidden" name="token" value="{{ token }}" />
       <label>
         <span>Nova senha</span>
         <div class="inline-eye">

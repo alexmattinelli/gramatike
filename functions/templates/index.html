@@ -20,16 +20,16 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-base); font-weight:800; line-he
 button { font-family: var(--font-base); font-weight:600; }
 .nunito-font { font-family: var(--font-base) !important; }
 </style>
-<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-<link rel="icon" type="image/png" href="/static/favicon.png">
-<link rel="stylesheet" href="/static/style.css">
-<link rel="stylesheet" href="/static/gramatike_common.css">
-<link rel="manifest" href="/static/manifest.webmanifest">
+<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
 <meta name="theme-color" content="#9B5DE5">
 <!-- iOS Home Screen icon -->
-<link rel="apple-touch-icon" href="/static/img/icons/icon-192.png">
-<script src="/static/js/theme.js"></script>
-<script src="/static/js/pwa.js" defer></script>
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
+<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
 <style>
   :root {
     --primary: #9B5DE5; /* unificado */
@@ -242,20 +242,20 @@ button { font-family: var(--font-base); font-weight:600; }
 
 <header class="site-head">
   <h1 class="logo" title="Gramátike">Gramátike</h1>
-  
-    <a href="/meu-perfil" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
-      
-        
-        <img src="<!-- VAR_PLACEHOLDER -->" alt="Avatar de <!-- USER_username -->" loading="lazy">
-      
-        <span class="initial"><!-- VAR_PLACEHOLDER --></span>
-      
+  {% if current_user.is_authenticated %}
+    <a href="{{ url_for('main.meu_perfil') }}" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
+      {% if current_user.foto_perfil %}
+        {% set is_abs = current_user.foto_perfil.startswith('http://') or current_user.foto_perfil.startswith('https://') %}
+        <img src="{{ current_user.foto_perfil if is_abs else url_for('static', filename=current_user.foto_perfil) }}" alt="Avatar de {{ current_user.username }}" loading="lazy">
+      {% else %}
+        <span class="initial">{{ (current_user.username or '?')[:1].upper() }}</span>
+      {% endif %}
     </a>
-  
-    <a href="/login" class="profile-avatar-link" aria-label="Entrar" data-tooltip="Entrar">
+  {% else %}
+    <a href="{{ url_for('main.login') }}" class="profile-avatar-link" aria-label="Entrar" data-tooltip="Entrar">
       <span class="initial">?</span>
     </a>
-  
+  {% endif %}
 </header>
 
 <!-- Wrapper clarinho com borda curvada no topo -->
@@ -275,14 +275,14 @@ button { font-family: var(--font-base); font-weight:600; }
   <!-- Card de Ações Rápidas (mobile only - similar ao card de Amigues) -->
   <div id="mobile-actions-card" style="display:none; background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem;">
     <div style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0;">
-      <button onclick="window.location.href='/suporte'" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
+      <button onclick="window.location.href='{{ url_for('main.suporte') }}'" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="10"></circle>
           <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
           <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
       </button>
-      <button onclick="window.location.href='/configuracoes'" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
+      <button onclick="window.location.href='{{ url_for('main.configuracoes') }}'" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -325,9 +325,9 @@ button { font-family: var(--font-base); font-weight:600; }
       <p style="margin:.2rem 0 .7rem; font-size:.7rem; color:#555; font-weight:600; text-align:center;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
       <div id="mobile_ttt_status" style="font-size:.72rem; font-weight:800; color:#9B5DE5; letter-spacing:.4px; margin:0 0 .6rem; text-align:center;">Sua vez: você é X</div>
       <div id="mobile_ttt_board" role="grid" aria-label="Tabuleiro do Jogo da Velha" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:.5rem;">
-        
-        <button type="button" data-i="<!-- VAR_PLACEHOLDER -->" role="gridcell" aria-label="casa <!-- VAR_PLACEHOLDER --> vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
-        
+        {% for i in range(9) %}
+        <button type="button" data-i="{{ i }}" role="gridcell" aria-label="casa {{ i+1 }} vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+        {% endfor %}
       </div>
       <button id="mobile_ttt_reset" type="button" style="margin-top:.8rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; padding:.5rem .9rem; font-size:.7rem; font-weight:800; letter-spacing:.4px; cursor:pointer; width:100%;">Reiniciar</button>
     </div>
@@ -342,7 +342,7 @@ button { font-family: var(--font-base); font-weight:600; }
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
       </button>
-      <a href="/novo-post" class="new-post-btn" aria-label="Criar postagem" title="Criar postagem">
+      <a href="{{ url_for('main.novo_post') }}" class="new-post-btn" aria-label="Criar postagem" title="Criar postagem">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -352,13 +352,13 @@ button { font-family: var(--font-base); font-weight:600; }
     </div>
   </div>
 
-  <div id="feed-list"><!-- FEED_PLACEHOLDER --></div>
+  <div id="feed-list"></div>
 
   </div>
   <aside class="right-col" style="width:300px; flex:0 0 300px; position:sticky; top:15px; align-self:flex-start;">
   <!-- Navegação rápida: Educação e Em breve -->
   <div id="quick-nav" style="display:flex; gap:.8rem; margin:0 0 1.2rem;">
-    <a href="/educacao" aria-label="Ir para Educação" style="flex:1; text-decoration:none; background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%); padding:1rem 1.1rem; border-radius:20px; display:flex; align-items:center; gap:.7rem; font-size:1rem; font-weight:800; color:#ffffff; letter-spacing:.4px; transition:all .25s ease; box-shadow:0 6px 20px rgba(155,93,229,.35); border:none;">
+    <a href="{{ url_for('main.educacao') }}" aria-label="Ir para Educação" style="flex:1; text-decoration:none; background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%); padding:1rem 1.1rem; border-radius:20px; display:flex; align-items:center; gap:.7rem; font-size:1rem; font-weight:800; color:#ffffff; letter-spacing:.4px; transition:all .25s ease; box-shadow:0 6px 20px rgba(155,93,229,.35); border:none;">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
@@ -378,14 +378,14 @@ button { font-family: var(--font-base); font-weight:600; }
   <div id="amigues-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem;">
       <!-- Botões de ações rápidas -->
       <div style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0 0 .8rem;">
-        <button onclick="window.location.href='/suporte'" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
+        <button onclick="window.location.href='{{ url_for('main.suporte') }}'" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="10"></circle>
             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
             <line x1="12" y1="17" x2="12.01" y2="17"></line>
           </svg>
         </button>
-        <button onclick="window.location.href='/configuracoes'" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
+        <button onclick="window.location.href='{{ url_for('main.configuracoes') }}'" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -398,8 +398,8 @@ button { font-family: var(--font-base); font-weight:600; }
           </svg>
           <span id="notifications-badge" style="display:none; position:absolute; top:-4px; right:-4px; background:#ff9800; color:#fff; font-size:.6rem; padding:2px 5px; border-radius:10px; font-weight:700;">0</span>
         </button>
-        
-        <button onclick="window.location.href='<!-- VAR_PLACEHOLDER -->'" class="search-btn icon-btn" title="Painel de Controle" aria-label="Painel de Controle">
+        {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+        <button onclick="window.location.href='{{ url_for('admin.dashboard') }}'" class="search-btn icon-btn" title="Painel de Controle" aria-label="Painel de Controle">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="3" y="3" width="7" height="7"></rect>
             <rect x="14" y="3" width="7" height="7"></rect>
@@ -407,7 +407,7 @@ button { font-family: var(--font-base); font-weight:600; }
             <rect x="3" y="14" width="7" height="7"></rect>
           </svg>
         </button>
-        
+        {% endif %}
       </div>
       <!-- Painel de notificações -->
       <div id="notifications-panel" style="display:none; margin-bottom:.8rem; border-bottom:1px solid var(--border); padding-bottom:.8rem;">
@@ -424,39 +424,38 @@ button { font-family: var(--font-base); font-weight:600; }
     </div>
     <div id="divulgacao-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.1rem 1.15rem .95rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:1.1rem;">
     <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 13v-2Z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg> Novidades</h3>
-    
-      
+    {% set tem_conteudo = (div_edu and div_edu|length>0) %}
+      {% if tem_conteudo %}
         <div style="display:flex; flex-direction:column; gap:.9rem;">
           {# Divulgações (inclui Aviso Rápido com imagem gerada) #}
-          
+          {% for d in (div_edu or []) %}
           <div class="promo-card" style="background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
-            <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#9B5DE5; margin:0 0 .35rem;"><!-- VAR_PLACEHOLDER --></strong>
-            
-              
-              <img src="<!-- VAR_PLACEHOLDER -->" alt="<!-- VAR_PLACEHOLDER -->" style="width:100%; border-radius:14px; margin:0 0 .5rem; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />
-            
-            <p style="margin:0 0 .5rem; font-size:.6rem; line-height:1.32; color:#555; font-weight:600;"><!-- VAR_PLACEHOLDER --></p>
-            <a href="<!-- VAR_PLACEHOLDER -->" target="_blank" rel="noopener" style="display:inline-block; font-size:.55rem; font-weight:700; background:#9B5DE5; color:#fff; padding:.45rem .8rem .4rem; border-radius:14px; text-decoration:none; letter-spacing:.5px;">Abrir →</a>
+            <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#9B5DE5; margin:0 0 .35rem;">{{ d.titulo }}</strong>
+            {% if d.imagem %}
+              {% set imgsrc = d.imagem if d.imagem.startswith('http') else url_for('static', filename=d.imagem) %}
+              <img src="{{ imgsrc }}" alt="{{ d.titulo }}" style="width:100%; border-radius:14px; margin:0 0 .5rem; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />
+            {% endif %}
+            {% if d.texto %}<p style="margin:0 0 .5rem; font-size:.6rem; line-height:1.32; color:#555; font-weight:600;">{{ d.texto }}</p>{% endif %}
+            {% if d.link %}<a href="{{ d.link }}" target="_blank" rel="noopener" style="display:inline-block; font-size:.55rem; font-weight:700; background:#9B5DE5; color:#fff; padding:.45rem .8rem .4rem; border-radius:14px; text-decoration:none; letter-spacing:.5px;">Abrir →</a>{% endif %}
           </div>
-          
+          {% endfor %}
         </div>
-      
+      {% else %}
         <div style="font-size:.6rem; font-weight:700; letter-spacing:.5px; color:#999; padding:.65rem .85rem; border:1px dashed #d2c5ef; border-radius:18px; background:#faf7ff;">Nenhuma divulgação ativa.</div>
-      
+      {% endif %}
     </div>
     <div id="ttt-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.1rem 1.15rem .95rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:1.1rem;">
       <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary);"># Jogo da Velha</h3>
       <p style="margin:.2rem 0 .7rem; font-size:.7rem; color:#555; font-weight:600;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
       <div id="ttt_status" style="font-size:.72rem; font-weight:800; color:#9B5DE5; letter-spacing:.4px; margin:0 0 .6rem;">Sua vez: você é X</div>
       <div id="ttt_board" role="grid" aria-label="Tabuleiro do Jogo da Velha" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:.5rem;">
-        
-        <button type="button" data-i="<!-- VAR_PLACEHOLDER -->" role="gridcell" aria-label="casa <!-- VAR_PLACEHOLDER --> vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
-        
+        {% for i in range(9) %}
+        <button type="button" data-i="{{ i }}" role="gridcell" aria-label="casa {{ i+1 }} vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+        {% endfor %}
       </div>
       <button id="ttt_reset" type="button" style="margin-top:.8rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; padding:.5rem .9rem; font-size:.7rem; font-weight:800; letter-spacing:.4px; cursor:pointer; width:100%;">Reiniciar</button>
     </div>
   </aside>
-<!-- CONTENT_PLACEHOLDER -->
 </main>
 </div><!-- fechando content-wrapper -->
 <style>
@@ -638,7 +637,7 @@ button { font-family: var(--font-base); font-weight:600; }
 </style>
 <!-- Barra de navegação inferior mobile (tipo app/rede social) -->
 <nav class="mobile-bottom-nav" aria-label="Navegação principal mobile">
-  <a href="/index" aria-label="Feed" title="Feed">
+  <a href="{{ url_for('main.index') }}" aria-label="Feed" title="Feed">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
       <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -646,7 +645,7 @@ button { font-family: var(--font-base); font-weight:600; }
     <span>Início</span>
   </a>
   
-  <a href="/educacao" aria-label="Educação" title="Educação">
+  <a href="{{ url_for('main.educacao') }}" aria-label="Educação" title="Educação">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
       <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
@@ -654,7 +653,7 @@ button { font-family: var(--font-base); font-weight:600; }
     <span>Educação</span>
   </a>
   
-  <a href="/novo-post" aria-label="Criar post" title="Criar post" style="background: var(--primary); color: #ffffff; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #ffffff;">
+  <a href="{{ url_for('main.novo_post') }}" aria-label="Criar post" title="Criar post" style="background: var(--primary); color: #ffffff; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #ffffff;">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <line x1="12" y1="5" x2="12" y2="19"></line>
       <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -669,16 +668,16 @@ button { font-family: var(--font-base); font-weight:600; }
     <span>Em breve</span>
   </div>
   
-  
-  <a href="/meu-perfil" aria-label="Perfil" title="Perfil">
+  {% if current_user.is_authenticated %}
+  <a href="{{ url_for('main.meu_perfil') }}" aria-label="Perfil" title="Perfil">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
       <circle cx="12" cy="7" r="4"></circle>
     </svg>
     <span>Perfil</span>
   </a>
-  
-  <a href="/login" aria-label="Entrar" title="Entrar">
+  {% else %}
+  <a href="{{ url_for('main.login') }}" aria-label="Entrar" title="Entrar">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
       <polyline points="10 17 15 12 10 7"></polyline>
@@ -686,7 +685,7 @@ button { font-family: var(--font-base); font-weight:600; }
     </svg>
     <span>Entrar</span>
   </a>
-  
+  {% endif %}
 </nav>
 
 <!-- Footer simples (apenas texto) - oculto no mobile -->
@@ -694,10 +693,10 @@ button { font-family: var(--font-base); font-weight:600; }
   © 2025 Gramátike • Língua Viva e de Todes
 </div>
 
-<script src="/static/js/feed.js"></script>
+<script src="{{ url_for('static', filename='js/feed.js') }}"></script>
 <script>
-window.currentUser = "<!-- VAR_PLACEHOLDER -->";
-window.currentUserId = "<!-- VAR_PLACEHOLDER -->";
+window.currentUser = "{{ current_user.username if current_user.is_authenticated else '' }}";
+window.currentUserId = "{{ current_user.id if current_user.is_authenticated else '' }}";
 window.currentUserId = window.currentUserId ? parseInt(window.currentUserId) : null;
 // Lista local de quem eu já sigo (usernames)
 window.FOLLOWING = window.FOLLOWING || new Set();
@@ -1731,7 +1730,7 @@ async function loadNotifications() {
 }
 
 // Load notifications on page load
-
+{% if current_user.is_authenticated %}
 document.addEventListener('DOMContentLoaded', () => {
   loadNotifications();
   // Refresh notifications every 2 minutes
@@ -1743,7 +1742,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize mobile tic-tac-toe
   initMobileTicTacToe();
 });
-
+{% endif %}
 
 // Mobile Actions Card Functions
 function toggleMobileAmigues() {

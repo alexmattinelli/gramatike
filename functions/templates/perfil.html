@@ -8,11 +8,11 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gramátike — Perfil</title>
-  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-  <link rel="icon" type="image/png" href="/static/favicon.png">
-  <link rel="apple-touch-icon" href="/static/img/icons/icon-192.png">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
   <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/gramatike_common.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
   <style>
   .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:none; cursor:pointer; font-family:'Nunito'; font-weight:700; letter-spacing:.3px; transition:filter .15s ease, transform .05s ease; }
   .btn:active { transform: translateY(1px); }
@@ -326,7 +326,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
     <h1 class="logo">Gramátike</h1>
     <div class="head-actions">
       <a href="javascript:history.back()" class="icon-btn back-btn" title="Voltar" aria-label="Voltar">⬅️</a>
-      <a href="/configuracoes" class="icon-btn" title="Configurações" aria-label="Configurações">
+      <a href="{{ url_for('main.configuracoes') }}" class="icon-btn" title="Configurações" aria-label="Configurações">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -338,38 +338,38 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
   <main>
     <section class="profile-header">
       <div class="avatar">
-        
-          
-          
-          
-          <img src="<!-- VAR_PLACEHOLDER -->" alt="Foto de perfil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
-        
+        {% if usuario.foto_perfil %}
+          {% set fp = usuario.foto_perfil %}
+          {% set is_abs = fp.startswith('http://') or fp.startswith('https://') %}
+          {% set is_static = fp.startswith('/static/') %}
+          <img src="{{ fp if (is_abs or is_static) else url_for('static', filename=fp) }}" alt="Foto de perfil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+        {% else %}
           <span>👤</span>
-        
+        {% endif %}
       </div>
       <div class="profile-info">
-  <h2 style="font-family: var(--font-brand); font-weight:400; letter-spacing:1px;">@<!-- VAR_PLACEHOLDER --></h2>
+  <h2 style="font-family: var(--font-brand); font-weight:400; letter-spacing:1px;">@{{ usuario.username }}</h2>
         <div style="display:flex;gap:1rem;margin-bottom:0.7rem;flex-wrap:nowrap;justify-content:center;">
           <span id="cnt-seguidores" style="white-space:nowrap;"><b>0</b> seguidories</span>
           <span id="cnt-seguindo" style="white-space:nowrap;"><b>0</b> seguindo</span>
         </div>
-        <p><strong></strong> <span style="color:#666"><!-- VAR_PLACEHOLDER --></span></p>
+        <p><strong></strong> <span style="color:#666">{{ usuario.nome or '' }}</span></p>
   {# Exibir gênero/pronome somente se não for 'Outro' #}
-  
-  
-  
-  <p><strong></strong> <span style="color:#666"><!-- VAR_PLACEHOLDER --> / <!-- VAR_PLACEHOLDER --></span></p>
-  
-        
-          <p style="margin-top:0.5rem;color:#444;font-style:italic;white-space:pre-line;"><!-- VAR_PLACEHOLDER --></p>
-        
+  {% set g = usuario.genero if (usuario.genero and usuario.genero != 'Outro') else '' %}
+  {% set p = usuario.pronome if (usuario.pronome and usuario.pronome != 'Outro') else '' %}
+  {% if g or p %}
+  <p><strong></strong> <span style="color:#666">{{ g }}{% if g and p %} / {% endif %}{{ p }}</span></p>
+  {% endif %}
+        {% if usuario.bio and not (usuario.genero == 'Outro' and usuario.pronome == 'Outro') %}
+          <p style="margin-top:0.5rem;color:#444;font-style:italic;white-space:pre-line;">{{ usuario.bio }}</p>
+        {% endif %}
         <div style="margin-top:.7rem;">
-          
+          {% if current_user.id == usuario.id %}
             <button class="edit-btn" onclick="abrirEdicaoPerfil()">Editar Perfil</button>
-          
-            
-            <button id="btn-follow" data-state="<!-- VAR_PLACEHOLDER -->" onclick="toggleFollow('<!-- VAR_PLACEHOLDER -->')" style="color:#fff; border:none; padding:.5rem 1rem; border-radius:6px; cursor:pointer; font-weight:600; background:#4a6fa5;"><!-- VAR_PLACEHOLDER --></button>
-          
+          {% else %}
+            {% set seguindo = usuario in current_user.seguindo %}
+            <button id="btn-follow" data-state="{{ 'following' if seguindo else 'not' }}" onclick="toggleFollow('{{ usuario.id }}')" style="color:#fff; border:none; padding:.5rem 1rem; border-radius:6px; cursor:pointer; font-weight:600; background:#4a6fa5;">{{ 'Deixar de seguir' if seguindo else 'Seguir' }}</button>
+          {% endif %}
         </div>
       </div>
     </section>
@@ -387,43 +387,43 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       </div>
     </div>
 
-    
+    {% if current_user.id == usuario.id %}
     <!-- Modal para edição de perfil (mesmo layout de meu_perfil) -->
     <div id="modal-editar" style="display:none;">
       <form id="form-editar-perfil" enctype="multipart/form-data">
-        <input type="hidden" name="csrf_token" value="" />
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
         <div style="display:flex;flex-direction:column;gap:0.7rem;">
           <label style="margin-bottom:0.3rem;">Usuárie:
-            <input type="text" name="username" value="<!-- USER_username -->" readonly style="width:100%;">
+            <input type="text" name="username" value="{{ current_user.username }}" readonly style="width:100%;">
           </label>
           <label style="margin-bottom:0.3rem;">Nome:
-            <input type="text" name="nome" value="<!-- VAR_PLACEHOLDER -->" style="width:100%;">
+            <input type="text" name="nome" value="{{ current_user.nome or '' }}" style="width:100%;">
           </label>
           <label style="margin-bottom:0.3rem;">Email:
-            <input type="email" name="email" value="<!-- USER_email -->" style="width:100%;">
+            <input type="email" name="email" value="{{ current_user.email }}" style="width:100%;">
           </label>
           <label style="margin-bottom:0.3rem;">Bio:
-            <textarea name="bio" style="width:100%;resize:vertical;min-height:40px;"><!-- VAR_PLACEHOLDER --></textarea>
+            <textarea name="bio" style="width:100%;resize:vertical;min-height:40px;">{{ current_user.bio or '' }}</textarea>
           </label>
           <label style="margin-bottom:0.3rem;">Data de nascimento:
-            <input type="date" name="data_nascimento" value="<!-- VAR_PLACEHOLDER -->" style="width:100%;">
+            <input type="date" name="data_nascimento" value="{{ current_user.data_nascimento or '' }}" style="width:100%;">
           </label>
           <label style="margin-bottom:0.3rem;">Gênero:
             <select name="genero" required style="width:100%;">
               <option value="">Selecione</option>
-              <option value="Não-binárie" selected>Não-binárie</option>
-              <option value="Mulher" selected>Mulher</option>
-              <option value="Homem" selected>Homem</option>
-              <option value="Outro" selected>Outro</option>
+              <option value="Não-binárie" {% if current_user.genero == 'Não-binárie' %}selected{% endif %}>Não-binárie</option>
+              <option value="Mulher" {% if current_user.genero == 'Mulher' %}selected{% endif %}>Mulher</option>
+              <option value="Homem" {% if current_user.genero == 'Homem' %}selected{% endif %}>Homem</option>
+              <option value="Outro" {% if current_user.genero == 'Outro' %}selected{% endif %}>Outro</option>
             </select>
           </label>
           <label style="margin-bottom:0.3rem;">Pronome:
             <select name="pronome" required style="width:100%;">
               <option value="">Selecione</option>
-              <option value="elu/delu" selected>elu/delu</option>
-              <option value="ela/dela" selected>ela/dela</option>
-              <option value="ele/dele" selected>ele/dele</option>
-              <option value="Outro" selected>Outro</option>
+              <option value="elu/delu" {% if current_user.pronome == 'elu/delu' %}selected{% endif %}>elu/delu</option>
+              <option value="ela/dela" {% if current_user.pronome == 'ela/dela' %}selected{% endif %}>ela/dela</option>
+              <option value="ele/dele" {% if current_user.pronome == 'ele/dele' %}selected{% endif %}>ele/dele</option>
+              <option value="Outro" {% if current_user.pronome == 'Outro' %}selected{% endif %}>Outro</option>
             </select>
           </label>
           <label style="margin-bottom:0.3rem;">Foto de perfil:
@@ -436,9 +436,8 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
         </div>
       </form>
     </div>
-    
-  <!-- CONTENT_PLACEHOLDER -->
-</main>
+    {% endif %}
+  </main>
 
   <!-- Barra de navegação inferior mobile (tipo app/rede social) -->
   <style>
@@ -582,7 +581,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
   </style>
   
   <nav class="mobile-bottom-nav" aria-label="Navegação principal mobile">
-    <a href="/index" aria-label="Feed" title="Feed">
+    <a href="{{ url_for('main.index') }}" aria-label="Feed" title="Feed">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
         <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -590,7 +589,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       <span>Início</span>
     </a>
     
-    <a href="/educacao" aria-label="Educação" title="Educação">
+    <a href="{{ url_for('main.educacao') }}" aria-label="Educação" title="Educação">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
         <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
@@ -598,7 +597,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       <span>Educação</span>
     </a>
     
-    <a href="/novo-post" aria-label="Criar post" title="Criar post" style="background: #ffffff; color: #9B5DE5; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <a href="{{ url_for('main.novo_post') }}" aria-label="Criar post" title="Criar post" style="background: #ffffff; color: #9B5DE5; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="12" y1="5" x2="12" y2="19"></line>
         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -613,7 +612,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       <span>Em breve</span>
     </div>
     
-    <a href="/meu-perfil" aria-label="Perfil" title="Perfil" style="color: var(--primary);">
+    <a href="{{ url_for('main.meu_perfil') }}" aria-label="Perfil" title="Perfil" style="color: var(--primary);">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
         <circle cx="12" cy="7" r="4"></circle>
@@ -628,8 +627,8 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
 
   <script>
 
-    window.VIEW_USER_ID = "<!-- VAR_PLACEHOLDER -->";
-    window.CURRENT_USER_ID = "<!-- VAR_PLACEHOLDER -->";
+    window.VIEW_USER_ID = "{{ usuario.id|tojson|safe }}";
+    window.CURRENT_USER_ID = "{{ current_user.id|tojson|safe }}";
 
     // Renderiza imagens (uma ou múltiplas) separadas por '|'
     function renderPostImages(raw){
@@ -765,7 +764,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
           e.stopPropagation();
           const div=b.closest('.post');
           const id=div.getAttribute('data-post-id');
-          const shareUrl = window.location.origin + '/perfil/<!-- VAR_PLACEHOLDER -->#post-' + id;
+          const shareUrl = window.location.origin + '/perfil/{{ usuario.id }}#post-' + id;
           navigator.clipboard.writeText(shareUrl).then(()=>alert('Link copiado.'));
         });
       });
@@ -829,7 +828,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
           if (users.length === 0) {
             likesDiv.innerHTML = '';
           } else {
-            const currentUser = '<!-- VAR_PLACEHOLDER -->';
+            const currentUser = '{{ current_user.username if current_user.is_authenticated else "" }}';
             const curtiu = users.includes(currentUser);
             likesDiv.innerHTML = `<span style="color:#666;">`+
               (curtiu ? '<strong style="color:#7c3aed;">Você</strong>' : '') +
@@ -941,7 +940,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
       const seg = e.target.closest('.seg-item');
       if(seg){
         const uname = seg.getAttribute('data-username');
-        if(uname === '<!-- USER_username -->'){
+        if(uname === '{{ current_user.username }}'){
           window.location.href = '/perfil';
         } else {
           fetch(`/api/usuarios/username/${uname}`).then(r=>r.json()).then(u=>{ if(u.id) window.location.href = '/perfil/'+u.id; });
@@ -970,7 +969,7 @@ body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 
     }
 
     function carregarContadores(){
-      const uid = '<!-- VAR_PLACEHOLDER -->';
+      const uid = '{{ usuario.id }}';
       // Postagens counter removed as per user request
       fetch(`/api/seguidores/${uid}`).then(r=>r.json()).then(list=>{ document.getElementById('cnt-seguidores').innerHTML = `<b>${list.length}</b> seguidories`; });
       fetch(`/api/seguindo/${uid}`).then(r=>r.json()).then(list=>{ document.getElementById('cnt-seguindo').innerHTML = `<b>${list.length}</b> seguindo`; });

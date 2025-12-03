@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Em manutenção</title>
   <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/gramatike_common.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
   <style>
     :root { --bg:#f5f7fb; --text:#333; --accent:#9B5DE5; }
     * { box-sizing: border-box; }
@@ -16,17 +16,17 @@
     p { margin:.25rem 0; color:#555; }
     a.btn { display:inline-block; margin-top:1rem; background:var(--accent); color:#fff; text-decoration:none; padding:.7rem 1rem; border-radius:12px; font-weight:800; letter-spacing:.4px; }
   </style>
-  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <meta name="theme-color" content="#9B5DE5">
-  <script src="/static/js/pwa.js" defer></script>
+  <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
   </head>
 <body>
   <div class="card">
     <div class="logo">Gramátike</div>
     <h2>Página em manutenção</h2>
-    <p>Esta página está temporariamente desativada para ajustes.</p>
+    <p>{% if section %}A seção {{ section }}{% else %}Esta página{% endif %} está temporariamente desativada para ajustes.</p>
     <p>Tente novamente mais tarde. Obrigade pela compreensão.</p>
-    <a class="btn" href="/educacao">Voltar para Educação</a>
+    <a class="btn" href="{{ url_for('main.educacao') }}">Voltar para Educação</a>
   </div>
 </body>
 </html>

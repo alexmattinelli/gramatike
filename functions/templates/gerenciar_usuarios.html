@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <title>Gerenciar Usuáries - Gramátike Admin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <link rel="icon" type="image/png" href="/static/favicon.png">
-    <link rel="apple-touch-icon" href="/static/img/icons/icon-192.png">
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="/static/gramatike_common.css">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -63,17 +63,17 @@
     </header>
     
     <main>
-        <a href="<!-- VAR_PLACEHOLDER -->" class="back-link">← Voltar ao Painel</a>
+        <a href="{{ url_for('admin.dashboard') }}" class="back-link">← Voltar ao Painel</a>
         
         <h2>Gerenciar Usuáries</h2>
         
-        
-            
-                
-                    <div class="flash"><!-- VAR_PLACEHOLDER --></div>
-                
-            
-        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         
         <table class="admin-users">
             <thead>
@@ -86,42 +86,41 @@
                 </tr>
             </thead>
             <tbody>
-                
+                {% for u in usuarios %}
                 <tr>
-                    <td><!-- VAR_PLACEHOLDER --></td>
-                    <td><!-- VAR_PLACEHOLDER --></td>
-                    <td><!-- VAR_PLACEHOLDER --></td>
+                    <td>{{ u.id }}</td>
+                    <td>{{ u.username }}</td>
+                    <td>{{ u.email }}</td>
                     <td>
-                        
+                        {% if u.is_superadmin %}
                             <span class="badge badge-superadmin">Superadmin</span>
-                        
+                        {% elif u.is_admin %}
                             <span class="badge badge-admin">Admin</span>
-                        
+                        {% else %}
                             <span class="badge">Usuárie</span>
-                        
+                        {% endif %}
                     </td>
                     <td>
-                        
+                        {% if not u.is_superadmin %}
                         <form method="post" style="display:inline;">
-                            <input type="hidden" name="csrf_token" value="">
-                            <input type="hidden" name="user_id" value="<!-- VAR_PLACEHOLDER -->">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="user_id" value="{{ u.id }}">
                             <button type="submit" class="action-btn">
-                                Remover AdminTornar Admin
+                                {% if u.is_admin %}Remover Admin{% else %}Tornar Admin{% endif %}
                             </button>
                         </form>
-                        
+                        {% else %}
                             <span style="color:var(--text-soft); font-size:.7rem;">—</span>
-                        
+                        {% endif %}
                     </td>
                 </tr>
-                
+                {% endfor %}
             </tbody>
         </table>
-    <!-- CONTENT_PLACEHOLDER -->
-</main>
+    </main>
     
     <footer class="footer-bar">
-        © <!-- VAR_PLACEHOLDER --> Gramátike
+        © {{ now.year if now else 2025 }} Gramátike
     </footer>
 </body>
 </html>

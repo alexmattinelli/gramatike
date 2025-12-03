@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><!-- VAR_PLACEHOLDER --> — Portal Gramátike</title>
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <link rel="icon" type="image/png" href="/static/favicon.png">
-    <link rel="apple-touch-icon" href="/static/img/icons/icon-192.png">
+    <title>{{ novidade.titulo }} — Portal Gramátike</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/gramatike_common.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
     <!-- Quill Rich Text Editor -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
@@ -67,36 +67,36 @@
         <h1 class="logo">Portal Gramátike</h1>
     </header>
     <main>
-        <a href="/educacao" class="back-link" style="font-size:.85rem; font-weight:700; color:#9B5DE5; padding:.6rem 1.2rem; background:#fff; border:1px solid #e5e7eb; border-radius:14px; display:inline-flex; align-items:center; gap:.5rem; transition:.2s; text-decoration:none; box-shadow:0 4px 12px rgba(155,93,229,.15);">
+        <a href="{{ url_for('main.educacao') }}" class="back-link" style="font-size:.85rem; font-weight:700; color:#9B5DE5; padding:.6rem 1.2rem; background:#fff; border:1px solid #e5e7eb; border-radius:14px; display:inline-flex; align-items:center; gap:.5rem; transition:.2s; text-decoration:none; box-shadow:0 4px 12px rgba(155,93,229,.15);">
             ← Voltar ao Início
         </a>
         
         <article>
             <div class="article-header">
-                <h1 class="article-title"><!-- VAR_PLACEHOLDER --></h1>
+                <h1 class="article-title">{{ novidade.titulo }}</h1>
                 <div class="article-meta">
-                    <time><!-- VAR_PLACEHOLDER --></time>
-                    
-                        <span> • Por <!-- VAR_PLACEHOLDER --></span>
-                    
+                    <time>{{ novidade.created_at.strftime('%d/%m/%Y às %H:%M') if novidade.created_at else 'Data não disponível' }}</time>
+                    {% if novidade.author %}
+                        <span> • Por {{ novidade.author.nome or novidade.author.username }}</span>
+                    {% endif %}
                 </div>
             </div>
             
             <div class="article-body">
-                
-                    <div class="content"><!-- VAR_PLACEHOLDER --></div>
-                
+                {% if novidade.descricao %}
+                    <div class="content">{{ novidade.descricao|safe }}</div>
+                {% else %}
                     <p><em>Sem descrição disponível.</em></p>
+                {% endif %}
                 
-                
-                
-                    <a href="<!-- VAR_PLACEHOLDER -->" class="article-link" target="_blank" rel="noopener">
+                {% if novidade.link %}
+                    <a href="{{ novidade.link }}" class="article-link" target="_blank" rel="noopener">
                         🔗 Acessar conteúdo
                     </a>
-                
+                {% endif %}
             </div>
             
-            
+            {% if is_admin %}
             <div class="admin-actions">
                 <button class="btn-edit" onclick="document.getElementById('editDialog').showModal()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -105,30 +105,29 @@
                     </svg>
                     Editar
                 </button>
-                <form method="POST" action="<!-- VAR_PLACEHOLDER -->" onsubmit="return confirm('Tem certeza que deseja excluir esta novidade?');" style="margin:0;">
-                    <input type="hidden" name="csrf_token" value="" />
+                <form method="POST" action="{{ url_for('admin.novidades_delete', nid=novidade.id) }}" onsubmit="return confirm('Tem certeza que deseja excluir esta novidade?');" style="margin:0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
                     <button type="submit" class="btn-delete">🗑️ Excluir</button>
                 </form>
             </div>
-            
+            {% endif %}
         </article>
-    <!-- CONTENT_PLACEHOLDER -->
-</main>
+    </main>
     
     <footer>
         © 2025 Gramátike • Linguagem Viva e de Todes
     </footer>
     
-    
+    {% if is_admin %}
     <dialog id="editDialog" style="border:none; border-radius:20px; padding:0; max-width:800px; width:90%;">
-        <form method="POST" action="<!-- VAR_PLACEHOLDER -->" style="padding:2rem;">
-            <input type="hidden" name="csrf_token" value="" />
+        <form method="POST" action="{{ url_for('admin.novidades_edit', nid=novidade.id) }}" style="padding:2rem;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
             <input type="hidden" name="descricao" id="descricao-input" />
             <h3 style="margin:0 0 1.5rem; color:#9B5DE5;">Editar Novidade</h3>
             
             <label style="display:block; margin-bottom:1rem;">
                 <span style="display:block; font-size:.8rem; font-weight:700; color:#666; margin-bottom:.3rem;">Título</span>
-                <input type="text" name="titulo" value="<!-- VAR_PLACEHOLDER -->" required style="width:100%; padding:.7rem; border:1px solid #cfd7e2; border-radius:10px; font-size:.9rem;" />
+                <input type="text" name="titulo" value="{{ novidade.titulo }}" required style="width:100%; padding:.7rem; border:1px solid #cfd7e2; border-radius:10px; font-size:.9rem;" />
             </label>
             
             <label style="display:block; margin-bottom:1rem;">
@@ -138,7 +137,7 @@
             
             <label style="display:block; margin-bottom:1.5rem;">
                 <span style="display:block; font-size:.8rem; font-weight:700; color:#666; margin-bottom:.3rem;">Link</span>
-                <input type="url" name="link" value="<!-- VAR_PLACEHOLDER -->" style="width:100%; padding:.7rem; border:1px solid #cfd7e2; border-radius:10px; font-size:.9rem;" />
+                <input type="url" name="link" value="{{ novidade.link or '' }}" style="width:100%; padding:.7rem; border:1px solid #cfd7e2; border-radius:10px; font-size:.9rem;" />
             </label>
             
             <div style="display:flex; gap:.8rem; justify-content:flex-end;">
@@ -164,13 +163,13 @@
         });
         
         // Load existing content
-        quill.root.innerHTML = '' || '';
+        quill.root.innerHTML = {{ novidade.descricao|tojson|safe }} || '';
         
         // Update hidden input on form submit
         document.querySelector('#editDialog form').addEventListener('submit', function() {
             document.getElementById('descricao-input').value = quill.root.innerHTML;
         });
     </script>
-    
+    {% endif %}
 </body>
 </html>

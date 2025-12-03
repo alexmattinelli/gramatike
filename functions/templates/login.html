@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <title>Entrar • Gramátike</title>
-  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-  <link rel="icon" type="image/png" href="/static/favicon.png">
-  <link rel="apple-touch-icon" href="/static/img/icons/icon-192.png">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="manifest" href="/static/manifest.webmanifest">
-  <link rel="stylesheet" href="/static/gramatike_common.css">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
   <meta name="theme-color" content="#9B5DE5">
   <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -54,29 +54,37 @@
     }
     @keyframes fadeIn { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:translateY(0);} }
   </style>
-  <script src="/static/js/pwa.js" defer></script>
+  <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
 </head>
 <body>
   <div class="login-wrapper">
     <div class="login-card">
-      <!-- FLASH_MESSAGES_PLACEHOLDER -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <ul class="flash-messages">
+            {% for category, message in messages %}
+              <li class="flash-{{ category }}">{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
       <h2>Entrar</h2>
       <form method="post">
-    <input type="hidden" name="csrf_token" value="" />
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
     <label for="email">Usuárie / Email</label>
-  <input type="text" id="email" name="email" required autocomplete="username" placeholder="Usuárie ou email" value="" />
+  <input type="text" id="email" name="email" required autocomplete="username" placeholder="Usuárie ou email" value="{{ request.form.get('email','') }}" />
         <label for="password" style="margin-top:1rem;">Senha</label>
         <div class="pass-wrapper">
           <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="••••••••" />
           <span class="show-pass" id="togglePass">Ver</span>
         </div>
         <div class="actions-row">
-          <a class="aux-link" href="/esqueci-senha">Esqueceu a senha?</a>
+          <a class="aux-link" href="{{ url_for('main.esqueci_senha') }}">Esqueceu a senha?</a>
         </div>
         <button class="button-primary" type="submit">Entrar</button>
       </form>
       <div class="signup-hint">
-        Ainda não tem conta? <a href="/cadastro">Cadastre-se</a>
+        Ainda não tem conta? <a href="{{ url_for('main.cadastro') }}">Cadastre-se</a>
       </div>
     </div>
   </div>
