@@ -82,6 +82,19 @@ def render_template(template_name, **context):
     user_id = context.get('user_id', 0)
     html = html.replace('<!-- USER_ID_PLACEHOLDER -->', str(user_id))
     
+    # Replace admin-specific placeholders
+    total_users = context.get('total_users', 0)
+    html = html.replace('<!-- TOTAL_USERS_PLACEHOLDER -->', str(total_users))
+    
+    total_posts = context.get('total_posts', 0)
+    html = html.replace('<!-- TOTAL_POSTS_PLACEHOLDER -->', str(total_posts))
+    
+    total_comments = context.get('total_comments', 0)
+    html = html.replace('<!-- TOTAL_COMMENTS_PLACEHOLDER -->', str(total_comments))
+    
+    users_table_html = context.get('users_table_html', '')
+    html = html.replace('<!-- USERS_TABLE_PLACEHOLDER -->', users_table_html)
+    
     # Replace VAR placeholders: <!-- VAR: name --> with actual values
     for key, value in context.items():
         if key not in ['flash_html', 'content_html', 'feed_html', 'divulgacoes_html', 'user', 'current_user']:
