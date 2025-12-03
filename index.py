@@ -875,6 +875,7 @@ class Default(WorkerEntrypoint):
                 "/login": lambda: self._login_page(db, current_user, request, method),
                 "/cadastro": lambda: self._cadastro_page(db, current_user, request, method),
                 "/dinamicas": lambda: self._dinamicas_page(db, current_user),
+                "/dinamicas/admin": lambda: self._dinamica_admin_page(db, current_user),
                 "/exercicios": lambda: self._exercicios_page(db, current_user),
                 "/artigos": lambda: self._artigos_page(db, current_user),
                 "/apostilas": lambda: self._apostilas_page(db, current_user),
@@ -884,11 +885,13 @@ class Default(WorkerEntrypoint):
                 "/perfil": lambda: self._meu_perfil_page(db, current_user),
                 "/configuracoes": lambda: self._configuracoes_page(db, current_user),
                 "/admin": lambda: self._admin_page(db, current_user),
+                "/admin/usuarios": lambda: self._gerenciar_usuarios_page(db, current_user),
                 "/esqueci-senha": lambda: self._esqueci_senha_page(db, current_user, request, method),
                 "/reset-senha": lambda: self._reset_senha_page(db, current_user, request, method),
                 "/suporte": lambda: self._suporte_page(db, current_user),
                 "/videos": lambda: self._videos_page(db, current_user),
                 "/redacao": lambda: self._redacao_page(db, current_user),
+                "/manutencao": lambda: self._manutencao_page(),
             }
 
             handler = page_routes.get(path)
@@ -914,6 +917,18 @@ class Default(WorkerEntrypoint):
             if path.startswith('/novidade/'):
                 novidade_id = path[10:]
                 result = await self._novidade_detail_page(db, current_user, novidade_id)
+                return html_response(result) if not isinstance(result, Response) else result
+            
+            # Rota dinâmica para visualizar dinâmica
+            if path.startswith('/dinamica/') and '/editar' not in path:
+                dinamica_id = path[10:]
+                result = await self._dinamica_view_page(db, current_user, dinamica_id)
+                return html_response(result) if not isinstance(result, Response) else result
+            
+            # Rota dinâmica para editar dinâmica
+            if path.startswith('/dinamica/') and path.endswith('/editar'):
+                dinamica_id = path[10:-7]  # Remove '/dinamica/' e '/editar'
+                result = await self._dinamica_edit_page(db, current_user, dinamica_id)
                 return html_response(result) if not isinstance(result, Response) else result
             
             return html_response(self._not_found_page(path), status=404)
@@ -3128,6 +3143,67 @@ class Default(WorkerEntrypoint):
         """Página de detalhes da novidade - usando template externo."""
         # Por enquanto retorna template estático, pois get_novidade_by_id não existe
         return render_template('novidade_detail.html', content_html='<div class="empty">Novidade não encontrada.</div>')
+
+    async def _dinamica_admin_page(self, db, current_user):
+        """Página de administração de dinâmicas - usando template externo."""
+        if not current_user:
+            return redirect('/login')
+        
+        is_admin = current_user.get('is_admin', False) or current_user.get('is_superadmin', False)
+        if not is_admin:
+            return render_template('acesso_restrito.html',
+                message='Você não tem permissão para acessar esta página.',
+                button_url='/dinamicas',
+                button_text='Voltar para Dinâmicas')
+        
+        return render_template('dinamica_admin.html')
+
+    async def _dinamica_view_page(self, db, current_user, dinamica_id):
+        """Página de visualização de dinâmica - usando template externo."""
+        if not db or not DB_AVAILABLE:
+            return self._not_found_page(f'/dinamica/{dinamica_id}')
+        
+        try:
+            dinamica_id_int = int(dinamica_id)
+            dinamica = await get_dynamic_by_id(db, dinamica_id_int)
+            if not dinamica:
+                return self._not_found_page(f'/dinamica/{dinamica_id}')
+            
+            return render_template('dinamica_view.html', dinamica=dinamica)
+        except (ValueError, Exception) as e:
+            return self._not_found_page(f'/dinamica/{dinamica_id}')
+
+    async def _dinamica_edit_page(self, db, current_user, dinamica_id):
+        """Página de edição de dinâmica - usando template externo."""
+        if not current_user:
+            return redirect('/login')
+        
+        is_admin = current_user.get('is_admin', False) or current_user.get('is_superadmin', False)
+        if not is_admin:
+            return render_template('acesso_restrito.html',
+                message='Você não tem permissão para editar dinâmicas.',
+                button_url='/dinamicas',
+                button_text='Voltar para Dinâmicas')
+        
+        return render_template('dinamica_edit.html')
+
+    async def _gerenciar_usuarios_page(self, db, current_user):
+        """Página de gerenciamento de usuários - usando template externo."""
+        if not current_user:
+            return redirect('/login')
+        
+        is_admin = current_user.get('is_admin', False) or current_user.get('is_superadmin', False)
+        if not is_admin:
+            return render_template('acesso_restrito.html',
+                message='Você não tem permissão para gerenciar usuários.',
+                button_url='/',
+                button_text='Voltar ao início')
+        
+        return render_template('gerenciar_usuarios.html')
+
+    def _manutencao_page(self):
+        """Página de manutenção - usando template externo."""
+        return render_template('maintenance.html')
 
     async def _profile_page(self, db, current_user, username):
         """Página de perfil de usuárie - usando template externo."""
