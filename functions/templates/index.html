@@ -374,49 +374,87 @@ button { font-family: var(--font-base); font-weight:600; }
     </div>
   </div>
 
-  <!-- Card Amigues (versão PC - com botões de ações e lista de amigos) -->
-  <div id="amigues-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem;">
-      <!-- Botões de ações rápidas -->
-      <div style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0 0 .8rem;">
-        <button onclick="window.location.href='{{ url_for('main.suporte') }}'" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+  <!-- Notifications Button -->
+  <div style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem; position:relative;">
+    <button id="notifications-btn" onclick="toggleNotifications()" style="width:100%; background:transparent; border:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:.6rem .8rem; border-radius:16px; transition:.2s;" onmouseover="this.style.background='#f5f7fb'" onmouseout="this.style.background='transparent'">
+      <div style="display:flex; align-items:center; gap:.7rem;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span style="font-size:.85rem; font-weight:700; color:var(--text); font-family:'Nunito';">Notificações</span>
+      </div>
+      <span id="notifications-badge" style="display:none; background:#ff9800; color:#fff; font-size:.65rem; padding:.25rem .5rem; border-radius:40px; font-weight:700; letter-spacing:.5px;">0</span>
+    </button>
+    <div id="notifications-panel" style="display:none; margin-top:.8rem; border-top:1px solid var(--border); padding-top:.8rem;">
+      <div id="notifications-list" style="display:flex; flex-direction:column; gap:.6rem; max-height:300px; overflow-y:auto;">
+        <div style="text-align:center; color:#999; font-size:.75rem; padding:1rem;">Nenhuma notificação</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card do Perfil com username, links e Amigues -->
+  <div id="amigues-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08);">
+      <!-- Username do usuário -->
+      {% if current_user.is_authenticated %}
+      <div style="text-align:center; margin-bottom:.8rem;">
+        <span style="font-size:1.1rem; font-weight:800; color:var(--primary); letter-spacing:.3px;"><span aria-hidden="true">👤</span> @{{ current_user.username }}</span>
+      </div>
+      <!-- Links do perfil -->
+      <div style="display:flex; flex-direction:column; gap:.5rem; margin-bottom:.8rem;">
+        <a href="{{ url_for('main.meu_perfil') }}" style="display:flex; align-items:center; gap:.6rem; text-decoration:none; padding:.5rem .7rem; border-radius:14px; background:#f8f5ff; font-size:.85rem; font-weight:600; color:var(--primary); transition:.18s;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
           </svg>
-        </button>
-        <button onclick="window.location.href='{{ url_for('main.configuracoes') }}'" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          Meu Perfil
+        </a>
+        <a href="{{ url_for('main.configuracoes') }}" style="display:flex; align-items:center; gap:.6rem; text-decoration:none; padding:.5rem .7rem; border-radius:14px; background:#f8f5ff; font-size:.85rem; font-weight:600; color:var(--primary); transition:.18s;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
-        </button>
-        <button onclick="toggleNotifications()" class="search-btn icon-btn" title="Notificações" aria-label="Notificações" style="position:relative;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          Configurações
+        </a>
+      </div>
+      {% endif %}
+      <!-- Botões de ação -->
+      <div class="amigues-toolbar" style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0 0 .6rem;">
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('main.login') }}" class="search-btn icon-btn" title="Entrar" aria-label="Entrar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
           </svg>
-          <span id="notifications-badge" style="display:none; position:absolute; top:-4px; right:-4px; background:#ff9800; color:#fff; font-size:.6rem; padding:2px 5px; border-radius:10px; font-weight:700;">0</span>
-        </button>
+        </a>
+        <a href="{{ url_for('main.configuracoes') }}" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </a>
+        {% endif %}
+        <a href="{{ url_for('main.suporte') }}" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </a>
         {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
-        <button onclick="window.location.href='{{ url_for('admin.dashboard') }}'" class="search-btn icon-btn" title="Painel de Controle" aria-label="Painel de Controle">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <a href="{{ url_for('admin.dashboard') }}" class="search-btn icon-btn" title="Painel" aria-label="Painel">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="3" y="3" width="7" height="7"></rect>
             <rect x="14" y="3" width="7" height="7"></rect>
             <rect x="14" y="14" width="7" height="7"></rect>
             <rect x="3" y="14" width="7" height="7"></rect>
           </svg>
-        </button>
+        </a>
         {% endif %}
       </div>
-      <!-- Painel de notificações -->
-      <div id="notifications-panel" style="display:none; margin-bottom:.8rem; border-bottom:1px solid var(--border); padding-bottom:.8rem;">
-        <div id="notifications-list" style="display:flex; flex-direction:column; gap:.6rem; max-height:200px; overflow-y:auto;">
-          <div style="text-align:center; color:#999; font-size:.75rem; padding:.5rem;">Nenhuma notificação</div>
-        </div>
-      </div>
-      <!-- Divisor -->
-      <div style="height:1px; background:var(--border); margin:0 0 .8rem;"></div>
+      <!-- Linha divisória -->
+      <div class="amigues-divider" style="height:1px; background:var(--border); margin:.6rem 0 .8rem; border-radius:1px;"></div>
       <!-- Seção Amigues -->
       <h3 style="margin:0 0 .8rem; font-size:1rem; font-weight:800; letter-spacing:.5px; color:var(--primary); text-align:center;">Amigues</h3>
       <div id="amigues-list" style="display:flex; flex-direction:column; gap:.65rem; min-height:20px;"></div>
