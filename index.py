@@ -2091,61 +2091,9 @@ class Default(WorkerEntrypoint):
 
     async def _index_page(self, db, current_user):
         """Página inicial - Feed/Rede Social."""
-        # Se usuário não está autenticado, mostra a landing page
+        # Se usuário não está autenticado, mostra a landing page usando template externo
         if current_user is None or not current_user:
-            return f"""{page_head("Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <div class="content-wrapper">
-    <main>
-        <div class="card" style="text-align: center; margin-bottom: 2rem;">
-            <h2 style="color: var(--primary); margin-bottom: 0.5rem;">Bem-vinde ao Gramátike!</h2>
-            <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
-                Plataforma educacional de gramática portuguesa com foco em inclusão e gênero neutro.
-            </p>
-            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                <a href="/login" class="btn btn-primary">Entrar</a>
-                <a href="/cadastro" class="btn btn-primary">Criar Conta</a>
-            </div>
-        </div>
-        
-        <h2 style="text-align: center; color: var(--primary); margin: 2rem 0 1.5rem;">Explore</h2>
-        <div class="modules-grid">
-            <a href="/educacao" class="module-card">
-                <div class="icon">📚</div>
-                <h3>Educação</h3>
-                <p>Aprenda gramática de forma inclusiva</p>
-            </a>
-            <a href="/dinamicas" class="module-card">
-                <div class="icon">🎮</div>
-                <h3>Dinâmicas</h3>
-                <p>Jogos e atividades</p>
-            </a>
-            <a href="/exercicios" class="module-card">
-                <div class="icon">✏️</div>
-                <h3>Exercícios</h3>
-                <p>Pratique gramática</p>
-            </a>
-            <a href="/artigos" class="module-card">
-                <div class="icon">📰</div>
-                <h3>Artigos</h3>
-                <p>Conteúdo educacional</p>
-            </a>
-            <a href="/apostilas" class="module-card">
-                <div class="icon">📖</div>
-                <h3>Apostilas</h3>
-                <p>Material de estudo</p>
-            </a>
-            <a href="/" class="module-card">
-                <div class="icon">💬</div>
-                <h3>Portal Gramátike</h3>
-                <p>Acesse a comunidade</p>
-            </a>
-        </div>
-    </main>
-    </div>
-{page_footer(False)}"""
+            return render_template('landing.html')
 
         # Usuário está autenticado - mostra o feed com posts
         posts = []
@@ -3231,57 +3179,24 @@ class Default(WorkerEntrypoint):
         return render_template('configuracoes.html', current_user=current_user)
 
     def _not_found_page(self, path):
-        """Página 404."""
-        return f"""{page_head("Página não encontrada — Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <main>
-        <div class="card" style="text-align: center;">
-            <h2 style="color: var(--primary);">Página não encontrada</h2>
-            <p style="color: var(--text-dim); margin: 1rem 0;">
-                A página <code style="background: #f1edff; padding: 2px 8px; border-radius: 6px;">{path}</code> não existe.
-            </p>
-            <a href="/" class="btn btn-primary">Voltar ao início</a>
-        </div>
-    </main>
-{page_footer(False)}"""
+        """Página 404 - usando template externo."""
+        return render_template('404.html', path=escape_html(path))
 
     async def _admin_page(self, db, current_user):
         """Admin Dashboard page - VERSÃO COMPLETA com todas as abas."""
         # Check if user is admin
         if not current_user:
-            return f"""{page_head("Acesso Restrito — Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <main>
-        <div class="card" style="text-align: center;">
-            <h2 style="color: var(--primary);">Acesso Restrito</h2>
-            <p style="color: var(--text-dim); margin: 1rem 0;">
-                Você precisa estar logado para acessar esta página.
-            </p>
-            <a href="/login" class="btn btn-primary">Fazer Login</a>
-        </div>
-    </main>
-{page_footer(False)}"""
+            return render_template('acesso_restrito.html', 
+                message='Você precisa estar logado para acessar esta página.',
+                button_url='/login',
+                button_text='Fazer Login')
         
         is_admin = current_user.get('is_admin', False) or current_user.get('is_superadmin', False)
         if not is_admin:
-            return f"""{page_head("Acesso Restrito — Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <main>
-        <div class="card" style="text-align: center;">
-            <h2 style="color: var(--primary);">Acesso Restrito</h2>
-            <p style="color: var(--text-dim); margin: 1rem 0;">
-                Você não tem permissão para acessar o painel de administração.
-            </p>
-            <a href="/" class="btn btn-primary">Voltar ao início</a>
-        </div>
-    </main>
-{page_footer(False)}"""
+            return render_template('acesso_restrito.html',
+                message='Você não tem permissão para acessar o painel de administração.',
+                button_url='/',
+                button_text='Voltar ao início')
         
         # Get admin stats
         stats = await get_admin_stats(db) if db else {}
