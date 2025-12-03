@@ -34,27 +34,16 @@
     @media (max-width: 980px){ 
       header.site-head { padding:12px clamp(12px,3vw,24px) 18px; }
       .logo { font-size:1.5rem; }
-      /* Ocultar navegação EDU e search no header em mobile */
-      .edu-nav-container { display:none !important; }
+      /* Ocultar navegação EDU em mobile */
+      .edu-nav { display:none !important; }
     }
-    /* Container para nav + search lado a lado */
-    .edu-nav-container { margin-top:1.1rem; display:flex; flex-wrap:wrap; gap:.65rem; justify-content:center; align-items:center; }
-    .edu-nav { display:flex; flex-wrap:wrap; gap:.65rem; justify-content:center; align-items:center; }
+    .edu-nav { margin-top:1.1rem; display:flex; flex-wrap:wrap; gap:.65rem; justify-content:center; }
   .edu-nav a { text-decoration:none; font-weight:700; font-size:.7rem; letter-spacing:.55px; padding:.65rem 1.05rem .62rem; background:#ffffff18; color:#fff; border:1px solid #ffffff30; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); border-radius:22px; display:inline-flex; align-items:center; gap:.35rem; box-shadow:0 4px 12px rgba(0,0,0,.18); transition:.25s; font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; }
     .edu-nav a:hover, .edu-nav a.active { background:#fff; color:#7d3dc9; }
-    /* Search no header */
-    .header-search { display:flex; gap:.45rem; align-items:center; }
-    .header-search input { height:38px; min-width:180px; max-width:260px; border:1px solid #ffffff30; border-radius:20px; padding:0 .9rem; font-size:.75rem; background:#ffffff18; color:#fff; font-weight:600; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
-    .header-search input::placeholder { color:#ffffffaa; }
-    .header-search input:focus { background:#fff; color:#222; outline:none; border-color:#fff; }
-    .header-search input:focus::placeholder { color:#999; }
-    .header-search button { height:38px; width:38px; border:none; background:#fff; color:var(--primary); border-radius:20px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(0,0,0,.18); }
-    .header-search button:hover { background:#f1edff; }
   main { width:100%; max-width:1380px; margin:2rem auto 4.2rem; padding:0 clamp(14px,3vw,44px); flex:1; }
   .layout { display:grid; grid-template-columns: minmax(0,1fr) 330px; gap:2.2rem; align-items:start; }
   @media (max-width:1080px){ .layout { grid-template-columns:1fr; } }
   .page-title { text-align:center; font-size:2.1rem; color:#9B5DE5; margin:0 0 1.8rem; letter-spacing:.5px; }
-  .search-box { display:none; } /* Escondido pois agora está no header */
   .search-box form { display:flex; max-width:880px; margin:0 auto 2.1rem; }
   .search-box .search-wrap { flex:1; display:flex; gap:.55rem; }
   .search-box input { flex:1; height:48px; border:1px solid var(--border); border-radius:16px; padding:0 1rem; font-size:.9rem; background:var(--card); font-weight:500; }
@@ -192,54 +181,56 @@
         </div>
       </div>
     {% endif %}
-    <div class="edu-nav-container">
-      <nav class="edu-nav" aria-label="Seções educacionais">
-        <a href="{{ url_for('main.educacao') }}" class="active">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-          </svg>
-          Início
-        </a>
-        <a href="{{ url_for('main.apostilas') }}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-          </svg>
-          Apostilas
-        </a>
-        <a href="{{ url_for('main.exercicios') }}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-          Exercícios
-        </a>
-        <a href="{{ url_for('main.artigos') }}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <polyline points="10 9 9 9 8 9"></polyline>
-          </svg>
-          Artigos
-        </a>
-      </nav>
-      <div class="header-search">
-        <input type="text" id="gk_search_input" placeholder="Buscar posts..." autocomplete="off" aria-label="Campo de busca" />
-        <button type="button" id="gk_search_btn" aria-label="Buscar" title="Buscar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-        </button>
-      </div>
-    </div>
+    <nav class="edu-nav" aria-label="Seções educacionais">
+  <a href="{{ url_for('main.educacao') }}" class="active">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+      <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </svg>
+    Início
+  </a>
+      <a href="{{ url_for('main.apostilas') }}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+        Apostilas
+      </a>
+      <a href="{{ url_for('main.exercicios') }}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        Exercícios
+      </a>
+      <a href="{{ url_for('main.artigos') }}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        Artigos
+      </a>
+    </nav>
   </header>
   <main>
   <!-- Título duplicado removido para evitar repetição -->
+    <div class="search-box">
+      <form method="get" action="" onsubmit="return false;" id="gk_search_form" aria-label="Buscar posts do @gramatike">
+        <div class="search-wrap">
+          <input type="text" id="gk_search_input" placeholder="Buscar posts do @gramatike..." autocomplete="off" aria-label="Campo de busca" />
+          <button type="button" class="search-btn icon-btn" id="gk_search_btn" aria-label="Buscar" title="Buscar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
     <div class="layout">
       <div>
         <ul class="feed-list" id="gk_feed_list">
