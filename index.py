@@ -2849,7 +2849,7 @@ class Default(WorkerEntrypoint):
 {page_footer(True)}"""
 
     async def _educacao_page(self, db, current_user):
-        """Página Educação - Hub educacional."""
+        """Página Educação - Hub educacional - usando template externo."""
         # Buscar dados do banco se disponível
         palavras = []
         novidades = []
@@ -2871,80 +2871,14 @@ class Default(WorkerEntrypoint):
             for c in contents:
                 contents_html += f"""
                 <div class="feed-item">
-                    <div class="fi-meta">{c.get('tipo', 'artigo').upper()}</div>
-                    <h3 class="fi-title">{c.get('titulo', '')}</h3>
-                    <p class="fi-body">{(c.get('resumo') or '')[:200]}...</p>
+                    <div class="fi-meta">{escape_html(c.get('tipo', 'artigo')).upper()}</div>
+                    <h3 class="fi-title">{escape_html(c.get('titulo', ''))}</h3>
+                    <p class="fi-body">{escape_html((c.get('resumo') or '')[:200])}...</p>
                 </div>"""
         else:
             contents_html = '<div class="empty">Nenhum conteúdo encontrado.</div>'
         
-        # Palavras do dia
-        palavras_html = ""
-        if palavras:
-            for p in palavras:
-                palavras_html += f"""
-                <div style="padding: 0.5rem 0;">
-                    <strong style="color: var(--primary);">{p.get('palavra', '')}</strong>
-                    <p style="font-size: 0.75rem; color: var(--text-dim);">{p.get('significado', '')[:100]}...</p>
-                </div>"""
-        else:
-            palavras_html = '<div class="placeholder">Nenhuma palavra disponível</div>'
-        
-        # Novidades
-        novidades_html = ""
-        if novidades:
-            for n in novidades:
-                novidades_html += f"""
-                <div style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
-                    <strong style="font-size: 0.8rem;">{n.get('titulo', '')}</strong>
-                </div>"""
-        else:
-            novidades_html = '<div class="placeholder">Nenhuma novidade.</div>'
-        
-        return f"""{page_head("Gramátike Edu")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike Edu</h1>
-        <nav class="edu-nav">
-            <a href="/educacao" class="active">🏠 Início</a>
-            <a href="/apostilas">📖 Apostilas</a>
-            <a href="/exercicios">✏️ Exercícios</a>
-            <a href="/artigos">📰 Artigos</a>
-        </nav>
-    </header>
-    <div class="content-wrapper">
-    <main>
-        <div class="search-box">
-            <input type="text" placeholder="Buscar posts do @gramatike...">
-            <button class="search-btn">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </button>
-        </div>
-        
-        <div class="layout">
-            <div>
-                {contents_html}
-            </div>
-            <aside class="side-col">
-                <div class="quick-nav">
-                    <a href="/dinamicas">🎮 Dinâmicas</a>
-                    <a href="/">💬 Gramátike</a>
-                </div>
-                <div class="side-card">
-                    <h3>💡 Palavras do Dia</h3>
-                    {palavras_html}
-                </div>
-                <div class="side-card">
-                    <h3>📣 Novidades</h3>
-                    {novidades_html}
-                </div>
-            </aside>
-        </div>
-    </main>
-    </div>
-{page_footer(current_user is not None)}"""
+        return render_template('gramatike_edu.html', content_html=contents_html)
 
     async def _login_page(self, db, current_user, request, method):
         """Página de Login - usando template externo."""
@@ -3337,22 +3271,16 @@ class Default(WorkerEntrypoint):
 {page_footer(True)}"""
 
     async def _meu_perfil_page(self, db, current_user):
-        """Página do perfil do usuário logado."""
+        """Página do perfil do usuário logado - usando template externo."""
         if not current_user:
             return redirect('/login')
         
         user = current_user
-        username = user.get('username', '')
         
         posts = []
-        followers = []
-        following = []
-        
         if db and DB_AVAILABLE:
             try:
                 posts = await get_posts(db, user_id=user['id'], per_page=20)
-                followers = await get_followers(db, user['id'])
-                following = await get_following(db, user['id'])
             except:
                 pass
         
@@ -3371,41 +3299,7 @@ class Default(WorkerEntrypoint):
         else:
             posts_html = '<div class="empty">Você ainda não fez nenhum post.</div>'
         
-        # Usar helper para URL da foto
-        foto_perfil = normalize_image_url(user.get('foto_perfil'))
-        username_escaped = escape_html(username)
-        user_nome = escape_html(user.get('nome') or '@' + username)
-        user_bio = escape_html(user.get('bio', ''))
-        
-        return f"""{page_head(f"Meu Perfil — Gramátike")}
-    <header class="site-head">
-        <h1 class="logo">Gramátike</h1>
-    </header>
-    <main>
-        <div class="card" style="text-align: center; margin-bottom: 1.5rem;">
-            <img src="{foto_perfil}" 
-                 alt="@{username_escaped}" 
-                 style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1rem; object-fit: cover;">
-            <h2 style="color: var(--primary); margin-bottom: 0.3rem;">
-                {user_nome}
-            </h2>
-            <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.8rem;">@{username_escaped}</p>
-            {f'<p style="margin-bottom: 1rem;">{user_bio}</p>' if user_bio else ''}
-            <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 1rem; font-size: 0.85rem;">
-                <span><strong>{len(followers)}</strong> seguidores</span>
-                <span><strong>{len(following)}</strong> seguindo</span>
-            </div>
-            <a href="/configuracoes" class="btn btn-primary">Editar Perfil</a>
-        </div>
-        
-        <h3 style="color: var(--primary); margin-bottom: 1rem;">Meus Posts</h3>
-        {posts_html}
-        
-        <div style="text-align:center;margin-top:2rem;">
-            <a href="/logout" style="font-size:0.85rem;color:#c00;text-decoration:none;font-weight:700;">Sair da Conta</a>
-        </div>
-    </main>
-{page_footer(True)}"""
+        return render_template('meu_perfil.html', content_html=posts_html, current_user=current_user)
 
     async def _configuracoes_page(self, db, current_user):
         """Página de configurações do usuário - usando template externo."""
