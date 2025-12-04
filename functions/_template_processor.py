@@ -64,6 +64,10 @@ def render_template(template_name, **context):
     admin_btn_html = context.get('admin_btn_html', '')
     html = html.replace('<!-- ADMIN_BTN_PLACEHOLDER -->', admin_btn_html)
     
+    # Replace ADMIN_PAINEL_BTN_PLACEHOLDER with admin painel button if present
+    admin_painel_btn_html = context.get('admin_painel_btn_html', admin_btn_html)
+    html = html.replace('<!-- ADMIN_PAINEL_BTN_PLACEHOLDER -->', admin_painel_btn_html)
+    
     # Replace FOOTER_PLACEHOLDER with page footer
     footer_html = context.get('footer_html', '')
     html = html.replace('<!-- FOOTER_PLACEHOLDER -->', footer_html)
