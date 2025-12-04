@@ -244,7 +244,7 @@ button { font-family: var(--font-base); font-weight:600; }
 <header class="site-head">
   <h1 class="logo" title="Gramátike">Gramátike</h1>
   
-    <a href="/meu_perfil" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
+    <a href="/perfil" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
 
         <img src="<!-- USER_FOTO_PLACEHOLDER -->" alt="Avatar de <!-- USER_USERNAME_PLACEHOLDER -->" loading="lazy">
       
@@ -348,21 +348,26 @@ button { font-family: var(--font-base); font-weight:600; }
   <div id="feed-list"><!-- FEED_PLACEHOLDER --><div id="feed-list-inner"></div>
 
   </div>
+  </div><!-- fechando feed-col -->
   <aside class="right-col" style="width:300px; flex:0 0 300px; position:sticky; top:15px; align-self:flex-start;">
   <!-- Navegação rápida: Educação e Em breve -->
-  <div id="quick-nav" style="display:flex; gap:.8rem; margin:0 0 1.2rem;">
-    <a href="/educacao" aria-label="Ir para Educação" style="flex:1; text-decoration:none; background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%); padding:1rem 1.1rem; border-radius:20px; display:flex; align-items:center; gap:.7rem; font-size:1rem; font-weight:800; color:#ffffff; letter-spacing:.4px; transition:all .25s ease; box-shadow:0 6px 20px rgba(155,93,229,.35); border:none;">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-      </svg>
+  <div id="quick-nav" style="display:flex; gap:.7rem; margin:0 0 1rem;">
+    <a href="/educacao" aria-label="Ir para Educação" style="flex:1; text-decoration:none; background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.8rem; font-weight:700; color:#fff; letter-spacing:.3px; transition:.18s; box-shadow:0 4px 14px rgba(155,93,229,.35);">
+      <span style="display:inline-flex; width:30px; height:30px; border-radius:12px; background:rgba(255,255,255,.2); align-items:center; justify-content:center; color:#fff;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+      </span>
       Educação
     </a>
-    <div style="flex:1; background:linear-gradient(135deg, #b8a4c9 0%, #9d8ab5 100%); padding:1rem 1.1rem; border-radius:20px; display:flex; align-items:center; gap:.7rem; font-size:1rem; font-weight:800; color:#ffffff; letter-spacing:.4px; box-shadow:0 6px 20px rgba(155,93,229,.25); border:none; opacity:.85;">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"></circle>
-        <polyline points="12 6 12 12 16 14"></polyline>
-      </svg>
+    <div style="flex:1; background:linear-gradient(135deg, #b8a4c9 0%, #9d8ab5 100%); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.8rem; font-weight:700; color:#fff; letter-spacing:.3px; box-shadow:0 4px 14px rgba(155,93,229,.25); opacity:.85;">
+      <span style="display:inline-flex; width:30px; height:30px; border-radius:12px; background:rgba(255,255,255,.2); align-items:center; justify-content:center; color:#fff;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </span>
       Em breve
     </div>
   </div>
@@ -386,39 +391,15 @@ button { font-family: var(--font-base); font-weight:600; }
     </div>
   </div>
 
-  <!-- Card do Perfil com username, links e Amigues -->
+  <!-- Seção Amigues com botões de ação -->
   <div id="amigues-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08);">
-      <!-- Username do usuário -->
-      
-      <div style="text-align:center; margin-bottom:.8rem;">
-        <span style="font-size:1.1rem; font-weight:800; color:var(--primary); letter-spacing:.3px;"><span aria-hidden="true">👤</span> @<!-- USER_USERNAME_PLACEHOLDER --></span>
-      </div>
-      <!-- Links do perfil -->
-      <div style="display:flex; flex-direction:column; gap:.5rem; margin-bottom:.8rem;">
-        <a href="/meu_perfil" style="display:flex; align-items:center; gap:.6rem; text-decoration:none; padding:.5rem .7rem; border-radius:14px; background:#f8f5ff; font-size:.85rem; font-weight:600; color:var(--primary); transition:.18s;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-          Meu Perfil
-        </a>
-        <a href="/configuracoes" style="display:flex; align-items:center; gap:.6rem; text-decoration:none; padding:.5rem .7rem; border-radius:14px; background:#f8f5ff; font-size:.85rem; font-weight:600; color:var(--primary); transition:.18s;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-          </svg>
-          Configurações
-        </a>
-      </div>
-      
-      <!-- Botões de ação -->
+      <!-- Botões de ação quadradinhos -->
       <div class="amigues-toolbar" style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0 0 .6rem;">
-        
-        <a href="/login" class="search-btn icon-btn" title="Entrar" aria-label="Entrar">
+        <a href="/suporte" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-            <polyline points="10 17 15 12 10 7"></polyline>
-            <line x1="15" y1="12" x2="3" y2="12"></line>
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
           </svg>
         </a>
         <a href="/configuracoes" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
@@ -427,24 +408,7 @@ button { font-family: var(--font-base); font-weight:600; }
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
         </a>
-        
-        <a href="/suporte" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-        </a>
-        
-        <a href="/admin/dashboard" class="search-btn icon-btn" title="Painel" aria-label="Painel">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-          </svg>
-        </a>
-        
+        <!-- ADMIN_PAINEL_BTN_PLACEHOLDER -->
       </div>
       <!-- Linha divisória -->
       <div class="amigues-divider" style="height:1px; background:var(--border); margin:.6rem 0 .8rem; border-radius:1px;"></div>
@@ -455,22 +419,7 @@ button { font-family: var(--font-base); font-weight:600; }
     </div>
     <div id="divulgacao-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.1rem 1.15rem .95rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:1.1rem;">
     <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 13v-2Z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg> Novidades</h3>
-
-        <div style="display:flex; flex-direction:column; gap:.9rem;">
-
-          <div class="promo-card" style="background:#fff; border:1px solid #e5e7eb; border-radius:22px; padding:.7rem .75rem .8rem; position:relative; box-shadow:0 6px 18px -6px rgba(0,0,0,.10); overflow:hidden;">
-            <strong style="display:block; font-size:.68rem; letter-spacing:.45px; color:#9B5DE5; margin:0 0 .35rem;"><!-- DIV_TITULO --></strong>
-
-              <img src="" alt="<!-- DIV_TITULO -->" style="width:100%; border-radius:14px; margin:0 0 .5rem; box-shadow:0 4px 12px rgba(0,0,0,.12);" loading="lazy" />
-            
-            <p style="margin:0 0 .5rem; font-size:.6rem; line-height:1.32; color:#555; font-weight:600;"><!-- DIV_TEXTO --></p>
-            <a href="<!-- DIV_LINK -->" target="_blank" rel="noopener" style="display:inline-block; font-size:.55rem; font-weight:700; background:#9B5DE5; color:#fff; padding:.45rem .8rem .4rem; border-radius:14px; text-decoration:none; letter-spacing:.5px;">Abrir →</a>
-          </div>
-          
-        </div>
-      
         <div style="font-size:.6rem; font-weight:700; letter-spacing:.5px; color:#999; padding:.65rem .85rem; border:1px dashed #d2c5ef; border-radius:18px; background:#faf7ff;">Nenhuma divulgação ativa.</div>
-      
     </div>
     <div id="ttt-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.1rem 1.15rem .95rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:1.1rem;">
       <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary);"># Jogo da Velha</h3>
@@ -728,7 +677,7 @@ button { font-family: var(--font-base); font-weight:600; }
     <span>Em breve</span>
   </div>
 
-  <a href="/meu_perfil" aria-label="Perfil" title="Perfil">
+  <a href="/perfil" aria-label="Perfil" title="Perfil">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
       <circle cx="12" cy="7" r="4"></circle>
