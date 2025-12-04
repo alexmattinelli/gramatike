@@ -882,6 +882,7 @@ class Default(WorkerEntrypoint):
                 "/podcasts": lambda: self._podcasts_page(db, current_user),
                 "/logout": lambda: self._logout(db, request),
                 "/novo-post": lambda: self._novo_post_page(db, current_user, request, method),
+                "/novo_post": lambda: self._novo_post_page(db, current_user, request, method),
                 "/perfil": lambda: self._meu_perfil_page(db, current_user),
                 "/configuracoes": lambda: self._configuracoes_page(db, current_user),
                 "/admin": lambda: self._admin_page(db, current_user),
