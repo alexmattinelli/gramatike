@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Novo Post • Gramátike</title>
 <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
+<link rel="stylesheet" href="/static/gramatike_common.css">
 <style>
 :root {
   --font-base: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -65,7 +65,7 @@ footer { text-align:center; font-size:.75rem; padding:2rem 1rem 2.4rem; color:#6
 </header>
 <main>
   <div style="display:flex; align-items:center; gap:.9rem; margin:0 0 1.4rem;">
-  <a href="{{ url_for('main.index') }}" aria-label="Voltar ao feed" style="display:inline-flex; width:42px; height:42px; border-radius:16px; background:#f1edff; align-items:center; justify-content:center; color:#9B5DE5; text-decoration:none; box-shadow:0 4px 14px rgba(155,93,229,.25);">
+  <a href="/" aria-label="Voltar ao feed" style="display:inline-flex; width:42px; height:42px; border-radius:16px; background:#f1edff; align-items:center; justify-content:center; color:#9B5DE5; text-decoration:none; box-shadow:0 4px 14px rgba(155,93,229,.25);">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
     </a>
     <h1 style="flex:1; margin:0; font-size:1.95rem; font-weight:800; letter-spacing:.6px; color:#9B5DE5;">Novo Post</h1>
@@ -143,7 +143,7 @@ footer { text-align:center; font-size:.75rem; padding:2rem 1rem 2.4rem; color:#6
       </div>
     </div>
     <div class="actions">
-  <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
+  <a href="/" class="btn btn-secondary">Cancelar</a>
       <button type="submit" id="btn-submit" class="primary">Publicar</button>
     </div>
     <div class="progress-wrap" id="progress-wrap" aria-live="polite">
@@ -226,7 +226,7 @@ footer { text-align:center; font-size:.75rem; padding:2rem 1rem 2.4rem; color:#6
 </style>
 
 <nav class="mobile-bottom-nav" aria-label="Navegação principal mobile">
-  <a href="{{ url_for('main.index') }}" aria-label="Feed" title="Feed">
+  <a href="/" aria-label="Feed" title="Feed">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
       <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -234,7 +234,7 @@ footer { text-align:center; font-size:.75rem; padding:2rem 1rem 2.4rem; color:#6
     <span>Início</span>
   </a>
   
-  <a href="{{ url_for('main.educacao') }}" aria-label="Educação" title="Educação">
+  <a href="/educacao" aria-label="Educação" title="Educação">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
       <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
@@ -242,7 +242,7 @@ footer { text-align:center; font-size:.75rem; padding:2rem 1rem 2.4rem; color:#6
     <span>Educação</span>
   </a>
   
-  <a href="{{ url_for('main.novo_post') }}" aria-label="Criar post" title="Criar post" style="background: #ffffff; color: #9B5DE5; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <a href="/novo_post" aria-label="Criar post" title="Criar post" style="background: #ffffff; color: #9B5DE5; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <line x1="12" y1="5" x2="12" y2="19"></line>
       <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -257,24 +257,7 @@ footer { text-align:center; font-size:.75rem; padding:2rem 1rem 2.4rem; color:#6
     <span>Em breve</span>
   </div>
   
-  {% if current_user.is_authenticated %}
-  <a href="{{ url_for('main.meu_perfil') }}" aria-label="Perfil" title="Perfil">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-      <circle cx="12" cy="7" r="4"></circle>
-    </svg>
-    <span>Perfil</span>
-  </a>
-  {% else %}
-  <a href="{{ url_for('main.login') }}" aria-label="Entrar" title="Entrar">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-      <polyline points="10 17 15 12 10 7"></polyline>
-      <line x1="15" y1="12" x2="3" y2="12"></line>
-    </svg>
-    <span>Entrar</span>
-  </a>
-  {% endif %}
+  <!-- MOBILE_NAV_AUTH_PLACEHOLDER -->
 </nav>
 
 <footer style="background:#9B5DE5; color:#ffffff; text-align:center; padding:1.2rem 0 1.2rem; font-size:1.05rem; border-top-left-radius:32px; border-top-right-radius:32px; margin-top:60px; letter-spacing:.5px;">
@@ -353,7 +336,7 @@ form.addEventListener('submit', async e => {
     .then(r=> r.json().then(j=>({ok:r.ok,data:j})))
     .then(resp=>{
       setProgress(100,'Concluído');
-  if(resp.ok && resp.data.success){ window.location.href = "{{ url_for('main.index') }}"; }
+  if(resp.ok && resp.data.success){ window.location.href = "/"; }
       else { alert('Erro: '+(resp.data && resp.data.error || 'desconhecido')); btnSubmit.classList.remove('disabled'); btnSubmit.textContent='Publicar'; }
     }).catch(()=> { alert('Falha de rede.'); btnSubmit.classList.remove('disabled'); btnSubmit.textContent='Publicar'; });
 });

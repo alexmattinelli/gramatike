@@ -32,16 +32,45 @@ async def on_request(request, env, context):
         return json_response({'error': 'Serviço indisponível'}, 503)
     
     try:
-        # Parse request body
-        content_type = request.headers.get('content-type', '')
-        if 'multipart' in content_type:
-            data = await request.formData()
-            conteudo = str(data.get('conteudo') or '').strip()
-            usuario_id = int(data.get('usuario_id') or 0)
+        # Parse request body based on content type
+        content_type = request.headers.get('content-type', '') or ''
+        conteudo = ''
+        usuario_id = 0
+        
+        if 'multipart/form-data' in content_type:
+            # Handle multipart form data (with or without images)
+            try:
+                data = await request.formData()
+                conteudo = str(data.get('conteudo') or '').strip()
+                usuario_id = int(data.get('usuario_id') or 0)
+            except Exception as e:
+                print(f"[posts_multi] FormData parse failed: {e}")
+                return json_response({'success': False, 'error': 'Erro ao processar formulário'}, 400)
+        elif 'application/json' in content_type:
+            # Handle JSON body
+            try:
+                body = await request.json()
+                conteudo = str(body.get('conteudo') or '').strip()
+                usuario_id = int(body.get('usuario_id') or 0)
+            except Exception as e:
+                print(f"[posts_multi] JSON parse failed: {e}")
+                return json_response({'success': False, 'error': 'Erro ao processar JSON'}, 400)
         else:
-            body = await request.json()
-            conteudo = str(body.get('conteudo') or '').strip()
-            usuario_id = int(body.get('usuario_id') or 0)
+            # Try to read as form data first, fallback to text
+            try:
+                data = await request.formData()
+                conteudo = str(data.get('conteudo') or '').strip()
+                usuario_id = int(data.get('usuario_id') or 0)
+            except:
+                try:
+                    text = await request.text()
+                    if text:
+                        body = json.loads(text)
+                        conteudo = str(body.get('conteudo') or '').strip()
+                        usuario_id = int(body.get('usuario_id') or 0)
+                except Exception as e:
+                    print(f"[posts_multi] Body parse failed: {e}")
+                    return json_response({'success': False, 'error': 'Formato de dados inválido'}, 400)
         
         if not conteudo:
             return json_response({'success': False, 'error': 'conteudo_vazio'}, 400)
@@ -61,6 +90,7 @@ async def on_request(request, env, context):
         return json_response({'success': True, 'id': post_id, 'imagens': []}, 201)
         
     except Exception as e:
+        print(f"[posts_multi] Unexpected error: {e}")
         return json_response({'success': False, 'error': str(e)}, 500)
 
 
