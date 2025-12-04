@@ -3,6 +3,7 @@ API Posts Multi handler for Cloudflare Workers
 Handles multi-image post creation
 """
 import json
+import traceback
 from datetime import datetime
 from urllib.parse import parse_qs
 
@@ -161,7 +162,6 @@ async def on_request(request, env, context):
                     
             except Exception as e:
                 print(f"[posts_multi] multipart parsing failed: {e}")
-                import traceback
                 print(f"[posts_multi] Traceback: {traceback.format_exc()}")
                 return json_response({'success': False, 'error': 'Erro ao processar formulário'}, 400)
         
