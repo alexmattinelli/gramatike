@@ -11,7 +11,7 @@ from ._template_processor import render_template
 
 async def on_request(request, env, context):
     """Handle home page requests."""
-    html = render_template('index.html')
+    html = render_template('feed.html')
     return Response(html, headers={'Content-Type': 'text/html; charset=utf-8'})
 
 

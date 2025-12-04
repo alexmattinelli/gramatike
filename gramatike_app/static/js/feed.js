@@ -94,7 +94,7 @@ async function loadNotifications(containerId, badgeId) {
             }).join('');
         }
     } catch(e) {
-        container.innerHTML = '<div style="text-align:center;color:#c00;font-size:0.75rem;padding:0.5rem;">Erro ao carregar</div>';
+        container.innerHTML = '<div style="text-align:center;color:#999;font-size:0.75rem;padding:0.5rem;">Sem notificações</div>';
     }
 }
 
