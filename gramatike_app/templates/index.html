@@ -1797,7 +1797,7 @@ function toggleMobileTicTacToe() {
   const panel = document.getElementById('mobile-ttt-panel');
   
   // Toggle tic-tac-toe
-  if (panel.style.display === 'none') {
+  if (panel.style.display === 'none' || panel.style.display === '') {
     panel.style.display = 'block';
   } else {
     panel.style.display = 'none';
