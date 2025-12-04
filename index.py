@@ -1144,7 +1144,10 @@ class Default(WorkerEntrypoint):
                         if hasattr(headers, 'get'):
                             content_type = headers.get('content-type', '') or ''
                         elif hasattr(headers, '__getitem__'):
-                            content_type = headers.get('content-type', '') or ''
+                            try:
+                                content_type = headers['content-type'] or ''
+                            except (KeyError, TypeError):
+                                content_type = ''
                         # Handle JsProxy
                         if hasattr(content_type, 'to_py'):
                             content_type = content_type.to_py()
