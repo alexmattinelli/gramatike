@@ -2251,9 +2251,9 @@ class Default(WorkerEntrypoint):
         # Auth profile link for header (authenticated user)
         user_initial = escape_html((current_user.get('username', '?')[:1]).upper())
         auth_profile_link_html = f'''<a href="/perfil" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
-        <img src="{user_foto}" alt="Avatar" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-        <span class="initial" style="display:none;">{user_initial}</span>
-    </a>'''
+    <img src="{user_foto}" alt="Avatar" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+    <span class="initial" style="display:none;">{user_initial}</span>
+</a>'''
         
         # Mobile nav auth section (profile link for authenticated users)
         mobile_nav_auth_html = f'''<a href="/perfil" aria-label="Perfil" title="Perfil">
@@ -2262,7 +2262,7 @@ class Default(WorkerEntrypoint):
       <circle cx="12" cy="7" r="4"></circle>
     </svg>
     <span>Perfil</span>
-  </a>'''
+</a>'''
         
         # Usar template externo com placeholders
         return render_template('feed.html',
