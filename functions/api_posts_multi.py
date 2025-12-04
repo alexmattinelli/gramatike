@@ -4,6 +4,7 @@ Handles multi-image post creation
 """
 import json
 from datetime import datetime
+from urllib.parse import parse_qs
 
 try:
     from workers import Response
@@ -143,7 +144,6 @@ async def on_request(request, env, context):
                     body_text = body_text.to_py()
                 if body_text and isinstance(body_text, str):
                     # Try to parse as form-urlencoded
-                    from urllib.parse import parse_qs
                     parsed = parse_qs(body_text)
                     conteudo_list = parsed.get('conteudo', [])
                     if conteudo_list:
