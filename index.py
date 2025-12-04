@@ -10,7 +10,7 @@
 import json
 import sys
 import traceback
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, unquote
 
 # Import JavaScript console for proper log levels in Cloudflare Workers
 # console.log = info level, console.warn = warning, console.error = error
@@ -201,6 +201,65 @@ def escape_js_string(text):
     if not text:
         return ""
     return str(text).replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t").replace("<", "\\u003c").replace(">", "\\u003e").replace("</", "<\\/")
+
+
+# MIME type mapping for static files
+STATIC_MIME_TYPES = {
+    '.css': 'text/css; charset=utf-8',
+    '.js': 'application/javascript; charset=utf-8',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.ico': 'image/x-icon',
+    '.webp': 'image/webp',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2',
+    '.webmanifest': 'application/manifest+json',
+    '.json': 'application/json; charset=utf-8',
+    '.html': 'text/html; charset=utf-8',
+    '.txt': 'text/plain; charset=utf-8',
+    '.xml': 'application/xml; charset=utf-8',
+}
+
+
+def get_mime_type(file_path):
+    """Get MIME type based on file extension."""
+    for ext, mime_type in STATIC_MIME_TYPES.items():
+        if file_path.endswith(ext):
+            return mime_type
+    return 'application/octet-stream'
+
+
+def is_safe_static_path(file_path):
+    """
+    Check if a static file path is safe (no path traversal).
+    
+    Returns True if the path is safe, False otherwise.
+    """
+    # Decode URL encoding first to catch %2e%2e -> ..
+    decoded_path = unquote(file_path)
+    
+    # Check for path traversal attempts
+    if '..' in decoded_path:
+        return False
+    
+    # Check for null bytes (could be used to truncate paths)
+    if '\x00' in decoded_path:
+        return False
+    
+    # Check for home directory traversal on Unix systems
+    if decoded_path.startswith('~'):
+        return False
+    
+    # Check for absolute paths (starting with / or \)
+    # Note: the file_path comes from path[8:] after '/static/' is removed,
+    # so it should never normally start with / unless the URL was malformed
+    if decoded_path.startswith('/') or decoded_path.startswith('\\'):
+        return False
+    
+    return True
 
 
 # ============================================================================
@@ -850,6 +909,45 @@ class Default(WorkerEntrypoint):
                 except Exception as e:
                     # Warnings use console.warn
                     console.warn(f"[Auth Warning] get_current_user failed: {e}")
+            
+            # ====================================================================
+            # STATIC FILES ROUTES
+            # ====================================================================
+            
+            if path.startswith('/static/'):
+                # Serve static files from the ASSETS binding
+                assets = getattr(self.env, 'ASSETS', None)
+                if assets:
+                    # Strip the /static/ prefix to get the actual file path
+                    file_path = path[8:]  # Remove '/static/'
+                    
+                    # Security: prevent path traversal attacks
+                    if not is_safe_static_path(file_path):
+                        return Response("Forbidden", status=403, headers={"Content-Type": "text/plain"})
+                    
+                    try:
+                        # Fetch the asset using the ASSETS binding
+                        asset_response = await assets.fetch(f"https://assets/{file_path}")
+                        if asset_response.status == 200:
+                            # Get content from the response
+                            content = await asset_response.arrayBuffer()
+                            
+                            # Determine content type based on file extension
+                            content_type = get_mime_type(file_path)
+                            
+                            return Response(
+                                content,
+                                status=200,
+                                headers={
+                                    "Content-Type": content_type,
+                                    "Cache-Control": "public, max-age=31536000, immutable"
+                                }
+                            )
+                    except Exception as e:
+                        console.warn(f"[Static] Error serving {file_path}: {e}")
+                
+                # Return 404 if asset not found or ASSETS binding not available
+                return Response("Not Found", status=404, headers={"Content-Type": "text/plain"})
             
             # ====================================================================
             # API ROUTES
