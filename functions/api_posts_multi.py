@@ -13,7 +13,7 @@ except ImportError:
     from starlette.responses import Response
 
 from gramatike_d1.auth import get_current_user
-from gramatike_d1.db import sanitize_for_d1, safe_get
+from gramatike_d1.db import sanitize_params, safe_get
 
 
 def json_response(data, status=200):
@@ -175,9 +175,7 @@ async def on_request(request, env, context):
         # Create post - include usuario (username) from user table
         # Sanitize all values to prevent D1_TYPE_ERROR from undefined values
         now = datetime.utcnow().isoformat()
-        s_usuario_id = sanitize_for_d1(usuario_id)
-        s_conteudo = sanitize_for_d1(conteudo)
-        s_now = sanitize_for_d1(now)
+        s_usuario_id, s_conteudo, s_now = sanitize_params(usuario_id, conteudo, now)
         
         sql = """
             INSERT INTO post (usuario_id, usuario, conteudo, data)
