@@ -1163,22 +1163,57 @@ class Default(WorkerEntrypoint):
                     conteudo = None
                     
                     if 'multipart/form-data' in content_type:
-                        # Use formData() for multipart/form-data
+                        # Parse multipart/form-data manually since formData() is not available in Pyodide
+                        # Extract boundary from content-type header
                         try:
-                            form_data = await request.formData()
-                            conteudo_raw = form_data.get('conteudo')
+                            body_bytes = await request.arrayBuffer()
+                            if hasattr(body_bytes, 'to_py'):
+                                body_bytes = body_bytes.to_py()
+                            # Convert to bytes if needed
+                            if hasattr(body_bytes, 'to_bytes'):
+                                body_bytes = body_bytes.to_bytes()
+                            elif isinstance(body_bytes, memoryview):
+                                body_bytes = bytes(body_bytes)
                             
-                            # Convert JsProxy to Python string if needed
-                            if conteudo_raw is not None:
-                                if hasattr(conteudo_raw, 'to_py'):
-                                    try:
-                                        conteudo = conteudo_raw.to_py()
-                                    except (TypeError, AttributeError):
-                                        conteudo = str(conteudo_raw) if conteudo_raw else None
-                                else:
-                                    conteudo = str(conteudo_raw) if conteudo_raw else None
+                            # Try to decode as text for simple form parsing
+                            try:
+                                body_text = body_bytes.decode('utf-8') if isinstance(body_bytes, bytes) else str(body_bytes)
+                            except (UnicodeDecodeError, AttributeError):
+                                body_text = str(body_bytes)
+                            
+                            # Extract boundary from content-type
+                            boundary = None
+                            if 'boundary=' in content_type:
+                                boundary = content_type.split('boundary=')[1].split(';')[0].strip()
+                                if boundary.startswith('"') and boundary.endswith('"'):
+                                    boundary = boundary[1:-1]
+                            
+                            # Parse multipart data to extract 'conteudo' field
+                            if boundary and body_text:
+                                # Split by boundary
+                                parts = body_text.split('--' + boundary)
+                                for part in parts:
+                                    if 'name="conteudo"' in part or "name='conteudo'" in part:
+                                        # Extract value after the double newline
+                                        if '\r\n\r\n' in part:
+                                            value = part.split('\r\n\r\n', 1)[1]
+                                            # Remove trailing boundary markers
+                                            if value.endswith('\r\n'):
+                                                value = value[:-2]
+                                            if value.endswith('--'):
+                                                value = value[:-2]
+                                            conteudo = value.strip()
+                                            break
+                                        elif '\n\n' in part:
+                                            value = part.split('\n\n', 1)[1]
+                                            if value.endswith('\n'):
+                                                value = value[:-1]
+                                            if value.endswith('--'):
+                                                value = value[:-2]
+                                            conteudo = value.strip()
+                                            break
                         except Exception as form_err:
-                            console.warn(f"[posts_multi] formData() failed: {form_err}")
+                            console.warn(f"[posts_multi] multipart parsing failed: {form_err}")
                             return json_response({"error": "Erro ao processar formulário", "success": False}, 400)
                     
                     elif 'application/json' in content_type:
@@ -1208,22 +1243,27 @@ class Default(WorkerEntrypoint):
                             return json_response({"error": "Erro ao processar formulário", "success": False}, 400)
                     
                     else:
-                        # Default: try formData() as it's most common for this endpoint
-                        console.warn(f"[posts_multi] Unknown content-type: {content_type}, trying formData()")
+                        # Default: try to parse as text and extract data
+                        console.warn(f"[posts_multi] Unknown content-type: {content_type}, trying text parsing")
                         try:
-                            form_data = await request.formData()
-                            conteudo_raw = form_data.get('conteudo')
-                            
-                            if conteudo_raw is not None:
-                                if hasattr(conteudo_raw, 'to_py'):
+                            body_text = await request.text()
+                            if hasattr(body_text, 'to_py'):
+                                body_text = body_text.to_py()
+                            if body_text and isinstance(body_text, str):
+                                # Try to parse as form-urlencoded
+                                parsed = parse_qs(body_text)
+                                conteudo_list = parsed.get('conteudo', [])
+                                if conteudo_list:
+                                    conteudo = conteudo_list[0]
+                                # If that fails, check if it's JSON
+                                elif body_text.strip().startswith('{'):
                                     try:
-                                        conteudo = conteudo_raw.to_py()
-                                    except (TypeError, AttributeError):
-                                        conteudo = str(conteudo_raw) if conteudo_raw else None
-                                else:
-                                    conteudo = str(conteudo_raw) if conteudo_raw else None
-                        except Exception as form_err:
-                            console.warn(f"[posts_multi] formData() failed for unknown content-type: {form_err}")
+                                        body_json = json.loads(body_text)
+                                        conteudo = body_json.get('conteudo')
+                                    except json.JSONDecodeError:
+                                        pass
+                        except Exception as text_err:
+                            console.warn(f"[posts_multi] text parsing failed for unknown content-type: {text_err}")
                             return json_response({"error": "Tipo de conteúdo não suportado", "success": False}, 400)
                     
                     # Handle JavaScript undefined represented as string 'undefined'
