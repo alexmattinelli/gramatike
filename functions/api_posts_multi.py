@@ -168,7 +168,7 @@ async def on_request(request, env, context):
         
         # Create post
         now = datetime.utcnow().isoformat()
-        sql = "INSERT INTO post (usuario_id, conteudo, created_at) VALUES (?, ?, ?)"
+        sql = "INSERT INTO post (usuario_id, conteudo, data) VALUES (?, ?, ?)"
         await db.prepare(sql).bind(usuario_id, conteudo, now).run()
         
         # Get created post ID
