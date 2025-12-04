@@ -1206,7 +1206,7 @@ class Default(WorkerEntrypoint):
                                     # The header and content are separated by \r\n\r\n or \n\n
                                     try:
                                         part_str = part.decode('utf-8', errors='replace')
-                                    except Exception:
+                                    except (UnicodeDecodeError, AttributeError, LookupError):
                                         continue
                                     
                                     if 'name="conteudo"' in part_str or "name='conteudo'" in part_str:
