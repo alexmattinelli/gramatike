@@ -10,6 +10,8 @@ try:
 except ImportError:
     from starlette.responses import Response
 
+from gramatike_d1.auth import get_current_user
+
 
 def json_response(data, status=200):
     """Create a JSON response."""
@@ -33,7 +35,6 @@ async def on_request(request, env, context):
     
     # Get current user from session
     try:
-        from gramatike_d1.auth import get_current_user
         user = await get_current_user(db, request)
         if not user:
             return json_response({'success': False, 'error': 'Não autenticado'}, 401)
@@ -47,15 +48,15 @@ async def on_request(request, env, context):
         content_type = request.headers.get('content-type', '') or ''
         conteudo = ''
         
-        if 'multipart/form-data' in content_type:
-            # Handle multipart form data (with or without images)
+        # Parse FormData (handles both explicit multipart and default case)
+        if 'multipart/form-data' in content_type or 'application/json' not in content_type:
             try:
                 data = await request.formData()
                 conteudo = str(data.get('conteudo') or '').strip()
             except Exception as e:
                 print(f"[posts_multi] FormData parse failed: {e}")
                 return json_response({'success': False, 'error': 'Erro ao processar formulário'}, 400)
-        elif 'application/json' in content_type:
+        else:
             # Handle JSON body
             try:
                 body = await request.json()
@@ -63,14 +64,6 @@ async def on_request(request, env, context):
             except Exception as e:
                 print(f"[posts_multi] JSON parse failed: {e}")
                 return json_response({'success': False, 'error': 'Erro ao processar JSON'}, 400)
-        else:
-            # Default: try to parse as FormData (most common case for post creation)
-            try:
-                data = await request.formData()
-                conteudo = str(data.get('conteudo') or '').strip()
-            except Exception as e:
-                print(f"[posts_multi] FormData parse failed (fallback): {e}")
-                return json_response({'success': False, 'error': 'Formato de dados inválido'}, 400)
         
         if not conteudo:
             return json_response({'success': False, 'error': 'conteudo_vazio'}, 400)
