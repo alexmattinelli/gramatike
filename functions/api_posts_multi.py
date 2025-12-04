@@ -44,26 +44,84 @@ async def on_request(request, env, context):
         return json_response({'success': False, 'error': 'Erro de autenticação'}, 401)
     
     try:
-        # Parse request body based on content type
-        content_type = request.headers.get('content-type', '') or ''
-        conteudo = ''
+        # Get content-type header to determine parsing method
+        # In Cloudflare Workers, body can only be consumed ONCE
+        content_type = ''
+        try:
+            headers = request.headers
+            if hasattr(headers, 'get'):
+                content_type = headers.get('content-type', '') or ''
+            elif hasattr(headers, '__getitem__'):
+                try:
+                    content_type = headers['content-type'] or ''
+                except (KeyError, TypeError):
+                    content_type = ''
+            # Handle JsProxy
+            if hasattr(content_type, 'to_py'):
+                content_type = content_type.to_py()
+            content_type = str(content_type).lower() if content_type else ''
+        except Exception as ct_err:
+            print(f"[posts_multi] Error getting content-type: {ct_err}")
+            content_type = ''
         
-        # Parse FormData (handles both explicit multipart and default case)
-        if 'multipart/form-data' in content_type or 'application/json' not in content_type:
+        print(f"[posts_multi] Content-Type: {content_type}")
+        
+        # Parse request body based on content-type
+        # IMPORTANT: Only use ONE parsing method to avoid "body already used" error
+        conteudo = None
+        
+        if 'multipart/form-data' in content_type:
+            # Use formData() for multipart/form-data
             try:
                 data = await request.formData()
-                conteudo = str(data.get('conteudo') or '').strip()
+                conteudo_raw = data.get('conteudo')
+                
+                # Convert JsProxy to Python string if needed
+                if conteudo_raw is not None:
+                    if hasattr(conteudo_raw, 'to_py'):
+                        try:
+                            conteudo = conteudo_raw.to_py()
+                        except (TypeError, AttributeError):
+                            conteudo = str(conteudo_raw) if conteudo_raw else None
+                    else:
+                        conteudo = str(conteudo_raw) if conteudo_raw else None
             except Exception as e:
                 print(f"[posts_multi] FormData parse failed: {e}")
                 return json_response({'success': False, 'error': 'Erro ao processar formulário'}, 400)
-        else:
-            # Handle JSON body
+        
+        elif 'application/json' in content_type:
+            # Use json() for application/json
             try:
                 body = await request.json()
-                conteudo = str(body.get('conteudo') or '').strip()
+                if hasattr(body, 'to_py'):
+                    body = body.to_py()
+                conteudo = body.get('conteudo') if isinstance(body, dict) else None
             except Exception as e:
                 print(f"[posts_multi] JSON parse failed: {e}")
                 return json_response({'success': False, 'error': 'Erro ao processar JSON'}, 400)
+        
+        else:
+            # Default: try formData() as it's most common for this endpoint
+            print(f"[posts_multi] Unknown content-type: {content_type}, trying formData()")
+            try:
+                data = await request.formData()
+                conteudo_raw = data.get('conteudo')
+                
+                if conteudo_raw is not None:
+                    if hasattr(conteudo_raw, 'to_py'):
+                        try:
+                            conteudo = conteudo_raw.to_py()
+                        except (TypeError, AttributeError):
+                            conteudo = str(conteudo_raw) if conteudo_raw else None
+                    else:
+                        conteudo = str(conteudo_raw) if conteudo_raw else None
+            except Exception as e:
+                print(f"[posts_multi] formData() failed for unknown content-type: {e}")
+                return json_response({'success': False, 'error': 'Tipo de conteúdo não suportado'}, 400)
+        
+        # Validate content
+        if conteudo is not None:
+            conteudo = str(conteudo).strip()
         
         if not conteudo:
             return json_response({'success': False, 'error': 'conteudo_vazio'}, 400)

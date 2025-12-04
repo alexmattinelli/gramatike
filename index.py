@@ -1136,11 +1136,34 @@ class Default(WorkerEntrypoint):
                         console.error("[posts_multi] current_user.id is None")
                         return json_response({"error": "Usuárie inválide", "success": False}, 400)
                     
-                    # Parse request body - try formData first, then JSON fallback
+                    # Get content-type header to determine parsing method
+                    # In Cloudflare Workers, body can only be consumed ONCE
+                    content_type = ''
+                    try:
+                        headers = request.headers
+                        if hasattr(headers, 'get'):
+                            content_type = headers.get('content-type', '') or ''
+                        elif hasattr(headers, '__getitem__'):
+                            try:
+                                content_type = headers['content-type'] or ''
+                            except (KeyError, TypeError):
+                                content_type = ''
+                        # Handle JsProxy
+                        if hasattr(content_type, 'to_py'):
+                            content_type = content_type.to_py()
+                        content_type = str(content_type).lower() if content_type else ''
+                    except Exception as ct_err:
+                        console.warn(f"[posts_multi] Error getting content-type: {ct_err}")
+                        content_type = ''
+                    
+                    console.log(f"[posts_multi] Content-Type: {content_type}")
+                    
+                    # Parse request body based on content-type
+                    # IMPORTANT: Only use ONE parsing method to avoid "body already used" error
                     conteudo = None
                     
-                    # Try to use formData() if available (Cloudflare Workers native Request)
-                    if hasattr(request, 'formData') and callable(getattr(request, 'formData', None)):
+                    if 'multipart/form-data' in content_type:
+                        # Use formData() for multipart/form-data
                         try:
                             form_data = await request.formData()
                             conteudo_raw = form_data.get('conteudo')
@@ -1155,10 +1178,11 @@ class Default(WorkerEntrypoint):
                                 else:
                                     conteudo = str(conteudo_raw) if conteudo_raw else None
                         except Exception as form_err:
-                            console.warn(f"[posts_multi] formData() failed: {form_err}, trying JSON fallback")
+                            console.warn(f"[posts_multi] formData() failed: {form_err}")
+                            return json_response({"error": "Erro ao processar formulário", "success": False}, 400)
                     
-                    # Fallback: try JSON parsing
-                    if conteudo is None:
+                    elif 'application/json' in content_type:
+                        # Use json() for application/json
                         try:
                             body = await request.json()
                             if hasattr(body, 'to_py'):
@@ -1166,21 +1190,41 @@ class Default(WorkerEntrypoint):
                             conteudo = body.get('conteudo') if isinstance(body, dict) else None
                         except Exception as json_err:
                             console.warn(f"[posts_multi] JSON parse failed: {json_err}")
+                            return json_response({"error": "Erro ao processar JSON", "success": False}, 400)
                     
-                    # Last fallback: try parsing as text/form-urlencoded
-                    if conteudo is None:
+                    elif 'application/x-www-form-urlencoded' in content_type:
+                        # Use text() and parse as form-urlencoded
                         try:
                             body_text = await request.text()
                             if hasattr(body_text, 'to_py'):
                                 body_text = body_text.to_py()
                             if body_text and isinstance(body_text, str):
-                                # Try to parse as form-urlencoded (parse_qs already imported at top)
                                 parsed = parse_qs(body_text)
                                 conteudo_list = parsed.get('conteudo', [])
                                 if conteudo_list:
                                     conteudo = conteudo_list[0]
                         except Exception as text_err:
                             console.warn(f"[posts_multi] Text parse failed: {text_err}")
+                            return json_response({"error": "Erro ao processar formulário", "success": False}, 400)
+                    
+                    else:
+                        # Default: try formData() as it's most common for this endpoint
+                        console.warn(f"[posts_multi] Unknown content-type: {content_type}, trying formData()")
+                        try:
+                            form_data = await request.formData()
+                            conteudo_raw = form_data.get('conteudo')
+                            
+                            if conteudo_raw is not None:
+                                if hasattr(conteudo_raw, 'to_py'):
+                                    try:
+                                        conteudo = conteudo_raw.to_py()
+                                    except (TypeError, AttributeError):
+                                        conteudo = str(conteudo_raw) if conteudo_raw else None
+                                else:
+                                    conteudo = str(conteudo_raw) if conteudo_raw else None
+                        except Exception as form_err:
+                            console.warn(f"[posts_multi] formData() failed for unknown content-type: {form_err}")
+                            return json_response({"error": "Tipo de conteúdo não suportado", "success": False}, 400)
                     
                     # Handle JavaScript undefined represented as string 'undefined'
                     if conteudo is None or conteudo == 'undefined' or conteudo == '':
