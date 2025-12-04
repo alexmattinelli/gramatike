@@ -207,10 +207,14 @@ async def on_request(request, env, context):
         if not conteudo:
             return json_response({'success': False, 'error': 'conteudo_vazio'}, 400)
         
-        # Create post
+        # Create post - include usuario (username) from user table
         now = datetime.utcnow().isoformat()
-        sql = "INSERT INTO post (usuario_id, conteudo, data) VALUES (?, ?, ?)"
-        await db.prepare(sql).bind(usuario_id, conteudo, now).run()
+        sql = """
+            INSERT INTO post (usuario_id, usuario, conteudo, data)
+            SELECT ?, username, ?, ?
+            FROM user WHERE id = ?
+        """
+        await db.prepare(sql).bind(usuario_id, conteudo, now, usuario_id).run()
         
         # Get created post ID
         result = await db.prepare('SELECT last_insert_rowid() as id').first()
