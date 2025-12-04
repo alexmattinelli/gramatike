@@ -61,7 +61,7 @@ async def on_request(request, env, context):
                 data = await request.formData()
                 conteudo = str(data.get('conteudo') or '').strip()
                 usuario_id = int(data.get('usuario_id') or 0)
-            except:
+            except Exception:
                 try:
                     text = await request.text()
                     if text:
