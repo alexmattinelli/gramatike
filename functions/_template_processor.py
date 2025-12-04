@@ -64,6 +64,22 @@ def render_template(template_name, **context):
     admin_btn_html = context.get('admin_btn_html', '')
     html = html.replace('<!-- ADMIN_BTN_PLACEHOLDER -->', admin_btn_html)
     
+    # Replace ADMIN_PAINEL_BTN_PLACEHOLDER with admin painel button if present
+    admin_painel_btn_html = context.get('admin_painel_btn_html', admin_btn_html)
+    html = html.replace('<!-- ADMIN_PAINEL_BTN_PLACEHOLDER -->', admin_painel_btn_html)
+    
+    # Replace AUTH_PROFILE_LINK_PLACEHOLDER with profile link for authenticated users
+    auth_profile_link_html = context.get('auth_profile_link_html', '')
+    html = html.replace('<!-- AUTH_PROFILE_LINK_PLACEHOLDER -->', auth_profile_link_html)
+    
+    # Replace MOBILE_NAV_AUTH_PLACEHOLDER with mobile nav auth section
+    mobile_nav_auth_html = context.get('mobile_nav_auth_html', '')
+    html = html.replace('<!-- MOBILE_NAV_AUTH_PLACEHOLDER -->', mobile_nav_auth_html)
+    
+    # Replace EMAIL_STATUS_PLACEHOLDER with email confirmation status
+    email_status_html = context.get('email_status_html', '')
+    html = html.replace('<!-- EMAIL_STATUS_PLACEHOLDER -->', email_status_html)
+    
     # Replace FOOTER_PLACEHOLDER with page footer
     footer_html = context.get('footer_html', '')
     html = html.replace('<!-- FOOTER_PLACEHOLDER -->', footer_html)

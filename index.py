@@ -882,6 +882,7 @@ class Default(WorkerEntrypoint):
                 "/podcasts": lambda: self._podcasts_page(db, current_user),
                 "/logout": lambda: self._logout(db, request),
                 "/novo-post": lambda: self._novo_post_page(db, current_user, request, method),
+                "/novo_post": lambda: self._novo_post_page(db, current_user, request, method),
                 "/perfil": lambda: self._meu_perfil_page(db, current_user),
                 "/configuracoes": lambda: self._configuracoes_page(db, current_user),
                 "/admin": lambda: self._admin_page(db, current_user),
@@ -2247,6 +2248,22 @@ class Default(WorkerEntrypoint):
                             </svg>
                         </button>'''
         
+        # Auth profile link for header (authenticated user)
+        user_initial = escape_html((current_user.get('username', '?')[:1]).upper())
+        auth_profile_link_html = f'''<a href="/perfil" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
+    <img src="{user_foto}" alt="Avatar" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+    <span class="initial" style="display:none;">{user_initial}</span>
+</a>'''
+        
+        # Mobile nav auth section (profile link for authenticated users)
+        mobile_nav_auth_html = f'''<a href="/perfil" aria-label="Perfil" title="Perfil">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+    <span>Perfil</span>
+</a>'''
+        
         # Usar template externo com placeholders
         return render_template('feed.html',
             feed_html=posts_html,
@@ -2255,6 +2272,8 @@ class Default(WorkerEntrypoint):
             user_username_js=user_username_js,
             user_id=user_id,
             admin_btn_html=admin_btn_html,
+            auth_profile_link_html=auth_profile_link_html,
+            mobile_nav_auth_html=mobile_nav_auth_html,
             footer_html=page_footer(True))
 
     async def _educacao_page(self, db, current_user):
@@ -2742,8 +2761,18 @@ class Default(WorkerEntrypoint):
         if not current_user:
             return redirect('/login')
         
+        # Generate email status HTML based on email_confirmed flag
+        email_confirmed = current_user.get('email_confirmed', False)
+        if email_confirmed:
+            email_status_html = '<div class="muted" style="margin-top:6px;">E-mail confirmado ✅</div>'
+        else:
+            email_status_html = '''<div class="muted" style="margin-top:6px; display:flex; align-items:center; gap:8px;">
+                            <span style="color:#b45309; background:#fef3c7; border:1px solid #fde68a; padding:4px 8px; border-radius:999px; font-weight:600;">E-mail não confirmado</span>
+                            <button type="button" id="btn-resend-verify" class="btn" style="background:#9B5DE5;">Reenviar verificação</button>
+                        </div>'''
+        
         # Passar dados do usuário para o template
-        return render_template('configuracoes.html', current_user=current_user)
+        return render_template('configuracoes.html', current_user=current_user, email_status_html=email_status_html)
 
     def _not_found_page(self, path):
         """Página 404 - usando template externo."""
