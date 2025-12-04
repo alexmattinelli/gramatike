@@ -1175,45 +1175,85 @@ class Default(WorkerEntrypoint):
                             elif isinstance(body_bytes, memoryview):
                                 body_bytes = bytes(body_bytes)
                             
-                            # Try to decode as text for simple form parsing
-                            try:
-                                body_text = body_bytes.decode('utf-8') if isinstance(body_bytes, bytes) else str(body_bytes)
-                            except (UnicodeDecodeError, AttributeError):
-                                body_text = str(body_bytes)
-                            
-                            # Extract boundary from content-type
+                            # Extract boundary from content-type first
                             boundary = None
                             if 'boundary=' in content_type:
                                 boundary = content_type.split('boundary=')[1].split(';')[0].strip()
                                 if boundary.startswith('"') and boundary.endswith('"'):
                                     boundary = boundary[1:-1]
                             
-                            # Parse multipart data to extract 'conteudo' field
-                            if boundary and body_text:
+                            console.log(f"[posts_multi] Boundary: {boundary}")
+                            
+                            if not boundary:
+                                console.warn("[posts_multi] No boundary found in content-type")
+                                return json_response({"error": "Erro ao processar formulário: boundary não encontrado", "success": False}, 400)
+                            
+                            # For multipart, we need to handle binary data carefully
+                            # First try to find the 'conteudo' field by splitting on boundary bytes
+                            boundary_bytes = ('--' + boundary).encode('utf-8')
+                            
+                            if isinstance(body_bytes, bytes):
                                 # Split by boundary
-                                parts = body_text.split('--' + boundary)
+                                parts = body_bytes.split(boundary_bytes)
+                                console.log(f"[posts_multi] Found {len(parts)} parts")
+                                
                                 for part in parts:
-                                    if 'name="conteudo"' in part or "name='conteudo'" in part:
-                                        # Extract value after the double newline
-                                        if '\r\n\r\n' in part:
-                                            value = part.split('\r\n\r\n', 1)[1]
-                                            # Remove trailing boundary markers
-                                            if value.endswith('\r\n'):
-                                                value = value[:-2]
+                                    # Skip empty parts and closing boundary
+                                    if not part or part.strip() == b'--':
+                                        continue
+                                    
+                                    # Check if this part contains the 'conteudo' field
+                                    # The header and content are separated by \r\n\r\n or \n\n
+                                    try:
+                                        part_str = part.decode('utf-8', errors='replace')
+                                    except Exception:
+                                        continue
+                                    
+                                    if 'name="conteudo"' in part_str or "name='conteudo'" in part_str:
+                                        # This is the conteudo field - extract the value
+                                        if '\r\n\r\n' in part_str:
+                                            value = part_str.split('\r\n\r\n', 1)[1]
+                                        elif '\n\n' in part_str:
+                                            value = part_str.split('\n\n', 1)[1]
+                                        else:
+                                            continue
+                                        
+                                        # Clean up trailing characters
+                                        value = value.rstrip('\r\n')
+                                        if value.endswith('--'):
+                                            value = value[:-2]
+                                        value = value.rstrip('\r\n')
+                                        
+                                        conteudo = value.strip()
+                                        console.log(f"[posts_multi] Found conteudo: {conteudo[:50]}..." if len(conteudo) > 50 else f"[posts_multi] Found conteudo: {conteudo}")
+                                        break
+                            else:
+                                # Fallback: try to decode as text
+                                try:
+                                    body_text = str(body_bytes)
+                                    parts = body_text.split('--' + boundary)
+                                    for part in parts:
+                                        if 'name="conteudo"' in part or "name='conteudo'" in part:
+                                            if '\r\n\r\n' in part:
+                                                value = part.split('\r\n\r\n', 1)[1]
+                                            elif '\n\n' in part:
+                                                value = part.split('\n\n', 1)[1]
+                                            else:
+                                                continue
+                                            value = value.rstrip('\r\n')
                                             if value.endswith('--'):
                                                 value = value[:-2]
                                             conteudo = value.strip()
                                             break
-                                        elif '\n\n' in part:
-                                            value = part.split('\n\n', 1)[1]
-                                            if value.endswith('\n'):
-                                                value = value[:-1]
-                                            if value.endswith('--'):
-                                                value = value[:-2]
-                                            conteudo = value.strip()
-                                            break
+                                except Exception as text_err:
+                                    console.warn(f"[posts_multi] Text fallback failed: {text_err}")
+                            
+                            if conteudo is None:
+                                console.warn("[posts_multi] Could not find 'conteudo' field in multipart data")
+                                
                         except Exception as form_err:
-                            console.warn(f"[posts_multi] multipart parsing failed: {form_err}")
+                            console.error(f"[posts_multi] multipart parsing failed: {type(form_err).__name__}: {form_err}")
+                            console.error(f"[posts_multi] Traceback: {traceback.format_exc()}")
                             return json_response({"error": "Erro ao processar formulário", "success": False}, 400)
                     
                     elif 'application/json' in content_type:
