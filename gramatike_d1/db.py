@@ -159,6 +159,9 @@ def safe_get(result, key, default=None):
 # Maximum recursion depth for sanitize_for_d1 function
 _SANITIZE_MAX_DEPTH = 3
 
+# Pyodide module prefixes for JsProxy detection
+_PYODIDE_MODULES = ('pyodide.', 'pyodide', 'js')
+
 
 def sanitize_for_d1(value, _depth=0):
     """Sanitizes a value before passing it to D1 SQL queries.
@@ -175,7 +178,7 @@ def sanitize_for_d1(value, _depth=0):
         _depth: Internal recursion depth counter
     """
     # Prevent infinite recursion
-    if _depth > _SANITIZE_MAX_DEPTH:
+    if _depth >= _SANITIZE_MAX_DEPTH:
         console.warn(f"[sanitize_for_d1] Max recursion depth reached, returning None")
         return None
     
@@ -197,15 +200,17 @@ def sanitize_for_d1(value, _depth=0):
         if not is_js_proxy and hasattr(value, 'to_py'):
             module = getattr(value_type, '__module__', '')
             # Check for specific pyodide module paths
-            if module.startswith('pyodide.') or module == 'pyodide' or module == 'js':
+            if module.startswith(_PYODIDE_MODULES[0]) or module in _PYODIDE_MODULES[1:]:
                 is_js_proxy = True
         
         if is_js_proxy:
             # First check if the string representation indicates undefined
             # This is safer than calling to_py() which might throw JsException
+            # Note: We specifically check for 'undefined' (JavaScript undefined)
+            # Empty string check removed as it could match valid empty JS strings
             try:
                 str_val = str(value)
-                if str_val in ('undefined', '', 'null'):
+                if str_val == 'undefined':
                     return None
             except Exception:
                 # If we can't get string representation, assume it's undefined
@@ -218,9 +223,14 @@ def sanitize_for_d1(value, _depth=0):
                     # to_py() on undefined returns None
                     if py_value is None:
                         return None
-                    # Only recurse if the converted value is a different type
-                    # to prevent infinite loops (compare actual types, not names)
-                    if type(py_value) is not value_type:
+                    # After successful conversion, the value should be a Python native type
+                    # Only recurse if still a JsProxy-like object (shouldn't normally happen)
+                    py_value_type = type(py_value)
+                    py_type_name = py_value_type.__name__
+                    if py_type_name == 'JsProxy' or (
+                        hasattr(py_value, 'to_py') and 
+                        getattr(py_value_type, '__module__', '').startswith(_PYODIDE_MODULES[0])
+                    ):
                         return sanitize_for_d1(py_value, _depth + 1)
                     return py_value
                 except Exception:
