@@ -171,6 +171,28 @@ def _is_pyodide_module(module_name):
     )
 
 
+def _is_js_proxy(value):
+    """Check if a value is a JavaScript proxy object from Pyodide.
+    
+    Returns True if the value is a JsProxy or similar object that wraps
+    JavaScript values in the Pyodide/Cloudflare Workers environment.
+    """
+    value_type = type(value)
+    type_name = value_type.__name__
+    
+    # JsProxy is the exact type used by Pyodide for JS objects
+    if type_name == 'JsProxy':
+        return True
+    
+    # Also check for objects with to_py that are from pyodide module
+    if hasattr(value, 'to_py'):
+        module = getattr(value_type, '__module__', '')
+        if _is_pyodide_module(module):
+            return True
+    
+    return False
+
+
 def sanitize_for_d1(value, _depth=0):
     """Sanitizes a value before passing it to D1 SQL queries.
     
@@ -195,32 +217,19 @@ def sanitize_for_d1(value, _depth=0):
     
     # Check for JavaScript undefined (appears as a JsProxy with undefined type)
     try:
-        # Get the type for comparison
-        value_type = type(value)
-        type_name = value_type.__name__
-        
-        # Check if this looks like a JavaScript proxy object
-        # JsProxy is the exact type used by Pyodide for JS objects
-        is_js_proxy = type_name == 'JsProxy'
-        
-        # Also check for objects with to_py that are from pyodide module
-        # We check the module path to avoid false positives from unrelated classes
-        if not is_js_proxy and hasattr(value, 'to_py'):
-            module = getattr(value_type, '__module__', '')
-            if _is_pyodide_module(module):
-                is_js_proxy = True
-        
-        if is_js_proxy:
+        if _is_js_proxy(value):
             # First check if the string representation indicates undefined
             # This is safer than calling to_py() which might throw JsException
-            # Note: We specifically check for 'undefined' (JavaScript undefined)
-            # Empty string check removed as it could match valid empty JS strings
             try:
                 str_val = str(value)
                 if str_val == 'undefined':
                     return None
-            except Exception:
+            except (TypeError, ValueError):
                 # If we can't get string representation, assume it's undefined
+                return None
+            except Exception as str_err:
+                # Log unexpected errors before returning None
+                console.warn(f"[sanitize_for_d1] Unexpected error getting str(value): {str_err}")
                 return None
             
             # Try to convert to Python - undefined converts to None
@@ -232,12 +241,7 @@ def sanitize_for_d1(value, _depth=0):
                         return None
                     # After successful conversion, the value should be a Python native type
                     # Only recurse if still a JsProxy-like object (shouldn't normally happen)
-                    py_value_type = type(py_value)
-                    py_type_name = py_value_type.__name__
-                    if py_type_name == 'JsProxy' or (
-                        hasattr(py_value, 'to_py') and 
-                        _is_pyodide_module(getattr(py_value_type, '__module__', ''))
-                    ):
+                    if _is_js_proxy(py_value):
                         return sanitize_for_d1(py_value, _depth + 1)
                     return py_value
                 except Exception:
