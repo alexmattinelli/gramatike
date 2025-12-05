@@ -13,7 +13,7 @@ except ImportError:
     from starlette.responses import Response
 
 from gramatike_d1.auth import get_current_user
-from gramatike_d1.db import sanitize_params, sanitize_for_d1, safe_get, d1_params
+from gramatike_d1.db import sanitize_for_d1, safe_get, d1_params
 
 
 def json_response(data, status=200):
