@@ -672,9 +672,13 @@ def generate_session_token():
 
 async def get_user_by_id(db, user_id):
     """Busca ê usuárie por ID."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_user_id = sanitize_for_d1(user_id)
+    if s_user_id is None:
+        return None
     result = await db.prepare(
         "SELECT * FROM user WHERE id = ?"
-    ).bind(user_id).first()
+    ).bind(s_user_id).first()
     if result:
         return safe_dict(result)
     return None
@@ -682,12 +686,16 @@ async def get_user_by_id(db, user_id):
 
 async def get_user_by_username(db, username):
     """Busca ê usuárie por username."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_username = sanitize_for_d1(username)
+    if s_username is None:
+        return None
     try:
         result = await db.prepare(
             "SELECT * FROM user WHERE username = ?"
-        ).bind(username).first()
+        ).bind(s_username).first()
         # Use console.log for debug/info messages
-        console.log(f"[get_user_by_username] Query result for '{username}': {result}, type: {type(result)}")
+        console.log(f"[get_user_by_username] Query result for '{s_username}': {result}, type: {type(result)}")
         if result:
             converted = safe_dict(result)
             console.log(f"[get_user_by_username] safe_dict result: {converted is not None}")
@@ -701,9 +709,13 @@ async def get_user_by_username(db, username):
 
 async def get_user_by_email(db, email):
     """Busca ê usuárie por email."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_email = sanitize_for_d1(email)
+    if s_email is None:
+        return None
     result = await db.prepare(
         "SELECT * FROM user WHERE email = ?"
-    ).bind(email).first()
+    ).bind(s_email).first()
     if result:
         return safe_dict(result)
     return None
@@ -765,12 +777,16 @@ async def create_session(db, user_id, user_agent=None, ip_address=None):
 
 async def get_session(db, token):
     """Busca sessão pelo token."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_token = sanitize_for_d1(token)
+    if s_token is None:
+        return None
     result = await db.prepare("""
         SELECT s.*, u.username, u.email, u.is_admin, u.is_superadmin, u.is_banned
         FROM user_session s
         JOIN user u ON s.user_id = u.id
         WHERE s.token = ? AND s.expires_at > datetime('now')
-    """).bind(token).first()
+    """).bind(s_token).first()
     if result:
         return safe_dict(result)
     return None
@@ -778,9 +794,13 @@ async def get_session(db, token):
 
 async def delete_session(db, token):
     """Remove uma sessão (logout)."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_token = sanitize_for_d1(token)
+    if s_token is None:
+        return
     await db.prepare(
         "DELETE FROM user_session WHERE token = ?"
-    ).bind(token).run()
+    ).bind(s_token).run()
 
 
 async def cleanup_expired_sessions(db):
@@ -796,10 +816,14 @@ async def cleanup_expired_sessions(db):
 
 async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False):
     """Lista posts com paginação."""
-    offset = (page - 1) * per_page
+    # Sanitize all parameters to prevent D1_TYPE_ERROR from undefined values
+    s_page = sanitize_for_d1(page) or 1
+    s_per_page = sanitize_for_d1(per_page) or 20
+    s_user_id = sanitize_for_d1(user_id)
+    offset = (s_page - 1) * s_per_page
     
     # Build query with proper parameterization
-    if user_id and not include_deleted:
+    if s_user_id and not include_deleted:
         result = await db.prepare("""
             SELECT p.*, u.username, u.foto_perfil,
                    (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
@@ -809,8 +833,8 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
             WHERE p.is_deleted = 0 AND p.usuario_id = ?
             ORDER BY p.data DESC
             LIMIT ? OFFSET ?
-        """).bind(user_id, per_page, offset).all()
-    elif user_id:
+        """).bind(s_user_id, s_per_page, offset).all()
+    elif s_user_id:
         result = await db.prepare("""
             SELECT p.*, u.username, u.foto_perfil,
                    (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
@@ -820,7 +844,7 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
             WHERE p.usuario_id = ?
             ORDER BY p.data DESC
             LIMIT ? OFFSET ?
-        """).bind(user_id, per_page, offset).all()
+        """).bind(s_user_id, s_per_page, offset).all()
     elif not include_deleted:
         result = await db.prepare("""
             SELECT p.*, u.username, u.foto_perfil,
@@ -831,7 +855,7 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
             WHERE p.is_deleted = 0
             ORDER BY p.data DESC
             LIMIT ? OFFSET ?
-        """).bind(per_page, offset).all()
+        """).bind(s_per_page, offset).all()
     else:
         result = await db.prepare("""
             SELECT p.*, u.username, u.foto_perfil,
@@ -841,13 +865,17 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
             LEFT JOIN user u ON p.usuario_id = u.id
             ORDER BY p.data DESC
             LIMIT ? OFFSET ?
-        """).bind(per_page, offset).all()
+        """).bind(s_per_page, offset).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_post_by_id(db, post_id):
     """Busca post por ID."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_post_id = sanitize_for_d1(post_id)
+    if s_post_id is None:
+        return None
     result = await db.prepare("""
         SELECT p.*, u.username, u.foto_perfil,
                (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
@@ -855,7 +883,7 @@ async def get_post_by_id(db, post_id):
         FROM post p
         LEFT JOIN user u ON p.usuario_id = u.id
         WHERE p.id = ?
-    """).bind(post_id).first()
+    """).bind(s_post_id).first()
     if result:
         return safe_dict(result)
     return None
@@ -934,9 +962,13 @@ async def unlike_post(db, user_id, post_id):
 
 async def has_liked(db, user_id, post_id):
     """Verifica se usuárie curtiu o post."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_user_id, s_post_id = sanitize_params(user_id, post_id)
+    if s_user_id is None or s_post_id is None:
+        return False
     result = await db.prepare("""
         SELECT 1 FROM post_likes WHERE user_id = ? AND post_id = ?
-    """).bind(user_id, post_id).first()
+    """).bind(s_user_id, s_post_id).first()
     return result is not None
 
 
@@ -946,7 +978,13 @@ async def has_liked(db, user_id, post_id):
 
 async def get_comments(db, post_id, page=1, per_page=50):
     """Lista comentários de um post."""
-    offset = (page - 1) * per_page
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_post_id = sanitize_for_d1(post_id)
+    s_page = sanitize_for_d1(page) or 1
+    s_per_page = sanitize_for_d1(per_page) or 50
+    if s_post_id is None:
+        return []
+    offset = (s_page - 1) * s_per_page
     
     result = await db.prepare("""
         SELECT c.*, u.username, u.foto_perfil
@@ -955,7 +993,7 @@ async def get_comments(db, post_id, page=1, per_page=50):
         WHERE c.post_id = ?
         ORDER BY c.data ASC
         LIMIT ? OFFSET ?
-    """).bind(post_id, per_page, offset).all()
+    """).bind(s_post_id, s_per_page, offset).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1002,31 +1040,43 @@ async def unfollow_user(db, seguidore_id, seguide_id):
 
 async def is_following(db, seguidore_id, seguide_id):
     """Verifica se está seguindo."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_seguidore_id, s_seguide_id = sanitize_params(seguidore_id, seguide_id)
+    if s_seguidore_id is None or s_seguide_id is None:
+        return False
     result = await db.prepare("""
         SELECT 1 FROM seguidories WHERE seguidore_id = ? AND seguide_id = ?
-    """).bind(seguidore_id, seguide_id).first()
+    """).bind(s_seguidore_id, s_seguide_id).first()
     return result is not None
 
 
 async def get_followers(db, user_id):
     """Lista seguidories de usuárie."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_user_id = sanitize_for_d1(user_id)
+    if s_user_id is None:
+        return []
     result = await db.prepare("""
         SELECT u.id, u.username, u.nome, u.foto_perfil
         FROM seguidories s
         JOIN user u ON s.seguidore_id = u.id
         WHERE s.seguide_id = ?
-    """).bind(user_id).all()
+    """).bind(s_user_id).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_following(db, user_id):
     """Lista quem ê usuárie segue."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_user_id = sanitize_for_d1(user_id)
+    if s_user_id is None:
+        return []
     result = await db.prepare("""
         SELECT u.id, u.username, u.nome, u.foto_perfil
         FROM seguidories s
         JOIN user u ON s.seguide_id = u.id
         WHERE s.seguidore_id = ?
-    """).bind(user_id).all()
+    """).bind(s_user_id).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
@@ -1036,9 +1086,13 @@ async def get_following(db, user_id):
 
 async def get_edu_contents(db, tipo=None, page=1, per_page=20):
     """Lista conteúdos educacionais."""
-    offset = (page - 1) * per_page
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_tipo = sanitize_for_d1(tipo)
+    s_page = sanitize_for_d1(page) or 1
+    s_per_page = sanitize_for_d1(per_page) or 20
+    offset = (s_page - 1) * s_per_page
     
-    if tipo:
+    if s_tipo:
         result = await db.prepare("""
             SELECT e.*, u.username as author_name, t.nome as topic_name
             FROM edu_content e
@@ -1047,7 +1101,7 @@ async def get_edu_contents(db, tipo=None, page=1, per_page=20):
             WHERE tipo = ?
             ORDER BY e.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(tipo, per_page, offset).all()
+        """).bind(s_tipo, s_per_page, offset).all()
     else:
         result = await db.prepare("""
             SELECT e.*, u.username as author_name, t.nome as topic_name
@@ -1056,20 +1110,24 @@ async def get_edu_contents(db, tipo=None, page=1, per_page=20):
             LEFT JOIN edu_topic t ON e.topic_id = t.id
             ORDER BY e.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(per_page, offset).all()
+        """).bind(s_per_page, offset).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_edu_content_by_id(db, content_id):
     """Busca conteúdo educacional por ID."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_content_id = sanitize_for_d1(content_id)
+    if s_content_id is None:
+        return None
     result = await db.prepare("""
         SELECT e.*, u.username as author_name, t.nome as topic_name
         FROM edu_content e
         LEFT JOIN user u ON e.author_id = u.id
         LEFT JOIN edu_topic t ON e.topic_id = t.id
         WHERE e.id = ?
-    """).bind(content_id).first()
+    """).bind(s_content_id).first()
     if result:
         return safe_dict(result)
     return None
@@ -1077,9 +1135,14 @@ async def get_edu_content_by_id(db, content_id):
 
 async def search_edu_contents(db, query, tipo=None):
     """Pesquisa conteúdos educacionais."""
-    search_term = f"%{query}%"
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_query = sanitize_for_d1(query)
+    s_tipo = sanitize_for_d1(tipo)
+    if s_query is None:
+        return []
+    search_term = f"%{s_query}%"
     
-    if tipo:
+    if s_tipo:
         result = await db.prepare("""
             SELECT e.*, u.username as author_name
             FROM edu_content e
@@ -1088,7 +1151,7 @@ async def search_edu_contents(db, query, tipo=None):
             AND tipo = ?
             ORDER BY e.created_at DESC
             LIMIT 50
-        """).bind(search_term, search_term, search_term, tipo).all()
+        """).bind(search_term, search_term, search_term, s_tipo).all()
     else:
         result = await db.prepare("""
             SELECT e.*, u.username as author_name
@@ -1119,7 +1182,11 @@ async def get_exercise_topics(db):
 
 async def get_exercise_questions(db, topic_id=None, section_id=None):
     """Lista questões de exercícios."""
-    if topic_id and section_id:
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_topic_id = sanitize_for_d1(topic_id)
+    s_section_id = sanitize_for_d1(section_id)
+    
+    if s_topic_id and s_section_id:
         result = await db.prepare("""
             SELECT q.*, t.nome as topic_name, s.nome as section_name
             FROM exercise_question q
@@ -1127,8 +1194,8 @@ async def get_exercise_questions(db, topic_id=None, section_id=None):
             LEFT JOIN exercise_section s ON q.section_id = s.id
             WHERE q.topic_id = ? AND q.section_id = ?
             ORDER BY q.created_at DESC
-        """).bind(topic_id, section_id).all()
-    elif topic_id:
+        """).bind(s_topic_id, s_section_id).all()
+    elif s_topic_id:
         result = await db.prepare("""
             SELECT q.*, t.nome as topic_name, s.nome as section_name
             FROM exercise_question q
@@ -1136,8 +1203,8 @@ async def get_exercise_questions(db, topic_id=None, section_id=None):
             LEFT JOIN exercise_section s ON q.section_id = s.id
             WHERE q.topic_id = ?
             ORDER BY q.created_at DESC
-        """).bind(topic_id).all()
-    elif section_id:
+        """).bind(s_topic_id).all()
+    elif s_section_id:
         result = await db.prepare("""
             SELECT q.*, t.nome as topic_name, s.nome as section_name
             FROM exercise_question q
@@ -1145,7 +1212,7 @@ async def get_exercise_questions(db, topic_id=None, section_id=None):
             LEFT JOIN exercise_section s ON q.section_id = s.id
             WHERE q.section_id = ?
             ORDER BY q.created_at DESC
-        """).bind(section_id).all()
+        """).bind(s_section_id).all()
     else:
         result = await db.prepare("""
             SELECT q.*, t.nome as topic_name, s.nome as section_name
@@ -1187,12 +1254,16 @@ async def get_dynamics(db, active_only=True):
 
 async def get_dynamic_by_id(db, dynamic_id):
     """Busca dinâmica por ID."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_dynamic_id = sanitize_for_d1(dynamic_id)
+    if s_dynamic_id is None:
+        return None
     result = await db.prepare("""
         SELECT d.*, u.username as author_name
         FROM dynamic d
         LEFT JOIN user u ON d.created_by = u.id
         WHERE d.id = ?
-    """).bind(dynamic_id).first()
+    """).bind(s_dynamic_id).first()
     if result:
         return safe_dict(result)
     return None
@@ -1200,13 +1271,17 @@ async def get_dynamic_by_id(db, dynamic_id):
 
 async def get_dynamic_responses(db, dynamic_id):
     """Lista respostas de uma dinâmica."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_dynamic_id = sanitize_for_d1(dynamic_id)
+    if s_dynamic_id is None:
+        return []
     result = await db.prepare("""
         SELECT r.*, u.username
         FROM dynamic_response r
         LEFT JOIN user u ON r.usuario_id = u.id
         WHERE r.dynamic_id = ?
         ORDER BY r.created_at DESC
-    """).bind(dynamic_id).all()
+    """).bind(s_dynamic_id).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1270,37 +1345,40 @@ async def get_palavra_do_dia_atual(db):
 
 async def get_divulgacoes(db, area=None, show_on_edu=None, show_on_index=None):
     """Lista divulgações."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_area = sanitize_for_d1(area)
+    
     # Build query based on conditions - using parameterized queries
-    if area and show_on_edu and show_on_index:
+    if s_area and show_on_edu and show_on_index:
         result = await db.prepare("""
             SELECT * FROM divulgacao
             WHERE ativo = 1 AND area = ? AND show_on_edu = 1 AND show_on_index = 1
             ORDER BY ordem, created_at DESC
-        """).bind(area).all()
-    elif area and show_on_edu:
+        """).bind(s_area).all()
+    elif s_area and show_on_edu:
         result = await db.prepare("""
             SELECT * FROM divulgacao
             WHERE ativo = 1 AND area = ? AND show_on_edu = 1
             ORDER BY ordem, created_at DESC
-        """).bind(area).all()
-    elif area and show_on_index:
+        """).bind(s_area).all()
+    elif s_area and show_on_index:
         result = await db.prepare("""
             SELECT * FROM divulgacao
             WHERE ativo = 1 AND area = ? AND show_on_index = 1
             ORDER BY ordem, created_at DESC
-        """).bind(area).all()
+        """).bind(s_area).all()
     elif show_on_edu and show_on_index:
         result = await db.prepare("""
             SELECT * FROM divulgacao
             WHERE ativo = 1 AND show_on_edu = 1 AND show_on_index = 1
             ORDER BY ordem, created_at DESC
         """).all()
-    elif area:
+    elif s_area:
         result = await db.prepare("""
             SELECT * FROM divulgacao
             WHERE ativo = 1 AND area = ?
             ORDER BY ordem, created_at DESC
-        """).bind(area).all()
+        """).bind(s_area).all()
     elif show_on_edu:
         result = await db.prepare("""
             SELECT * FROM divulgacao
@@ -1325,13 +1403,15 @@ async def get_divulgacoes(db, area=None, show_on_edu=None, show_on_index=None):
 
 async def get_novidades(db, limit=5):
     """Lista últimas novidades."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_limit = sanitize_for_d1(limit) or 5
     result = await db.prepare("""
         SELECT n.*, u.username as author_name
         FROM edu_novidade n
         LEFT JOIN user u ON n.author_id = u.id
         ORDER BY n.created_at DESC
         LIMIT ?
-    """).bind(limit).all()
+    """).bind(s_limit).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1445,7 +1525,13 @@ async def create_notification(db, usuario_id, tipo, titulo=None, mensagem=None, 
 
 async def get_notifications(db, usuario_id, apenas_nao_lidas=False, page=1, per_page=20):
     """Lista notificações de usuárie."""
-    offset = (page - 1) * per_page
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_page = sanitize_for_d1(page) or 1
+    s_per_page = sanitize_for_d1(per_page) or 20
+    if s_usuario_id is None:
+        return []
+    offset = (s_page - 1) * s_per_page
     
     if apenas_nao_lidas:
         result = await db.prepare("""
@@ -1455,7 +1541,7 @@ async def get_notifications(db, usuario_id, apenas_nao_lidas=False, page=1, per_
             WHERE n.usuario_id = ? AND n.lida = 0
             ORDER BY n.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(usuario_id, per_page, offset).all()
+        """).bind(s_usuario_id, s_per_page, offset).all()
     else:
         result = await db.prepare("""
             SELECT n.*, u.username as from_username, u.foto_perfil as from_foto
@@ -1464,34 +1550,46 @@ async def get_notifications(db, usuario_id, apenas_nao_lidas=False, page=1, per_
             WHERE n.usuario_id = ?
             ORDER BY n.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(usuario_id, per_page, offset).all()
+        """).bind(s_usuario_id, s_per_page, offset).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def count_unread_notifications(db, usuario_id):
     """Conta notificações não lidas de usuárie."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return 0
     result = await db.prepare("""
         SELECT COUNT(*) as count FROM notification
         WHERE usuario_id = ? AND lida = 0
-    """).bind(usuario_id).first()
+    """).bind(s_usuario_id).first()
     return safe_get(result, 'count', 0)
 
 
 async def mark_notification_read(db, notification_id, usuario_id):
     """Marca notificação como lida."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_notification_id, s_usuario_id = sanitize_params(notification_id, usuario_id)
+    if s_notification_id is None or s_usuario_id is None:
+        return
     await db.prepare("""
         UPDATE notification SET lida = 1
         WHERE id = ? AND usuario_id = ?
-    """).bind(notification_id, usuario_id).run()
+    """).bind(s_notification_id, s_usuario_id).run()
 
 
 async def mark_all_notifications_read(db, usuario_id):
     """Marca todas as notificações como lidas."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return
     await db.prepare("""
         UPDATE notification SET lida = 1
         WHERE usuario_id = ? AND lida = 0
-    """).bind(usuario_id).run()
+    """).bind(s_usuario_id).run()
 
 
 # ============================================================================
@@ -1500,12 +1598,17 @@ async def mark_all_notifications_read(db, usuario_id):
 
 async def send_friend_request(db, solicitante_id, destinatarie_id):
     """Envia pedido de amizade."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_solicitante_id, s_destinatarie_id = sanitize_params(solicitante_id, destinatarie_id)
+    if s_solicitante_id is None or s_destinatarie_id is None:
+        return None, "IDs inválidos"
+    
     # Verifica se já existe relação
     existing = await db.prepare("""
         SELECT * FROM amizade
         WHERE (usuario1_id = ? AND usuario2_id = ?)
            OR (usuario1_id = ? AND usuario2_id = ?)
-    """).bind(solicitante_id, destinatarie_id, destinatarie_id, solicitante_id).first()
+    """).bind(s_solicitante_id, s_destinatarie_id, s_destinatarie_id, s_solicitante_id).first()
     
     if existing:
         return None, "Já existe uma solicitação de amizade"
@@ -1515,25 +1618,30 @@ async def send_friend_request(db, solicitante_id, destinatarie_id):
         INSERT INTO amizade (usuario1_id, usuario2_id, solicitante_id, status)
         VALUES (?, ?, ?, 'pendente')
         RETURNING id
-    """).bind(solicitante_id, destinatarie_id, solicitante_id).first()
+    """).bind(s_solicitante_id, s_destinatarie_id, s_solicitante_id).first()
     
     # Notifica destinatárie
-    await create_notification(db, destinatarie_id, 'amizade_pedido',
+    await create_notification(db, s_destinatarie_id, 'amizade_pedido',
                               titulo='Novo pedido de amizade',
-                              from_usuario_id=solicitante_id)
+                              from_usuario_id=s_solicitante_id)
     
     return safe_get(result, 'id'), None
 
 
 async def respond_friend_request(db, amizade_id, usuario_id, aceitar=True):
     """Responde a pedido de amizade."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_amizade_id, s_usuario_id = sanitize_params(amizade_id, usuario_id)
+    if s_amizade_id is None or s_usuario_id is None:
+        return False, "IDs inválidos"
+    
     # Verifica se o pedido existe e é para este usuárie
     amizade = await db.prepare("""
         SELECT * FROM amizade
         WHERE id = ? AND status = 'pendente'
         AND (usuario1_id = ? OR usuario2_id = ?)
         AND solicitante_id != ?
-    """).bind(amizade_id, usuario_id, usuario_id, usuario_id).first()
+    """).bind(s_amizade_id, s_usuario_id, s_usuario_id, s_usuario_id).first()
     
     if not amizade:
         return False, "Pedido não encontrado"
@@ -1542,20 +1650,24 @@ async def respond_friend_request(db, amizade_id, usuario_id, aceitar=True):
     await db.prepare("""
         UPDATE amizade SET status = ?, updated_at = datetime('now')
         WHERE id = ?
-    """).bind(status, amizade_id).run()
+    """).bind(status, s_amizade_id).run()
     
     # Notifica solicitante
-    solicitante_id = amizade['solicitante_id']
-    if aceitar:
+    solicitante_id = safe_get(amizade, 'solicitante_id')
+    if aceitar and solicitante_id:
         await create_notification(db, solicitante_id, 'amizade_aceita',
                                   titulo='Pedido de amizade aceito!',
-                                  from_usuario_id=usuario_id)
+                                  from_usuario_id=s_usuario_id)
     
     return True, None
 
 
 async def get_amigues(db, usuario_id):
     """Lista amigues de usuárie (amizades aceitas)."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return []
     result = await db.prepare("""
         SELECT u.id, u.username, u.nome, u.foto_perfil, a.created_at as amigues_desde
         FROM amizade a
@@ -1565,13 +1677,17 @@ async def get_amigues(db, usuario_id):
         )
         WHERE a.status = 'aceita'
         ORDER BY u.nome, u.username
-    """).bind(usuario_id, usuario_id).all()
+    """).bind(s_usuario_id, s_usuario_id).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_pending_friend_requests(db, usuario_id):
     """Lista pedidos de amizade pendentes recebidos."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return []
     result = await db.prepare("""
         SELECT a.*, u.username, u.nome, u.foto_perfil
         FROM amizade a
@@ -1580,30 +1696,38 @@ async def get_pending_friend_requests(db, usuario_id):
         AND a.status = 'pendente'
         AND a.solicitante_id != ?
         ORDER BY a.created_at DESC
-    """).bind(usuario_id, usuario_id, usuario_id).all()
+    """).bind(s_usuario_id, s_usuario_id, s_usuario_id).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def are_amigues(db, usuarie1_id, usuarie2_id):
     """Verifica se dois usuáries são amigues."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuarie1_id, s_usuarie2_id = sanitize_params(usuarie1_id, usuarie2_id)
+    if s_usuarie1_id is None or s_usuarie2_id is None:
+        return False
     result = await db.prepare("""
         SELECT 1 FROM amizade
         WHERE ((usuario1_id = ? AND usuario2_id = ?)
             OR (usuario1_id = ? AND usuario2_id = ?))
         AND status = 'aceita'
-    """).bind(usuarie1_id, usuarie2_id, usuarie2_id, usuarie1_id).first()
+    """).bind(s_usuarie1_id, s_usuarie2_id, s_usuarie2_id, s_usuarie1_id).first()
     return result is not None
 
 
 async def remove_amizade(db, usuario_id, amigue_id):
     """Remove amizade."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_amigue_id = sanitize_params(usuario_id, amigue_id)
+    if s_usuario_id is None or s_amigue_id is None:
+        return
     await db.prepare("""
         DELETE FROM amizade
         WHERE ((usuario1_id = ? AND usuario2_id = ?)
             OR (usuario1_id = ? AND usuario2_id = ?))
         AND status = 'aceita'
-    """).bind(usuario_id, amigue_id, amigue_id, usuario_id).run()
+    """).bind(s_usuario_id, s_amigue_id, s_amigue_id, s_usuario_id).run()
 
 
 # ============================================================================
@@ -1624,7 +1748,10 @@ async def create_report(db, post_id, usuario_id, motivo, category=None):
 
 async def get_reports(db, apenas_pendentes=True, page=1, per_page=20):
     """Lista denúncias (para admin)."""
-    offset = (page - 1) * per_page
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_page = sanitize_for_d1(page) or 1
+    s_per_page = sanitize_for_d1(per_page) or 20
+    offset = (s_page - 1) * s_per_page
     
     if apenas_pendentes:
         result = await db.prepare("""
@@ -1635,7 +1762,7 @@ async def get_reports(db, apenas_pendentes=True, page=1, per_page=20):
             WHERE r.resolved = 0
             ORDER BY r.data DESC
             LIMIT ? OFFSET ?
-        """).bind(per_page, offset).all()
+        """).bind(s_per_page, offset).all()
     else:
         result = await db.prepare("""
             SELECT r.*, p.conteudo as post_conteudo, u.username as reporter_username
@@ -1644,17 +1771,21 @@ async def get_reports(db, apenas_pendentes=True, page=1, per_page=20):
             LEFT JOIN user u ON r.usuario_id = u.id
             ORDER BY r.data DESC
             LIMIT ? OFFSET ?
-        """).bind(per_page, offset).all()
+        """).bind(s_per_page, offset).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def resolve_report(db, report_id, resolver_id=None):
     """Resolve uma denúncia."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_report_id = sanitize_for_d1(report_id)
+    if s_report_id is None:
+        return
     await db.prepare("""
         UPDATE report SET resolved = 1, resolved_at = datetime('now')
         WHERE id = ?
-    """).bind(report_id).run()
+    """).bind(s_report_id).run()
 
 
 async def count_pending_reports(db):
@@ -1683,9 +1814,13 @@ async def create_support_ticket(db, mensagem, usuario_id=None, nome=None, email=
 
 async def get_support_tickets(db, status=None, page=1, per_page=20):
     """Lista tickets de suporte (para admin)."""
-    offset = (page - 1) * per_page
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_status = sanitize_for_d1(status)
+    s_page = sanitize_for_d1(page) or 1
+    s_per_page = sanitize_for_d1(per_page) or 20
+    offset = (s_page - 1) * s_per_page
     
-    if status:
+    if s_status:
         result = await db.prepare("""
             SELECT t.*, u.username
             FROM support_ticket t
@@ -1693,7 +1828,7 @@ async def get_support_tickets(db, status=None, page=1, per_page=20):
             WHERE t.status = ?
             ORDER BY t.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(status, per_page, offset).all()
+        """).bind(s_status, s_per_page, offset).all()
     else:
         result = await db.prepare("""
             SELECT t.*, u.username
@@ -1701,38 +1836,50 @@ async def get_support_tickets(db, status=None, page=1, per_page=20):
             LEFT JOIN user u ON t.usuario_id = u.id
             ORDER BY t.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(per_page, offset).all()
+        """).bind(s_per_page, offset).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_user_tickets(db, usuario_id):
     """Lista tickets de usuárie."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return []
     result = await db.prepare("""
         SELECT * FROM support_ticket
         WHERE usuario_id = ?
         ORDER BY created_at DESC
-    """).bind(usuario_id).all()
+    """).bind(s_usuario_id).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def respond_ticket(db, ticket_id, resposta):
     """Responde a um ticket de suporte."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_ticket_id, s_resposta = sanitize_params(ticket_id, resposta)
+    if s_ticket_id is None:
+        return
     await db.prepare("""
         UPDATE support_ticket 
         SET resposta = ?, status = 'respondido', updated_at = datetime('now')
         WHERE id = ?
-    """).bind(resposta, ticket_id).run()
+    """).bind(s_resposta, s_ticket_id).run()
 
 
 async def close_ticket(db, ticket_id):
     """Fecha um ticket de suporte."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_ticket_id = sanitize_for_d1(ticket_id)
+    if s_ticket_id is None:
+        return
     await db.prepare("""
         UPDATE support_ticket 
         SET status = 'fechado', updated_at = datetime('now')
         WHERE id = ?
-    """).bind(ticket_id).run()
+    """).bind(s_ticket_id).run()
 
 
 # ============================================================================
@@ -1742,13 +1889,15 @@ async def close_ticket(db, ticket_id):
 async def create_divulgacao(db, area, titulo, texto=None, link=None, imagem=None, 
                             show_on_edu=True, show_on_index=True, author_id=None):
     """Cria uma divulgação."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_area, s_titulo, s_texto, s_link, s_imagem = sanitize_params(area, titulo, texto, link, imagem)
     # Nota: A tabela divulgacao não tem coluna author_id diretamente, 
     # mas podemos vincular via edu_content_id ou post_id se necessário
     result = await db.prepare("""
         INSERT INTO divulgacao (area, titulo, texto, link, imagem, show_on_edu, show_on_index)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(area, titulo, texto, link, imagem, 
+    """).bind(s_area, s_titulo, s_texto, s_link, s_imagem, 
               1 if show_on_edu else 0, 1 if show_on_index else 0).first()
     return safe_get(result, 'id')
 
@@ -1769,16 +1918,16 @@ async def update_divulgacao(db, divulgacao_id, titulo=None, texto=None, link=Non
         values.append(texto)
     if link is not None:
         updates.append("link = ?")
-        values.append(link)
+        values.append(sanitize_for_d1(link))
     if imagem is not None:
         updates.append("imagem = ?")
-        values.append(imagem)
+        values.append(sanitize_for_d1(imagem))
     if ativo is not None:
         updates.append("ativo = ?")
         values.append(1 if ativo else 0)
     if ordem is not None:
         updates.append("ordem = ?")
-        values.append(ordem)
+        values.append(sanitize_for_d1(ordem))
     if show_on_edu is not None:
         updates.append("show_on_edu = ?")
         values.append(1 if show_on_edu else 0)
@@ -1790,7 +1939,11 @@ async def update_divulgacao(db, divulgacao_id, titulo=None, texto=None, link=Non
         return False
     
     updates.append("updated_at = datetime('now')")
-    values.append(divulgacao_id)
+    # Sanitize divulgacao_id to prevent D1_TYPE_ERROR from undefined values
+    s_divulgacao_id = sanitize_for_d1(divulgacao_id)
+    if s_divulgacao_id is None:
+        return False
+    values.append(s_divulgacao_id)
     
     set_clause = ", ".join(updates)
     
@@ -1803,9 +1956,13 @@ async def update_divulgacao(db, divulgacao_id, titulo=None, texto=None, link=Non
 
 async def delete_divulgacao(db, divulgacao_id):
     """Remove uma divulgação."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_divulgacao_id = sanitize_for_d1(divulgacao_id)
+    if s_divulgacao_id is None:
+        return
     await db.prepare("""
         DELETE FROM divulgacao WHERE id = ?
-    """).bind(divulgacao_id).run()
+    """).bind(s_divulgacao_id).run()
 
 
 # ============================================================================
@@ -1814,28 +1971,38 @@ async def delete_divulgacao(db, divulgacao_id):
 
 async def save_upload(db, usuario_id, tipo, path, filename=None, content_type=None, size=None):
     """Registra um upload de imagem."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_tipo, s_path, s_filename, s_content_type, s_size = sanitize_params(
+        usuario_id, tipo, path, filename, content_type, size
+    )
     result = await db.prepare("""
         INSERT INTO upload (usuario_id, tipo, path, filename, content_type, size)
         VALUES (?, ?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(usuario_id, tipo, path, filename, content_type, size).first()
+    """).bind(s_usuario_id, s_tipo, s_path, s_filename, s_content_type, s_size).first()
     return safe_get(result, 'id')
 
 
 async def get_user_uploads(db, usuario_id, tipo=None):
     """Lista uploads de usuárie."""
-    if tipo:
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_tipo = sanitize_for_d1(tipo)
+    if s_usuario_id is None:
+        return []
+    
+    if s_tipo:
         result = await db.prepare("""
             SELECT * FROM upload
             WHERE usuario_id = ? AND tipo = ?
             ORDER BY created_at DESC
-        """).bind(usuario_id, tipo).all()
+        """).bind(s_usuario_id, s_tipo).all()
     else:
         result = await db.prepare("""
             SELECT * FROM upload
             WHERE usuario_id = ?
             ORDER BY created_at DESC
-        """).bind(usuario_id).all()
+        """).bind(s_usuario_id).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1846,10 +2013,14 @@ async def get_user_uploads(db, usuario_id, tipo=None):
 
 async def get_all_usuaries(db, page=1, per_page=20, search=None):
     """Lista todes usuáries (para admin)."""
-    offset = (page - 1) * per_page
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_page = sanitize_for_d1(page) or 1
+    s_per_page = sanitize_for_d1(per_page) or 20
+    s_search = sanitize_for_d1(search)
+    offset = (s_page - 1) * s_per_page
     
-    if search:
-        search_term = f"%{search}%"
+    if s_search:
+        search_term = f"%{s_search}%"
         result = await db.prepare("""
             SELECT id, username, nome, email, foto_perfil, is_admin, is_superadmin, 
                    is_banned, created_at, email_confirmed
@@ -1857,7 +2028,7 @@ async def get_all_usuaries(db, page=1, per_page=20, search=None):
             WHERE username LIKE ? OR nome LIKE ? OR email LIKE ?
             ORDER BY created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(search_term, search_term, search_term, per_page, offset).all()
+        """).bind(search_term, search_term, search_term, s_per_page, offset).all()
     else:
         result = await db.prepare("""
             SELECT id, username, nome, email, foto_perfil, is_admin, is_superadmin, 
@@ -1865,41 +2036,59 @@ async def get_all_usuaries(db, page=1, per_page=20, search=None):
             FROM user
             ORDER BY created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(per_page, offset).all()
+        """).bind(s_per_page, offset).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def ban_usuarie(db, usuario_id, reason=None, admin_id=None):
     """Bane usuárie."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_reason = sanitize_for_d1(reason)
+    if s_usuario_id is None:
+        return
     await db.prepare("""
         UPDATE user SET is_banned = 1, banned_at = datetime('now'), ban_reason = ?
         WHERE id = ?
-    """).bind(reason, usuario_id).run()
+    """).bind(s_reason, s_usuario_id).run()
 
 
 async def unban_usuarie(db, usuario_id):
     """Remove ban de usuárie."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return
     await db.prepare("""
         UPDATE user SET is_banned = 0, banned_at = NULL, ban_reason = NULL
         WHERE id = ?
-    """).bind(usuario_id).run()
+    """).bind(s_usuario_id).run()
 
 
 async def suspend_usuarie(db, usuario_id, until_date):
     """Suspende usuárie temporariamente."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_until_date = sanitize_for_d1(until_date)
+    if s_usuario_id is None:
+        return
     await db.prepare("""
         UPDATE user SET suspended_until = ?
         WHERE id = ?
-    """).bind(until_date, usuario_id).run()
+    """).bind(s_until_date, s_usuario_id).run()
 
 
 async def make_admin(db, usuario_id, is_admin=True):
     """Torna usuárie admin ou remove permissão."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return
     await db.prepare("""
         UPDATE user SET is_admin = ?
         WHERE id = ?
-    """).bind(1 if is_admin else 0, usuario_id).run()
+    """).bind(1 if is_admin else 0, s_usuario_id).run()
 
 
 async def get_admin_stats(db):
@@ -1937,19 +2126,25 @@ async def get_admin_stats(db):
 
 async def check_rate_limit(db, ip_address, endpoint, max_attempts=10, window_minutes=5):
     """Verifica se IP está bloqueado ou excedeu limite."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_ip_address = sanitize_for_d1(ip_address)
+    s_endpoint = sanitize_for_d1(endpoint)
+    if s_ip_address is None or s_endpoint is None:
+        return True, None  # Block if no valid IP/endpoint
+    
     now = datetime.utcnow()
     
     result = await db.prepare("""
         SELECT * FROM rate_limit
         WHERE ip_address = ? AND endpoint = ?
-    """).bind(ip_address, endpoint).first()
+    """).bind(s_ip_address, s_endpoint).first()
     
     if not result:
         # Primeiro acesso
         await db.prepare("""
             INSERT INTO rate_limit (ip_address, endpoint, attempts)
             VALUES (?, ?, 1)
-        """).bind(ip_address, endpoint).run()
+        """).bind(s_ip_address, s_endpoint).run()
         return True, None
     
     rate = safe_dict(result)
@@ -1969,7 +2164,7 @@ async def check_rate_limit(db, ip_address, endpoint, max_attempts=10, window_min
                 UPDATE rate_limit SET attempts = 1, blocked_until = NULL, 
                 first_attempt = datetime('now'), last_attempt = datetime('now')
                 WHERE ip_address = ? AND endpoint = ?
-            """).bind(ip_address, endpoint).run()
+            """).bind(s_ip_address, s_endpoint).run()
             return True, None
     
     # Verifica janela de tempo
@@ -1985,7 +2180,7 @@ async def check_rate_limit(db, ip_address, endpoint, max_attempts=10, window_min
             UPDATE rate_limit SET attempts = 1, 
             first_attempt = datetime('now'), last_attempt = datetime('now')
             WHERE ip_address = ? AND endpoint = ?
-        """).bind(ip_address, endpoint).run()
+        """).bind(s_ip_address, s_endpoint).run()
         return True, None
     
     if rate['attempts'] >= max_attempts:
@@ -1994,14 +2189,14 @@ async def check_rate_limit(db, ip_address, endpoint, max_attempts=10, window_min
         await db.prepare("""
             UPDATE rate_limit SET blocked_until = ?
             WHERE ip_address = ? AND endpoint = ?
-        """).bind(block_until, ip_address, endpoint).run()
+        """).bind(block_until, s_ip_address, s_endpoint).run()
         return False, "Muitas tentativas. Bloqueade por 15 minutos."
     
     # Incrementar tentativas
     await db.prepare("""
         UPDATE rate_limit SET attempts = attempts + 1, last_attempt = datetime('now')
         WHERE ip_address = ? AND endpoint = ?
-    """).bind(ip_address, endpoint).run()
+    """).bind(s_ip_address, s_endpoint).run()
     return True, None
 
 
@@ -2025,9 +2220,14 @@ async def log_activity(db, acao, usuario_id=None, descricao=None, ip_address=Non
 
 async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
     """Lista atividades do log."""
-    offset = (page - 1) * per_page
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_acao = sanitize_for_d1(acao)
+    s_page = sanitize_for_d1(page) or 1
+    s_per_page = sanitize_for_d1(per_page) or 50
+    offset = (s_page - 1) * s_per_page
     
-    if usuario_id and acao:
+    if s_usuario_id and s_acao:
         result = await db.prepare("""
             SELECT a.*, u.username
             FROM activity_log a
@@ -2035,8 +2235,8 @@ async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
             WHERE a.usuario_id = ? AND a.acao = ?
             ORDER BY a.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(usuario_id, acao, per_page, offset).all()
-    elif usuario_id:
+        """).bind(s_usuario_id, s_acao, s_per_page, offset).all()
+    elif s_usuario_id:
         result = await db.prepare("""
             SELECT a.*, u.username
             FROM activity_log a
@@ -2044,8 +2244,8 @@ async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
             WHERE a.usuario_id = ?
             ORDER BY a.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(usuario_id, per_page, offset).all()
-    elif acao:
+        """).bind(s_usuario_id, s_per_page, offset).all()
+    elif s_acao:
         result = await db.prepare("""
             SELECT a.*, u.username
             FROM activity_log a
@@ -2053,7 +2253,7 @@ async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
             WHERE a.acao = ?
             ORDER BY a.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(acao, per_page, offset).all()
+        """).bind(s_acao, s_per_page, offset).all()
     else:
         result = await db.prepare("""
             SELECT a.*, u.username
@@ -2061,7 +2261,7 @@ async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
             LEFT JOIN user u ON a.usuario_id = u.id
             ORDER BY a.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(per_page, offset).all()
+        """).bind(s_per_page, offset).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2072,16 +2272,22 @@ async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
 
 async def get_user_points(db, usuario_id):
     """Retorna pontos de usuárie."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return {'usuario_id': None, 'pontos_total': 0, 'pontos_exercicios': 0,
+                'pontos_posts': 0, 'pontos_dinamicas': 0, 'nivel': 1}
+    
     result = await db.prepare("""
         SELECT * FROM user_points WHERE usuario_id = ?
-    """).bind(usuario_id).first()
+    """).bind(s_usuario_id).first()
     
     if not result:
         # Criar registro se não existe
         await db.prepare("""
             INSERT INTO user_points (usuario_id) VALUES (?)
-        """).bind(usuario_id).run()
-        return {'usuario_id': usuario_id, 'pontos_total': 0, 'pontos_exercicios': 0,
+        """).bind(s_usuario_id).run()
+        return {'usuario_id': s_usuario_id, 'pontos_total': 0, 'pontos_exercicios': 0,
                 'pontos_posts': 0, 'pontos_dinamicas': 0, 'nivel': 1}
     
     return safe_dict(result)
@@ -2089,8 +2295,14 @@ async def get_user_points(db, usuario_id):
 
 async def add_points(db, usuario_id, pontos, tipo='exercicios'):
     """Adiciona pontos a usuárie."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_pontos = sanitize_for_d1(pontos) or 0
+    if s_usuario_id is None:
+        return
+    
     # Primeiro garante que o registro existe
-    await get_user_points(db, usuario_id)
+    await get_user_points(db, s_usuario_id)
     
     # Map tipo to column name safely - apenas colunas da whitelist são usadas
     # Isso é seguro porque tipo_coluna só pode ser um dos valores do dict
@@ -2110,7 +2322,7 @@ async def add_points(db, usuario_id, pontos, tipo='exercicios'):
                 pontos_exercicios = pontos_exercicios + ?,
                 updated_at = datetime('now')
             WHERE usuario_id = ?
-        """).bind(pontos, pontos, usuario_id).run()
+        """).bind(s_pontos, s_pontos, s_usuario_id).run()
     elif tipo_coluna == 'pontos_posts':
         await db.prepare("""
             UPDATE user_points 
@@ -2118,7 +2330,7 @@ async def add_points(db, usuario_id, pontos, tipo='exercicios'):
                 pontos_posts = pontos_posts + ?,
                 updated_at = datetime('now')
             WHERE usuario_id = ?
-        """).bind(pontos, pontos, usuario_id).run()
+        """).bind(s_pontos, s_pontos, s_usuario_id).run()
     elif tipo_coluna == 'pontos_dinamicas':
         await db.prepare("""
             UPDATE user_points 
@@ -2126,17 +2338,22 @@ async def add_points(db, usuario_id, pontos, tipo='exercicios'):
                 pontos_dinamicas = pontos_dinamicas + ?,
                 updated_at = datetime('now')
             WHERE usuario_id = ?
-        """).bind(pontos, pontos, usuario_id).run()
+        """).bind(s_pontos, s_pontos, s_usuario_id).run()
     
     # Atualizar nível baseado em pontos
-    await update_user_level(db, usuario_id)
+    await update_user_level(db, s_usuario_id)
 
 
 async def update_user_level(db, usuario_id):
     """Atualiza o nível de usuárie baseado em pontos."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return
+    
     result = await db.prepare("""
         SELECT pontos_total FROM user_points WHERE usuario_id = ?
-    """).bind(usuario_id).first()
+    """).bind(s_usuario_id).first()
     
     if not result:
         return
@@ -2148,11 +2365,14 @@ async def update_user_level(db, usuario_id):
     
     await db.prepare("""
         UPDATE user_points SET nivel = ? WHERE usuario_id = ?
-    """).bind(nivel, usuario_id).run()
+    """).bind(nivel, s_usuario_id).run()
 
 
 async def get_ranking(db, limit=10, tipo=None):
     """Retorna ranking de usuáries por pontos."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_limit = sanitize_for_d1(limit) or 10
+    
     # Usar queries separadas para cada tipo para evitar f-string SQL
     if tipo == 'exercicios':
         result = await db.prepare("""
@@ -2162,7 +2382,7 @@ async def get_ranking(db, limit=10, tipo=None):
             WHERE u.is_banned = 0
             ORDER BY p.pontos_exercicios DESC
             LIMIT ?
-        """).bind(limit).all()
+        """).bind(s_limit).all()
     elif tipo == 'posts':
         result = await db.prepare("""
             SELECT p.*, u.username, u.nome, u.foto_perfil
@@ -2171,7 +2391,7 @@ async def get_ranking(db, limit=10, tipo=None):
             WHERE u.is_banned = 0
             ORDER BY p.pontos_posts DESC
             LIMIT ?
-        """).bind(limit).all()
+        """).bind(s_limit).all()
     elif tipo == 'dinamicas':
         result = await db.prepare("""
             SELECT p.*, u.username, u.nome, u.foto_perfil
@@ -2180,7 +2400,7 @@ async def get_ranking(db, limit=10, tipo=None):
             WHERE u.is_banned = 0
             ORDER BY p.pontos_dinamicas DESC
             LIMIT ?
-        """).bind(limit).all()
+        """).bind(s_limit).all()
     else:
         result = await db.prepare("""
             SELECT p.*, u.username, u.nome, u.foto_perfil
@@ -2189,7 +2409,7 @@ async def get_ranking(db, limit=10, tipo=None):
             WHERE u.is_banned = 0
             ORDER BY p.pontos_total DESC
             LIMIT ?
-        """).bind(limit).all()
+        """).bind(s_limit).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2204,13 +2424,17 @@ async def get_all_badges(db):
 
 async def get_user_badges(db, usuario_id):
     """Lista badges de usuárie."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return []
     result = await db.prepare("""
         SELECT b.*, ub.earned_at
         FROM user_badge ub
         JOIN badge b ON ub.badge_id = b.id
         WHERE ub.usuario_id = ?
         ORDER BY ub.earned_at DESC
-    """).bind(usuario_id).all()
+    """).bind(s_usuario_id).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
@@ -2218,6 +2442,8 @@ async def award_badge(db, usuario_id, badge_nome):
     """Concede um badge a usuárie."""
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_usuario_id, s_badge_nome = sanitize_params(usuario_id, badge_nome)
+    if s_usuario_id is None or s_badge_nome is None:
+        return False
     
     # Buscar badge por nome
     badge = await db.prepare("""
@@ -2227,10 +2453,14 @@ async def award_badge(db, usuario_id, badge_nome):
     if not badge:
         return False
     
+    badge_id = safe_get(badge, 'id')
+    if badge_id is None:
+        return False
+    
     try:
         await db.prepare("""
             INSERT INTO user_badge (usuario_id, badge_id) VALUES (?, ?)
-        """).bind(s_usuario_id, badge['id']).run()
+        """).bind(s_usuario_id, badge_id).run()
         
         # Notificar usuárie
         await create_notification(db, s_usuario_id, 'badge',
@@ -2242,37 +2472,42 @@ async def award_badge(db, usuario_id, badge_nome):
 
 async def check_and_award_badges(db, usuario_id):
     """Verifica e concede badges que usuárie merece."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return []
+    
     # Buscar estatísticas
-    points = await get_user_points(db, usuario_id)
+    points = await get_user_points(db, s_usuario_id)
     
     badges_concedidos = []
     
     # Badge por pontos de exercícios
     if points['pontos_exercicios'] >= 100:
-        if await award_badge(db, usuario_id, 'Estudante'):
+        if await award_badge(db, s_usuario_id, 'Estudante'):
             badges_concedidos.append('Estudante')
     if points['pontos_exercicios'] >= 500:
-        if await award_badge(db, usuario_id, 'Dedicade'):
+        if await award_badge(db, s_usuario_id, 'Dedicade'):
             badges_concedidos.append('Dedicade')
     if points['pontos_exercicios'] >= 1000:
-        if await award_badge(db, usuario_id, 'Mestre'):
+        if await award_badge(db, s_usuario_id, 'Mestre'):
             badges_concedidos.append('Mestre')
     
     # Badge por posts
     post_count = await db.prepare("""
         SELECT COUNT(*) as count FROM post WHERE usuario_id = ? AND is_deleted = 0
-    """).bind(usuario_id).first()
-    if post_count and post_count['count'] >= 5:
-        if await award_badge(db, usuario_id, 'Escritor'):
+    """).bind(s_usuario_id).first()
+    if post_count and safe_get(post_count, 'count', 0) >= 5:
+        if await award_badge(db, s_usuario_id, 'Escritor'):
             badges_concedidos.append('Escritor')
     
     # Badge por amigues
     amigues_count = await db.prepare("""
         SELECT COUNT(*) as count FROM amizade
         WHERE (usuario1_id = ? OR usuario2_id = ?) AND status = 'aceita'
-    """).bind(usuario_id, usuario_id).first()
-    if amigues_count and amigues_count['count'] >= 5:
-        if await award_badge(db, usuario_id, 'Social'):
+    """).bind(s_usuario_id, s_usuario_id).first()
+    if amigues_count and safe_get(amigues_count, 'count', 0) >= 5:
+        if await award_badge(db, s_usuario_id, 'Social'):
             badges_concedidos.append('Social')
     
     return badges_concedidos
@@ -2284,13 +2519,21 @@ async def check_and_award_badges(db, usuario_id):
 
 async def record_exercise_answer(db, usuario_id, question_id, resposta, correto, tempo_resposta=None):
     """Registra resposta de exercício e retorna pontos ganhos."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_question_id = sanitize_for_d1(question_id)
+    s_resposta = sanitize_for_d1(resposta)
+    s_tempo = sanitize_for_d1(tempo_resposta)
+    if s_usuario_id is None or s_question_id is None:
+        return 0
+    
     pontos = 0
     primeira_tentativa = 1
     
     # Verificar se já respondeu corretamente antes (para não dar pontos novamente)
     scored = await db.prepare("""
         SELECT 1 FROM exercise_scored WHERE usuario_id = ? AND question_id = ?
-    """).bind(usuario_id, question_id).first()
+    """).bind(s_usuario_id, s_question_id).first()
     
     if scored:
         primeira_tentativa = 0
@@ -2301,28 +2544,34 @@ async def record_exercise_answer(db, usuario_id, question_id, resposta, correto,
         # Marcar como pontuado
         await db.prepare("""
             INSERT INTO exercise_scored (usuario_id, question_id) VALUES (?, ?)
-        """).bind(usuario_id, question_id).run()
+        """).bind(s_usuario_id, s_question_id).run()
         
         # Adicionar pontos ao total
-        await add_points(db, usuario_id, pontos, 'exercicios')
+        await add_points(db, s_usuario_id, pontos, 'exercicios')
     
     # Registrar no histórico
     await db.prepare("""
         INSERT INTO exercise_progress (usuario_id, question_id, resposta_usuarie, correto, 
                                         pontos_ganhos, primeira_tentativa, tempo_resposta)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-    """).bind(usuario_id, question_id, resposta, 1 if correto else 0, 
-              pontos, primeira_tentativa, tempo_resposta).run()
+    """).bind(s_usuario_id, s_question_id, s_resposta, 1 if correto else 0, 
+              pontos, primeira_tentativa, s_tempo).run()
     
     # Verificar badges
-    await check_and_award_badges(db, usuario_id)
+    await check_and_award_badges(db, s_usuario_id)
     
     return pontos
 
 
 async def get_user_exercise_stats(db, usuario_id, topic_id=None):
     """Retorna estatísticas de exercícios de usuárie."""
-    if topic_id:
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_topic_id = sanitize_for_d1(topic_id)
+    if s_usuario_id is None:
+        return {'total_respostas': 0, 'acertos': 0, 'pontos': 0}
+    
+    if s_topic_id:
         result = await db.prepare("""
             SELECT 
                 COUNT(*) as total_respostas,
@@ -2331,7 +2580,7 @@ async def get_user_exercise_stats(db, usuario_id, topic_id=None):
             FROM exercise_progress ep
             JOIN exercise_question eq ON ep.question_id = eq.id
             WHERE ep.usuario_id = ? AND eq.topic_id = ?
-        """).bind(usuario_id, topic_id).first()
+        """).bind(s_usuario_id, s_topic_id).first()
     else:
         result = await db.prepare("""
             SELECT 
@@ -2340,7 +2589,7 @@ async def get_user_exercise_stats(db, usuario_id, topic_id=None):
                 SUM(pontos_ganhos) as pontos
             FROM exercise_progress
             WHERE usuario_id = ?
-        """).bind(usuario_id).first()
+        """).bind(s_usuario_id).first()
     
     if result:
         return safe_dict(result)
@@ -2349,7 +2598,14 @@ async def get_user_exercise_stats(db, usuario_id, topic_id=None):
 
 async def get_questions_not_scored(db, usuario_id, topic_id=None, limit=10):
     """Retorna questões que usuárie ainda não pontuou."""
-    if topic_id:
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_topic_id = sanitize_for_d1(topic_id)
+    s_limit = sanitize_for_d1(limit) or 10
+    if s_usuario_id is None:
+        return []
+    
+    if s_topic_id:
         result = await db.prepare("""
             SELECT eq.*, et.nome as topic_name
             FROM exercise_question eq
@@ -2358,7 +2614,7 @@ async def get_questions_not_scored(db, usuario_id, topic_id=None, limit=10):
             WHERE es.question_id IS NULL AND eq.topic_id = ?
             ORDER BY RANDOM()
             LIMIT ?
-        """).bind(usuario_id, topic_id, limit).all()
+        """).bind(s_usuario_id, s_topic_id, s_limit).all()
     else:
         result = await db.prepare("""
             SELECT eq.*, et.nome as topic_name
@@ -2368,7 +2624,7 @@ async def get_questions_not_scored(db, usuario_id, topic_id=None, limit=10):
             WHERE es.question_id IS NULL
             ORDER BY RANDOM()
             LIMIT ?
-        """).bind(usuario_id, limit).all()
+        """).bind(s_usuario_id, s_limit).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2406,18 +2662,26 @@ async def add_to_exercise_list(db, list_id, question_id, ordem=0):
 
 async def get_exercise_lists(db, usuario_id):
     """Lista as listas de exercícios de usuárie."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return []
     result = await db.prepare("""
         SELECT el.*, 
                (SELECT COUNT(*) FROM exercise_list_item WHERE list_id = el.id) as question_count
         FROM exercise_list el
         WHERE el.usuario_id = ?
         ORDER BY el.created_at DESC
-    """).bind(usuario_id).all()
+    """).bind(s_usuario_id).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_exercise_list_questions(db, list_id):
     """Retorna questões de uma lista."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_list_id = sanitize_for_d1(list_id)
+    if s_list_id is None:
+        return []
     result = await db.prepare("""
         SELECT eq.*, et.nome as topic_name, eli.ordem
         FROM exercise_list_item eli
@@ -2425,7 +2689,7 @@ async def get_exercise_list_questions(db, list_id):
         JOIN exercise_topic et ON eq.topic_id = et.id
         WHERE eli.list_id = ?
         ORDER BY eli.ordem
-    """).bind(list_id).all()
+    """).bind(s_list_id).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
@@ -2480,7 +2744,10 @@ async def add_flashcard(db, deck_id, frente, verso, dica=None, ordem=0):
 
 async def get_flashcard_decks(db, usuario_id=None, include_public=True):
     """Lista decks de flashcards."""
-    if usuario_id and include_public:
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    
+    if s_usuario_id and include_public:
         result = await db.prepare("""
             SELECT fd.*, u.username as author_name,
                    (SELECT COUNT(*) FROM flashcard WHERE deck_id = fd.id) as card_count
@@ -2488,8 +2755,8 @@ async def get_flashcard_decks(db, usuario_id=None, include_public=True):
             LEFT JOIN user u ON fd.usuario_id = u.id
             WHERE fd.usuario_id = ? OR fd.is_public = 1
             ORDER BY fd.created_at DESC
-        """).bind(usuario_id).all()
-    elif usuario_id:
+        """).bind(s_usuario_id).all()
+    elif s_usuario_id:
         result = await db.prepare("""
             SELECT fd.*, u.username as author_name,
                    (SELECT COUNT(*) FROM flashcard WHERE deck_id = fd.id) as card_count
@@ -2497,7 +2764,7 @@ async def get_flashcard_decks(db, usuario_id=None, include_public=True):
             LEFT JOIN user u ON fd.usuario_id = u.id
             WHERE fd.usuario_id = ?
             ORDER BY fd.created_at DESC
-        """).bind(usuario_id).all()
+        """).bind(s_usuario_id).all()
     else:
         result = await db.prepare("""
             SELECT fd.*, u.username as author_name,
@@ -2513,17 +2780,28 @@ async def get_flashcard_decks(db, usuario_id=None, include_public=True):
 
 async def get_flashcards(db, deck_id):
     """Retorna flashcards de um deck."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_deck_id = sanitize_for_d1(deck_id)
+    if s_deck_id is None:
+        return []
     result = await db.prepare("""
         SELECT * FROM flashcard WHERE deck_id = ? ORDER BY ordem
-    """).bind(deck_id).all()
+    """).bind(s_deck_id).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_cards_to_review(db, usuario_id, deck_id=None, limit=20):
     """Retorna flashcards para revisão espaçada."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_deck_id = sanitize_for_d1(deck_id)
+    s_limit = sanitize_for_d1(limit) or 20
+    if s_usuario_id is None:
+        return []
+    
     now = datetime.utcnow().isoformat()
     
-    if deck_id:
+    if s_deck_id:
         result = await db.prepare("""
             SELECT f.*, fr.ease_factor, fr.interval_days, fr.repetitions, fr.next_review
             FROM flashcard f
@@ -2532,7 +2810,7 @@ async def get_cards_to_review(db, usuario_id, deck_id=None, limit=20):
             AND (fr.next_review IS NULL OR fr.next_review <= ?)
             ORDER BY fr.next_review NULLS FIRST, RANDOM()
             LIMIT ?
-        """).bind(usuario_id, deck_id, now, limit).all()
+        """).bind(s_usuario_id, s_deck_id, now, s_limit).all()
     else:
         result = await db.prepare("""
             SELECT f.*, fd.titulo as deck_titulo, fr.ease_factor, fr.interval_days, 
@@ -2544,7 +2822,7 @@ async def get_cards_to_review(db, usuario_id, deck_id=None, limit=20):
             AND (fr.next_review IS NULL OR fr.next_review <= ?)
             ORDER BY fr.next_review NULLS FIRST, RANDOM()
             LIMIT ?
-        """).bind(usuario_id, usuario_id, now, limit).all()
+        """).bind(s_usuario_id, s_usuario_id, now, s_limit).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2554,22 +2832,30 @@ async def record_flashcard_review(db, usuario_id, flashcard_id, quality):
     Registra revisão de flashcard usando algoritmo SM-2.
     quality: 0-5 (0-2 = errou, 3-5 = acertou com diferentes níveis de facilidade)
     """
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_flashcard_id = sanitize_for_d1(flashcard_id)
+    s_quality = sanitize_for_d1(quality) or 3
+    if s_usuario_id is None or s_flashcard_id is None:
+        return {'ease_factor': 2.5, 'interval_days': 1, 'next_review': None}
+    
     # Buscar revisão existente
     existing = await db.prepare("""
         SELECT * FROM flashcard_review WHERE usuario_id = ? AND flashcard_id = ?
-    """).bind(usuario_id, flashcard_id).first()
+    """).bind(s_usuario_id, s_flashcard_id).first()
     
     if existing:
-        ef = existing['ease_factor']
-        reps = existing['repetitions']
-        interval = existing['interval_days']
+        existing_dict = safe_dict(existing)
+        ef = safe_get(existing_dict, 'ease_factor', 2.5)
+        reps = safe_get(existing_dict, 'repetitions', 0)
+        interval = safe_get(existing_dict, 'interval_days', 1)
     else:
         ef = 2.5
         reps = 0
         interval = 1
     
     # Algoritmo SM-2
-    if quality < 3:
+    if s_quality < 3:
         # Errou - resetar
         reps = 0
         interval = 1
@@ -2584,7 +2870,7 @@ async def record_flashcard_review(db, usuario_id, flashcard_id, quality):
         reps += 1
     
     # Atualizar ease factor
-    ef = max(1.3, ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)))
+    ef = max(1.3, ef + (0.1 - (5 - s_quality) * (0.08 + (5 - s_quality) * 0.02)))
     
     # Calcular próxima revisão
     next_review = (datetime.utcnow() + timedelta(days=interval)).isoformat()
@@ -2595,13 +2881,13 @@ async def record_flashcard_review(db, usuario_id, flashcard_id, quality):
             SET ease_factor = ?, interval_days = ?, repetitions = ?, 
                 next_review = ?, last_review = datetime('now')
             WHERE usuario_id = ? AND flashcard_id = ?
-        """).bind(ef, interval, reps, next_review, usuario_id, flashcard_id).run()
+        """).bind(ef, interval, reps, next_review, s_usuario_id, s_flashcard_id).run()
     else:
         await db.prepare("""
             INSERT INTO flashcard_review (usuario_id, flashcard_id, ease_factor, 
                                           interval_days, repetitions, next_review, last_review)
             VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
-        """).bind(usuario_id, flashcard_id, ef, interval, reps, next_review).run()
+        """).bind(s_usuario_id, s_flashcard_id, ef, interval, reps, next_review).run()
     
     return {'ease_factor': ef, 'interval_days': interval, 'next_review': next_review}
 
@@ -2634,24 +2920,34 @@ async def remove_favorite(db, usuario_id, tipo, item_id):
 
 async def is_favorite(db, usuario_id, tipo, item_id):
     """Verifica se item é favorito."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_tipo, s_item_id = sanitize_params(usuario_id, tipo, item_id)
+    if s_usuario_id is None:
+        return False
     result = await db.prepare("""
         SELECT 1 FROM favorito WHERE usuario_id = ? AND tipo = ? AND item_id = ?
-    """).bind(usuario_id, tipo, item_id).first()
+    """).bind(s_usuario_id, s_tipo, s_item_id).first()
     return result is not None
 
 
 async def get_favorites(db, usuario_id, tipo=None):
     """Lista favoritos de usuárie."""
-    if tipo:
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_tipo = sanitize_for_d1(tipo)
+    if s_usuario_id is None:
+        return []
+    
+    if s_tipo:
         result = await db.prepare("""
             SELECT * FROM favorito WHERE usuario_id = ? AND tipo = ?
             ORDER BY created_at DESC
-        """).bind(usuario_id, tipo).all()
+        """).bind(s_usuario_id, s_tipo).all()
     else:
         result = await db.prepare("""
             SELECT * FROM favorito WHERE usuario_id = ?
             ORDER BY created_at DESC
-        """).bind(usuario_id).all()
+        """).bind(s_usuario_id).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2677,20 +2973,27 @@ async def add_to_history(db, usuario_id, tipo, item_tipo, item_id, dados=None):
 
 async def get_user_history(db, usuario_id, item_tipo=None, limit=50):
     """Lista histórico de usuárie."""
-    if item_tipo:
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_item_tipo = sanitize_for_d1(item_tipo)
+    s_limit = sanitize_for_d1(limit) or 50
+    if s_usuario_id is None:
+        return []
+    
+    if s_item_tipo:
         result = await db.prepare("""
             SELECT * FROM user_history 
             WHERE usuario_id = ? AND item_tipo = ?
             ORDER BY created_at DESC
             LIMIT ?
-        """).bind(usuario_id, item_tipo, limit).all()
+        """).bind(s_usuario_id, s_item_tipo, s_limit).all()
     else:
         result = await db.prepare("""
             SELECT * FROM user_history 
             WHERE usuario_id = ?
             ORDER BY created_at DESC
             LIMIT ?
-        """).bind(usuario_id, limit).all()
+        """).bind(s_usuario_id, s_limit).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2701,16 +3004,20 @@ async def get_user_history(db, usuario_id, item_tipo=None, limit=50):
 
 async def get_user_preferences(db, usuario_id):
     """Retorna preferências de usuárie."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return {'tema': 'claro', 'alto_contraste': False}
     result = await db.prepare("""
         SELECT * FROM user_preferences WHERE usuario_id = ?
-    """).bind(usuario_id).first()
+    """).bind(s_usuario_id).first()
     
     if not result:
         # Criar preferências padrão
         await db.prepare("""
             INSERT INTO user_preferences (usuario_id) VALUES (?)
-        """).bind(usuario_id).run()
-        return await get_user_preferences(db, usuario_id)
+        """).bind(s_usuario_id).run()
+        return await get_user_preferences(db, s_usuario_id)
     
     return safe_dict(result)
 
