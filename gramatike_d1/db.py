@@ -1263,7 +1263,7 @@ async def get_dynamic_by_id(db, dynamic_id):
         FROM dynamic d
         LEFT JOIN user u ON d.created_by = u.id
         WHERE d.id = ?
-    """).bind(dynamic_id).first()
+    """).bind(s_dynamic_id).first()
     if result:
         return safe_dict(result)
     return None
@@ -2668,12 +2668,16 @@ async def get_exercise_lists(db, usuario_id):
         FROM exercise_list el
         WHERE el.usuario_id = ?
         ORDER BY el.created_at DESC
-    """).bind(usuario_id).all()
+    """).bind(s_usuario_id).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_exercise_list_questions(db, list_id):
     """Retorna questões de uma lista."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_list_id = sanitize_for_d1(list_id)
+    if s_list_id is None:
+        return []
     result = await db.prepare("""
         SELECT eq.*, et.nome as topic_name, eli.ordem
         FROM exercise_list_item eli
@@ -2681,7 +2685,7 @@ async def get_exercise_list_questions(db, list_id):
         JOIN exercise_topic et ON eq.topic_id = et.id
         WHERE eli.list_id = ?
         ORDER BY eli.ordem
-    """).bind(list_id).all()
+    """).bind(s_list_id).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
@@ -2736,7 +2740,10 @@ async def add_flashcard(db, deck_id, frente, verso, dica=None, ordem=0):
 
 async def get_flashcard_decks(db, usuario_id=None, include_public=True):
     """Lista decks de flashcards."""
-    if usuario_id and include_public:
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    
+    if s_usuario_id and include_public:
         result = await db.prepare("""
             SELECT fd.*, u.username as author_name,
                    (SELECT COUNT(*) FROM flashcard WHERE deck_id = fd.id) as card_count
@@ -2744,8 +2751,8 @@ async def get_flashcard_decks(db, usuario_id=None, include_public=True):
             LEFT JOIN user u ON fd.usuario_id = u.id
             WHERE fd.usuario_id = ? OR fd.is_public = 1
             ORDER BY fd.created_at DESC
-        """).bind(usuario_id).all()
-    elif usuario_id:
+        """).bind(s_usuario_id).all()
+    elif s_usuario_id:
         result = await db.prepare("""
             SELECT fd.*, u.username as author_name,
                    (SELECT COUNT(*) FROM flashcard WHERE deck_id = fd.id) as card_count
@@ -2753,7 +2760,7 @@ async def get_flashcard_decks(db, usuario_id=None, include_public=True):
             LEFT JOIN user u ON fd.usuario_id = u.id
             WHERE fd.usuario_id = ?
             ORDER BY fd.created_at DESC
-        """).bind(usuario_id).all()
+        """).bind(s_usuario_id).all()
     else:
         result = await db.prepare("""
             SELECT fd.*, u.username as author_name,
@@ -2771,15 +2778,22 @@ async def get_flashcards(db, deck_id):
     """Retorna flashcards de um deck."""
     result = await db.prepare("""
         SELECT * FROM flashcard WHERE deck_id = ? ORDER BY ordem
-    """).bind(deck_id).all()
+    """).bind(s_deck_id).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
 async def get_cards_to_review(db, usuario_id, deck_id=None, limit=20):
     """Retorna flashcards para revisão espaçada."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_deck_id = sanitize_for_d1(deck_id)
+    s_limit = sanitize_for_d1(limit) or 20
+    if s_usuario_id is None:
+        return []
+    
     now = datetime.utcnow().isoformat()
     
-    if deck_id:
+    if s_deck_id:
         result = await db.prepare("""
             SELECT f.*, fr.ease_factor, fr.interval_days, fr.repetitions, fr.next_review
             FROM flashcard f
@@ -2788,7 +2802,7 @@ async def get_cards_to_review(db, usuario_id, deck_id=None, limit=20):
             AND (fr.next_review IS NULL OR fr.next_review <= ?)
             ORDER BY fr.next_review NULLS FIRST, RANDOM()
             LIMIT ?
-        """).bind(usuario_id, deck_id, now, limit).all()
+        """).bind(s_usuario_id, s_deck_id, now, s_limit).all()
     else:
         result = await db.prepare("""
             SELECT f.*, fd.titulo as deck_titulo, fr.ease_factor, fr.interval_days, 
@@ -2800,7 +2814,7 @@ async def get_cards_to_review(db, usuario_id, deck_id=None, limit=20):
             AND (fr.next_review IS NULL OR fr.next_review <= ?)
             ORDER BY fr.next_review NULLS FIRST, RANDOM()
             LIMIT ?
-        """).bind(usuario_id, usuario_id, now, limit).all()
+        """).bind(s_usuario_id, s_usuario_id, now, s_limit).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2810,22 +2824,30 @@ async def record_flashcard_review(db, usuario_id, flashcard_id, quality):
     Registra revisão de flashcard usando algoritmo SM-2.
     quality: 0-5 (0-2 = errou, 3-5 = acertou com diferentes níveis de facilidade)
     """
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_flashcard_id = sanitize_for_d1(flashcard_id)
+    s_quality = sanitize_for_d1(quality) or 3
+    if s_usuario_id is None or s_flashcard_id is None:
+        return {'ease_factor': 2.5, 'interval_days': 1, 'next_review': None}
+    
     # Buscar revisão existente
     existing = await db.prepare("""
         SELECT * FROM flashcard_review WHERE usuario_id = ? AND flashcard_id = ?
-    """).bind(usuario_id, flashcard_id).first()
+    """).bind(s_usuario_id, s_flashcard_id).first()
     
     if existing:
-        ef = existing['ease_factor']
-        reps = existing['repetitions']
-        interval = existing['interval_days']
+        existing_dict = safe_dict(existing)
+        ef = safe_get(existing_dict, 'ease_factor', 2.5)
+        reps = safe_get(existing_dict, 'repetitions', 0)
+        interval = safe_get(existing_dict, 'interval_days', 1)
     else:
         ef = 2.5
         reps = 0
         interval = 1
     
     # Algoritmo SM-2
-    if quality < 3:
+    if s_quality < 3:
         # Errou - resetar
         reps = 0
         interval = 1
@@ -2840,7 +2862,7 @@ async def record_flashcard_review(db, usuario_id, flashcard_id, quality):
         reps += 1
     
     # Atualizar ease factor
-    ef = max(1.3, ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)))
+    ef = max(1.3, ef + (0.1 - (5 - s_quality) * (0.08 + (5 - s_quality) * 0.02)))
     
     # Calcular próxima revisão
     next_review = (datetime.utcnow() + timedelta(days=interval)).isoformat()
@@ -2851,13 +2873,13 @@ async def record_flashcard_review(db, usuario_id, flashcard_id, quality):
             SET ease_factor = ?, interval_days = ?, repetitions = ?, 
                 next_review = ?, last_review = datetime('now')
             WHERE usuario_id = ? AND flashcard_id = ?
-        """).bind(ef, interval, reps, next_review, usuario_id, flashcard_id).run()
+        """).bind(ef, interval, reps, next_review, s_usuario_id, s_flashcard_id).run()
     else:
         await db.prepare("""
             INSERT INTO flashcard_review (usuario_id, flashcard_id, ease_factor, 
                                           interval_days, repetitions, next_review, last_review)
             VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
-        """).bind(usuario_id, flashcard_id, ef, interval, reps, next_review).run()
+        """).bind(s_usuario_id, s_flashcard_id, ef, interval, reps, next_review).run()
     
     return {'ease_factor': ef, 'interval_days': interval, 'next_review': next_review}
 
@@ -2890,24 +2912,34 @@ async def remove_favorite(db, usuario_id, tipo, item_id):
 
 async def is_favorite(db, usuario_id, tipo, item_id):
     """Verifica se item é favorito."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_tipo, s_item_id = sanitize_params(usuario_id, tipo, item_id)
+    if s_usuario_id is None:
+        return False
     result = await db.prepare("""
         SELECT 1 FROM favorito WHERE usuario_id = ? AND tipo = ? AND item_id = ?
-    """).bind(usuario_id, tipo, item_id).first()
+    """).bind(s_usuario_id, s_tipo, s_item_id).first()
     return result is not None
 
 
 async def get_favorites(db, usuario_id, tipo=None):
     """Lista favoritos de usuárie."""
-    if tipo:
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_tipo = sanitize_for_d1(tipo)
+    if s_usuario_id is None:
+        return []
+    
+    if s_tipo:
         result = await db.prepare("""
             SELECT * FROM favorito WHERE usuario_id = ? AND tipo = ?
             ORDER BY created_at DESC
-        """).bind(usuario_id, tipo).all()
+        """).bind(s_usuario_id, s_tipo).all()
     else:
         result = await db.prepare("""
             SELECT * FROM favorito WHERE usuario_id = ?
             ORDER BY created_at DESC
-        """).bind(usuario_id).all()
+        """).bind(s_usuario_id).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2933,20 +2965,27 @@ async def add_to_history(db, usuario_id, tipo, item_tipo, item_id, dados=None):
 
 async def get_user_history(db, usuario_id, item_tipo=None, limit=50):
     """Lista histórico de usuárie."""
-    if item_tipo:
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_item_tipo = sanitize_for_d1(item_tipo)
+    s_limit = sanitize_for_d1(limit) or 50
+    if s_usuario_id is None:
+        return []
+    
+    if s_item_tipo:
         result = await db.prepare("""
             SELECT * FROM user_history 
             WHERE usuario_id = ? AND item_tipo = ?
             ORDER BY created_at DESC
             LIMIT ?
-        """).bind(usuario_id, item_tipo, limit).all()
+        """).bind(s_usuario_id, s_item_tipo, s_limit).all()
     else:
         result = await db.prepare("""
             SELECT * FROM user_history 
             WHERE usuario_id = ?
             ORDER BY created_at DESC
             LIMIT ?
-        """).bind(usuario_id, limit).all()
+        """).bind(s_usuario_id, s_limit).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2957,16 +2996,20 @@ async def get_user_history(db, usuario_id, item_tipo=None, limit=50):
 
 async def get_user_preferences(db, usuario_id):
     """Retorna preferências de usuárie."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return {'tema': 'claro', 'alto_contraste': False}
     result = await db.prepare("""
         SELECT * FROM user_preferences WHERE usuario_id = ?
-    """).bind(usuario_id).first()
+    """).bind(s_usuario_id).first()
     
     if not result:
         # Criar preferências padrão
         await db.prepare("""
             INSERT INTO user_preferences (usuario_id) VALUES (?)
-        """).bind(usuario_id).run()
-        return await get_user_preferences(db, usuario_id)
+        """).bind(s_usuario_id).run()
+        return await get_user_preferences(db, s_usuario_id)
     
     return safe_dict(result)
 
