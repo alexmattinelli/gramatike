@@ -237,29 +237,35 @@ def sanitize_for_d1(value, _depth=0):
     if value is None:
         return None
     
+    # CRITICAL: Check string representation FIRST before any other checks
+    # This catches cases where the value is 'undefined' as a string or JsProxy
+    try:
+        str_repr = str(value)
+        if str_repr == 'undefined' or str_repr == 'null':
+            return None
+    except Exception:
+        pass  # Continue with other checks
+    
+    # Check type name - some JsProxy types have specific names
+    try:
+        type_name = type(value).__name__
+        if type_name in ('JsUndefined', 'JsNull', 'undefined', 'null'):
+            return None
+    except Exception:
+        pass
+    
     # Check for JavaScript undefined (appears as a JsProxy with undefined type)
     try:
         if _is_js_proxy(value):
-            # First check if the string representation indicates undefined
-            # This is safer than calling to_py() which might throw JsException
-            try:
-                str_val = str(value)
-                if str_val == 'undefined':
-                    return None
-            except (TypeError, ValueError):
-                # If we can't get string representation, assume it's undefined
-                return None
-            except Exception as str_err:
-                # Log unexpected errors before returning None
-                console.warn(f"[sanitize_for_d1] Unexpected error getting str(value): {str_err}")
-                return None
-            
             # Try to convert to Python - undefined converts to None
             if hasattr(value, 'to_py'):
                 try:
                     py_value = value.to_py()
                     # to_py() on undefined returns None
                     if py_value is None:
+                        return None
+                    # Check if the converted value is also undefined string
+                    if str(py_value) == 'undefined':
                         return None
                     # After successful conversion, the value should be a Python native type
                     # Only recurse if still a JsProxy-like object (shouldn't normally happen)
@@ -273,6 +279,17 @@ def sanitize_for_d1(value, _depth=0):
             # If we reach here, we have a JsProxy-like object but couldn't convert it
             # Return None to be safe
             return None
+        
+        # Check if value has to_py method even if not detected as JsProxy
+        # This handles edge cases where type detection fails
+        if hasattr(value, 'to_py') and callable(getattr(value, 'to_py')):
+            try:
+                py_value = value.to_py()
+                if py_value is None or str(py_value) == 'undefined':
+                    return None
+                return py_value
+            except Exception:
+                return None
         
         # For regular Python values, return as-is
         return value
