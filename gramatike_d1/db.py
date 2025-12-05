@@ -1673,19 +1673,16 @@ async def update_user_email(db, usuario_id, new_email):
 async def create_notification(db, usuario_id, tipo, titulo=None, mensagem=None, link=None,
                               from_usuario_id=None, post_id=None, comentario_id=None):
     """Cria uma notificação para usuárie."""
-    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
-    s_params = sanitize_params(usuario_id, tipo, titulo, mensagem, link, 
-                               from_usuario_id, post_id, comentario_id)
-    
-    # Convert Python None to JavaScript null for D1
-    d1_params = tuple(to_d1_null(p) for p in s_params)
+    # Sanitize parameters and convert None to JavaScript null for D1
+    params = d1_params(usuario_id, tipo, titulo, mensagem, link, 
+                       from_usuario_id, post_id, comentario_id)
     
     result = await db.prepare("""
         INSERT INTO notification 
         (usuario_id, tipo, titulo, mensagem, link, from_usuario_id, post_id, comentario_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(*d1_params).first()
+    """).bind(*params).first()
     return safe_get(result, 'id')
 
 
@@ -2401,16 +2398,13 @@ async def log_activity(db, acao, usuario_id=None, descricao=None, ip_address=Non
     """Registra uma atividade no log de auditoria."""
     dados_json = json.dumps(dados_extra) if dados_extra else None
     
-    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
-    s_params = sanitize_params(usuario_id, acao, descricao, ip_address, user_agent, dados_json)
-    
-    # Convert Python None to JavaScript null for D1
-    d1_params = tuple(to_d1_null(p) for p in s_params)
+    # Sanitize parameters and convert None to JavaScript null for D1
+    params = d1_params(usuario_id, acao, descricao, ip_address, user_agent, dados_json)
     
     await db.prepare("""
         INSERT INTO activity_log (usuario_id, acao, descricao, ip_address, user_agent, dados_extra)
         VALUES (?, ?, ?, ?, ?, ?)
-    """).bind(*d1_params).run()
+    """).bind(*params).run()
 
 
 async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
