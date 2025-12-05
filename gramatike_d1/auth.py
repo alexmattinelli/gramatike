@@ -8,7 +8,8 @@
 import json
 from .db import (
     get_user_by_username, get_user_by_email, verify_password,
-    create_session, get_session, delete_session, create_user
+    create_session, get_session, delete_session, create_user,
+    sanitize_for_d1
 )
 
 # Nome do cookie de sessão
@@ -101,9 +102,11 @@ async def login(db, request, username_or_email, password):
     if error:
         return None, error
     
-    # Extrai informações do request
-    user_agent = request.headers.get('User-Agent')
-    ip_address = request.headers.get('CF-Connecting-IP') or request.headers.get('X-Forwarded-For')
+    # Extrai informações do request e sanitize para evitar D1_TYPE_ERROR
+    user_agent = sanitize_for_d1(request.headers.get('User-Agent'))
+    # Get raw IP values first, apply fallback, then sanitize once
+    raw_ip = request.headers.get('CF-Connecting-IP') or request.headers.get('X-Forwarded-For')
+    ip_address = sanitize_for_d1(raw_ip)
     
     # Cria sessão
     token = await create_session(db, user['id'], user_agent, ip_address)

@@ -656,23 +656,28 @@ async def get_user_by_email(db, email):
 async def create_user(db, username, email, password, nome=None):
     """Cria ume nove usuárie."""
     hashed = hash_password(password)
+    # Sanitize all parameters to prevent D1_TYPE_ERROR from undefined values
+    s_username, s_email, s_hashed, s_nome = sanitize_params(username, email, hashed, nome)
     result = await db.prepare("""
         INSERT INTO user (username, email, password, nome, created_at)
         VALUES (?, ?, ?, ?, datetime('now'))
         RETURNING id
-    """).bind(username, email, hashed, nome).first()
+    """).bind(s_username, s_email, s_hashed, s_nome).first()
     return safe_get(result, 'id')
 
 
 async def update_user_profile(db, user_id, **kwargs):
     """Atualiza o perfil de usuárie."""
     allowed = ['nome', 'bio', 'genero', 'pronome', 'foto_perfil', 'data_nascimento']
-    updates = {k: v for k, v in kwargs.items() if k in allowed and v is not None}
+    # Sanitize values to prevent D1_TYPE_ERROR from undefined values
+    updates = {k: sanitize_for_d1(v) for k, v in kwargs.items() if k in allowed}
+    # Filter out None values after sanitization
+    updates = {k: v for k, v in updates.items() if v is not None}
     if not updates:
         return False
     
     set_clause = ', '.join(f"{k} = ?" for k in updates.keys())
-    values = list(updates.values()) + [user_id]
+    values = list(updates.values()) + [sanitize_for_d1(user_id)]
     
     await db.prepare(f"""
         UPDATE user SET {set_clause} WHERE id = ?
@@ -689,10 +694,15 @@ async def create_session(db, user_id, user_agent=None, ip_address=None):
     token = generate_session_token()
     expires_at = (datetime.utcnow() + timedelta(days=30)).isoformat()
     
+    # Sanitize all parameters to prevent D1_TYPE_ERROR from undefined values
+    s_user_id, s_token, s_expires_at, s_user_agent, s_ip_address = sanitize_params(
+        user_id, token, expires_at, user_agent, ip_address
+    )
+    
     await db.prepare("""
         INSERT INTO user_session (user_id, token, expires_at, user_agent, ip_address)
         VALUES (?, ?, ?, ?, ?)
-    """).bind(user_id, token, expires_at, user_agent, ip_address).run()
+    """).bind(s_user_id, s_token, s_expires_at, s_user_agent, s_ip_address).run()
     
     return token
 
@@ -846,10 +856,12 @@ async def delete_post(db, post_id, deleted_by=None):
 
 async def like_post(db, user_id, post_id):
     """Curte um post."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_user_id, s_post_id = sanitize_params(user_id, post_id)
     try:
         await db.prepare("""
             INSERT INTO post_likes (user_id, post_id) VALUES (?, ?)
-        """).bind(user_id, post_id).run()
+        """).bind(s_user_id, s_post_id).run()
         return True
     except:
         return False
@@ -857,9 +869,11 @@ async def like_post(db, user_id, post_id):
 
 async def unlike_post(db, user_id, post_id):
     """Remove curtida de um post."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_user_id, s_post_id = sanitize_params(user_id, post_id)
     await db.prepare("""
         DELETE FROM post_likes WHERE user_id = ? AND post_id = ?
-    """).bind(user_id, post_id).run()
+    """).bind(s_user_id, s_post_id).run()
 
 
 async def has_liked(db, user_id, post_id):
@@ -892,11 +906,13 @@ async def get_comments(db, post_id, page=1, per_page=50):
 
 async def create_comment(db, post_id, usuario_id, conteudo):
     """Cria um novo comentário."""
+    # Sanitize all parameters to prevent D1_TYPE_ERROR from undefined values
+    s_post_id, s_usuario_id, s_conteudo = sanitize_params(post_id, usuario_id, conteudo)
     result = await db.prepare("""
         INSERT INTO comentario (post_id, usuario_id, conteudo, data)
         VALUES (?, ?, ?, datetime('now'))
         RETURNING id
-    """).bind(post_id, usuario_id, conteudo).first()
+    """).bind(s_post_id, s_usuario_id, s_conteudo).first()
     return safe_get(result, 'id')
 
 
@@ -906,12 +922,14 @@ async def create_comment(db, post_id, usuario_id, conteudo):
 
 async def follow_user(db, seguidore_id, seguide_id):
     """Seguir ume usuárie."""
-    if seguidore_id == seguide_id:
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_seguidore_id, s_seguide_id = sanitize_params(seguidore_id, seguide_id)
+    if s_seguidore_id == s_seguide_id:
         return False
     try:
         await db.prepare("""
             INSERT INTO seguidories (seguidore_id, seguide_id) VALUES (?, ?)
-        """).bind(seguidore_id, seguide_id).run()
+        """).bind(s_seguidore_id, s_seguide_id).run()
         return True
     except:
         return False
@@ -919,9 +937,11 @@ async def follow_user(db, seguidore_id, seguide_id):
 
 async def unfollow_user(db, seguidore_id, seguide_id):
     """Deixar de seguir ume usuárie."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_seguidore_id, s_seguide_id = sanitize_params(seguidore_id, seguide_id)
     await db.prepare("""
         DELETE FROM seguidories WHERE seguidore_id = ? AND seguide_id = ?
-    """).bind(seguidore_id, seguide_id).run()
+    """).bind(s_seguidore_id, s_seguide_id).run()
 
 
 async def is_following(db, seguidore_id, seguide_id):
@@ -1139,11 +1159,14 @@ async def submit_dynamic_response(db, dynamic_id, usuario_id, payload):
     """Submete resposta para uma dinâmica."""
     payload_json = json.dumps(payload) if isinstance(payload, dict) else payload
     
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_dynamic_id, s_usuario_id, s_payload_json = sanitize_params(dynamic_id, usuario_id, payload_json)
+    
     result = await db.prepare("""
         INSERT INTO dynamic_response (dynamic_id, usuario_id, payload)
         VALUES (?, ?, ?)
         RETURNING id
-    """).bind(dynamic_id, usuario_id, payload_json).first()
+    """).bind(s_dynamic_id, s_usuario_id, s_payload_json).first()
     return safe_get(result, 'id')
 
 
@@ -1337,13 +1360,15 @@ async def update_user_email(db, usuario_id, new_email):
 async def create_notification(db, usuario_id, tipo, titulo=None, mensagem=None, link=None,
                               from_usuario_id=None, post_id=None, comentario_id=None):
     """Cria uma notificação para usuárie."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_params = sanitize_params(usuario_id, tipo, titulo, mensagem, link, 
+                               from_usuario_id, post_id, comentario_id)
     result = await db.prepare("""
         INSERT INTO notification 
         (usuario_id, tipo, titulo, mensagem, link, from_usuario_id, post_id, comentario_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(usuario_id, tipo, titulo, mensagem, link, 
-              from_usuario_id, post_id, comentario_id).first()
+    """).bind(*s_params).first()
     return safe_get(result, 'id')
 
 
@@ -1516,11 +1541,13 @@ async def remove_amizade(db, usuario_id, amigue_id):
 
 async def create_report(db, post_id, usuario_id, motivo, category=None):
     """Cria uma denúncia de post."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_post_id, s_usuario_id, s_motivo, s_category = sanitize_params(post_id, usuario_id, motivo, category)
     result = await db.prepare("""
         INSERT INTO report (post_id, usuario_id, motivo, category)
         VALUES (?, ?, ?, ?)
         RETURNING id
-    """).bind(post_id, usuario_id, motivo, category).first()
+    """).bind(s_post_id, s_usuario_id, s_motivo, s_category).first()
     return safe_get(result, 'id')
 
 
@@ -1573,11 +1600,13 @@ async def count_pending_reports(db):
 
 async def create_support_ticket(db, mensagem, usuario_id=None, nome=None, email=None):
     """Cria um ticket de suporte."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_nome, s_email, s_mensagem = sanitize_params(usuario_id, nome, email, mensagem)
     result = await db.prepare("""
         INSERT INTO support_ticket (usuario_id, nome, email, mensagem)
         VALUES (?, ?, ?, ?)
         RETURNING id
-    """).bind(usuario_id, nome, email, mensagem).first()
+    """).bind(s_usuario_id, s_nome, s_email, s_mensagem).first()
     return safe_get(result, 'id')
 
 
@@ -1914,10 +1943,13 @@ async def log_activity(db, acao, usuario_id=None, descricao=None, ip_address=Non
     """Registra uma atividade no log de auditoria."""
     dados_json = json.dumps(dados_extra) if dados_extra else None
     
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_params = sanitize_params(usuario_id, acao, descricao, ip_address, user_agent, dados_json)
+    
     await db.prepare("""
         INSERT INTO activity_log (usuario_id, acao, descricao, ip_address, user_agent, dados_extra)
         VALUES (?, ?, ?, ?, ?, ?)
-    """).bind(usuario_id, acao, descricao, ip_address, user_agent, dados_json).run()
+    """).bind(*s_params).run()
 
 
 async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
