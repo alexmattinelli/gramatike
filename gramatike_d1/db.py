@@ -174,32 +174,47 @@ def sanitize_for_d1(value):
         # Get the type name - JavaScript undefined has a specific representation
         type_name = type(value).__name__
         
-        # JsProxy objects representing undefined need special handling
-        if type_name == 'JsProxy':
+        # JsProxy objects (or similar JS proxy types) need special handling
+        # Check for JsProxy or any type that might wrap JS values
+        is_js_proxy = (
+            type_name == 'JsProxy' or 
+            type_name.endswith('Proxy') or
+            'Js' in type_name or
+            hasattr(value, 'to_py')
+        )
+        
+        if is_js_proxy:
+            # First check if the string representation indicates undefined
+            # This is safer than calling to_py() which might throw JsException
+            try:
+                str_val = str(value)
+                if str_val in ('undefined', '', 'null'):
+                    return None
+            except Exception:
+                # If we can't get string representation, assume it's undefined
+                return None
+            
             # Try to convert to Python - undefined converts to None
             if hasattr(value, 'to_py'):
                 try:
                     py_value = value.to_py()
                     # to_py() on undefined returns None
-                    return py_value
-                except (TypeError, AttributeError, ValueError):
-                    # If conversion fails due to unsupported type, treat as None
+                    if py_value is None:
+                        return None
+                    # Recursively sanitize the converted value
+                    return sanitize_for_d1(py_value)
+                except Exception:
+                    # If conversion fails (including JsException), treat as None
                     return None
             
-            # Check if value is JavaScript undefined by comparing to None-like behavior
-            try:
-                # JavaScript undefined is falsy and has no meaningful string representation
-                # Note: we only check for 'undefined' and '' as 'null' is handled by to_py()
-                str_val = str(value)
-                if str_val in ('undefined', ''):
-                    return None
-            except (TypeError, ValueError):
-                return None
+            # If we reach here, we have a JsProxy-like object but couldn't convert it
+            # Return None to be safe
+            return None
         
         # For regular Python values, return as-is
         return value
         
-    except (TypeError, AttributeError) as e:
+    except Exception as e:
         # Log the error for debugging but return None to prevent D1_TYPE_ERROR
         console.warn(f"[sanitize_for_d1] Unexpected error converting value: {e}")
         return None
