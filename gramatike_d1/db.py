@@ -14,8 +14,10 @@ import secrets
 
 # Import JavaScript console for proper log levels in Cloudflare Workers
 # console.log = info level, console.warn = warning, console.error = error
+# Also import JavaScript's null to properly handle None values in D1 queries
 try:
-    from js import console
+    from js import console, null as JS_NULL
+    _IN_PYODIDE = True
 except ImportError:
     # Fallback for local testing - create a mock console
     class MockConsole:
@@ -24,6 +26,26 @@ except ImportError:
         def warn(self, *args): print(*args, file=sys.stderr)
         def error(self, *args): print(*args, file=sys.stderr)
     console = MockConsole()
+    JS_NULL = None  # In non-Pyodide environments, use Python None
+    _IN_PYODIDE = False
+
+
+def to_d1_null(value):
+    """Converts Python None to JavaScript null for D1 queries.
+    
+    In the Pyodide/Cloudflare Workers environment, Python None is converted to
+    JavaScript undefined when crossing the FFI boundary, which D1 cannot handle.
+    This function converts None to JavaScript null, which D1 accepts as SQL NULL.
+    
+    Args:
+        value: The value to convert (only None is converted)
+        
+    Returns:
+        JavaScript null if value is None (in Pyodide), otherwise the original value
+    """
+    if value is None and _IN_PYODIDE:
+        return JS_NULL
+    return value
 
 # ============================================================================
 # HELPERS DE DATABASE
@@ -342,9 +364,27 @@ def sanitize_for_d1(value, _depth=0):
 def sanitize_params(*args):
     """Sanitizes multiple parameters for D1 SQL queries.
     
-    Returns a tuple of sanitized values.
+    Returns a tuple of sanitized values. Note that None values are returned as
+    Python None; use d1_params() instead if you need None converted to JavaScript
+    null for D1 queries.
     """
     return tuple(sanitize_for_d1(arg) for arg in args)
+
+
+def d1_params(*args):
+    """Sanitizes parameters for D1 SQL queries, converting None to JavaScript null.
+    
+    This is the preferred function for preparing parameters for D1's .bind() method.
+    It sanitizes all values using sanitize_for_d1() and then converts any Python None
+    values to JavaScript null, which D1 accepts as SQL NULL.
+    
+    Args:
+        *args: Values to sanitize for D1 queries
+        
+    Returns:
+        A tuple of sanitized values where None values are converted to JS null
+    """
+    return tuple(to_d1_null(sanitize_for_d1(arg)) for arg in args)
 
 
 # ============================================================================
@@ -804,11 +844,15 @@ async def create_user(db, username, email, password, nome=None):
     hashed = hash_password(password)
     # Sanitize all parameters to prevent D1_TYPE_ERROR from undefined values
     s_username, s_email, s_hashed, s_nome = sanitize_params(username, email, hashed, nome)
+    
+    # Convert Python None to JavaScript null for D1
+    d1_nome = to_d1_null(s_nome)
+    
     result = await db.prepare("""
         INSERT INTO user (username, email, password, nome, created_at)
         VALUES (?, ?, ?, ?, datetime('now'))
         RETURNING id
-    """).bind(s_username, s_email, s_hashed, s_nome).first()
+    """).bind(s_username, s_email, s_hashed, d1_nome).first()
     return safe_get(result, 'id')
 
 
@@ -845,10 +889,14 @@ async def create_session(db, user_id, user_agent=None, ip_address=None):
         user_id, token, expires_at, user_agent, ip_address
     )
     
+    # Convert Python None to JavaScript null for D1
+    d1_user_agent = to_d1_null(s_user_agent)
+    d1_ip_address = to_d1_null(s_ip_address)
+    
     await db.prepare("""
         INSERT INTO user_session (user_id, token, expires_at, user_agent, ip_address)
         VALUES (?, ?, ?, ?, ?)
-    """).bind(s_user_id, s_token, s_expires_at, s_user_agent, s_ip_address).run()
+    """).bind(s_user_id, s_token, s_expires_at, d1_user_agent, d1_ip_address).run()
     
     return token
 
@@ -1018,12 +1066,17 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
         except Exception:
             s_imagem = None  # Default to None if conversion fails
     
+    # Convert Python None to JavaScript null for D1
+    # This is required because Python None becomes JavaScript undefined in Pyodide,
+    # but D1 expects JavaScript null for SQL NULL values
+    d1_imagem = to_d1_null(s_imagem)
+    
     result = await db.prepare("""
         INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
         SELECT ?, username, ?, ?, datetime('now')
         FROM user WHERE id = ?
         RETURNING id
-    """).bind(s_usuario_id, s_conteudo, s_imagem, s_usuario_id).first()
+    """).bind(s_usuario_id, s_conteudo, d1_imagem, s_usuario_id).first()
     return safe_get(result, 'id')
 
 
@@ -1038,10 +1091,13 @@ async def delete_post(db, post_id, deleted_by=None):
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_post_id, s_deleted_by = sanitize_params(post_id, deleted_by)
     
+    # Convert Python None to JavaScript null for D1
+    d1_deleted_by = to_d1_null(s_deleted_by)
+    
     await db.prepare("""
         UPDATE post SET is_deleted = 1, deleted_at = datetime('now'), deleted_by = ?
         WHERE id = ?
-    """).bind(s_deleted_by, s_post_id).run()
+    """).bind(d1_deleted_by, s_post_id).run()
 
 
 async def like_post(db, user_id, post_id):
@@ -1620,12 +1676,16 @@ async def create_notification(db, usuario_id, tipo, titulo=None, mensagem=None, 
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_params = sanitize_params(usuario_id, tipo, titulo, mensagem, link, 
                                from_usuario_id, post_id, comentario_id)
+    
+    # Convert Python None to JavaScript null for D1
+    d1_params = tuple(to_d1_null(p) for p in s_params)
+    
     result = await db.prepare("""
         INSERT INTO notification 
         (usuario_id, tipo, titulo, mensagem, link, from_usuario_id, post_id, comentario_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(*s_params).first()
+    """).bind(*d1_params).first()
     return safe_get(result, 'id')
 
 
@@ -1844,11 +1904,15 @@ async def create_report(db, post_id, usuario_id, motivo, category=None):
     """Cria uma denúncia de post."""
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_post_id, s_usuario_id, s_motivo, s_category = sanitize_params(post_id, usuario_id, motivo, category)
+    
+    # Convert Python None to JavaScript null for D1
+    d1_category = to_d1_null(s_category)
+    
     result = await db.prepare("""
         INSERT INTO report (post_id, usuario_id, motivo, category)
         VALUES (?, ?, ?, ?)
         RETURNING id
-    """).bind(s_post_id, s_usuario_id, s_motivo, s_category).first()
+    """).bind(s_post_id, s_usuario_id, s_motivo, d1_category).first()
     return safe_get(result, 'id')
 
 
@@ -1910,11 +1974,17 @@ async def create_support_ticket(db, mensagem, usuario_id=None, nome=None, email=
     """Cria um ticket de suporte."""
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_usuario_id, s_nome, s_email, s_mensagem = sanitize_params(usuario_id, nome, email, mensagem)
+    
+    # Convert Python None to JavaScript null for D1
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    d1_nome = to_d1_null(s_nome)
+    d1_email = to_d1_null(s_email)
+    
     result = await db.prepare("""
         INSERT INTO support_ticket (usuario_id, nome, email, mensagem)
         VALUES (?, ?, ?, ?)
         RETURNING id
-    """).bind(s_usuario_id, s_nome, s_email, s_mensagem).first()
+    """).bind(d1_usuario_id, d1_nome, d1_email, s_mensagem).first()
     return safe_get(result, 'id')
 
 
@@ -1997,13 +2067,19 @@ async def create_divulgacao(db, area, titulo, texto=None, link=None, imagem=None
     """Cria uma divulgação."""
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_area, s_titulo, s_texto, s_link, s_imagem = sanitize_params(area, titulo, texto, link, imagem)
+    
+    # Convert Python None to JavaScript null for D1
+    d1_texto = to_d1_null(s_texto)
+    d1_link = to_d1_null(s_link)
+    d1_imagem = to_d1_null(s_imagem)
+    
     # Nota: A tabela divulgacao não tem coluna author_id diretamente, 
     # mas podemos vincular via edu_content_id ou post_id se necessário
     result = await db.prepare("""
         INSERT INTO divulgacao (area, titulo, texto, link, imagem, show_on_edu, show_on_index)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(s_area, s_titulo, s_texto, s_link, s_imagem, 
+    """).bind(s_area, s_titulo, d1_texto, d1_link, d1_imagem, 
               1 if show_on_edu else 0, 1 if show_on_index else 0).first()
     return safe_get(result, 'id')
 
@@ -2081,11 +2157,17 @@ async def save_upload(db, usuario_id, tipo, path, filename=None, content_type=No
     s_usuario_id, s_tipo, s_path, s_filename, s_content_type, s_size = sanitize_params(
         usuario_id, tipo, path, filename, content_type, size
     )
+    
+    # Convert Python None to JavaScript null for D1
+    d1_filename = to_d1_null(s_filename)
+    d1_content_type = to_d1_null(s_content_type)
+    d1_size = to_d1_null(s_size)
+    
     result = await db.prepare("""
         INSERT INTO upload (usuario_id, tipo, path, filename, content_type, size)
         VALUES (?, ?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(s_usuario_id, s_tipo, s_path, s_filename, s_content_type, s_size).first()
+    """).bind(s_usuario_id, s_tipo, s_path, d1_filename, d1_content_type, d1_size).first()
     return safe_get(result, 'id')
 
 
@@ -2154,10 +2236,14 @@ async def ban_usuarie(db, usuario_id, reason=None, admin_id=None):
     s_reason = sanitize_for_d1(reason)
     if s_usuario_id is None:
         return
+    
+    # Convert Python None to JavaScript null for D1
+    d1_reason = to_d1_null(s_reason)
+    
     await db.prepare("""
         UPDATE user SET is_banned = 1, banned_at = datetime('now'), ban_reason = ?
         WHERE id = ?
-    """).bind(s_reason, s_usuario_id).run()
+    """).bind(d1_reason, s_usuario_id).run()
 
 
 async def unban_usuarie(db, usuario_id):
@@ -2318,10 +2404,13 @@ async def log_activity(db, acao, usuario_id=None, descricao=None, ip_address=Non
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_params = sanitize_params(usuario_id, acao, descricao, ip_address, user_agent, dados_json)
     
+    # Convert Python None to JavaScript null for D1
+    d1_params = tuple(to_d1_null(p) for p in s_params)
+    
     await db.prepare("""
         INSERT INTO activity_log (usuario_id, acao, descricao, ip_address, user_agent, dados_extra)
         VALUES (?, ?, ?, ?, ?, ?)
-    """).bind(*s_params).run()
+    """).bind(*d1_params).run()
 
 
 async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
@@ -2656,12 +2745,15 @@ async def record_exercise_answer(db, usuario_id, question_id, resposta, correto,
         await add_points(db, s_usuario_id, pontos, 'exercicios')
     
     # Registrar no histórico
+    # Convert Python None to JavaScript null for D1
+    d1_tempo = to_d1_null(s_tempo)
+    
     await db.prepare("""
         INSERT INTO exercise_progress (usuario_id, question_id, resposta_usuarie, correto, 
                                         pontos_ganhos, primeira_tentativa, tempo_resposta)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """).bind(s_usuario_id, s_question_id, s_resposta, 1 if correto else 0, 
-              pontos, primeira_tentativa, s_tempo).run()
+              pontos, primeira_tentativa, d1_tempo).run()
     
     # Verificar badges
     await check_and_award_badges(db, s_usuario_id)
@@ -2745,11 +2837,16 @@ async def create_exercise_list(db, usuario_id, nome, descricao=None, modo='estud
     s_usuario_id, s_nome, s_descricao, s_modo, s_tempo_limite = sanitize_params(
         usuario_id, nome, descricao, modo, tempo_limite
     )
+    
+    # Convert Python None to JavaScript null for D1
+    d1_descricao = to_d1_null(s_descricao)
+    d1_tempo_limite = to_d1_null(s_tempo_limite)
+    
     result = await db.prepare("""
         INSERT INTO exercise_list (usuario_id, nome, descricao, modo, tempo_limite)
         VALUES (?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(s_usuario_id, s_nome, s_descricao, s_modo, s_tempo_limite).first()
+    """).bind(s_usuario_id, s_nome, d1_descricao, s_modo, d1_tempo_limite).first()
     return safe_get(result, 'id')
 
 
@@ -2805,11 +2902,16 @@ async def save_quiz_result(db, usuario_id, acertos, erros, pontos, tempo_total, 
     s_usuario_id, s_list_id, s_topic_id, s_acertos, s_erros, s_pontos, s_tempo_total = sanitize_params(
         usuario_id, list_id, topic_id, acertos, erros, pontos, tempo_total
     )
+    
+    # Convert Python None to JavaScript null for D1
+    d1_list_id = to_d1_null(s_list_id)
+    d1_topic_id = to_d1_null(s_topic_id)
+    
     result = await db.prepare("""
         INSERT INTO quiz_result (usuario_id, list_id, topic_id, acertos, erros, pontos_ganhos, tempo_total)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(s_usuario_id, s_list_id, s_topic_id, s_acertos, s_erros, s_pontos, s_tempo_total).first()
+    """).bind(s_usuario_id, d1_list_id, d1_topic_id, s_acertos, s_erros, s_pontos, s_tempo_total).first()
     return safe_get(result, 'id')
 
 
@@ -2821,11 +2923,16 @@ async def create_flashcard_deck(db, titulo, usuario_id=None, descricao=None, is_
     """Cria um deck de flashcards."""
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_usuario_id, s_titulo, s_descricao = sanitize_params(usuario_id, titulo, descricao)
+    
+    # Convert Python None to JavaScript null for D1
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    d1_descricao = to_d1_null(s_descricao)
+    
     result = await db.prepare("""
         INSERT INTO flashcard_deck (usuario_id, titulo, descricao, is_public)
         VALUES (?, ?, ?, ?)
         RETURNING id
-    """).bind(s_usuario_id, s_titulo, s_descricao, 1 if is_public else 0).first()
+    """).bind(d1_usuario_id, s_titulo, d1_descricao, 1 if is_public else 0).first()
     
     # Dar badge se for o primeiro deck
     if s_usuario_id:
@@ -2840,11 +2947,15 @@ async def add_flashcard(db, deck_id, frente, verso, dica=None, ordem=0):
     s_deck_id, s_frente, s_verso, s_dica, s_ordem = sanitize_params(
         deck_id, frente, verso, dica, ordem
     )
+    
+    # Convert Python None to JavaScript null for D1
+    d1_dica = to_d1_null(s_dica)
+    
     result = await db.prepare("""
         INSERT INTO flashcard (deck_id, frente, verso, dica, ordem)
         VALUES (?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(s_deck_id, s_frente, s_verso, s_dica, s_ordem).first()
+    """).bind(s_deck_id, s_frente, s_verso, d1_dica, s_ordem).first()
     return safe_get(result, 'id')
 
 
