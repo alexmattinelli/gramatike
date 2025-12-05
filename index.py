@@ -1205,7 +1205,8 @@ class Default(WorkerEntrypoint):
                     # Safely get and sanitize values to prevent D1_TYPE_ERROR
                     conteudo = body.get('conteudo', '') if isinstance(body, dict) else ''
                     conteudo = sanitize_for_d1(conteudo)
-                    conteudo = str(conteudo).strip() if conteudo else ''
+                    # Convert to string and strip whitespace, handling None case
+                    conteudo = str(conteudo).strip() if conteudo is not None else ''
                     
                     imagem = body.get('imagem') if isinstance(body, dict) else None
                     imagem = sanitize_for_d1(imagem)
@@ -1416,12 +1417,12 @@ class Default(WorkerEntrypoint):
                     
                     # Sanitize conteudo as well to ensure it's a proper Python string
                     conteudo = sanitize_for_d1(conteudo)
-                    if conteudo is None or not str(conteudo).strip():
-                        console.error("[posts_multi] conteudo is None or empty after sanitize_for_d1")
-                        return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
+                    # Convert to string and strip whitespace
+                    conteudo = str(conteudo).strip() if conteudo is not None else ''
                     
-                    # Ensure conteudo is a string
-                    conteudo = str(conteudo).strip()
+                    if not conteudo:
+                        console.error("[posts_multi] conteudo is empty after sanitization")
+                        return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
                     
                     # Log the final values before creating post
                     console.log(f"[posts_multi] Creating post: user_id={user_id} ({type(user_id).__name__}), conteudo_len={len(conteudo)}")

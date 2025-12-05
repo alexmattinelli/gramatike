@@ -248,7 +248,10 @@ def sanitize_for_d1(value, _depth=0):
         if str_repr == 'undefined' or str_repr == 'null':
             return None
     except Exception:
-        # If we can't even get string representation, it's not a valid value
+        # Objects that fail str() conversion are likely problematic JavaScript objects
+        # In normal Python, str() works on almost any object, so this indicates
+        # a JavaScript-specific issue in the Pyodide environment
+        console.warn(f"[sanitize_for_d1] Failed to get string representation for type {type(value).__name__}")
         return None
     
     # Check type name - some JsProxy types have specific names
@@ -256,8 +259,10 @@ def sanitize_for_d1(value, _depth=0):
         type_name = type(value).__name__
         if type_name in ('JsUndefined', 'JsNull', 'undefined', 'null', 'JsException'):
             return None
-        # Also check for any type starting with 'Js' that might be problematic
-        if type_name.startswith('Js') and type_name not in ('JsProxy',):
+        # Safe Js* types that can be converted to Python values
+        SAFE_JS_TYPES = ('JsProxy', 'JsArray', 'JsObject')
+        # Check for any type starting with 'Js' that might be problematic
+        if type_name.startswith('Js') and type_name not in SAFE_JS_TYPES:
             # For non-standard Js types, try to convert or return None
             if hasattr(value, 'to_py'):
                 try:
@@ -317,9 +322,11 @@ def sanitize_for_d1(value, _depth=0):
         # This catches any remaining edge cases
         try:
             if isinstance(value, (list, dict, tuple)):
-                # Complex types should be JSON serialized if needed by caller
-                # Here we just return None to be safe
-                console.warn(f"[sanitize_for_d1] Complex type {type(value).__name__} passed, returning None")
+                # Complex types like list/dict/tuple cannot be directly passed to D1.
+                # They should be JSON serialized by the caller if needed.
+                # We log a warning and return None to prevent D1_TYPE_ERROR.
+                # Callers expecting to store complex data should use json.dumps() first.
+                console.warn(f"[sanitize_for_d1] Complex type {type(value).__name__} passed, returning None. Use json.dumps() to serialize complex data.")
                 return None
             # Last resort: convert to string if it's not a known safe type
             return str(value)
