@@ -228,6 +228,10 @@ def sanitize_for_d1(value, _depth=0):
     Args:
         value: The value to sanitize
         _depth: Internal recursion depth counter
+        
+    Returns:
+        A Python-native value (str, int, float, None) safe for D1 queries.
+        Returns None for any undefined, null, or problematic values.
     """
     # Prevent infinite recursion
     if _depth >= _SANITIZE_MAX_DEPTH:
@@ -244,12 +248,25 @@ def sanitize_for_d1(value, _depth=0):
         if str_repr == 'undefined' or str_repr == 'null':
             return None
     except Exception:
-        pass  # Continue with other checks
+        # If we can't even get string representation, it's not a valid value
+        return None
     
     # Check type name - some JsProxy types have specific names
     try:
         type_name = type(value).__name__
-        if type_name in ('JsUndefined', 'JsNull', 'undefined', 'null'):
+        if type_name in ('JsUndefined', 'JsNull', 'undefined', 'null', 'JsException'):
+            return None
+        # Also check for any type starting with 'Js' that might be problematic
+        if type_name.startswith('Js') and type_name not in ('JsProxy',):
+            # For non-standard Js types, try to convert or return None
+            if hasattr(value, 'to_py'):
+                try:
+                    py_value = value.to_py()
+                    if py_value is None or str(py_value) == 'undefined':
+                        return None
+                    return py_value
+                except Exception:
+                    return None
             return None
     except Exception:
         pass
@@ -291,8 +308,23 @@ def sanitize_for_d1(value, _depth=0):
             except Exception:
                 return None
         
-        # For regular Python values, return as-is
-        return value
+        # Final validation: ensure the value is a type that D1 can handle
+        # D1 supports: str, int, float, bytes, None
+        if isinstance(value, (str, int, float, bytes, bool)):
+            return value
+        
+        # For other types, try to convert to a safe representation
+        # This catches any remaining edge cases
+        try:
+            if isinstance(value, (list, dict, tuple)):
+                # Complex types should be JSON serialized if needed by caller
+                # Here we just return None to be safe
+                console.warn(f"[sanitize_for_d1] Complex type {type(value).__name__} passed, returning None")
+                return None
+            # Last resort: convert to string if it's not a known safe type
+            return str(value)
+        except Exception:
+            return None
         
     except Exception as e:
         # Log the error for debugging but return None to prevent D1_TYPE_ERROR
@@ -940,8 +972,14 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
     Returns:
         The ID of the created post, or None if creation failed
     """
+    # Log input types for debugging D1_TYPE_ERROR issues
+    console.log(f"[create_post] Input types: usuario_id={type(usuario_id).__name__}, conteudo={type(conteudo).__name__}, imagem={type(imagem).__name__}")
+    
     # Sanitize all parameters to prevent D1_TYPE_ERROR from undefined values
     s_usuario_id, s_conteudo, s_imagem = sanitize_params(usuario_id, conteudo, imagem)
+    
+    # Log sanitized values for debugging
+    console.log(f"[create_post] Sanitized: usuario_id={s_usuario_id} ({type(s_usuario_id).__name__}), conteudo_len={len(s_conteudo) if s_conteudo else 0}, imagem={s_imagem is not None}")
     
     # Validate required fields after sanitization
     if s_usuario_id is None:
@@ -950,6 +988,28 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
     if s_conteudo is None:
         console.error("[create_post] conteudo is None after sanitization")
         return None
+    
+    # Ensure s_usuario_id is an integer (D1 expects proper types)
+    try:
+        s_usuario_id = int(s_usuario_id)
+    except (ValueError, TypeError) as e:
+        console.error(f"[create_post] Failed to convert usuario_id to int: {e}")
+        return None
+    
+    # Ensure s_conteudo is a string
+    if not isinstance(s_conteudo, str):
+        try:
+            s_conteudo = str(s_conteudo)
+        except Exception as e:
+            console.error(f"[create_post] Failed to convert conteudo to str: {e}")
+            return None
+    
+    # Ensure s_imagem is either None or a string
+    if s_imagem is not None and not isinstance(s_imagem, str):
+        try:
+            s_imagem = str(s_imagem)
+        except Exception:
+            s_imagem = None  # Default to None if conversion fails
     
     result = await db.prepare("""
         INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
