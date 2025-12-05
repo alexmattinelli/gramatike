@@ -156,7 +156,44 @@ def safe_get(result, key, default=None):
     return default
 
 
-def sanitize_for_d1(value):
+# Maximum recursion depth for sanitize_for_d1 function
+_SANITIZE_MAX_DEPTH = 3
+
+# Pyodide module prefixes for JsProxy detection
+_PYODIDE_MODULE_PREFIXES = ('pyodide.', 'pyodide', 'js')
+
+
+def _is_pyodide_module(module_name):
+    """Check if a module name matches known Pyodide module patterns."""
+    return any(
+        module_name.startswith(prefix) if prefix.endswith('.') else module_name == prefix
+        for prefix in _PYODIDE_MODULE_PREFIXES
+    )
+
+
+def _is_js_proxy(value):
+    """Check if a value is a JavaScript proxy object from Pyodide.
+    
+    Returns True if the value is a JsProxy or similar object that wraps
+    JavaScript values in the Pyodide/Cloudflare Workers environment.
+    """
+    value_type = type(value)
+    type_name = value_type.__name__
+    
+    # JsProxy is the exact type used by Pyodide for JS objects
+    if type_name == 'JsProxy':
+        return True
+    
+    # Also check for objects with to_py that are from pyodide module
+    if hasattr(value, 'to_py'):
+        module = getattr(value_type, '__module__', '')
+        if _is_pyodide_module(module):
+            return True
+    
+    return False
+
+
+def sanitize_for_d1(value, _depth=0):
     """Sanitizes a value before passing it to D1 SQL queries.
     
     This handles the case where JavaScript 'undefined' values might be passed
@@ -165,41 +202,60 @@ def sanitize_for_d1(value):
     In the Pyodide/Cloudflare Workers environment, accessing a non-existent
     key from a JsProxy object returns JavaScript's undefined, which D1
     cannot handle. This function converts such values to Python None.
+    
+    Args:
+        value: The value to sanitize
+        _depth: Internal recursion depth counter
     """
+    # Prevent infinite recursion
+    if _depth >= _SANITIZE_MAX_DEPTH:
+        console.warn(f"[sanitize_for_d1] Max recursion depth reached, returning None")
+        return None
+    
     if value is None:
         return None
     
     # Check for JavaScript undefined (appears as a JsProxy with undefined type)
     try:
-        # Get the type name - JavaScript undefined has a specific representation
-        type_name = type(value).__name__
-        
-        # JsProxy objects representing undefined need special handling
-        if type_name == 'JsProxy':
+        if _is_js_proxy(value):
+            # First check if the string representation indicates undefined
+            # This is safer than calling to_py() which might throw JsException
+            try:
+                str_val = str(value)
+                if str_val == 'undefined':
+                    return None
+            except (TypeError, ValueError):
+                # If we can't get string representation, assume it's undefined
+                return None
+            except Exception as str_err:
+                # Log unexpected errors before returning None
+                console.warn(f"[sanitize_for_d1] Unexpected error getting str(value): {str_err}")
+                return None
+            
             # Try to convert to Python - undefined converts to None
             if hasattr(value, 'to_py'):
                 try:
                     py_value = value.to_py()
                     # to_py() on undefined returns None
+                    if py_value is None:
+                        return None
+                    # After successful conversion, the value should be a Python native type
+                    # Only recurse if still a JsProxy-like object (shouldn't normally happen)
+                    if _is_js_proxy(py_value):
+                        return sanitize_for_d1(py_value, _depth + 1)
                     return py_value
-                except (TypeError, AttributeError, ValueError):
-                    # If conversion fails due to unsupported type, treat as None
+                except Exception:
+                    # If conversion fails (including JsException), treat as None
                     return None
             
-            # Check if value is JavaScript undefined by comparing to None-like behavior
-            try:
-                # JavaScript undefined is falsy and has no meaningful string representation
-                # Note: we only check for 'undefined' and '' as 'null' is handled by to_py()
-                str_val = str(value)
-                if str_val in ('undefined', ''):
-                    return None
-            except (TypeError, ValueError):
-                return None
+            # If we reach here, we have a JsProxy-like object but couldn't convert it
+            # Return None to be safe
+            return None
         
         # For regular Python values, return as-is
         return value
         
-    except (TypeError, AttributeError) as e:
+    except Exception as e:
         # Log the error for debugging but return None to prevent D1_TYPE_ERROR
         console.warn(f"[sanitize_for_d1] Unexpected error converting value: {e}")
         return None
