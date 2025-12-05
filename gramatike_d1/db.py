@@ -1294,26 +1294,33 @@ async def create_email_token(db, usuario_id, tipo, expires_hours=24, novo_email=
     token = generate_email_token()
     expires_at = (datetime.utcnow() + timedelta(hours=expires_hours)).isoformat()
     
-    if novo_email:
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_token, s_tipo, s_novo_email, s_expires_at = sanitize_params(
+        usuario_id, token, tipo, novo_email, expires_at
+    )
+    
+    if s_novo_email:
         await db.prepare("""
             INSERT INTO email_token (usuario_id, token, tipo, novo_email, expires_at)
             VALUES (?, ?, ?, ?, ?)
-        """).bind(usuario_id, token, tipo, novo_email, expires_at).run()
+        """).bind(s_usuario_id, s_token, s_tipo, s_novo_email, s_expires_at).run()
     else:
         await db.prepare("""
             INSERT INTO email_token (usuario_id, token, tipo, expires_at)
             VALUES (?, ?, ?, ?)
-        """).bind(usuario_id, token, tipo, expires_at).run()
+        """).bind(s_usuario_id, s_token, s_tipo, s_expires_at).run()
     
     return token
 
 
 async def verify_email_token(db, token, tipo):
     """Verifica e retorna dados do token se válido."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_token, s_tipo = sanitize_params(token, tipo)
     result = await db.prepare("""
         SELECT * FROM email_token
         WHERE token = ? AND tipo = ? AND used = 0 AND expires_at > datetime('now')
-    """).bind(token, tipo).first()
+    """).bind(s_token, s_tipo).first()
     
     if result:
         return safe_dict(result)
@@ -1322,35 +1329,43 @@ async def verify_email_token(db, token, tipo):
 
 async def use_email_token(db, token):
     """Marca token como usado."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_token = sanitize_for_d1(token)
     await db.prepare("""
         UPDATE email_token SET used = 1, used_at = datetime('now')
         WHERE token = ?
-    """).bind(token).run()
+    """).bind(s_token).run()
 
 
 async def confirm_user_email(db, usuario_id):
     """Confirma o email de usuárie."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
     await db.prepare("""
         UPDATE user SET email_confirmed = 1, email_confirmed_at = datetime('now')
         WHERE id = ?
-    """).bind(usuario_id).run()
+    """).bind(s_usuario_id).run()
 
 
 async def update_user_password(db, usuario_id, new_password):
     """Atualiza a senha de usuárie."""
     hashed = hash_password(new_password)
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_hashed, s_usuario_id = sanitize_params(hashed, usuario_id)
     await db.prepare("""
         UPDATE user SET password = ?
         WHERE id = ?
-    """).bind(hashed, usuario_id).run()
+    """).bind(s_hashed, s_usuario_id).run()
 
 
 async def update_user_email(db, usuario_id, new_email):
     """Atualiza o email de usuárie."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_new_email, s_usuario_id = sanitize_params(new_email, usuario_id)
     await db.prepare("""
         UPDATE user SET email = ?, email_confirmed = 0
         WHERE id = ?
-    """).bind(new_email, usuario_id).run()
+    """).bind(s_new_email, s_usuario_id).run()
 
 
 # ============================================================================
@@ -2145,10 +2160,13 @@ async def get_user_badges(db, usuario_id):
 
 async def award_badge(db, usuario_id, badge_nome):
     """Concede um badge a usuárie."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_badge_nome = sanitize_params(usuario_id, badge_nome)
+    
     # Buscar badge por nome
     badge = await db.prepare("""
         SELECT id FROM badge WHERE nome = ?
-    """).bind(badge_nome).first()
+    """).bind(s_badge_nome).first()
     
     if not badge:
         return False
@@ -2156,11 +2174,11 @@ async def award_badge(db, usuario_id, badge_nome):
     try:
         await db.prepare("""
             INSERT INTO user_badge (usuario_id, badge_id) VALUES (?, ?)
-        """).bind(usuario_id, badge['id']).run()
+        """).bind(s_usuario_id, badge['id']).run()
         
         # Notificar usuárie
-        await create_notification(db, usuario_id, 'badge',
-                                  titulo=f'Novo badge: {badge_nome}! 🎖️')
+        await create_notification(db, s_usuario_id, 'badge',
+                                  titulo=f'Novo badge: {s_badge_nome}! 🎖️')
         return True
     except Exception:
         return False  # Já tem o badge ou erro de constraint
@@ -2305,20 +2323,26 @@ async def get_questions_not_scored(db, usuario_id, topic_id=None, limit=10):
 
 async def create_exercise_list(db, usuario_id, nome, descricao=None, modo='estudo', tempo_limite=None):
     """Cria uma lista personalizada de exercícios."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_nome, s_descricao, s_modo, s_tempo_limite = sanitize_params(
+        usuario_id, nome, descricao, modo, tempo_limite
+    )
     result = await db.prepare("""
         INSERT INTO exercise_list (usuario_id, nome, descricao, modo, tempo_limite)
         VALUES (?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(usuario_id, nome, descricao, modo, tempo_limite).first()
+    """).bind(s_usuario_id, s_nome, s_descricao, s_modo, s_tempo_limite).first()
     return safe_get(result, 'id')
 
 
 async def add_to_exercise_list(db, list_id, question_id, ordem=0):
     """Adiciona questão à lista de exercícios."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_list_id, s_question_id, s_ordem = sanitize_params(list_id, question_id, ordem)
     try:
         await db.prepare("""
             INSERT INTO exercise_list_item (list_id, question_id, ordem) VALUES (?, ?, ?)
-        """).bind(list_id, question_id, ordem).run()
+        """).bind(s_list_id, s_question_id, s_ordem).run()
         return True
     except Exception:
         return False  # Questão já está na lista
@@ -2351,11 +2375,15 @@ async def get_exercise_list_questions(db, list_id):
 
 async def save_quiz_result(db, usuario_id, acertos, erros, pontos, tempo_total, list_id=None, topic_id=None):
     """Salva resultado de quiz."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_list_id, s_topic_id, s_acertos, s_erros, s_pontos, s_tempo_total = sanitize_params(
+        usuario_id, list_id, topic_id, acertos, erros, pontos, tempo_total
+    )
     result = await db.prepare("""
         INSERT INTO quiz_result (usuario_id, list_id, topic_id, acertos, erros, pontos_ganhos, tempo_total)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(usuario_id, list_id, topic_id, acertos, erros, pontos, tempo_total).first()
+    """).bind(s_usuario_id, s_list_id, s_topic_id, s_acertos, s_erros, s_pontos, s_tempo_total).first()
     return safe_get(result, 'id')
 
 
@@ -2365,26 +2393,32 @@ async def save_quiz_result(db, usuario_id, acertos, erros, pontos, tempo_total, 
 
 async def create_flashcard_deck(db, titulo, usuario_id=None, descricao=None, is_public=False):
     """Cria um deck de flashcards."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_titulo, s_descricao = sanitize_params(usuario_id, titulo, descricao)
     result = await db.prepare("""
         INSERT INTO flashcard_deck (usuario_id, titulo, descricao, is_public)
         VALUES (?, ?, ?, ?)
         RETURNING id
-    """).bind(usuario_id, titulo, descricao, 1 if is_public else 0).first()
+    """).bind(s_usuario_id, s_titulo, s_descricao, 1 if is_public else 0).first()
     
     # Dar badge se for o primeiro deck
-    if usuario_id:
-        await award_badge(db, usuario_id, 'Flashcard Pro')
+    if s_usuario_id:
+        await award_badge(db, s_usuario_id, 'Flashcard Pro')
     
     return safe_get(result, 'id')
 
 
 async def add_flashcard(db, deck_id, frente, verso, dica=None, ordem=0):
     """Adiciona um flashcard ao deck."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_deck_id, s_frente, s_verso, s_dica, s_ordem = sanitize_params(
+        deck_id, frente, verso, dica, ordem
+    )
     result = await db.prepare("""
         INSERT INTO flashcard (deck_id, frente, verso, dica, ordem)
         VALUES (?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(deck_id, frente, verso, dica, ordem).first()
+    """).bind(s_deck_id, s_frente, s_verso, s_dica, s_ordem).first()
     return safe_get(result, 'id')
 
 
@@ -2522,10 +2556,12 @@ async def record_flashcard_review(db, usuario_id, flashcard_id, quality):
 
 async def add_favorite(db, usuario_id, tipo, item_id):
     """Adiciona item aos favoritos."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_tipo, s_item_id = sanitize_params(usuario_id, tipo, item_id)
     try:
         await db.prepare("""
             INSERT INTO favorito (usuario_id, tipo, item_id) VALUES (?, ?, ?)
-        """).bind(usuario_id, tipo, item_id).run()
+        """).bind(s_usuario_id, s_tipo, s_item_id).run()
         return True
     except Exception:
         return False  # Já é favorito
@@ -2533,9 +2569,11 @@ async def add_favorite(db, usuario_id, tipo, item_id):
 
 async def remove_favorite(db, usuario_id, tipo, item_id):
     """Remove item dos favoritos."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_tipo, s_item_id = sanitize_params(usuario_id, tipo, item_id)
     await db.prepare("""
         DELETE FROM favorito WHERE usuario_id = ? AND tipo = ? AND item_id = ?
-    """).bind(usuario_id, tipo, item_id).run()
+    """).bind(s_usuario_id, s_tipo, s_item_id).run()
 
 
 async def is_favorite(db, usuario_id, tipo, item_id):
@@ -2570,10 +2608,15 @@ async def add_to_history(db, usuario_id, tipo, item_tipo, item_id, dados=None):
     """Adiciona item ao histórico de usuárie."""
     dados_json = json.dumps(dados) if dados else None
     
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_tipo, s_item_tipo, s_item_id, s_dados_json = sanitize_params(
+        usuario_id, tipo, item_tipo, item_id, dados_json
+    )
+    
     await db.prepare("""
         INSERT INTO user_history (usuario_id, tipo, item_tipo, item_id, dados)
         VALUES (?, ?, ?, ?, ?)
-    """).bind(usuario_id, tipo, item_tipo, item_id, dados_json).run()
+    """).bind(s_usuario_id, s_tipo, s_item_tipo, s_item_id, s_dados_json).run()
 
 
 async def get_user_history(db, usuario_id, item_tipo=None, limit=50):
@@ -2618,8 +2661,11 @@ async def get_user_preferences(db, usuario_id):
 
 async def update_user_preferences(db, usuario_id, **kwargs):
     """Atualiza preferências de usuárie."""
+    # Sanitize usuario_id to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    
     # Garantir que registro existe
-    await get_user_preferences(db, usuario_id)
+    await get_user_preferences(db, s_usuario_id)
     
     # Apenas colunas da whitelist são atualizadas - isso é seguro
     allowed_columns = {
@@ -2636,8 +2682,8 @@ async def update_user_preferences(db, usuario_id, **kwargs):
         'idioma': 'idioma'
     }
     
-    # Filtrar apenas chaves permitidas
-    filtered_kwargs = {k: v for k, v in kwargs.items() if k in allowed_columns}
+    # Filtrar apenas chaves permitidas e sanitize values
+    filtered_kwargs = {k: sanitize_for_d1(v) for k, v in kwargs.items() if k in allowed_columns}
     
     if not filtered_kwargs:
         return False
@@ -2646,27 +2692,27 @@ async def update_user_preferences(db, usuario_id, **kwargs):
     for key, value in filtered_kwargs.items():
         # Os nomes de colunas são validados pela whitelist acima
         if key == 'tema':
-            await db.prepare("UPDATE user_preferences SET tema = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET tema = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
         elif key == 'fonte_tamanho':
-            await db.prepare("UPDATE user_preferences SET fonte_tamanho = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET fonte_tamanho = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
         elif key == 'fonte_familia':
-            await db.prepare("UPDATE user_preferences SET fonte_familia = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET fonte_familia = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
         elif key == 'alto_contraste':
-            await db.prepare("UPDATE user_preferences SET alto_contraste = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET alto_contraste = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
         elif key == 'animacoes_reduzidas':
-            await db.prepare("UPDATE user_preferences SET animacoes_reduzidas = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET animacoes_reduzidas = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
         elif key == 'exibir_libras':
-            await db.prepare("UPDATE user_preferences SET exibir_libras = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET exibir_libras = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
         elif key == 'audio_habilitado':
-            await db.prepare("UPDATE user_preferences SET audio_habilitado = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET audio_habilitado = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
         elif key == 'velocidade_audio':
-            await db.prepare("UPDATE user_preferences SET velocidade_audio = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET velocidade_audio = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
         elif key == 'notificacoes_email':
-            await db.prepare("UPDATE user_preferences SET notificacoes_email = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET notificacoes_email = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
         elif key == 'notificacoes_push':
-            await db.prepare("UPDATE user_preferences SET notificacoes_push = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET notificacoes_push = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
         elif key == 'idioma':
-            await db.prepare("UPDATE user_preferences SET idioma = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET idioma = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
     
     return True
 
@@ -2677,16 +2723,20 @@ async def update_user_preferences(db, usuario_id, **kwargs):
 
 async def send_direct_message(db, remetente_id, destinatarie_id, conteudo):
     """Envia mensagem direta."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_remetente_id, s_destinatarie_id, s_conteudo = sanitize_params(
+        remetente_id, destinatarie_id, conteudo
+    )
     result = await db.prepare("""
         INSERT INTO mensagem_direta (remetente_id, destinatarie_id, conteudo)
         VALUES (?, ?, ?)
         RETURNING id
-    """).bind(remetente_id, destinatarie_id, conteudo).first()
+    """).bind(s_remetente_id, s_destinatarie_id, s_conteudo).first()
     
     # Notificar destinatárie
-    await create_notification(db, destinatarie_id, 'mensagem',
+    await create_notification(db, s_destinatarie_id, 'mensagem',
                               titulo='Nova mensagem!',
-                              from_usuario_id=remetente_id)
+                              from_usuario_id=s_remetente_id)
     
     return safe_get(result, 'id')
 
@@ -2769,11 +2819,15 @@ async def get_messages_with_user(db, usuario_id, other_user_id, page=1, per_page
 
 async def create_study_group(db, nome, criador_id, descricao=None, is_public=True, max_membres=50):
     """Cria um grupo de estudo."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_nome, s_descricao, s_criador_id, s_max_membres = sanitize_params(
+        nome, descricao, criador_id, max_membres
+    )
     result = await db.prepare("""
         INSERT INTO grupo_estudo (nome, descricao, criador_id, is_public, max_membres)
         VALUES (?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(nome, descricao, criador_id, 1 if is_public else 0, max_membres).first()
+    """).bind(s_nome, s_descricao, s_criador_id, 1 if is_public else 0, s_max_membres).first()
     
     if result:
         # Adicionar criador como admin
@@ -2781,21 +2835,24 @@ async def create_study_group(db, nome, criador_id, descricao=None, is_public=Tru
         if grupo_id:
             await db.prepare("""
                 INSERT INTO grupo_membre (grupo_id, usuario_id, role) VALUES (?, ?, 'admin')
-            """).bind(grupo_id, criador_id).run()
+            """).bind(grupo_id, s_criador_id).run()
     
     return safe_get(result, 'id')
 
 
 async def join_study_group(db, grupo_id, usuario_id):
     """Entrar em um grupo de estudo."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_grupo_id, s_usuario_id = sanitize_params(grupo_id, usuario_id)
+    
     # Verificar limite de membros
     count = await db.prepare("""
         SELECT COUNT(*) as count FROM grupo_membre WHERE grupo_id = ?
-    """).bind(grupo_id).first()
+    """).bind(s_grupo_id).first()
     
     grupo = await db.prepare("""
         SELECT max_membres FROM grupo_estudo WHERE id = ?
-    """).bind(grupo_id).first()
+    """).bind(s_grupo_id).first()
     
     if count and grupo and count['count'] >= grupo['max_membres']:
         return False, "Grupo cheio"
@@ -2803,7 +2860,7 @@ async def join_study_group(db, grupo_id, usuario_id):
     try:
         await db.prepare("""
             INSERT INTO grupo_membre (grupo_id, usuario_id) VALUES (?, ?)
-        """).bind(grupo_id, usuario_id).run()
+        """).bind(s_grupo_id, s_usuario_id).run()
         return True, None
     except Exception:
         return False, "Já é membre do grupo"
@@ -2811,9 +2868,11 @@ async def join_study_group(db, grupo_id, usuario_id):
 
 async def leave_study_group(db, grupo_id, usuario_id):
     """Sair de um grupo de estudo."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_grupo_id, s_usuario_id = sanitize_params(grupo_id, usuario_id)
     await db.prepare("""
         DELETE FROM grupo_membre WHERE grupo_id = ? AND usuario_id = ?
-    """).bind(grupo_id, usuario_id).run()
+    """).bind(s_grupo_id, s_usuario_id).run()
 
 
 async def get_study_groups(db, usuario_id=None, apenas_meus=False):
@@ -2861,11 +2920,13 @@ async def get_group_messages(db, grupo_id, page=1, per_page=50):
 
 async def send_group_message(db, grupo_id, usuario_id, conteudo):
     """Envia mensagem no grupo."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_grupo_id, s_usuario_id, s_conteudo = sanitize_params(grupo_id, usuario_id, conteudo)
     result = await db.prepare("""
         INSERT INTO grupo_mensagem (grupo_id, usuario_id, conteudo)
         VALUES (?, ?, ?)
         RETURNING id
-    """).bind(grupo_id, usuario_id, conteudo).first()
+    """).bind(s_grupo_id, s_usuario_id, s_conteudo).first()
     return safe_get(result, 'id')
 
 
