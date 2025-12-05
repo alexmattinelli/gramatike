@@ -3149,7 +3149,9 @@ async def get_conversations(db, usuario_id):
     conversations = []
     for row in result.results:
         row_dict = safe_dict(row) if hasattr(row, 'to_py') else row
-        other_id = sanitize_for_d1(row_dict.get('other_user_id') if isinstance(row_dict, dict) else row_dict['other_user_id'])
+        if not isinstance(row_dict, dict):
+            continue
+        other_id = sanitize_for_d1(row_dict.get('other_user_id'))
         if other_id is None:
             continue
         user = await get_user_by_id(db, other_id)
@@ -3694,10 +3696,8 @@ async def update_emoji_custom(db, emoji_id, **kwargs):
     if s_emoji_id is None:
         return False
     allowed = ['nome', 'descricao', 'imagem_url', 'categoria', 'ordem', 'ativo']
-    # Sanitize all kwargs values
-    updates = {k: sanitize_for_d1(v) for k, v in kwargs.items() if k in allowed}
-    # Filter out None values
-    updates = {k: v for k, v in updates.items() if v is not None}
+    # Sanitize all kwargs values and filter out None values in one pass
+    updates = {k: v for k, v in ((k, sanitize_for_d1(v)) for k, v in kwargs.items() if k in allowed) if v is not None}
     
     if not updates:
         return False

@@ -1214,7 +1214,7 @@ class Default(WorkerEntrypoint):
                         return json_response({"error": "Conteúdo é obrigatório"}, 400)
                     
                     # Sanitize current_user['id'] to ensure it's a proper Python value
-                    user_id = sanitize_for_d1(current_user.get('id') if isinstance(current_user, dict) else current_user['id'])
+                    user_id = sanitize_for_d1(current_user.get('id'))
                     if user_id is None:
                         return json_response({"error": "Usuárie inválide"}, 400)
                     
