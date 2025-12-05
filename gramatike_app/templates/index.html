@@ -20,14 +20,27 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-base); font-weight:800; line-he
 button { font-family: var(--font-base); font-weight:600; }
 .nunito-font { font-family: var(--font-base) !important; }
 </style>
+<!-- Favicon -->
 <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon.png') }}">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
+<link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='img/icons/icon-512.png') }}">
+<!-- iOS PWA Support -->
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
+<link rel="apple-touch-icon" sizes="192x192" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
+<link rel="apple-touch-icon" sizes="512x512" href="{{ url_for('static', filename='img/icons/icon-512.png') }}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gramátike">
+<meta name="mobile-web-app-capable" content="yes">
+<!-- PWA Manifest -->
 <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
 <meta name="theme-color" content="#9B5DE5">
-<!-- iOS Home Screen icon -->
-<link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
+<meta name="msapplication-TileColor" content="#9B5DE5">
+<meta name="msapplication-TileImage" content="{{ url_for('static', filename='img/icons/icon-192.png') }}">
+<!-- Stylesheets -->
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
 <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
 <style>

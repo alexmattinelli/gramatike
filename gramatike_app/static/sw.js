@@ -1,13 +1,15 @@
 // Gramátike Service Worker - Cache Busting Strategy
 // Versão incrementada a cada deploy para forçar atualização de cache
-const CACHE_VERSION = 'gk-static-v3';
-const OLD_CACHES = ['gk-static-v1', 'gk-static-v2'];
+const CACHE_VERSION = 'gk-static-v4';
+const OLD_CACHES = ['gk-static-v1', 'gk-static-v2', 'gk-static-v3'];
 
 // Recursos que podem ser cacheados (apenas manifest e ícones)
 const CACHEABLE_ASSETS = [
   '/static/manifest.webmanifest',
   '/static/favicon.ico',
   '/static/favicon.png',
+  '/static/img/icons/icon-192.png',
+  '/static/img/icons/icon-512.png',
 ];
 
 // Padrões de URL que devem usar network-first (CSS, JS, templates)
