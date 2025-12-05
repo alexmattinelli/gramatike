@@ -2160,10 +2160,13 @@ async def get_user_badges(db, usuario_id):
 
 async def award_badge(db, usuario_id, badge_nome):
     """Concede um badge a usuárie."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_badge_nome = sanitize_params(usuario_id, badge_nome)
+    
     # Buscar badge por nome
     badge = await db.prepare("""
         SELECT id FROM badge WHERE nome = ?
-    """).bind(badge_nome).first()
+    """).bind(s_badge_nome).first()
     
     if not badge:
         return False
@@ -2171,11 +2174,11 @@ async def award_badge(db, usuario_id, badge_nome):
     try:
         await db.prepare("""
             INSERT INTO user_badge (usuario_id, badge_id) VALUES (?, ?)
-        """).bind(usuario_id, badge['id']).run()
+        """).bind(s_usuario_id, badge['id']).run()
         
         # Notificar usuárie
-        await create_notification(db, usuario_id, 'badge',
-                                  titulo=f'Novo badge: {badge_nome}! 🎖️')
+        await create_notification(db, s_usuario_id, 'badge',
+                                  titulo=f'Novo badge: {s_badge_nome}! 🎖️')
         return True
     except Exception:
         return False  # Já tem o badge ou erro de constraint
