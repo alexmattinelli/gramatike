@@ -1205,7 +1205,8 @@ class Default(WorkerEntrypoint):
                     # Safely get and sanitize values to prevent D1_TYPE_ERROR
                     conteudo = body.get('conteudo', '') if isinstance(body, dict) else ''
                     conteudo = sanitize_for_d1(conteudo)
-                    conteudo = conteudo.strip() if conteudo else ''
+                    # Convert to string and strip whitespace, handling None case
+                    conteudo = str(conteudo).strip() if conteudo is not None else ''
                     
                     imagem = body.get('imagem') if isinstance(body, dict) else None
                     imagem = sanitize_for_d1(imagem)
@@ -1216,6 +1217,12 @@ class Default(WorkerEntrypoint):
                     # Sanitize current_user['id'] to ensure it's a proper Python value
                     user_id = sanitize_for_d1(current_user.get('id'))
                     if user_id is None:
+                        return json_response({"error": "Usuárie inválide"}, 400)
+                    
+                    # Ensure user_id is an integer
+                    try:
+                        user_id = int(user_id)
+                    except (ValueError, TypeError):
                         return json_response({"error": "Usuárie inválide"}, 400)
                     
                     post_id = await create_post(db, user_id, conteudo, imagem)
@@ -1394,10 +1401,31 @@ class Default(WorkerEntrypoint):
                     # (dict access might still return JsProxy in Pyodide environment)
                     if hasattr(user_id, 'to_py'):
                         user_id = user_id.to_py()
-                    user_id = int(user_id) if user_id is not None else None
                     
+                    # Additional sanitization to catch any remaining JsProxy/undefined
+                    user_id = sanitize_for_d1(user_id)
                     if user_id is None:
+                        console.error("[posts_multi] user_id is None after sanitize_for_d1")
                         return json_response({"error": "Usuárie inválide", "success": False}, 400)
+                    
+                    # Ensure it's an integer
+                    try:
+                        user_id = int(user_id)
+                    except (ValueError, TypeError) as e:
+                        console.error(f"[posts_multi] Failed to convert user_id to int: {e}")
+                        return json_response({"error": "Usuárie inválide", "success": False}, 400)
+                    
+                    # Sanitize conteudo as well to ensure it's a proper Python string
+                    conteudo = sanitize_for_d1(conteudo)
+                    # Convert to string and strip whitespace
+                    conteudo = str(conteudo).strip() if conteudo is not None else ''
+                    
+                    if not conteudo:
+                        console.error("[posts_multi] conteudo is empty after sanitization")
+                        return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
+                    
+                    # Log the final values before creating post
+                    console.log(f"[posts_multi] Creating post: user_id={user_id} ({type(user_id).__name__}), conteudo_len={len(conteudo)}")
                     
                     # For now, we don't handle image uploads in Cloudflare Workers
                     # (would need R2 storage integration)
