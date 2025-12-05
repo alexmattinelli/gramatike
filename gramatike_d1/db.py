@@ -156,7 +156,7 @@ def safe_get(result, key, default=None):
     return default
 
 
-def sanitize_for_d1(value):
+def sanitize_for_d1(value, _depth=0):
     """Sanitizes a value before passing it to D1 SQL queries.
     
     This handles the case where JavaScript 'undefined' values might be passed
@@ -165,7 +165,16 @@ def sanitize_for_d1(value):
     In the Pyodide/Cloudflare Workers environment, accessing a non-existent
     key from a JsProxy object returns JavaScript's undefined, which D1
     cannot handle. This function converts such values to Python None.
+    
+    Args:
+        value: The value to sanitize
+        _depth: Internal recursion depth counter (max 3 levels)
     """
+    # Prevent infinite recursion
+    if _depth > 3:
+        console.warn(f"[sanitize_for_d1] Max recursion depth reached, returning None")
+        return None
+    
     if value is None:
         return None
     
@@ -174,14 +183,17 @@ def sanitize_for_d1(value):
         # Get the type name - JavaScript undefined has a specific representation
         type_name = type(value).__name__
         
-        # JsProxy objects (or similar JS proxy types) need special handling
-        # Check for JsProxy or any type that might wrap JS values
-        is_js_proxy = (
-            type_name == 'JsProxy' or 
-            type_name.endswith('Proxy') or
-            'Js' in type_name or
-            hasattr(value, 'to_py')
-        )
+        # Check if this looks like a JavaScript proxy object
+        # We use specific checks to avoid false positives:
+        # 1. JsProxy is the exact type used by Pyodide for JS objects
+        # 2. Objects with to_py() method but only if they're from pyodide module
+        is_js_proxy = type_name == 'JsProxy'
+        
+        # Also check for objects with to_py that are from pyodide
+        if not is_js_proxy and hasattr(value, 'to_py'):
+            module = getattr(type(value), '__module__', '')
+            if 'pyodide' in module.lower() or 'js' in module.lower():
+                is_js_proxy = True
         
         if is_js_proxy:
             # First check if the string representation indicates undefined
@@ -201,8 +213,11 @@ def sanitize_for_d1(value):
                     # to_py() on undefined returns None
                     if py_value is None:
                         return None
-                    # Recursively sanitize the converted value
-                    return sanitize_for_d1(py_value)
+                    # Only recurse if the converted value is a different type
+                    # to prevent infinite loops
+                    if type(py_value).__name__ != type_name:
+                        return sanitize_for_d1(py_value, _depth + 1)
+                    return py_value
                 except Exception:
                     # If conversion fails (including JsException), treat as None
                     return None
