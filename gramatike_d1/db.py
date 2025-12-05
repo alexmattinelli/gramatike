@@ -160,7 +160,15 @@ def safe_get(result, key, default=None):
 _SANITIZE_MAX_DEPTH = 3
 
 # Pyodide module prefixes for JsProxy detection
-_PYODIDE_MODULES = ('pyodide.', 'pyodide', 'js')
+_PYODIDE_MODULE_PREFIXES = ('pyodide.', 'pyodide', 'js')
+
+
+def _is_pyodide_module(module_name):
+    """Check if a module name matches known Pyodide module patterns."""
+    return any(
+        module_name.startswith(prefix) if prefix.endswith('.') else module_name == prefix
+        for prefix in _PYODIDE_MODULE_PREFIXES
+    )
 
 
 def sanitize_for_d1(value, _depth=0):
@@ -199,8 +207,7 @@ def sanitize_for_d1(value, _depth=0):
         # We check the module path to avoid false positives from unrelated classes
         if not is_js_proxy and hasattr(value, 'to_py'):
             module = getattr(value_type, '__module__', '')
-            # Check for specific pyodide module paths
-            if module.startswith(_PYODIDE_MODULES[0]) or module in _PYODIDE_MODULES[1:]:
+            if _is_pyodide_module(module):
                 is_js_proxy = True
         
         if is_js_proxy:
@@ -229,7 +236,7 @@ def sanitize_for_d1(value, _depth=0):
                     py_type_name = py_value_type.__name__
                     if py_type_name == 'JsProxy' or (
                         hasattr(py_value, 'to_py') and 
-                        getattr(py_value_type, '__module__', '').startswith(_PYODIDE_MODULES[0])
+                        _is_pyodide_module(getattr(py_value_type, '__module__', ''))
                     ):
                         return sanitize_for_d1(py_value, _depth + 1)
                     return py_value
