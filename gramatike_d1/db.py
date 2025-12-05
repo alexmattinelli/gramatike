@@ -156,6 +156,10 @@ def safe_get(result, key, default=None):
     return default
 
 
+# Maximum recursion depth for sanitize_for_d1 function
+_SANITIZE_MAX_DEPTH = 3
+
+
 def sanitize_for_d1(value, _depth=0):
     """Sanitizes a value before passing it to D1 SQL queries.
     
@@ -168,10 +172,10 @@ def sanitize_for_d1(value, _depth=0):
     
     Args:
         value: The value to sanitize
-        _depth: Internal recursion depth counter (max 3 levels)
+        _depth: Internal recursion depth counter
     """
     # Prevent infinite recursion
-    if _depth > 3:
+    if _depth > _SANITIZE_MAX_DEPTH:
         console.warn(f"[sanitize_for_d1] Max recursion depth reached, returning None")
         return None
     
@@ -180,19 +184,20 @@ def sanitize_for_d1(value, _depth=0):
     
     # Check for JavaScript undefined (appears as a JsProxy with undefined type)
     try:
-        # Get the type name - JavaScript undefined has a specific representation
-        type_name = type(value).__name__
+        # Get the type for comparison
+        value_type = type(value)
+        type_name = value_type.__name__
         
         # Check if this looks like a JavaScript proxy object
-        # We use specific checks to avoid false positives:
-        # 1. JsProxy is the exact type used by Pyodide for JS objects
-        # 2. Objects with to_py() method but only if they're from pyodide module
+        # JsProxy is the exact type used by Pyodide for JS objects
         is_js_proxy = type_name == 'JsProxy'
         
-        # Also check for objects with to_py that are from pyodide
+        # Also check for objects with to_py that are from pyodide module
+        # We check the module path to avoid false positives from unrelated classes
         if not is_js_proxy and hasattr(value, 'to_py'):
-            module = getattr(type(value), '__module__', '')
-            if 'pyodide' in module.lower() or 'js' in module.lower():
+            module = getattr(value_type, '__module__', '')
+            # Check for specific pyodide module paths
+            if module.startswith('pyodide.') or module == 'pyodide' or module == 'js':
                 is_js_proxy = True
         
         if is_js_proxy:
@@ -214,8 +219,8 @@ def sanitize_for_d1(value, _depth=0):
                     if py_value is None:
                         return None
                     # Only recurse if the converted value is a different type
-                    # to prevent infinite loops
-                    if type(py_value).__name__ != type_name:
+                    # to prevent infinite loops (compare actual types, not names)
+                    if type(py_value) is not value_type:
                         return sanitize_for_d1(py_value, _depth + 1)
                     return py_value
                 except Exception:
