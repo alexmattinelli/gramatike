@@ -13,7 +13,7 @@ except ImportError:
     from starlette.responses import Response
 
 from gramatike_d1.auth import get_current_user
-from gramatike_d1.db import sanitize_params, sanitize_for_d1, safe_get
+from gramatike_d1.db import sanitize_params, sanitize_for_d1, safe_get, d1_params
 
 
 def json_response(data, status=200):
@@ -177,16 +177,16 @@ async def on_request(request, env, context):
             return json_response({'success': False, 'error': 'conteudo_vazio'}, 400)
         
         # Create post - include usuario (username) from user table
-        # Sanitize all values to prevent D1_TYPE_ERROR from undefined values
+        # Use d1_params to properly sanitize values and convert None to JavaScript null
         now = datetime.utcnow().isoformat()
-        s_usuario_id, s_conteudo, s_now = sanitize_params(usuario_id, conteudo, now)
+        params = d1_params(usuario_id, conteudo, now, usuario_id)
         
         sql = """
             INSERT INTO post (usuario_id, usuario, conteudo, data)
             SELECT ?, username, ?, ?
             FROM user WHERE id = ?
         """
-        await db.prepare(sql).bind(s_usuario_id, s_conteudo, s_now, s_usuario_id).run()
+        await db.prepare(sql).bind(*params).run()
         
         # Get created post ID
         result = await db.prepare('SELECT last_insert_rowid() as id').first()
