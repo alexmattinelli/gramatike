@@ -1355,7 +1355,7 @@ async def get_divulgacoes(db, area=None, show_on_edu=None, show_on_index=None):
             WHERE ativo = 1 AND area = ? AND show_on_edu = 1 AND show_on_index = 1
             ORDER BY ordem, created_at DESC
         """).bind(s_area).all()
-    elif area and show_on_edu:
+    elif s_area and show_on_edu:
         result = await db.prepare("""
             SELECT * FROM divulgacao
             WHERE ativo = 1 AND area = ? AND show_on_edu = 1
@@ -2662,6 +2662,10 @@ async def add_to_exercise_list(db, list_id, question_id, ordem=0):
 
 async def get_exercise_lists(db, usuario_id):
     """Lista as listas de exercícios de usuárie."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return []
     result = await db.prepare("""
         SELECT el.*, 
                (SELECT COUNT(*) FROM exercise_list_item WHERE list_id = el.id) as question_count
@@ -2776,6 +2780,10 @@ async def get_flashcard_decks(db, usuario_id=None, include_public=True):
 
 async def get_flashcards(db, deck_id):
     """Retorna flashcards de um deck."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_deck_id = sanitize_for_d1(deck_id)
+    if s_deck_id is None:
+        return []
     result = await db.prepare("""
         SELECT * FROM flashcard WHERE deck_id = ? ORDER BY ordem
     """).bind(s_deck_id).all()
