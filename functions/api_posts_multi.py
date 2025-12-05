@@ -13,7 +13,7 @@ except ImportError:
     from starlette.responses import Response
 
 from gramatike_d1.auth import get_current_user
-from gramatike_d1.db import sanitize_params, safe_get
+from gramatike_d1.db import sanitize_params, sanitize_for_d1, safe_get
 
 
 def json_response(data, status=200):
@@ -41,7 +41,11 @@ async def on_request(request, env, context):
         user = await get_current_user(db, request)
         if not user:
             return json_response({'success': False, 'error': 'Não autenticado'}, 401)
-        usuario_id = user['id']
+        # Sanitize usuario_id immediately after extraction to prevent D1_TYPE_ERROR
+        usuario_id = sanitize_for_d1(user.get('id') if isinstance(user, dict) else user['id'])
+        if usuario_id is None:
+            print("[posts_multi] usuario_id is None after sanitization")
+            return json_response({'success': False, 'error': 'Usuárie inválide'}, 401)
     except Exception as e:
         print(f"[posts_multi] Auth error: {e}")
         return json_response({'success': False, 'error': 'Erro de autenticação'}, 401)

@@ -47,6 +47,9 @@ def safe_dict(result):
     Handles JsProxy objects returned by Cloudflare D1 in Pyodide environment.
     The D1 database returns JavaScript objects (JsProxy) that need special
     handling to convert to Python dicts.
+    
+    All values in the resulting dict are sanitized to convert JavaScript
+    'undefined' to Python None.
     """
     if result is None:
         return None
@@ -54,14 +57,33 @@ def safe_dict(result):
     # Check if it's a JsProxy object (from Pyodide/Cloudflare Workers)
     result_type = type(result).__name__
     
+    def _sanitize_value(val):
+        """Sanitize a single value from JsProxy conversion."""
+        if val is None:
+            return None
+        # Check for JsProxy wrapping undefined
+        if hasattr(val, 'to_py'):
+            try:
+                str_val = str(val)
+                if str_val == 'undefined':
+                    return None
+                return val.to_py()
+            except Exception:
+                return None
+        return val
+    
     # Method 1: Try to_py() for JsProxy objects (Pyodide's conversion method)
     if hasattr(result, 'to_py'):
         try:
             converted = result.to_py()
             if isinstance(converted, dict):
-                return converted
+                # Sanitize all values in the converted dict
+                return {k: _sanitize_value(v) if hasattr(v, 'to_py') else v for k, v in converted.items()}
             # If to_py() returns something else, try dict() on it
-            return dict(converted) if converted else None
+            if converted:
+                d = dict(converted)
+                return {k: _sanitize_value(v) if hasattr(v, 'to_py') else v for k, v in d.items()}
+            return None
         except Exception:
             pass  # Fall through to other methods
     
@@ -73,7 +95,7 @@ def safe_dict(result):
         if js_keys:
             # Convert keys to Python list and build dict
             keys_list = js_keys.to_py() if hasattr(js_keys, 'to_py') else list(js_keys)
-            return {k: (result[k].to_py() if hasattr(result[k], 'to_py') else result[k]) for k in keys_list}
+            return {k: _sanitize_value(result[k]) for k in keys_list}
     except ImportError:
         pass  # Not in Pyodide environment
     except Exception:
@@ -95,7 +117,7 @@ def safe_dict(result):
             if hasattr(keys, 'to_py'):
                 keys = keys.to_py()
             if keys:
-                return {k: (result[k].to_py() if hasattr(result[k], 'to_py') else result[k]) for k in keys}
+                return {k: _sanitize_value(result[k]) for k in keys}
     except Exception:
         pass
     
@@ -215,29 +237,35 @@ def sanitize_for_d1(value, _depth=0):
     if value is None:
         return None
     
+    # CRITICAL: Check string representation FIRST before any other checks
+    # This catches cases where the value is 'undefined' as a string or JsProxy
+    try:
+        str_repr = str(value)
+        if str_repr == 'undefined' or str_repr == 'null':
+            return None
+    except Exception:
+        pass  # Continue with other checks
+    
+    # Check type name - some JsProxy types have specific names
+    try:
+        type_name = type(value).__name__
+        if type_name in ('JsUndefined', 'JsNull', 'undefined', 'null'):
+            return None
+    except Exception:
+        pass
+    
     # Check for JavaScript undefined (appears as a JsProxy with undefined type)
     try:
         if _is_js_proxy(value):
-            # First check if the string representation indicates undefined
-            # This is safer than calling to_py() which might throw JsException
-            try:
-                str_val = str(value)
-                if str_val == 'undefined':
-                    return None
-            except (TypeError, ValueError):
-                # If we can't get string representation, assume it's undefined
-                return None
-            except Exception as str_err:
-                # Log unexpected errors before returning None
-                console.warn(f"[sanitize_for_d1] Unexpected error getting str(value): {str_err}")
-                return None
-            
             # Try to convert to Python - undefined converts to None
             if hasattr(value, 'to_py'):
                 try:
                     py_value = value.to_py()
                     # to_py() on undefined returns None
                     if py_value is None:
+                        return None
+                    # Check if the converted value is also undefined string
+                    if str(py_value) == 'undefined':
                         return None
                     # After successful conversion, the value should be a Python native type
                     # Only recurse if still a JsProxy-like object (shouldn't normally happen)
@@ -251,6 +279,17 @@ def sanitize_for_d1(value, _depth=0):
             # If we reach here, we have a JsProxy-like object but couldn't convert it
             # Return None to be safe
             return None
+        
+        # Check if value has to_py method even if not detected as JsProxy
+        # This handles edge cases where type detection fails
+        if hasattr(value, 'to_py') and callable(getattr(value, 'to_py')):
+            try:
+                py_value = value.to_py()
+                if py_value is None or str(py_value) == 'undefined':
+                    return None
+                return py_value
+            except Exception:
+                return None
         
         # For regular Python values, return as-is
         return value
@@ -3106,6 +3145,10 @@ async def send_direct_message(db, remetente_id, destinatarie_id, conteudo):
 
 async def get_conversations(db, usuario_id):
     """Lista conversas de usuárie."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if s_usuario_id is None:
+        return []
     result = await db.prepare("""
         SELECT DISTINCT 
             CASE 
@@ -3114,7 +3157,7 @@ async def get_conversations(db, usuario_id):
             END as other_user_id
         FROM mensagem_direta
         WHERE remetente_id = ? OR destinatarie_id = ?
-    """).bind(usuario_id, usuario_id, usuario_id).all()
+    """).bind(s_usuario_id, s_usuario_id, s_usuario_id).all()
     
     if not result.results:
         return []
@@ -3122,7 +3165,12 @@ async def get_conversations(db, usuario_id):
     # Buscar dados dos usuáries
     conversations = []
     for row in result.results:
-        other_id = row['other_user_id']
+        row_dict = safe_dict(row) if hasattr(row, 'to_py') else row
+        if not isinstance(row_dict, dict):
+            continue
+        other_id = sanitize_for_d1(row_dict.get('other_user_id'))
+        if other_id is None:
+            continue
         user = await get_user_by_id(db, other_id)
         
         # Última mensagem
@@ -3132,18 +3180,19 @@ async def get_conversations(db, usuario_id):
                OR (remetente_id = ? AND destinatarie_id = ?)
             ORDER BY created_at DESC
             LIMIT 1
-        """).bind(usuario_id, other_id, other_id, usuario_id).first()
+        """).bind(s_usuario_id, other_id, other_id, s_usuario_id).first()
         
         # Mensagens não lidas
         unread = await db.prepare("""
             SELECT COUNT(*) as count FROM mensagem_direta
             WHERE remetente_id = ? AND destinatarie_id = ? AND lida = 0
-        """).bind(other_id, usuario_id).first()
+        """).bind(other_id, s_usuario_id).first()
         
+        unread_dict = safe_dict(unread) if unread else None
         conversations.append({
             'other_user': user,
             'last_message': safe_dict(last_msg) if last_msg else None,
-            'unread_count': safe_dict(unread)['count'] if unread else 0
+            'unread_count': unread_dict.get('count', 0) if unread_dict else 0
         })
     
     return conversations
@@ -3151,7 +3200,14 @@ async def get_conversations(db, usuario_id):
 
 async def get_messages_with_user(db, usuario_id, other_user_id, page=1, per_page=50):
     """Lista mensagens entre dois usuáries."""
-    offset = (page - 1) * per_page
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_other_user_id = sanitize_for_d1(other_user_id)
+    s_page = sanitize_for_d1(page) or 1
+    s_per_page = sanitize_for_d1(per_page) or 50
+    if s_usuario_id is None or s_other_user_id is None:
+        return []
+    offset = (s_page - 1) * s_per_page
     
     result = await db.prepare("""
         SELECT m.*, 
@@ -3164,14 +3220,14 @@ async def get_messages_with_user(db, usuario_id, other_user_id, page=1, per_page
            OR (m.remetente_id = ? AND m.destinatarie_id = ?)
         ORDER BY m.created_at DESC
         LIMIT ? OFFSET ?
-    """).bind(usuario_id, other_user_id, other_user_id, usuario_id, 
-              per_page, offset).all()
+    """).bind(s_usuario_id, s_other_user_id, s_other_user_id, s_usuario_id, 
+              s_per_page, offset).all()
     
     # Marcar como lidas
     await db.prepare("""
         UPDATE mensagem_direta SET lida = 1
         WHERE remetente_id = ? AND destinatarie_id = ? AND lida = 0
-    """).bind(other_user_id, usuario_id).run()
+    """).bind(s_other_user_id, s_usuario_id).run()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -3240,7 +3296,9 @@ async def leave_study_group(db, grupo_id, usuario_id):
 
 async def get_study_groups(db, usuario_id=None, apenas_meus=False):
     """Lista grupos de estudo."""
-    if apenas_meus and usuario_id:
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    if apenas_meus and s_usuario_id:
         result = await db.prepare("""
             SELECT g.*, gm.role,
                    (SELECT COUNT(*) FROM grupo_membre WHERE grupo_id = g.id) as member_count,
@@ -3250,7 +3308,7 @@ async def get_study_groups(db, usuario_id=None, apenas_meus=False):
             LEFT JOIN user u ON g.criador_id = u.id
             WHERE gm.usuario_id = ?
             ORDER BY g.created_at DESC
-        """).bind(usuario_id).all()
+        """).bind(s_usuario_id).all()
     else:
         result = await db.prepare("""
             SELECT g.*,
@@ -3267,7 +3325,13 @@ async def get_study_groups(db, usuario_id=None, apenas_meus=False):
 
 async def get_group_messages(db, grupo_id, page=1, per_page=50):
     """Lista mensagens de um grupo."""
-    offset = (page - 1) * per_page
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_grupo_id = sanitize_for_d1(grupo_id)
+    s_page = sanitize_for_d1(page) or 1
+    s_per_page = sanitize_for_d1(per_page) or 50
+    if s_grupo_id is None:
+        return []
+    offset = (s_page - 1) * s_per_page
     
     result = await db.prepare("""
         SELECT gm.*, u.username, u.foto_perfil
@@ -3276,7 +3340,7 @@ async def get_group_messages(db, grupo_id, page=1, per_page=50):
         WHERE gm.grupo_id = ?
         ORDER BY gm.created_at DESC
         LIMIT ? OFFSET ?
-    """).bind(grupo_id, per_page, offset).all()
+    """).bind(s_grupo_id, s_per_page, offset).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -3299,10 +3363,14 @@ async def send_group_message(db, grupo_id, usuario_id, conteudo):
 
 async def get_accessibility_content(db, tipo_conteudo, conteudo_id):
     """Retorna conteúdo de acessibilidade (Libras/Áudio)."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_tipo_conteudo, s_conteudo_id = sanitize_params(tipo_conteudo, conteudo_id)
+    if s_tipo_conteudo is None or s_conteudo_id is None:
+        return None
     result = await db.prepare("""
         SELECT * FROM accessibility_content
         WHERE tipo_conteudo = ? AND conteudo_id = ?
-    """).bind(tipo_conteudo, conteudo_id).first()
+    """).bind(s_tipo_conteudo, s_conteudo_id).first()
     
     if result:
         return safe_dict(result)
@@ -3312,7 +3380,14 @@ async def get_accessibility_content(db, tipo_conteudo, conteudo_id):
 async def save_accessibility_content(db, tipo_conteudo, conteudo_id, video_libras_url=None,
                                      audio_url=None, audio_duracao=None, transcricao=None):
     """Salva ou atualiza conteúdo de acessibilidade."""
-    existing = await get_accessibility_content(db, tipo_conteudo, conteudo_id)
+    # Sanitize all parameters to prevent D1_TYPE_ERROR from undefined values
+    s_tipo_conteudo, s_conteudo_id, s_video_libras_url, s_audio_url, s_audio_duracao, s_transcricao = sanitize_params(
+        tipo_conteudo, conteudo_id, video_libras_url, audio_url, audio_duracao, transcricao
+    )
+    if s_tipo_conteudo is None or s_conteudo_id is None:
+        return
+    
+    existing = await get_accessibility_content(db, s_tipo_conteudo, s_conteudo_id)
     
     if existing:
         await db.prepare("""
@@ -3323,15 +3398,15 @@ async def save_accessibility_content(db, tipo_conteudo, conteudo_id, video_libra
                 transcricao = COALESCE(?, transcricao),
                 updated_at = datetime('now')
             WHERE tipo_conteudo = ? AND conteudo_id = ?
-        """).bind(video_libras_url, audio_url, audio_duracao, transcricao,
-                  tipo_conteudo, conteudo_id).run()
+        """).bind(s_video_libras_url, s_audio_url, s_audio_duracao, s_transcricao,
+                  s_tipo_conteudo, s_conteudo_id).run()
     else:
         await db.prepare("""
             INSERT INTO accessibility_content 
             (tipo_conteudo, conteudo_id, video_libras_url, audio_url, audio_duracao, transcricao)
             VALUES (?, ?, ?, ?, ?, ?)
-        """).bind(tipo_conteudo, conteudo_id, video_libras_url, audio_url, 
-                  audio_duracao, transcricao).run()
+        """).bind(s_tipo_conteudo, s_conteudo_id, s_video_libras_url, s_audio_url, 
+                  s_audio_duracao, s_transcricao).run()
 
 
 # ============================================================================
@@ -3388,11 +3463,13 @@ def extract_mentions(text):
 
 async def create_mencao(db, usuario_id, autor_id, tipo, item_id):
     """Cria uma menção."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id, s_autor_id, s_tipo, s_item_id = sanitize_params(usuario_id, autor_id, tipo, item_id)
     try:
         await db.prepare("""
             INSERT INTO mencao (usuario_id, autor_id, tipo, item_id, created_at)
             VALUES (?, ?, ?, ?, datetime('now'))
-        """).bind(usuario_id, autor_id, tipo, item_id).run()
+        """).bind(s_usuario_id, s_autor_id, s_tipo, s_item_id).run()
         return True
     except Exception:
         return False
@@ -3426,6 +3503,12 @@ async def process_mentions(db, text, autor_id, tipo, item_id):
 
 async def get_user_mentions(db, usuario_id, limit=50, offset=0):
     """Busca menções de um usuárie."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_limit = sanitize_for_d1(limit) or 50
+    s_offset = sanitize_for_d1(offset) or 0
+    if s_usuario_id is None:
+        return []
     results = await db.prepare("""
         SELECT m.*, u.nome as autor_nome, u.username as autor_username, u.foto_perfil as autor_foto
         FROM mencao m
@@ -3433,7 +3516,7 @@ async def get_user_mentions(db, usuario_id, limit=50, offset=0):
         WHERE m.usuario_id = ?
         ORDER BY m.created_at DESC
         LIMIT ? OFFSET ?
-    """).bind(usuario_id, limit, offset).all()
+    """).bind(s_usuario_id, s_limit, s_offset).all()
     return [safe_dict(r) for r in results.results] if results.results else []
 
 
@@ -3461,10 +3544,14 @@ def extract_hashtags(text):
 
 async def get_or_create_hashtag(db, tag):
     """Busca ou cria uma hashtag."""
-    tag = tag.lower()
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_tag = sanitize_for_d1(tag)
+    if s_tag is None:
+        return None
+    s_tag = s_tag.lower()
     result = await db.prepare(
         "SELECT * FROM hashtag WHERE tag = ?"
-    ).bind(tag).first()
+    ).bind(s_tag).first()
     if result:
         return safe_dict(result)
     # Criar nova
@@ -3472,29 +3559,33 @@ async def get_or_create_hashtag(db, tag):
         INSERT INTO hashtag (tag, count_uso, created_at)
         VALUES (?, 1, datetime('now'))
         RETURNING id
-    """).bind(tag).first()
+    """).bind(s_tag).first()
     if new_result:
         new_id = safe_get(new_result, 'id')
-        return {'id': new_id, 'tag': tag, 'count_uso': 1}
+        return {'id': new_id, 'tag': s_tag, 'count_uso': 1}
     return None
 
 
 async def process_hashtags(db, text, tipo, item_id):
     """Processa hashtags em um texto e cria registros."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_tipo = sanitize_for_d1(tipo)
+    s_item_id = sanitize_for_d1(item_id)
     tags = extract_hashtags(text)
     for tag in tags:
         hashtag = await get_or_create_hashtag(db, tag)
         if hashtag:
             try:
                 # Adicionar item à hashtag
+                hashtag_id = sanitize_for_d1(hashtag['id'])
                 await db.prepare("""
                     INSERT OR IGNORE INTO hashtag_item (hashtag_id, tipo, item_id, created_at)
                     VALUES (?, ?, ?, datetime('now'))
-                """).bind(hashtag['id'], tipo, item_id).run()
+                """).bind(hashtag_id, s_tipo, s_item_id).run()
                 # Incrementar contador
                 await db.prepare(
                     "UPDATE hashtag SET count_uso = count_uso + 1 WHERE id = ?"
-                ).bind(hashtag['id']).run()
+                ).bind(hashtag_id).run()
             except Exception:
                 pass
     return tags
@@ -3502,17 +3593,25 @@ async def process_hashtags(db, text, tipo, item_id):
 
 async def get_trending_hashtags(db, limit=10):
     """Busca hashtags mais populares."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_limit = sanitize_for_d1(limit) or 10
     results = await db.prepare("""
         SELECT * FROM hashtag
         ORDER BY count_uso DESC
         LIMIT ?
-    """).bind(limit).all()
+    """).bind(s_limit).all()
     return [safe_dict(r) for r in results.results] if results.results else []
 
 
 async def search_by_hashtag(db, tag, tipo=None, limit=50, offset=0):
     """Busca posts/comentários por hashtag."""
-    tag = tag.lower().replace('#', '')
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_tag = sanitize_for_d1(tag)
+    s_limit = sanitize_for_d1(limit) or 50
+    s_offset = sanitize_for_d1(offset) or 0
+    if s_tag is None:
+        return []
+    s_tag = s_tag.lower().replace('#', '')
     
     # Query é a mesma para qualquer tipo (busca posts por padrão)
     results = await db.prepare("""
@@ -3524,7 +3623,7 @@ async def search_by_hashtag(db, tag, tipo=None, limit=50, offset=0):
         WHERE h.tag = ? AND p.is_deleted = 0
         ORDER BY p.data DESC
         LIMIT ? OFFSET ?
-    """).bind(tag, limit, offset).all()
+    """).bind(s_tag, s_limit, s_offset).all()
     
     return [safe_dict(r) for r in results.results] if results.results else []
 
@@ -3535,19 +3634,30 @@ async def search_by_hashtag(db, tag, tipo=None, limit=50, offset=0):
 
 async def create_emoji_custom(db, codigo, nome, imagem_url, descricao=None, categoria='geral', created_by=None):
     """Cria um emoji personalizado."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_codigo = sanitize_for_d1(codigo)
+    s_nome = sanitize_for_d1(nome)
+    s_imagem_url = sanitize_for_d1(imagem_url)
+    s_descricao = sanitize_for_d1(descricao)
+    s_categoria = sanitize_for_d1(categoria) or 'geral'
+    s_created_by = sanitize_for_d1(created_by)
+    
+    if s_codigo is None or s_nome is None or s_imagem_url is None:
+        return None
+    
     # Formatar código: remover espaços, adicionar colons se não tiver
-    codigo = codigo.strip().lower().replace(' ', '_')
-    if not codigo.startswith(':'):
-        codigo = f':{codigo}:'
-    elif not codigo.endswith(':'):
-        codigo = f'{codigo}:'
+    s_codigo = s_codigo.strip().lower().replace(' ', '_')
+    if not s_codigo.startswith(':'):
+        s_codigo = f':{s_codigo}:'
+    elif not s_codigo.endswith(':'):
+        s_codigo = f'{s_codigo}:'
     
     try:
         result = await db.prepare("""
             INSERT INTO emoji_custom (codigo, nome, imagem_url, descricao, categoria, created_at, created_by)
             VALUES (?, ?, ?, ?, ?, datetime('now'), ?)
             RETURNING id
-        """).bind(codigo, nome, imagem_url, descricao, categoria, created_by).first()
+        """).bind(s_codigo, s_nome, s_imagem_url, s_descricao, s_categoria, s_created_by).first()
         return safe_get(result, 'id')
     except Exception:
         return None
@@ -3555,18 +3665,20 @@ async def create_emoji_custom(db, codigo, nome, imagem_url, descricao=None, cate
 
 async def get_emojis_custom(db, categoria=None, ativo_only=True):
     """Busca emojis personalizados."""
-    if categoria and ativo_only:
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_categoria = sanitize_for_d1(categoria)
+    if s_categoria and ativo_only:
         results = await db.prepare("""
             SELECT * FROM emoji_custom
             WHERE categoria = ? AND ativo = 1
             ORDER BY ordem, nome
-        """).bind(categoria).all()
-    elif categoria:
+        """).bind(s_categoria).all()
+    elif s_categoria:
         results = await db.prepare("""
             SELECT * FROM emoji_custom
             WHERE categoria = ?
             ORDER BY ordem, nome
-        """).bind(categoria).all()
+        """).bind(s_categoria).all()
     elif ativo_only:
         results = await db.prepare("""
             SELECT * FROM emoji_custom
@@ -3584,16 +3696,25 @@ async def get_emojis_custom(db, categoria=None, ativo_only=True):
 
 async def get_emoji_by_codigo(db, codigo):
     """Busca emoji por código."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_codigo = sanitize_for_d1(codigo)
+    if s_codigo is None:
+        return None
     result = await db.prepare(
         "SELECT * FROM emoji_custom WHERE codigo = ? AND ativo = 1"
-    ).bind(codigo).first()
+    ).bind(s_codigo).first()
     return safe_dict(result) if result else None
 
 
 async def update_emoji_custom(db, emoji_id, **kwargs):
     """Atualiza um emoji."""
+    # Sanitize emoji_id to prevent D1_TYPE_ERROR from undefined values
+    s_emoji_id = sanitize_for_d1(emoji_id)
+    if s_emoji_id is None:
+        return False
     allowed = ['nome', 'descricao', 'imagem_url', 'categoria', 'ordem', 'ativo']
-    updates = {k: v for k, v in kwargs.items() if k in allowed and v is not None}
+    # Sanitize all kwargs values and filter out None values in one pass
+    updates = {k: v for k, v in ((k, sanitize_for_d1(v)) for k, v in kwargs.items() if k in allowed) if v is not None}
     
     if not updates:
         return False
@@ -3605,7 +3726,7 @@ async def update_emoji_custom(db, emoji_id, **kwargs):
         set_parts.append(f"{key} = ?")
         values.append(value)
     
-    values.append(emoji_id)
+    values.append(s_emoji_id)
     
     query = f"UPDATE emoji_custom SET {', '.join(set_parts)} WHERE id = ?"
     await db.prepare(query).bind(*values).run()
@@ -3614,7 +3735,11 @@ async def update_emoji_custom(db, emoji_id, **kwargs):
 
 async def delete_emoji_custom(db, emoji_id):
     """Deleta um emoji."""
-    await db.prepare("DELETE FROM emoji_custom WHERE id = ?").bind(emoji_id).run()
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_emoji_id = sanitize_for_d1(emoji_id)
+    if s_emoji_id is None:
+        return False
+    await db.prepare("DELETE FROM emoji_custom WHERE id = ?").bind(s_emoji_id).run()
     return True
 
 
@@ -3664,9 +3789,13 @@ def render_emojis_in_text(text, emojis_list):
 
 async def get_feature_flag(db, nome):
     """Verifica se uma funcionalidade está ativa."""
+    # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
+    s_nome = sanitize_for_d1(nome)
+    if s_nome is None:
+        return True
     result = await db.prepare(
         "SELECT ativo FROM feature_flag WHERE nome = ?"
-    ).bind(nome).first()
+    ).bind(s_nome).first()
     return bool(safe_get(result, 'ativo', 1)) if result else True
 
 
@@ -3680,9 +3809,13 @@ async def get_all_feature_flags(db):
 
 async def update_feature_flag(db, nome, ativo, updated_by=None):
     """Atualiza uma feature flag."""
+    # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
+    s_nome, s_ativo, s_updated_by = sanitize_params(nome, ativo, updated_by)
+    if s_nome is None:
+        return False
     await db.prepare("""
         UPDATE feature_flag 
         SET ativo = ?, updated_at = datetime('now'), updated_by = ?
         WHERE nome = ?
-    """).bind(ativo, updated_by, nome).run()
+    """).bind(s_ativo, s_updated_by, s_nome).run()
     return True

@@ -16,7 +16,8 @@ from .db import (
     get_exercise_topics, get_exercise_questions,
     get_dynamics, get_dynamic_by_id, get_dynamic_responses, submit_dynamic_response,
     get_palavras_do_dia, get_palavra_do_dia_atual,
-    get_divulgacoes, get_novidades
+    get_divulgacoes, get_novidades,
+    sanitize_for_d1
 )
 from .auth import get_current_user, login, logout, register, set_session_cookie, clear_session_cookie
 
@@ -57,7 +58,12 @@ async def api_create_post(db, request, user):
     if len(conteudo) > 5000:
         return {'error': 'Conteúdo muito longo (máx 5000 caracteres)'}, 400
     
-    post_id = await create_post(db, user['id'], conteudo, imagem)
+    # Sanitize user_id to prevent D1_TYPE_ERROR from undefined values
+    user_id = sanitize_for_d1(user.get('id') if isinstance(user, dict) else user['id'])
+    if user_id is None:
+        return {'error': 'Usuárie inválide'}, 400
+    
+    post_id = await create_post(db, user_id, conteudo, imagem)
     if not post_id:
         return {'error': 'Erro ao criar post'}, 500
     
