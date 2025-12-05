@@ -50,10 +50,19 @@ async def get_current_user(db, request):
     if session.get('is_banned'):
         return None
     
+    # Sanitize values from session to ensure they are pure Python types
+    # This prevents JsProxy wrapped 'undefined' from being passed downstream
+    user_id = sanitize_for_d1(session.get('user_id'))
+    username = sanitize_for_d1(session.get('username'))
+    email = sanitize_for_d1(session.get('email'))
+    
+    if user_id is None:
+        return None
+    
     return {
-        'id': session['user_id'],
-        'username': session['username'],
-        'email': session['email'],
+        'id': user_id,
+        'username': username,
+        'email': email,
         'is_admin': bool(session.get('is_admin')),
         'is_superadmin': bool(session.get('is_superadmin')),
     }

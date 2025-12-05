@@ -53,7 +53,7 @@ try:
         # Auto-inicialização
         ensure_database_initialized,
         # Helpers
-        safe_dict,
+        safe_dict, sanitize_for_d1, sanitize_params,
         # Posts e interações
         get_posts, get_post_by_id, create_post, delete_post, like_post, unlike_post, has_liked,
         get_comments, create_comment,
@@ -1198,16 +1198,30 @@ class Default(WorkerEntrypoint):
                         return json_response({"error": "Não autenticado"}, 401)
                     
                     body = await request.json()
-                    conteudo = body.get('conteudo', '').strip()
-                    imagem = body.get('imagem')
+                    # Handle JsProxy body - convert to Python dict
+                    if hasattr(body, 'to_py'):
+                        body = body.to_py()
+                    
+                    # Safely get and sanitize values to prevent D1_TYPE_ERROR
+                    conteudo = body.get('conteudo', '') if isinstance(body, dict) else ''
+                    conteudo = sanitize_for_d1(conteudo)
+                    conteudo = conteudo.strip() if conteudo else ''
+                    
+                    imagem = body.get('imagem') if isinstance(body, dict) else None
+                    imagem = sanitize_for_d1(imagem)
                     
                     if not conteudo:
                         return json_response({"error": "Conteúdo é obrigatório"}, 400)
                     
-                    post_id = await create_post(db, current_user['id'], conteudo, imagem)
+                    # Sanitize current_user['id'] to ensure it's a proper Python value
+                    user_id = sanitize_for_d1(current_user.get('id') if isinstance(current_user, dict) else current_user['id'])
+                    if user_id is None:
+                        return json_response({"error": "Usuárie inválide"}, 400)
+                    
+                    post_id = await create_post(db, user_id, conteudo, imagem)
                     
                     # Processar menções (@username)
-                    await process_mentions(db, conteudo, current_user['id'], 'post', post_id)
+                    await process_mentions(db, conteudo, user_id, 'post', post_id)
                     
                     # Processar hashtags (#tag)
                     await process_hashtags(db, conteudo, 'post', post_id)
