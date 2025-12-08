@@ -844,9 +844,13 @@ async def get_user_by_id(db, user_id):
     s_user_id = sanitize_for_d1(user_id)
     if s_user_id is None:
         return None
+    
+    # Wrap parameter to prevent D1_TYPE_ERROR
+    d1_user_id = to_d1_null(s_user_id)
+    
     result = await db.prepare(
         "SELECT * FROM user WHERE id = ?"
-    ).bind(s_user_id).first()
+    ).bind(d1_user_id).first()
     if result:
         return safe_dict(result)
     return None
@@ -858,10 +862,14 @@ async def get_user_by_username(db, username):
     s_username = sanitize_for_d1(username)
     if s_username is None:
         return None
+    
+    # Wrap parameter to prevent D1_TYPE_ERROR
+    d1_username = to_d1_null(s_username)
+    
     try:
         result = await db.prepare(
             "SELECT * FROM user WHERE username = ?"
-        ).bind(s_username).first()
+        ).bind(d1_username).first()
         # Use console.log for debug/info messages
         console.log(f"[get_user_by_username] Query result for '{s_username}': {result}, type: {type(result)}")
         if result:
@@ -1827,6 +1835,11 @@ async def get_notifications(db, usuario_id, apenas_nao_lidas=False, page=1, per_
         return []
     offset = (s_page - 1) * s_per_page
     
+    # Wrap all parameters to prevent D1_TYPE_ERROR
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    d1_per_page = to_d1_null(s_per_page)
+    d1_offset = to_d1_null(offset)
+    
     if apenas_nao_lidas:
         result = await db.prepare("""
             SELECT n.*, u.username as from_username, u.foto_perfil as from_foto
@@ -1835,7 +1848,7 @@ async def get_notifications(db, usuario_id, apenas_nao_lidas=False, page=1, per_
             WHERE n.usuario_id = ? AND n.lida = 0
             ORDER BY n.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(s_usuario_id, s_per_page, offset).all()
+        """).bind(d1_usuario_id, d1_per_page, d1_offset).all()
     else:
         result = await db.prepare("""
             SELECT n.*, u.username as from_username, u.foto_perfil as from_foto
@@ -1844,7 +1857,7 @@ async def get_notifications(db, usuario_id, apenas_nao_lidas=False, page=1, per_
             WHERE n.usuario_id = ?
             ORDER BY n.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(s_usuario_id, s_per_page, offset).all()
+        """).bind(d1_usuario_id, d1_per_page, d1_offset).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1855,10 +1868,14 @@ async def count_unread_notifications(db, usuario_id):
     s_usuario_id = sanitize_for_d1(usuario_id)
     if s_usuario_id is None:
         return 0
+    
+    # Wrap parameter to prevent D1_TYPE_ERROR
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    
     result = await db.prepare("""
         SELECT COUNT(*) as count FROM notification
         WHERE usuario_id = ? AND lida = 0
-    """).bind(s_usuario_id).first()
+    """).bind(d1_usuario_id).first()
     return safe_get(result, 'count', 0)
 
 
