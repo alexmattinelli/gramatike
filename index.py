@@ -1204,10 +1204,14 @@ class Default(WorkerEntrypoint):
                         body = body.to_py()
                     
                     # Safely get and sanitize values to prevent D1_TYPE_ERROR
+                    # DO NOT use int() or str() after sanitization - it creates new objects
+                    # that become 'undefined' when crossing the Pyodide FFI boundary
                     conteudo = body.get('conteudo', '') if isinstance(body, dict) else ''
                     conteudo = sanitize_for_d1(conteudo)
-                    # Convert to string and strip whitespace, handling None case
-                    conteudo = str(conteudo).strip() if conteudo is not None else ''
+                    
+                    # Strip whitespace if it's a string
+                    if isinstance(conteudo, str):
+                        conteudo = conteudo.strip()
                     
                     imagem = body.get('imagem') if isinstance(body, dict) else None
                     imagem = sanitize_for_d1(imagem)
@@ -1215,15 +1219,9 @@ class Default(WorkerEntrypoint):
                     if not conteudo:
                         return json_response({"error": "Conteúdo é obrigatório"}, 400)
                     
-                    # Sanitize current_user['id'] to ensure it's a proper Python value
+                    # Sanitize current_user['id'] - sanitize_for_d1 already returns proper Python types
                     user_id = sanitize_for_d1(current_user.get('id'))
                     if user_id is None:
-                        return json_response({"error": "Usuárie inválide"}, 400)
-                    
-                    # Ensure user_id is an integer
-                    try:
-                        user_id = int(user_id)
-                    except (ValueError, TypeError):
                         return json_response({"error": "Usuárie inválide"}, 400)
                     
                     post_id = await create_post(db, user_id, conteudo, imagem)
@@ -1398,31 +1396,25 @@ class Default(WorkerEntrypoint):
                     if not conteudo:
                         return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
                     
-                    # Ensure user_id is a proper Python int before passing to D1
-                    # (dict access might still return JsProxy in Pyodide environment)
-                    if hasattr(user_id, 'to_py'):
-                        user_id = user_id.to_py()
-                    
-                    # Additional sanitization to catch any remaining JsProxy/undefined
+                    # Sanitize parameters - sanitize_for_d1 already returns proper Python types
+                    # DO NOT use int() or str() after sanitization as this creates new objects
+                    # that become 'undefined' when crossing the Pyodide FFI boundary to D1
                     user_id = sanitize_for_d1(user_id)
+                    conteudo = sanitize_for_d1(conteudo)
+                    
                     if user_id is None:
                         console.error("[posts_multi] user_id is None after sanitize_for_d1")
                         return json_response({"error": "Usuárie inválide", "success": False}, 400)
                     
-                    # Ensure it's an integer
-                    try:
-                        user_id = int(user_id)
-                    except (ValueError, TypeError) as e:
-                        console.error(f"[posts_multi] Failed to convert user_id to int: {e}")
-                        return json_response({"error": "Usuárie inválide", "success": False}, 400)
-                    
-                    # Sanitize conteudo as well to ensure it's a proper Python string
-                    conteudo = sanitize_for_d1(conteudo)
-                    # Convert to string and strip whitespace
-                    conteudo = str(conteudo).strip() if conteudo is not None else ''
+                    # Strip whitespace from conteudo if it's a string
+                    if isinstance(conteudo, str):
+                        conteudo = conteudo.strip()
                     
                     if not conteudo:
-                        console.error("[posts_multi] conteudo is empty after sanitization")
+                        conteudo = None
+                    
+                    if not conteudo:
+                        console.error("[posts_multi] conteudo is empty")
                         return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
                     
                     # Log the final values before creating post
