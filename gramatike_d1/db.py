@@ -93,17 +93,26 @@ def to_d1_null(value):
     if value is None:
         return JS_NULL
     
-    # Check for JavaScript undefined by checking string representation
+    # Check for JavaScript undefined and null by checking string representation
     # This is more reliable than importing undefined and doing identity comparison
     # Most undefined values will stringify to 'undefined'
     try:
         str_repr = str(value)
-        if str_repr == 'undefined':
+        if str_repr in ('undefined', 'null'):
             return JS_NULL
     except Exception:
         # If we can't get a string representation, it's likely a problematic
         # JavaScript object. Return JS_NULL to prevent D1_TYPE_ERROR
         return JS_NULL
+    
+    # Additional check: use type name to detect JavaScript types
+    # that indicate undefined/null values
+    try:
+        type_name = type(value).__name__
+        if type_name in ('JsUndefined', 'JsNull', 'undefined', 'null'):
+            return JS_NULL
+    except Exception:
+        pass
     
     return value
 
@@ -456,6 +465,47 @@ def d1_params(*args):
             .bind(*params).run()
     """
     return tuple(to_d1_null(sanitize_for_d1(arg)) for arg in args)
+
+
+def safe_bind(prepared_stmt, *args):
+    """Safely bind parameters to a D1 prepared statement with enhanced error handling.
+    
+    This function wraps the .bind() call with additional logging and error handling
+    to help diagnose D1_TYPE_ERROR issues.
+    
+    Args:
+        prepared_stmt: The D1 prepared statement (result of db.prepare())
+        *args: Arguments to bind (will be logged for debugging)
+        
+    Returns:
+        The prepared statement with bound parameters
+        
+    Raises:
+        Any exception from .bind() with enhanced error messaging
+    """
+    if _IN_PYODIDE:
+        # Log parameter types for debugging
+        param_info = []
+        for i, arg in enumerate(args):
+            try:
+                type_name = type(arg).__name__
+                str_repr = str(arg)[:50]  # Truncate long strings
+                param_info.append(f"  [{i}] {type_name}: {str_repr}")
+            except:
+                param_info.append(f"  [{i}] <unable to stringify>")
+        
+        console.log(f"[safe_bind] Binding {len(args)} parameters:")
+        for info in param_info:
+            console.log(info)
+    
+    try:
+        return prepared_stmt.bind(*args)
+    except Exception as e:
+        console.error(f"[safe_bind] ERROR during .bind(): {e}")
+        console.error(f"[safe_bind] Number of parameters: {len(args)}")
+        if _IN_PYODIDE:
+            console.error(f"[safe_bind] Parameter details: {param_info}")
+        raise
 
 
 # ============================================================================
@@ -1175,12 +1225,19 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
     d1_conteudo = to_d1_null(s_conteudo)
     d1_imagem = to_d1_null(s_imagem)
     
+    # Create a list of parameters to bind - this ensures proper FFI conversion
+    # Using a list and unpacking helps avoid parameter ordering issues
+    bind_params = [d1_usuario_id, d1_conteudo, d1_imagem, d1_usuario_id]
+    
+    # Log parameter types before binding for debugging
+    console.log(f"[create_post] Binding parameters: {[type(p).__name__ for p in bind_params]}")
+    
     result = await db.prepare("""
         INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
         SELECT ?, username, ?, ?, datetime('now')
         FROM user WHERE id = ?
         RETURNING id
-    """).bind(d1_usuario_id, d1_conteudo, d1_imagem, d1_usuario_id).first()
+    """).bind(*bind_params).first()
     return safe_get(result, 'id')
 
 
