@@ -1291,7 +1291,11 @@ async def get_comments(db, post_id, page=1, per_page=50):
         WHERE c.post_id = ?
         ORDER BY c.data ASC
         LIMIT ? OFFSET ?
-    """).bind(s_post_id, s_per_page, offset).all()
+    """).bind(
+        to_d1_null(s_post_id),
+        to_d1_null(s_per_page),
+        to_d1_null(offset)
+    ).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1363,7 +1367,10 @@ async def is_following(db, seguidore_id, seguide_id):
         return False
     result = await db.prepare("""
         SELECT 1 FROM seguidories WHERE seguidore_id = ? AND seguide_id = ?
-    """).bind(s_seguidore_id, s_seguide_id).first()
+    """).bind(
+        to_d1_null(s_seguidore_id),
+        to_d1_null(s_seguide_id)
+    ).first()
     return result is not None
 
 
@@ -1378,7 +1385,7 @@ async def get_followers(db, user_id):
         FROM seguidories s
         JOIN user u ON s.seguidore_id = u.id
         WHERE s.seguide_id = ?
-    """).bind(s_user_id).all()
+    """).bind(to_d1_null(s_user_id)).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
@@ -1393,7 +1400,7 @@ async def get_following(db, user_id):
         FROM seguidories s
         JOIN user u ON s.seguide_id = u.id
         WHERE s.seguidore_id = ?
-    """).bind(s_user_id).all()
+    """).bind(to_d1_null(s_user_id)).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
@@ -1418,7 +1425,11 @@ async def get_edu_contents(db, tipo=None, page=1, per_page=20):
             WHERE tipo = ?
             ORDER BY e.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(s_tipo, s_per_page, offset).all()
+        """).bind(
+            to_d1_null(s_tipo),
+            to_d1_null(s_per_page),
+            to_d1_null(offset)
+        ).all()
     else:
         result = await db.prepare("""
             SELECT e.*, u.username as author_name, t.nome as topic_name
@@ -1427,7 +1438,10 @@ async def get_edu_contents(db, tipo=None, page=1, per_page=20):
             LEFT JOIN edu_topic t ON e.topic_id = t.id
             ORDER BY e.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(s_per_page, offset).all()
+        """).bind(
+            to_d1_null(s_per_page),
+            to_d1_null(offset)
+        ).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1444,7 +1458,7 @@ async def get_edu_content_by_id(db, content_id):
         LEFT JOIN user u ON e.author_id = u.id
         LEFT JOIN edu_topic t ON e.topic_id = t.id
         WHERE e.id = ?
-    """).bind(s_content_id).first()
+    """).bind(to_d1_null(s_content_id)).first()
     if result:
         return safe_dict(result)
     return None
@@ -1468,7 +1482,12 @@ async def search_edu_contents(db, query, tipo=None):
             AND tipo = ?
             ORDER BY e.created_at DESC
             LIMIT 50
-        """).bind(search_term, search_term, search_term, s_tipo).all()
+        """).bind(
+            to_d1_null(search_term),
+            to_d1_null(search_term),
+            to_d1_null(search_term),
+            to_d1_null(s_tipo)
+        ).all()
     else:
         result = await db.prepare("""
             SELECT e.*, u.username as author_name
@@ -1477,7 +1496,11 @@ async def search_edu_contents(db, query, tipo=None):
             WHERE (e.titulo LIKE ? OR e.resumo LIKE ? OR e.corpo LIKE ?)
             ORDER BY e.created_at DESC
             LIMIT 50
-        """).bind(search_term, search_term, search_term).all()
+        """).bind(
+            to_d1_null(search_term),
+            to_d1_null(search_term),
+            to_d1_null(search_term)
+        ).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1511,7 +1534,10 @@ async def get_exercise_questions(db, topic_id=None, section_id=None):
             LEFT JOIN exercise_section s ON q.section_id = s.id
             WHERE q.topic_id = ? AND q.section_id = ?
             ORDER BY q.created_at DESC
-        """).bind(s_topic_id, s_section_id).all()
+        """).bind(
+            to_d1_null(s_topic_id),
+            to_d1_null(s_section_id)
+        ).all()
     elif s_topic_id:
         result = await db.prepare("""
             SELECT q.*, t.nome as topic_name, s.nome as section_name
@@ -1520,7 +1546,7 @@ async def get_exercise_questions(db, topic_id=None, section_id=None):
             LEFT JOIN exercise_section s ON q.section_id = s.id
             WHERE q.topic_id = ?
             ORDER BY q.created_at DESC
-        """).bind(s_topic_id).all()
+        """).bind(to_d1_null(s_topic_id)).all()
     elif s_section_id:
         result = await db.prepare("""
             SELECT q.*, t.nome as topic_name, s.nome as section_name
@@ -1529,7 +1555,7 @@ async def get_exercise_questions(db, topic_id=None, section_id=None):
             LEFT JOIN exercise_section s ON q.section_id = s.id
             WHERE q.section_id = ?
             ORDER BY q.created_at DESC
-        """).bind(s_section_id).all()
+        """).bind(to_d1_null(s_section_id)).all()
     else:
         result = await db.prepare("""
             SELECT q.*, t.nome as topic_name, s.nome as section_name
@@ -1580,7 +1606,7 @@ async def get_dynamic_by_id(db, dynamic_id):
         FROM dynamic d
         LEFT JOIN user u ON d.created_by = u.id
         WHERE d.id = ?
-    """).bind(s_dynamic_id).first()
+    """).bind(to_d1_null(s_dynamic_id)).first()
     if result:
         return safe_dict(result)
     return None
@@ -1598,7 +1624,7 @@ async def get_dynamic_responses(db, dynamic_id):
         LEFT JOIN user u ON r.usuario_id = u.id
         WHERE r.dynamic_id = ?
         ORDER BY r.created_at DESC
-    """).bind(s_dynamic_id).all()
+    """).bind(to_d1_null(s_dynamic_id)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1677,19 +1703,19 @@ async def get_divulgacoes(db, area=None, show_on_edu=None, show_on_index=None):
             SELECT * FROM divulgacao
             WHERE ativo = 1 AND area = ? AND show_on_edu = 1 AND show_on_index = 1
             ORDER BY ordem, created_at DESC
-        """).bind(s_area).all()
+        """).bind(to_d1_null(s_area)).all()
     elif s_area and show_on_edu:
         result = await db.prepare("""
             SELECT * FROM divulgacao
             WHERE ativo = 1 AND area = ? AND show_on_edu = 1
             ORDER BY ordem, created_at DESC
-        """).bind(s_area).all()
+        """).bind(to_d1_null(s_area)).all()
     elif s_area and show_on_index:
         result = await db.prepare("""
             SELECT * FROM divulgacao
             WHERE ativo = 1 AND area = ? AND show_on_index = 1
             ORDER BY ordem, created_at DESC
-        """).bind(s_area).all()
+        """).bind(to_d1_null(s_area)).all()
     elif show_on_edu and show_on_index:
         result = await db.prepare("""
             SELECT * FROM divulgacao
@@ -1701,7 +1727,7 @@ async def get_divulgacoes(db, area=None, show_on_edu=None, show_on_index=None):
             SELECT * FROM divulgacao
             WHERE ativo = 1 AND area = ?
             ORDER BY ordem, created_at DESC
-        """).bind(s_area).all()
+        """).bind(to_d1_null(s_area)).all()
     elif show_on_edu:
         result = await db.prepare("""
             SELECT * FROM divulgacao
