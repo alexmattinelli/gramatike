@@ -28,12 +28,16 @@
 #   # NOTA: Este padrão pode causar 2 FFI crossings em alguns casos
 #
 # NUNCA faça:
-#   # ❌ Usar valores não sanitizados pode causar D1_TYPE_ERROR
+#   # ❌ Usar valores não sanitizados diretamente pode causar D1_TYPE_ERROR
 #   await db.prepare("...").bind(usuario_id, conteudo).run()
 #   
 #   # ❌ Armazenar to_d1_null() em variáveis pode causar FFI boundary issues
 #   d1_value = to_d1_null(s_usuario_id)
 #   await db.prepare("...").bind(d1_value).run()
+#   
+#   # ❌ Passar valores sanitizados diretamente sem to_d1_null()
+#   s_param = sanitize_for_d1(param)
+#   await db.prepare("...").bind(s_param).run()
 #
 # ============================================================================
 
@@ -1291,7 +1295,11 @@ async def get_comments(db, post_id, page=1, per_page=50):
         WHERE c.post_id = ?
         ORDER BY c.data ASC
         LIMIT ? OFFSET ?
-    """).bind(s_post_id, s_per_page, offset).all()
+    """).bind(
+        to_d1_null(s_post_id),
+        to_d1_null(s_per_page),
+        to_d1_null(offset)
+    ).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1363,7 +1371,10 @@ async def is_following(db, seguidore_id, seguide_id):
         return False
     result = await db.prepare("""
         SELECT 1 FROM seguidories WHERE seguidore_id = ? AND seguide_id = ?
-    """).bind(s_seguidore_id, s_seguide_id).first()
+    """).bind(
+        to_d1_null(s_seguidore_id),
+        to_d1_null(s_seguide_id)
+    ).first()
     return result is not None
 
 
@@ -1378,7 +1389,7 @@ async def get_followers(db, user_id):
         FROM seguidories s
         JOIN user u ON s.seguidore_id = u.id
         WHERE s.seguide_id = ?
-    """).bind(s_user_id).all()
+    """).bind(to_d1_null(s_user_id)).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
@@ -1393,7 +1404,7 @@ async def get_following(db, user_id):
         FROM seguidories s
         JOIN user u ON s.seguide_id = u.id
         WHERE s.seguidore_id = ?
-    """).bind(s_user_id).all()
+    """).bind(to_d1_null(s_user_id)).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
@@ -1418,7 +1429,11 @@ async def get_edu_contents(db, tipo=None, page=1, per_page=20):
             WHERE tipo = ?
             ORDER BY e.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(s_tipo, s_per_page, offset).all()
+        """).bind(
+            to_d1_null(s_tipo),
+            to_d1_null(s_per_page),
+            to_d1_null(offset)
+        ).all()
     else:
         result = await db.prepare("""
             SELECT e.*, u.username as author_name, t.nome as topic_name
@@ -1427,7 +1442,10 @@ async def get_edu_contents(db, tipo=None, page=1, per_page=20):
             LEFT JOIN edu_topic t ON e.topic_id = t.id
             ORDER BY e.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(s_per_page, offset).all()
+        """).bind(
+            to_d1_null(s_per_page),
+            to_d1_null(offset)
+        ).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1444,7 +1462,7 @@ async def get_edu_content_by_id(db, content_id):
         LEFT JOIN user u ON e.author_id = u.id
         LEFT JOIN edu_topic t ON e.topic_id = t.id
         WHERE e.id = ?
-    """).bind(s_content_id).first()
+    """).bind(to_d1_null(s_content_id)).first()
     if result:
         return safe_dict(result)
     return None
@@ -1468,7 +1486,12 @@ async def search_edu_contents(db, query, tipo=None):
             AND tipo = ?
             ORDER BY e.created_at DESC
             LIMIT 50
-        """).bind(search_term, search_term, search_term, s_tipo).all()
+        """).bind(
+            to_d1_null(search_term),
+            to_d1_null(search_term),
+            to_d1_null(search_term),
+            to_d1_null(s_tipo)
+        ).all()
     else:
         result = await db.prepare("""
             SELECT e.*, u.username as author_name
@@ -1477,7 +1500,11 @@ async def search_edu_contents(db, query, tipo=None):
             WHERE (e.titulo LIKE ? OR e.resumo LIKE ? OR e.corpo LIKE ?)
             ORDER BY e.created_at DESC
             LIMIT 50
-        """).bind(search_term, search_term, search_term).all()
+        """).bind(
+            to_d1_null(search_term),
+            to_d1_null(search_term),
+            to_d1_null(search_term)
+        ).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1511,7 +1538,10 @@ async def get_exercise_questions(db, topic_id=None, section_id=None):
             LEFT JOIN exercise_section s ON q.section_id = s.id
             WHERE q.topic_id = ? AND q.section_id = ?
             ORDER BY q.created_at DESC
-        """).bind(s_topic_id, s_section_id).all()
+        """).bind(
+            to_d1_null(s_topic_id),
+            to_d1_null(s_section_id)
+        ).all()
     elif s_topic_id:
         result = await db.prepare("""
             SELECT q.*, t.nome as topic_name, s.nome as section_name
@@ -1520,7 +1550,7 @@ async def get_exercise_questions(db, topic_id=None, section_id=None):
             LEFT JOIN exercise_section s ON q.section_id = s.id
             WHERE q.topic_id = ?
             ORDER BY q.created_at DESC
-        """).bind(s_topic_id).all()
+        """).bind(to_d1_null(s_topic_id)).all()
     elif s_section_id:
         result = await db.prepare("""
             SELECT q.*, t.nome as topic_name, s.nome as section_name
@@ -1529,7 +1559,7 @@ async def get_exercise_questions(db, topic_id=None, section_id=None):
             LEFT JOIN exercise_section s ON q.section_id = s.id
             WHERE q.section_id = ?
             ORDER BY q.created_at DESC
-        """).bind(s_section_id).all()
+        """).bind(to_d1_null(s_section_id)).all()
     else:
         result = await db.prepare("""
             SELECT q.*, t.nome as topic_name, s.nome as section_name
@@ -1580,7 +1610,7 @@ async def get_dynamic_by_id(db, dynamic_id):
         FROM dynamic d
         LEFT JOIN user u ON d.created_by = u.id
         WHERE d.id = ?
-    """).bind(s_dynamic_id).first()
+    """).bind(to_d1_null(s_dynamic_id)).first()
     if result:
         return safe_dict(result)
     return None
@@ -1598,7 +1628,7 @@ async def get_dynamic_responses(db, dynamic_id):
         LEFT JOIN user u ON r.usuario_id = u.id
         WHERE r.dynamic_id = ?
         ORDER BY r.created_at DESC
-    """).bind(s_dynamic_id).all()
+    """).bind(to_d1_null(s_dynamic_id)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1677,19 +1707,19 @@ async def get_divulgacoes(db, area=None, show_on_edu=None, show_on_index=None):
             SELECT * FROM divulgacao
             WHERE ativo = 1 AND area = ? AND show_on_edu = 1 AND show_on_index = 1
             ORDER BY ordem, created_at DESC
-        """).bind(s_area).all()
+        """).bind(to_d1_null(s_area)).all()
     elif s_area and show_on_edu:
         result = await db.prepare("""
             SELECT * FROM divulgacao
             WHERE ativo = 1 AND area = ? AND show_on_edu = 1
             ORDER BY ordem, created_at DESC
-        """).bind(s_area).all()
+        """).bind(to_d1_null(s_area)).all()
     elif s_area and show_on_index:
         result = await db.prepare("""
             SELECT * FROM divulgacao
             WHERE ativo = 1 AND area = ? AND show_on_index = 1
             ORDER BY ordem, created_at DESC
-        """).bind(s_area).all()
+        """).bind(to_d1_null(s_area)).all()
     elif show_on_edu and show_on_index:
         result = await db.prepare("""
             SELECT * FROM divulgacao
@@ -1701,7 +1731,7 @@ async def get_divulgacoes(db, area=None, show_on_edu=None, show_on_index=None):
             SELECT * FROM divulgacao
             WHERE ativo = 1 AND area = ?
             ORDER BY ordem, created_at DESC
-        """).bind(s_area).all()
+        """).bind(to_d1_null(s_area)).all()
     elif show_on_edu:
         result = await db.prepare("""
             SELECT * FROM divulgacao
@@ -1734,7 +1764,7 @@ async def get_novidades(db, limit=5):
         LEFT JOIN user u ON n.author_id = u.id
         ORDER BY n.created_at DESC
         LIMIT ?
-    """).bind(s_limit).all()
+    """).bind(to_d1_null(s_limit)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1787,7 +1817,7 @@ async def verify_email_token(db, token, tipo):
     result = await db.prepare("""
         SELECT * FROM email_token
         WHERE token = ? AND tipo = ? AND used = 0 AND expires_at > datetime('now')
-    """).bind(s_token, s_tipo).first()
+    """).bind(to_d1_null(s_token), to_d1_null(s_tipo)).first()
     
     if result:
         return safe_dict(result)
@@ -2013,7 +2043,7 @@ async def respond_friend_request(db, amizade_id, usuario_id, aceitar=True):
         WHERE id = ? AND status = 'pendente'
         AND (usuario1_id = ? OR usuario2_id = ?)
         AND solicitante_id != ?
-    """).bind(s_amizade_id, s_usuario_id, s_usuario_id, s_usuario_id).first()
+    """).bind(to_d1_null(s_amizade_id), to_d1_null(s_usuario_id), to_d1_null(s_usuario_id), to_d1_null(s_usuario_id)).first()
     
     if not amizade:
         return False, "Pedido não encontrado"
@@ -2022,7 +2052,7 @@ async def respond_friend_request(db, amizade_id, usuario_id, aceitar=True):
     await db.prepare("""
         UPDATE amizade SET status = ?, updated_at = datetime('now')
         WHERE id = ?
-    """).bind(status, s_amizade_id).run()
+    """).bind(status, to_d1_null(s_amizade_id)).run()
     
     # Notifica solicitante
     solicitante_id = safe_get(amizade, 'solicitante_id')
@@ -2049,7 +2079,7 @@ async def get_amigues(db, usuario_id):
         )
         WHERE a.status = 'aceita'
         ORDER BY u.nome, u.username
-    """).bind(s_usuario_id, s_usuario_id).all()
+    """).bind(to_d1_null(s_usuario_id), to_d1_null(s_usuario_id)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2068,7 +2098,7 @@ async def get_pending_friend_requests(db, usuario_id):
         AND a.status = 'pendente'
         AND a.solicitante_id != ?
         ORDER BY a.created_at DESC
-    """).bind(s_usuario_id, s_usuario_id, s_usuario_id).all()
+    """).bind(to_d1_null(s_usuario_id), to_d1_null(s_usuario_id), to_d1_null(s_usuario_id)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2084,7 +2114,7 @@ async def are_amigues(db, usuarie1_id, usuarie2_id):
         WHERE ((usuario1_id = ? AND usuario2_id = ?)
             OR (usuario1_id = ? AND usuario2_id = ?))
         AND status = 'aceita'
-    """).bind(s_usuarie1_id, s_usuarie2_id, s_usuarie2_id, s_usuarie1_id).first()
+    """).bind(to_d1_null(s_usuarie1_id), to_d1_null(s_usuarie2_id), to_d1_null(s_usuarie2_id), to_d1_null(s_usuarie1_id)).first()
     return result is not None
 
 
@@ -2148,7 +2178,7 @@ async def get_reports(db, apenas_pendentes=True, page=1, per_page=20):
             WHERE r.resolved = 0
             ORDER BY r.data DESC
             LIMIT ? OFFSET ?
-        """).bind(s_per_page, offset).all()
+        """).bind(to_d1_null(s_per_page), to_d1_null(offset)).all()
     else:
         result = await db.prepare("""
             SELECT r.*, p.conteudo as post_conteudo, u.username as reporter_username
@@ -2157,7 +2187,7 @@ async def get_reports(db, apenas_pendentes=True, page=1, per_page=20):
             LEFT JOIN user u ON r.usuario_id = u.id
             ORDER BY r.data DESC
             LIMIT ? OFFSET ?
-        """).bind(s_per_page, offset).all()
+        """).bind(to_d1_null(s_per_page), to_d1_null(offset)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2171,7 +2201,7 @@ async def resolve_report(db, report_id, resolver_id=None):
     await db.prepare("""
         UPDATE report SET resolved = 1, resolved_at = datetime('now')
         WHERE id = ?
-    """).bind(s_report_id).run()
+    """).bind(to_d1_null(s_report_id)).run()
 
 
 async def count_pending_reports(db):
@@ -2222,7 +2252,7 @@ async def get_support_tickets(db, status=None, page=1, per_page=20):
             WHERE t.status = ?
             ORDER BY t.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(s_status, s_per_page, offset).all()
+        """).bind(to_d1_null(s_status), to_d1_null(s_per_page), to_d1_null(offset)).all()
     else:
         result = await db.prepare("""
             SELECT t.*, u.username
@@ -2230,7 +2260,7 @@ async def get_support_tickets(db, status=None, page=1, per_page=20):
             LEFT JOIN user u ON t.usuario_id = u.id
             ORDER BY t.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(s_per_page, offset).all()
+        """).bind(to_d1_null(s_per_page), to_d1_null(offset)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2245,7 +2275,7 @@ async def get_user_tickets(db, usuario_id):
         SELECT * FROM support_ticket
         WHERE usuario_id = ?
         ORDER BY created_at DESC
-    """).bind(s_usuario_id).all()
+    """).bind(to_d1_null(s_usuario_id)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2260,7 +2290,7 @@ async def respond_ticket(db, ticket_id, resposta):
         UPDATE support_ticket 
         SET resposta = ?, status = 'respondido', updated_at = datetime('now')
         WHERE id = ?
-    """).bind(s_resposta, s_ticket_id).run()
+    """).bind(to_d1_null(s_resposta), to_d1_null(s_ticket_id)).run()
 
 
 async def close_ticket(db, ticket_id):
@@ -2273,7 +2303,7 @@ async def close_ticket(db, ticket_id):
         UPDATE support_ticket 
         SET status = 'fechado', updated_at = datetime('now')
         WHERE id = ?
-    """).bind(s_ticket_id).run()
+    """).bind(to_d1_null(s_ticket_id)).run()
 
 
 # ============================================================================
@@ -2297,8 +2327,7 @@ async def create_divulgacao(db, area, titulo, texto=None, link=None, imagem=None
         INSERT INTO divulgacao (area, titulo, texto, link, imagem, show_on_edu, show_on_index)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(s_area, s_titulo, d1_texto, d1_link, d1_imagem, 
-              1 if show_on_edu else 0, 1 if show_on_index else 0).first()
+    """).bind(to_d1_null(s_area), to_d1_null(s_titulo), d1_texto, d1_link, d1_imagem, 1 if show_on_edu else 0, 1 if show_on_index else 0).first()
     return safe_get(result, 'id')
 
 
@@ -2362,7 +2391,7 @@ async def delete_divulgacao(db, divulgacao_id):
         return
     await db.prepare("""
         DELETE FROM divulgacao WHERE id = ?
-    """).bind(s_divulgacao_id).run()
+    """).bind(to_d1_null(s_divulgacao_id)).run()
 
 
 # ============================================================================
@@ -2385,7 +2414,7 @@ async def save_upload(db, usuario_id, tipo, path, filename=None, content_type=No
         INSERT INTO upload (usuario_id, tipo, path, filename, content_type, size)
         VALUES (?, ?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(s_usuario_id, s_tipo, s_path, d1_filename, d1_content_type, d1_size).first()
+    """).bind(to_d1_null(s_usuario_id), to_d1_null(s_tipo), to_d1_null(s_path), d1_filename, d1_content_type, d1_size).first()
     return safe_get(result, 'id')
 
 
@@ -2402,13 +2431,13 @@ async def get_user_uploads(db, usuario_id, tipo=None):
             SELECT * FROM upload
             WHERE usuario_id = ? AND tipo = ?
             ORDER BY created_at DESC
-        """).bind(s_usuario_id, s_tipo).all()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_tipo)).all()
     else:
         result = await db.prepare("""
             SELECT * FROM upload
             WHERE usuario_id = ?
             ORDER BY created_at DESC
-        """).bind(s_usuario_id).all()
+        """).bind(to_d1_null(s_usuario_id)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2434,7 +2463,7 @@ async def get_all_usuaries(db, page=1, per_page=20, search=None):
             WHERE username LIKE ? OR nome LIKE ? OR email LIKE ?
             ORDER BY created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(search_term, search_term, search_term, s_per_page, offset).all()
+        """).bind(search_term, search_term, search_term, to_d1_null(s_per_page), to_d1_null(offset)).all()
     else:
         result = await db.prepare("""
             SELECT id, username, nome, email, foto_perfil, is_admin, is_superadmin, 
@@ -2442,7 +2471,7 @@ async def get_all_usuaries(db, page=1, per_page=20, search=None):
             FROM user
             ORDER BY created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(s_per_page, offset).all()
+        """).bind(to_d1_null(s_per_page), to_d1_null(offset)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2461,7 +2490,7 @@ async def ban_usuarie(db, usuario_id, reason=None, admin_id=None):
     await db.prepare("""
         UPDATE user SET is_banned = 1, banned_at = datetime('now'), ban_reason = ?
         WHERE id = ?
-    """).bind(d1_reason, s_usuario_id).run()
+    """).bind(d1_reason, to_d1_null(s_usuario_id)).run()
 
 
 async def unban_usuarie(db, usuario_id):
@@ -2473,7 +2502,7 @@ async def unban_usuarie(db, usuario_id):
     await db.prepare("""
         UPDATE user SET is_banned = 0, banned_at = NULL, ban_reason = NULL
         WHERE id = ?
-    """).bind(s_usuario_id).run()
+    """).bind(to_d1_null(s_usuario_id)).run()
 
 
 async def suspend_usuarie(db, usuario_id, until_date):
@@ -2486,7 +2515,7 @@ async def suspend_usuarie(db, usuario_id, until_date):
     await db.prepare("""
         UPDATE user SET suspended_until = ?
         WHERE id = ?
-    """).bind(s_until_date, s_usuario_id).run()
+    """).bind(to_d1_null(s_until_date), to_d1_null(s_usuario_id)).run()
 
 
 async def make_admin(db, usuario_id, is_admin=True):
@@ -2498,7 +2527,7 @@ async def make_admin(db, usuario_id, is_admin=True):
     await db.prepare("""
         UPDATE user SET is_admin = ?
         WHERE id = ?
-    """).bind(1 if is_admin else 0, s_usuario_id).run()
+    """).bind(1 if is_admin else 0, to_d1_null(s_usuario_id)).run()
 
 
 async def get_admin_stats(db):
@@ -2547,14 +2576,14 @@ async def check_rate_limit(db, ip_address, endpoint, max_attempts=10, window_min
     result = await db.prepare("""
         SELECT * FROM rate_limit
         WHERE ip_address = ? AND endpoint = ?
-    """).bind(s_ip_address, s_endpoint).first()
+    """).bind(to_d1_null(s_ip_address), to_d1_null(s_endpoint)).first()
     
     if not result:
         # Primeiro acesso
         await db.prepare("""
             INSERT INTO rate_limit (ip_address, endpoint, attempts)
             VALUES (?, ?, 1)
-        """).bind(s_ip_address, s_endpoint).run()
+        """).bind(to_d1_null(s_ip_address), to_d1_null(s_endpoint)).run()
         return True, None
     
     rate = safe_dict(result)
@@ -2574,7 +2603,7 @@ async def check_rate_limit(db, ip_address, endpoint, max_attempts=10, window_min
                 UPDATE rate_limit SET attempts = 1, blocked_until = NULL, 
                 first_attempt = datetime('now'), last_attempt = datetime('now')
                 WHERE ip_address = ? AND endpoint = ?
-            """).bind(s_ip_address, s_endpoint).run()
+            """).bind(to_d1_null(s_ip_address), to_d1_null(s_endpoint)).run()
             return True, None
     
     # Verifica janela de tempo
@@ -2590,7 +2619,7 @@ async def check_rate_limit(db, ip_address, endpoint, max_attempts=10, window_min
             UPDATE rate_limit SET attempts = 1, 
             first_attempt = datetime('now'), last_attempt = datetime('now')
             WHERE ip_address = ? AND endpoint = ?
-        """).bind(s_ip_address, s_endpoint).run()
+        """).bind(to_d1_null(s_ip_address), to_d1_null(s_endpoint)).run()
         return True, None
     
     if rate['attempts'] >= max_attempts:
@@ -2599,14 +2628,14 @@ async def check_rate_limit(db, ip_address, endpoint, max_attempts=10, window_min
         await db.prepare("""
             UPDATE rate_limit SET blocked_until = ?
             WHERE ip_address = ? AND endpoint = ?
-        """).bind(block_until, s_ip_address, s_endpoint).run()
+        """).bind(block_until, to_d1_null(s_ip_address), to_d1_null(s_endpoint)).run()
         return False, "Muitas tentativas. Bloqueade por 15 minutos."
     
     # Incrementar tentativas
     await db.prepare("""
         UPDATE rate_limit SET attempts = attempts + 1, last_attempt = datetime('now')
         WHERE ip_address = ? AND endpoint = ?
-    """).bind(s_ip_address, s_endpoint).run()
+    """).bind(to_d1_null(s_ip_address), to_d1_null(s_endpoint)).run()
     return True, None
 
 
@@ -2645,7 +2674,7 @@ async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
             WHERE a.usuario_id = ? AND a.acao = ?
             ORDER BY a.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(s_usuario_id, s_acao, s_per_page, offset).all()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_acao), to_d1_null(s_per_page), to_d1_null(offset)).all()
     elif s_usuario_id:
         result = await db.prepare("""
             SELECT a.*, u.username
@@ -2654,7 +2683,7 @@ async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
             WHERE a.usuario_id = ?
             ORDER BY a.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(s_usuario_id, s_per_page, offset).all()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_per_page), to_d1_null(offset)).all()
     elif s_acao:
         result = await db.prepare("""
             SELECT a.*, u.username
@@ -2663,7 +2692,7 @@ async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
             WHERE a.acao = ?
             ORDER BY a.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(s_acao, s_per_page, offset).all()
+        """).bind(to_d1_null(s_acao), to_d1_null(s_per_page), to_d1_null(offset)).all()
     else:
         result = await db.prepare("""
             SELECT a.*, u.username
@@ -2671,7 +2700,7 @@ async def get_activity_log(db, usuario_id=None, acao=None, page=1, per_page=50):
             LEFT JOIN user u ON a.usuario_id = u.id
             ORDER BY a.created_at DESC
             LIMIT ? OFFSET ?
-        """).bind(s_per_page, offset).all()
+        """).bind(to_d1_null(s_per_page), to_d1_null(offset)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2690,13 +2719,13 @@ async def get_user_points(db, usuario_id):
     
     result = await db.prepare("""
         SELECT * FROM user_points WHERE usuario_id = ?
-    """).bind(s_usuario_id).first()
+    """).bind(to_d1_null(s_usuario_id)).first()
     
     if not result:
         # Criar registro se não existe
         await db.prepare("""
             INSERT INTO user_points (usuario_id) VALUES (?)
-        """).bind(s_usuario_id).run()
+        """).bind(to_d1_null(s_usuario_id)).run()
         return {'usuario_id': s_usuario_id, 'pontos_total': 0, 'pontos_exercicios': 0,
                 'pontos_posts': 0, 'pontos_dinamicas': 0, 'nivel': 1}
     
@@ -2732,7 +2761,7 @@ async def add_points(db, usuario_id, pontos, tipo='exercicios'):
                 pontos_exercicios = pontos_exercicios + ?,
                 updated_at = datetime('now')
             WHERE usuario_id = ?
-        """).bind(s_pontos, s_pontos, s_usuario_id).run()
+        """).bind(to_d1_null(s_pontos), to_d1_null(s_pontos), to_d1_null(s_usuario_id)).run()
     elif tipo_coluna == 'pontos_posts':
         await db.prepare("""
             UPDATE user_points 
@@ -2740,7 +2769,7 @@ async def add_points(db, usuario_id, pontos, tipo='exercicios'):
                 pontos_posts = pontos_posts + ?,
                 updated_at = datetime('now')
             WHERE usuario_id = ?
-        """).bind(s_pontos, s_pontos, s_usuario_id).run()
+        """).bind(to_d1_null(s_pontos), to_d1_null(s_pontos), to_d1_null(s_usuario_id)).run()
     elif tipo_coluna == 'pontos_dinamicas':
         await db.prepare("""
             UPDATE user_points 
@@ -2748,7 +2777,7 @@ async def add_points(db, usuario_id, pontos, tipo='exercicios'):
                 pontos_dinamicas = pontos_dinamicas + ?,
                 updated_at = datetime('now')
             WHERE usuario_id = ?
-        """).bind(s_pontos, s_pontos, s_usuario_id).run()
+        """).bind(to_d1_null(s_pontos), to_d1_null(s_pontos), to_d1_null(s_usuario_id)).run()
     
     # Atualizar nível baseado em pontos
     await update_user_level(db, s_usuario_id)
@@ -2763,7 +2792,7 @@ async def update_user_level(db, usuario_id):
     
     result = await db.prepare("""
         SELECT pontos_total FROM user_points WHERE usuario_id = ?
-    """).bind(s_usuario_id).first()
+    """).bind(to_d1_null(s_usuario_id)).first()
     
     if not result:
         return
@@ -2775,7 +2804,7 @@ async def update_user_level(db, usuario_id):
     
     await db.prepare("""
         UPDATE user_points SET nivel = ? WHERE usuario_id = ?
-    """).bind(nivel, s_usuario_id).run()
+    """).bind(nivel, to_d1_null(s_usuario_id)).run()
 
 
 async def get_ranking(db, limit=10, tipo=None):
@@ -2792,7 +2821,7 @@ async def get_ranking(db, limit=10, tipo=None):
             WHERE u.is_banned = 0
             ORDER BY p.pontos_exercicios DESC
             LIMIT ?
-        """).bind(s_limit).all()
+        """).bind(to_d1_null(s_limit)).all()
     elif tipo == 'posts':
         result = await db.prepare("""
             SELECT p.*, u.username, u.nome, u.foto_perfil
@@ -2801,7 +2830,7 @@ async def get_ranking(db, limit=10, tipo=None):
             WHERE u.is_banned = 0
             ORDER BY p.pontos_posts DESC
             LIMIT ?
-        """).bind(s_limit).all()
+        """).bind(to_d1_null(s_limit)).all()
     elif tipo == 'dinamicas':
         result = await db.prepare("""
             SELECT p.*, u.username, u.nome, u.foto_perfil
@@ -2810,7 +2839,7 @@ async def get_ranking(db, limit=10, tipo=None):
             WHERE u.is_banned = 0
             ORDER BY p.pontos_dinamicas DESC
             LIMIT ?
-        """).bind(s_limit).all()
+        """).bind(to_d1_null(s_limit)).all()
     else:
         result = await db.prepare("""
             SELECT p.*, u.username, u.nome, u.foto_perfil
@@ -2819,7 +2848,7 @@ async def get_ranking(db, limit=10, tipo=None):
             WHERE u.is_banned = 0
             ORDER BY p.pontos_total DESC
             LIMIT ?
-        """).bind(s_limit).all()
+        """).bind(to_d1_null(s_limit)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -2844,7 +2873,7 @@ async def get_user_badges(db, usuario_id):
         JOIN badge b ON ub.badge_id = b.id
         WHERE ub.usuario_id = ?
         ORDER BY ub.earned_at DESC
-    """).bind(s_usuario_id).all()
+    """).bind(to_d1_null(s_usuario_id)).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
@@ -2913,7 +2942,7 @@ async def check_and_award_badges(db, usuario_id):
     # Badge por posts
     post_count = await db.prepare("""
         SELECT COUNT(*) as count FROM post WHERE usuario_id = ? AND is_deleted = 0
-    """).bind(s_usuario_id).first()
+    """).bind(to_d1_null(s_usuario_id)).first()
     if post_count and safe_get(post_count, 'count', 0) >= 5:
         if await award_badge(db, s_usuario_id, 'Escritor'):
             badges_concedidos.append('Escritor')
@@ -2922,7 +2951,7 @@ async def check_and_award_badges(db, usuario_id):
     amigues_count = await db.prepare("""
         SELECT COUNT(*) as count FROM amizade
         WHERE (usuario1_id = ? OR usuario2_id = ?) AND status = 'aceita'
-    """).bind(s_usuario_id, s_usuario_id).first()
+    """).bind(to_d1_null(s_usuario_id), to_d1_null(s_usuario_id)).first()
     if amigues_count and safe_get(amigues_count, 'count', 0) >= 5:
         if await award_badge(db, s_usuario_id, 'Social'):
             badges_concedidos.append('Social')
@@ -2950,7 +2979,7 @@ async def record_exercise_answer(db, usuario_id, question_id, resposta, correto,
     # Verificar se já respondeu corretamente antes (para não dar pontos novamente)
     scored = await db.prepare("""
         SELECT 1 FROM exercise_scored WHERE usuario_id = ? AND question_id = ?
-    """).bind(s_usuario_id, s_question_id).first()
+    """).bind(to_d1_null(s_usuario_id), to_d1_null(s_question_id)).first()
     
     if scored:
         primeira_tentativa = 0
@@ -2961,7 +2990,7 @@ async def record_exercise_answer(db, usuario_id, question_id, resposta, correto,
         # Marcar como pontuado
         await db.prepare("""
             INSERT INTO exercise_scored (usuario_id, question_id) VALUES (?, ?)
-        """).bind(s_usuario_id, s_question_id).run()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_question_id)).run()
         
         # Adicionar pontos ao total
         await add_points(db, s_usuario_id, pontos, 'exercicios')
@@ -2974,8 +3003,7 @@ async def record_exercise_answer(db, usuario_id, question_id, resposta, correto,
         INSERT INTO exercise_progress (usuario_id, question_id, resposta_usuarie, correto, 
                                         pontos_ganhos, primeira_tentativa, tempo_resposta)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-    """).bind(s_usuario_id, s_question_id, s_resposta, 1 if correto else 0, 
-              pontos, primeira_tentativa, d1_tempo).run()
+    """).bind(to_d1_null(s_usuario_id), to_d1_null(s_question_id), to_d1_null(s_resposta), 1 if correto else 0, pontos, primeira_tentativa, d1_tempo).run()
     
     # Verificar badges
     await check_and_award_badges(db, s_usuario_id)
@@ -3000,7 +3028,7 @@ async def get_user_exercise_stats(db, usuario_id, topic_id=None):
             FROM exercise_progress ep
             JOIN exercise_question eq ON ep.question_id = eq.id
             WHERE ep.usuario_id = ? AND eq.topic_id = ?
-        """).bind(s_usuario_id, s_topic_id).first()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_topic_id)).first()
     else:
         result = await db.prepare("""
             SELECT 
@@ -3009,7 +3037,7 @@ async def get_user_exercise_stats(db, usuario_id, topic_id=None):
                 SUM(pontos_ganhos) as pontos
             FROM exercise_progress
             WHERE usuario_id = ?
-        """).bind(s_usuario_id).first()
+        """).bind(to_d1_null(s_usuario_id)).first()
     
     if result:
         return safe_dict(result)
@@ -3034,7 +3062,7 @@ async def get_questions_not_scored(db, usuario_id, topic_id=None, limit=10):
             WHERE es.question_id IS NULL AND eq.topic_id = ?
             ORDER BY RANDOM()
             LIMIT ?
-        """).bind(s_usuario_id, s_topic_id, s_limit).all()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_topic_id), to_d1_null(s_limit)).all()
     else:
         result = await db.prepare("""
             SELECT eq.*, et.nome as topic_name
@@ -3044,7 +3072,7 @@ async def get_questions_not_scored(db, usuario_id, topic_id=None, limit=10):
             WHERE es.question_id IS NULL
             ORDER BY RANDOM()
             LIMIT ?
-        """).bind(s_usuario_id, s_limit).all()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_limit)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -3068,7 +3096,7 @@ async def create_exercise_list(db, usuario_id, nome, descricao=None, modo='estud
         INSERT INTO exercise_list (usuario_id, nome, descricao, modo, tempo_limite)
         VALUES (?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(s_usuario_id, s_nome, d1_descricao, s_modo, d1_tempo_limite).first()
+    """).bind(to_d1_null(s_usuario_id), to_d1_null(s_nome), d1_descricao, to_d1_null(s_modo), d1_tempo_limite).first()
     return safe_get(result, 'id')
 
 
@@ -3079,7 +3107,7 @@ async def add_to_exercise_list(db, list_id, question_id, ordem=0):
     try:
         await db.prepare("""
             INSERT INTO exercise_list_item (list_id, question_id, ordem) VALUES (?, ?, ?)
-        """).bind(s_list_id, s_question_id, s_ordem).run()
+        """).bind(to_d1_null(s_list_id), to_d1_null(s_question_id), to_d1_null(s_ordem)).run()
         return True
     except Exception:
         return False  # Questão já está na lista
@@ -3097,7 +3125,7 @@ async def get_exercise_lists(db, usuario_id):
         FROM exercise_list el
         WHERE el.usuario_id = ?
         ORDER BY el.created_at DESC
-    """).bind(s_usuario_id).all()
+    """).bind(to_d1_null(s_usuario_id)).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
@@ -3114,7 +3142,7 @@ async def get_exercise_list_questions(db, list_id):
         JOIN exercise_topic et ON eq.topic_id = et.id
         WHERE eli.list_id = ?
         ORDER BY eli.ordem
-    """).bind(s_list_id).all()
+    """).bind(to_d1_null(s_list_id)).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
@@ -3133,7 +3161,7 @@ async def save_quiz_result(db, usuario_id, acertos, erros, pontos, tempo_total, 
         INSERT INTO quiz_result (usuario_id, list_id, topic_id, acertos, erros, pontos_ganhos, tempo_total)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(s_usuario_id, d1_list_id, d1_topic_id, s_acertos, s_erros, s_pontos, s_tempo_total).first()
+    """).bind(to_d1_null(s_usuario_id), d1_list_id, d1_topic_id, to_d1_null(s_acertos), to_d1_null(s_erros), to_d1_null(s_pontos), to_d1_null(s_tempo_total)).first()
     return safe_get(result, 'id')
 
 
@@ -3154,7 +3182,7 @@ async def create_flashcard_deck(db, titulo, usuario_id=None, descricao=None, is_
         INSERT INTO flashcard_deck (usuario_id, titulo, descricao, is_public)
         VALUES (?, ?, ?, ?)
         RETURNING id
-    """).bind(d1_usuario_id, s_titulo, d1_descricao, 1 if is_public else 0).first()
+    """).bind(d1_usuario_id, to_d1_null(s_titulo), d1_descricao, 1 if is_public else 0).first()
     
     # Dar badge se for o primeiro deck
     if s_usuario_id:
@@ -3177,7 +3205,7 @@ async def add_flashcard(db, deck_id, frente, verso, dica=None, ordem=0):
         INSERT INTO flashcard (deck_id, frente, verso, dica, ordem)
         VALUES (?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(s_deck_id, s_frente, s_verso, d1_dica, s_ordem).first()
+    """).bind(to_d1_null(s_deck_id), to_d1_null(s_frente), to_d1_null(s_verso), d1_dica, to_d1_null(s_ordem)).first()
     return safe_get(result, 'id')
 
 
@@ -3194,7 +3222,7 @@ async def get_flashcard_decks(db, usuario_id=None, include_public=True):
             LEFT JOIN user u ON fd.usuario_id = u.id
             WHERE fd.usuario_id = ? OR fd.is_public = 1
             ORDER BY fd.created_at DESC
-        """).bind(s_usuario_id).all()
+        """).bind(to_d1_null(s_usuario_id)).all()
     elif s_usuario_id:
         result = await db.prepare("""
             SELECT fd.*, u.username as author_name,
@@ -3203,7 +3231,7 @@ async def get_flashcard_decks(db, usuario_id=None, include_public=True):
             LEFT JOIN user u ON fd.usuario_id = u.id
             WHERE fd.usuario_id = ?
             ORDER BY fd.created_at DESC
-        """).bind(s_usuario_id).all()
+        """).bind(to_d1_null(s_usuario_id)).all()
     else:
         result = await db.prepare("""
             SELECT fd.*, u.username as author_name,
@@ -3225,7 +3253,7 @@ async def get_flashcards(db, deck_id):
         return []
     result = await db.prepare("""
         SELECT * FROM flashcard WHERE deck_id = ? ORDER BY ordem
-    """).bind(s_deck_id).all()
+    """).bind(to_d1_null(s_deck_id)).all()
     return [safe_dict(row) for row in result.results] if result.results else []
 
 
@@ -3249,7 +3277,7 @@ async def get_cards_to_review(db, usuario_id, deck_id=None, limit=20):
             AND (fr.next_review IS NULL OR fr.next_review <= ?)
             ORDER BY fr.next_review NULLS FIRST, RANDOM()
             LIMIT ?
-        """).bind(s_usuario_id, s_deck_id, now, s_limit).all()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_deck_id), now, to_d1_null(s_limit)).all()
     else:
         result = await db.prepare("""
             SELECT f.*, fd.titulo as deck_titulo, fr.ease_factor, fr.interval_days, 
@@ -3261,7 +3289,7 @@ async def get_cards_to_review(db, usuario_id, deck_id=None, limit=20):
             AND (fr.next_review IS NULL OR fr.next_review <= ?)
             ORDER BY fr.next_review NULLS FIRST, RANDOM()
             LIMIT ?
-        """).bind(s_usuario_id, s_usuario_id, now, s_limit).all()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_usuario_id), now, to_d1_null(s_limit)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -3281,7 +3309,7 @@ async def record_flashcard_review(db, usuario_id, flashcard_id, quality):
     # Buscar revisão existente
     existing = await db.prepare("""
         SELECT * FROM flashcard_review WHERE usuario_id = ? AND flashcard_id = ?
-    """).bind(s_usuario_id, s_flashcard_id).first()
+    """).bind(to_d1_null(s_usuario_id), to_d1_null(s_flashcard_id)).first()
     
     if existing:
         existing_dict = safe_dict(existing)
@@ -3320,13 +3348,13 @@ async def record_flashcard_review(db, usuario_id, flashcard_id, quality):
             SET ease_factor = ?, interval_days = ?, repetitions = ?, 
                 next_review = ?, last_review = datetime('now')
             WHERE usuario_id = ? AND flashcard_id = ?
-        """).bind(ef, interval, reps, next_review, s_usuario_id, s_flashcard_id).run()
+        """).bind(ef, interval, reps, next_review, to_d1_null(s_usuario_id), to_d1_null(s_flashcard_id)).run()
     else:
         await db.prepare("""
             INSERT INTO flashcard_review (usuario_id, flashcard_id, ease_factor, 
                                           interval_days, repetitions, next_review, last_review)
             VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
-        """).bind(s_usuario_id, s_flashcard_id, ef, interval, reps, next_review).run()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_flashcard_id), ef, interval, reps, next_review).run()
     
     return {'ease_factor': ef, 'interval_days': interval, 'next_review': next_review}
 
@@ -3342,7 +3370,7 @@ async def add_favorite(db, usuario_id, tipo, item_id):
     try:
         await db.prepare("""
             INSERT INTO favorito (usuario_id, tipo, item_id) VALUES (?, ?, ?)
-        """).bind(s_usuario_id, s_tipo, s_item_id).run()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_tipo), to_d1_null(s_item_id)).run()
         return True
     except Exception:
         return False  # Já é favorito
@@ -3354,7 +3382,7 @@ async def remove_favorite(db, usuario_id, tipo, item_id):
     s_usuario_id, s_tipo, s_item_id = sanitize_params(usuario_id, tipo, item_id)
     await db.prepare("""
         DELETE FROM favorito WHERE usuario_id = ? AND tipo = ? AND item_id = ?
-    """).bind(s_usuario_id, s_tipo, s_item_id).run()
+    """).bind(to_d1_null(s_usuario_id), to_d1_null(s_tipo), to_d1_null(s_item_id)).run()
 
 
 async def is_favorite(db, usuario_id, tipo, item_id):
@@ -3365,7 +3393,7 @@ async def is_favorite(db, usuario_id, tipo, item_id):
         return False
     result = await db.prepare("""
         SELECT 1 FROM favorito WHERE usuario_id = ? AND tipo = ? AND item_id = ?
-    """).bind(s_usuario_id, s_tipo, s_item_id).first()
+    """).bind(to_d1_null(s_usuario_id), to_d1_null(s_tipo), to_d1_null(s_item_id)).first()
     return result is not None
 
 
@@ -3381,12 +3409,12 @@ async def get_favorites(db, usuario_id, tipo=None):
         result = await db.prepare("""
             SELECT * FROM favorito WHERE usuario_id = ? AND tipo = ?
             ORDER BY created_at DESC
-        """).bind(s_usuario_id, s_tipo).all()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_tipo)).all()
     else:
         result = await db.prepare("""
             SELECT * FROM favorito WHERE usuario_id = ?
             ORDER BY created_at DESC
-        """).bind(s_usuario_id).all()
+        """).bind(to_d1_null(s_usuario_id)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -3407,7 +3435,7 @@ async def add_to_history(db, usuario_id, tipo, item_tipo, item_id, dados=None):
     await db.prepare("""
         INSERT INTO user_history (usuario_id, tipo, item_tipo, item_id, dados)
         VALUES (?, ?, ?, ?, ?)
-    """).bind(s_usuario_id, s_tipo, s_item_tipo, s_item_id, s_dados_json).run()
+    """).bind(to_d1_null(s_usuario_id), to_d1_null(s_tipo), to_d1_null(s_item_tipo), to_d1_null(s_item_id), to_d1_null(s_dados_json)).run()
 
 
 async def get_user_history(db, usuario_id, item_tipo=None, limit=50):
@@ -3425,14 +3453,14 @@ async def get_user_history(db, usuario_id, item_tipo=None, limit=50):
             WHERE usuario_id = ? AND item_tipo = ?
             ORDER BY created_at DESC
             LIMIT ?
-        """).bind(s_usuario_id, s_item_tipo, s_limit).all()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_item_tipo), to_d1_null(s_limit)).all()
     else:
         result = await db.prepare("""
             SELECT * FROM user_history 
             WHERE usuario_id = ?
             ORDER BY created_at DESC
             LIMIT ?
-        """).bind(s_usuario_id, s_limit).all()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_limit)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -3449,13 +3477,13 @@ async def get_user_preferences(db, usuario_id):
         return {'tema': 'claro', 'alto_contraste': False}
     result = await db.prepare("""
         SELECT * FROM user_preferences WHERE usuario_id = ?
-    """).bind(s_usuario_id).first()
+    """).bind(to_d1_null(s_usuario_id)).first()
     
     if not result:
         # Criar preferências padrão
         await db.prepare("""
             INSERT INTO user_preferences (usuario_id) VALUES (?)
-        """).bind(s_usuario_id).run()
+        """).bind(to_d1_null(s_usuario_id)).run()
         return await get_user_preferences(db, s_usuario_id)
     
     return safe_dict(result)
@@ -3570,7 +3598,7 @@ async def get_conversations(db, usuario_id):
             END as other_user_id
         FROM mensagem_direta
         WHERE remetente_id = ? OR destinatarie_id = ?
-    """).bind(s_usuario_id, s_usuario_id, s_usuario_id).all()
+    """).bind(to_d1_null(s_usuario_id), to_d1_null(s_usuario_id), to_d1_null(s_usuario_id)).all()
     
     if not result.results:
         return []
@@ -3593,13 +3621,13 @@ async def get_conversations(db, usuario_id):
                OR (remetente_id = ? AND destinatarie_id = ?)
             ORDER BY created_at DESC
             LIMIT 1
-        """).bind(s_usuario_id, other_id, other_id, s_usuario_id).first()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(other_id), to_d1_null(other_id), to_d1_null(s_usuario_id)).first()
         
         # Mensagens não lidas
         unread = await db.prepare("""
             SELECT COUNT(*) as count FROM mensagem_direta
             WHERE remetente_id = ? AND destinatarie_id = ? AND lida = 0
-        """).bind(other_id, s_usuario_id).first()
+        """).bind(to_d1_null(other_id), to_d1_null(s_usuario_id)).first()
         
         unread_dict = safe_dict(unread) if unread else None
         conversations.append({
@@ -3633,14 +3661,13 @@ async def get_messages_with_user(db, usuario_id, other_user_id, page=1, per_page
            OR (m.remetente_id = ? AND m.destinatarie_id = ?)
         ORDER BY m.created_at DESC
         LIMIT ? OFFSET ?
-    """).bind(s_usuario_id, s_other_user_id, s_other_user_id, s_usuario_id, 
-              s_per_page, offset).all()
+    """).bind(to_d1_null(s_usuario_id), to_d1_null(s_other_user_id), to_d1_null(s_other_user_id), to_d1_null(s_usuario_id), to_d1_null(s_per_page), to_d1_null(offset)).all()
     
     # Marcar como lidas
     await db.prepare("""
         UPDATE mensagem_direta SET lida = 1
         WHERE remetente_id = ? AND destinatarie_id = ? AND lida = 0
-    """).bind(s_other_user_id, s_usuario_id).run()
+    """).bind(to_d1_null(s_other_user_id), to_d1_null(s_usuario_id)).run()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -3659,7 +3686,7 @@ async def create_study_group(db, nome, criador_id, descricao=None, is_public=Tru
         INSERT INTO grupo_estudo (nome, descricao, criador_id, is_public, max_membres)
         VALUES (?, ?, ?, ?, ?)
         RETURNING id
-    """).bind(s_nome, s_descricao, s_criador_id, 1 if is_public else 0, s_max_membres).first()
+    """).bind(to_d1_null(s_nome), to_d1_null(s_descricao), to_d1_null(s_criador_id), 1 if is_public else 0, to_d1_null(s_max_membres)).first()
     
     if result:
         # Adicionar criador como admin
@@ -3667,7 +3694,7 @@ async def create_study_group(db, nome, criador_id, descricao=None, is_public=Tru
         if grupo_id:
             await db.prepare("""
                 INSERT INTO grupo_membre (grupo_id, usuario_id, role) VALUES (?, ?, 'admin')
-            """).bind(grupo_id, s_criador_id).run()
+            """).bind(to_d1_null(grupo_id), to_d1_null(s_criador_id)).run()
     
     return safe_get(result, 'id')
 
@@ -3680,11 +3707,11 @@ async def join_study_group(db, grupo_id, usuario_id):
     # Verificar limite de membros
     count = await db.prepare("""
         SELECT COUNT(*) as count FROM grupo_membre WHERE grupo_id = ?
-    """).bind(s_grupo_id).first()
+    """).bind(to_d1_null(s_grupo_id)).first()
     
     grupo = await db.prepare("""
         SELECT max_membres FROM grupo_estudo WHERE id = ?
-    """).bind(s_grupo_id).first()
+    """).bind(to_d1_null(s_grupo_id)).first()
     
     if count and grupo and count['count'] >= grupo['max_membres']:
         return False, "Grupo cheio"
@@ -3692,7 +3719,7 @@ async def join_study_group(db, grupo_id, usuario_id):
     try:
         await db.prepare("""
             INSERT INTO grupo_membre (grupo_id, usuario_id) VALUES (?, ?)
-        """).bind(s_grupo_id, s_usuario_id).run()
+        """).bind(to_d1_null(s_grupo_id), to_d1_null(s_usuario_id)).run()
         return True, None
     except Exception:
         return False, "Já é membre do grupo"
@@ -3704,7 +3731,7 @@ async def leave_study_group(db, grupo_id, usuario_id):
     s_grupo_id, s_usuario_id = sanitize_params(grupo_id, usuario_id)
     await db.prepare("""
         DELETE FROM grupo_membre WHERE grupo_id = ? AND usuario_id = ?
-    """).bind(s_grupo_id, s_usuario_id).run()
+    """).bind(to_d1_null(s_grupo_id), to_d1_null(s_usuario_id)).run()
 
 
 async def get_study_groups(db, usuario_id=None, apenas_meus=False):
@@ -3721,7 +3748,7 @@ async def get_study_groups(db, usuario_id=None, apenas_meus=False):
             LEFT JOIN user u ON g.criador_id = u.id
             WHERE gm.usuario_id = ?
             ORDER BY g.created_at DESC
-        """).bind(s_usuario_id).all()
+        """).bind(to_d1_null(s_usuario_id)).all()
     else:
         result = await db.prepare("""
             SELECT g.*,
@@ -3753,7 +3780,7 @@ async def get_group_messages(db, grupo_id, page=1, per_page=50):
         WHERE gm.grupo_id = ?
         ORDER BY gm.created_at DESC
         LIMIT ? OFFSET ?
-    """).bind(s_grupo_id, s_per_page, offset).all()
+    """).bind(to_d1_null(s_grupo_id), to_d1_null(s_per_page), to_d1_null(offset)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -3790,7 +3817,7 @@ async def get_accessibility_content(db, tipo_conteudo, conteudo_id):
     result = await db.prepare("""
         SELECT * FROM accessibility_content
         WHERE tipo_conteudo = ? AND conteudo_id = ?
-    """).bind(s_tipo_conteudo, s_conteudo_id).first()
+    """).bind(to_d1_null(s_tipo_conteudo), to_d1_null(s_conteudo_id)).first()
     
     if result:
         return safe_dict(result)
@@ -3818,15 +3845,13 @@ async def save_accessibility_content(db, tipo_conteudo, conteudo_id, video_libra
                 transcricao = COALESCE(?, transcricao),
                 updated_at = datetime('now')
             WHERE tipo_conteudo = ? AND conteudo_id = ?
-        """).bind(s_video_libras_url, s_audio_url, s_audio_duracao, s_transcricao,
-                  s_tipo_conteudo, s_conteudo_id).run()
+        """).bind(to_d1_null(s_video_libras_url), to_d1_null(s_audio_url), to_d1_null(s_audio_duracao), to_d1_null(s_transcricao), to_d1_null(s_tipo_conteudo), to_d1_null(s_conteudo_id)).run()
     else:
         await db.prepare("""
             INSERT INTO accessibility_content 
             (tipo_conteudo, conteudo_id, video_libras_url, audio_url, audio_duracao, transcricao)
             VALUES (?, ?, ?, ?, ?, ?)
-        """).bind(s_tipo_conteudo, s_conteudo_id, s_video_libras_url, s_audio_url, 
-                  s_audio_duracao, s_transcricao).run()
+        """).bind(to_d1_null(s_tipo_conteudo), to_d1_null(s_conteudo_id), to_d1_null(s_video_libras_url), to_d1_null(s_audio_url), to_d1_null(s_audio_duracao), to_d1_null(s_transcricao)).run()
 
 
 # ============================================================================
@@ -3889,7 +3914,7 @@ async def create_mencao(db, usuario_id, autor_id, tipo, item_id):
         await db.prepare("""
             INSERT INTO mencao (usuario_id, autor_id, tipo, item_id, created_at)
             VALUES (?, ?, ?, ?, datetime('now'))
-        """).bind(s_usuario_id, s_autor_id, s_tipo, s_item_id).run()
+        """).bind(to_d1_null(s_usuario_id), to_d1_null(s_autor_id), to_d1_null(s_tipo), to_d1_null(s_item_id)).run()
         return True
     except Exception:
         return False
@@ -3936,7 +3961,7 @@ async def get_user_mentions(db, usuario_id, limit=50, offset=0):
         WHERE m.usuario_id = ?
         ORDER BY m.created_at DESC
         LIMIT ? OFFSET ?
-    """).bind(s_usuario_id, s_limit, s_offset).all()
+    """).bind(to_d1_null(s_usuario_id), to_d1_null(s_limit), to_d1_null(s_offset)).all()
     return [safe_dict(r) for r in results.results] if results.results else []
 
 
@@ -4005,11 +4030,11 @@ async def process_hashtags(db, text, tipo, item_id):
                 await db.prepare("""
                     INSERT OR IGNORE INTO hashtag_item (hashtag_id, tipo, item_id, created_at)
                     VALUES (?, ?, ?, datetime('now'))
-                """).bind(hashtag_id, s_tipo, s_item_id).run()
+                """).bind(to_d1_null(hashtag_id), to_d1_null(s_tipo), to_d1_null(s_item_id)).run()
                 # Incrementar contador
                 await db.prepare(
                     "UPDATE hashtag SET count_uso = count_uso + 1 WHERE id = ?"
-                ).bind(hashtag_id).run()
+                ).bind(to_d1_null(hashtag_id)).run()
             except Exception:
                 pass
     return tags
@@ -4023,7 +4048,7 @@ async def get_trending_hashtags(db, limit=10):
         SELECT * FROM hashtag
         ORDER BY count_uso DESC
         LIMIT ?
-    """).bind(s_limit).all()
+    """).bind(to_d1_null(s_limit)).all()
     return [safe_dict(r) for r in results.results] if results.results else []
 
 
@@ -4047,7 +4072,7 @@ async def search_by_hashtag(db, tag, tipo=None, limit=50, offset=0):
         WHERE h.tag = ? AND p.is_deleted = 0
         ORDER BY p.data DESC
         LIMIT ? OFFSET ?
-    """).bind(s_tag, s_limit, s_offset).all()
+    """).bind(to_d1_null(s_tag), to_d1_null(s_limit), to_d1_null(s_offset)).all()
     
     return [safe_dict(r) for r in results.results] if results.results else []
 
@@ -4081,7 +4106,7 @@ async def create_emoji_custom(db, codigo, nome, imagem_url, descricao=None, cate
             INSERT INTO emoji_custom (codigo, nome, imagem_url, descricao, categoria, created_at, created_by)
             VALUES (?, ?, ?, ?, ?, datetime('now'), ?)
             RETURNING id
-        """).bind(s_codigo, s_nome, s_imagem_url, s_descricao, s_categoria, s_created_by).first()
+        """).bind(to_d1_null(s_codigo), to_d1_null(s_nome), to_d1_null(s_imagem_url), to_d1_null(s_descricao), to_d1_null(s_categoria), to_d1_null(s_created_by)).first()
         return safe_get(result, 'id')
     except Exception:
         return None
@@ -4096,13 +4121,13 @@ async def get_emojis_custom(db, categoria=None, ativo_only=True):
             SELECT * FROM emoji_custom
             WHERE categoria = ? AND ativo = 1
             ORDER BY ordem, nome
-        """).bind(s_categoria).all()
+        """).bind(to_d1_null(s_categoria)).all()
     elif s_categoria:
         results = await db.prepare("""
             SELECT * FROM emoji_custom
             WHERE categoria = ?
             ORDER BY ordem, nome
-        """).bind(s_categoria).all()
+        """).bind(to_d1_null(s_categoria)).all()
     elif ativo_only:
         results = await db.prepare("""
             SELECT * FROM emoji_custom
@@ -4253,5 +4278,5 @@ async def update_feature_flag(db, nome, ativo, updated_by=None):
         UPDATE feature_flag 
         SET ativo = ?, updated_at = datetime('now'), updated_by = ?
         WHERE nome = ?
-    """).bind(s_ativo, s_updated_by, s_nome).run()
+    """).bind(to_d1_null(s_ativo), to_d1_null(s_updated_by), to_d1_null(s_nome)).run()
     return True
