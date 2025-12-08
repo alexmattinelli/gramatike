@@ -93,12 +93,11 @@ def to_d1_null(value):
     if value is None:
         return JS_NULL
     
-    # Check for JavaScript undefined by checking string representation
-    # This is more reliable than importing undefined and doing identity comparison
-    # Most undefined values will stringify to 'undefined'
+    # Check for JavaScript undefined/null by checking string representation
+    # This catches edge cases where values become undefined/null when crossing FFI boundary
     try:
         str_repr = str(value)
-        if str_repr == 'undefined':
+        if str_repr in ('undefined', 'null'):
             return JS_NULL
     except Exception:
         # If we can't get a string representation, it's likely a problematic
