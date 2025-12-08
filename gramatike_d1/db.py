@@ -93,11 +93,12 @@ def to_d1_null(value):
     if value is None:
         return JS_NULL
     
-    # Check for JavaScript undefined/null by checking string representation
-    # This catches edge cases where values become undefined/null when crossing FFI boundary
+    # Check for JavaScript undefined by checking string representation
+    # This catches edge cases where values become undefined when crossing FFI boundary
+    # NOTE: We do NOT convert JavaScript 'null' here because it's already a valid D1 value
     try:
         str_repr = str(value)
-        if str_repr in ('undefined', 'null'):
+        if str_repr == 'undefined':
             return JS_NULL
     except Exception:
         # If we can't get a string representation, it's likely a problematic
@@ -1149,17 +1150,18 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
         return None
     
     # Convert to D1-safe values (None -> JS null) to prevent D1_TYPE_ERROR
-    # Pass parameters individually instead of unpacking to avoid FFI boundary issues
-    d1_usuario_id = to_d1_null(s_usuario_id)
-    d1_conteudo = to_d1_null(s_conteudo)
-    d1_imagem = to_d1_null(s_imagem)
-    
+    # Call to_d1_null() DIRECTLY in bind() to avoid FFI boundary issues with intermediate variables
     result = await db.prepare("""
         INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
         SELECT ?, username, ?, ?, datetime('now')
         FROM user WHERE id = ?
         RETURNING id
-    """).bind(d1_usuario_id, d1_conteudo, d1_imagem, d1_usuario_id).first()
+    """).bind(
+        to_d1_null(s_usuario_id),
+        to_d1_null(s_conteudo),
+        to_d1_null(s_imagem),
+        to_d1_null(s_usuario_id)
+    ).first()
     return safe_get(result, 'id')
 
 

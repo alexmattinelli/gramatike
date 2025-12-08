@@ -51,6 +51,16 @@ await db.prepare("""
 ```python
 s_usuario_id, s_conteudo = sanitize_params(usuario_id, conteudo)
 
+# Call to_d1_null() DIRECTLY in bind() to avoid FFI boundary issues
+await db.prepare("""
+    INSERT INTO post (usuario_id, conteudo) VALUES (?, ?)
+""").bind(to_d1_null(s_usuario_id), to_d1_null(s_conteudo)).run()
+```
+
+**Alternative** (also correct):
+```python
+s_usuario_id, s_conteudo = sanitize_params(usuario_id, conteudo)
+
 # Wrap ALL parameters with to_d1_null()
 d1_usuario_id = to_d1_null(s_usuario_id)
 d1_conteudo = to_d1_null(s_conteudo)
@@ -82,16 +92,16 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
     # Sanitize first
     s_usuario_id, s_conteudo, s_imagem = sanitize_params(usuario_id, conteudo, imagem)
     
-    # Wrap ALL parameters (even required ones!)
-    d1_usuario_id = to_d1_null(s_usuario_id)
-    d1_conteudo = to_d1_null(s_conteudo)
-    d1_imagem = to_d1_null(s_imagem)
-    
+    # Call to_d1_null() DIRECTLY in bind() to prevent FFI boundary issues
     result = await db.prepare("""
         INSERT INTO post (usuario_id, conteudo, imagem)
         VALUES (?, ?, ?)
         RETURNING id
-    """).bind(d1_usuario_id, d1_conteudo, d1_imagem).first()
+    """).bind(
+        to_d1_null(s_usuario_id),
+        to_d1_null(s_conteudo),
+        to_d1_null(s_imagem)
+    ).first()
     
     return safe_get(result, 'id')
 ```
@@ -101,13 +111,10 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
 async def update_post(db, post_id, conteudo):
     s_post_id, s_conteudo = sanitize_params(post_id, conteudo)
     
-    # Wrap ALL parameters
-    d1_post_id = to_d1_null(s_post_id)
-    d1_conteudo = to_d1_null(s_conteudo)
-    
+    # Call to_d1_null() directly in bind()
     await db.prepare("""
         UPDATE post SET conteudo = ? WHERE id = ?
-    """).bind(d1_conteudo, d1_post_id).run()
+    """).bind(to_d1_null(s_conteudo), to_d1_null(s_post_id)).run()
 ```
 
 ### 3. For DELETE operations
@@ -115,12 +122,10 @@ async def update_post(db, post_id, conteudo):
 async def delete_post(db, post_id):
     s_post_id = sanitize_for_d1(post_id)
     
-    # Wrap the parameter
-    d1_post_id = to_d1_null(s_post_id)
-    
+    # Call to_d1_null() directly in bind()
     await db.prepare("""
         DELETE FROM post WHERE id = ?
-    """).bind(d1_post_id).run()
+    """).bind(to_d1_null(s_post_id)).run()
 ```
 
 ### 4. For SELECT with parameters
@@ -129,13 +134,10 @@ async def get_user_posts(db, user_id, limit=10):
     s_user_id = sanitize_for_d1(user_id)
     s_limit = sanitize_for_d1(limit) or 10
     
-    # Wrap parameters even for SELECT
-    d1_user_id = to_d1_null(s_user_id)
-    d1_limit = to_d1_null(s_limit)
-    
+    # Call to_d1_null() directly in bind()
     result = await db.prepare("""
         SELECT * FROM post WHERE usuario_id = ? LIMIT ?
-    """).bind(d1_user_id, d1_limit).all()
+    """).bind(to_d1_null(s_user_id), to_d1_null(s_limit)).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 ```
@@ -186,13 +188,16 @@ s_usuario_id, s_conteudo = sanitize_params(usuario_id, conteudo)
 await db.prepare("...").bind(s_usuario_id, s_conteudo).run()
 ```
 
-### ✅ Correct: Wrap ALL parameters, every time
+### ✅ Correct: Call to_d1_null() directly in bind()
 ```python
-# CORRECT
-d1_usuario_id = to_d1_null(s_usuario_id)
-d1_conteudo = to_d1_null(s_conteudo)
-d1_imagem = to_d1_null(s_imagem)
-await db.prepare("...").bind(d1_usuario_id, d1_conteudo, d1_imagem, d1_usuario_id).run()
+# CORRECT - Recommended approach
+s_usuario_id, s_conteudo, s_imagem = sanitize_params(usuario_id, conteudo, imagem)
+await db.prepare("...").bind(
+    to_d1_null(s_usuario_id),
+    to_d1_null(s_conteudo),
+    to_d1_null(s_imagem),
+    to_d1_null(s_usuario_id)
+).run()
 ```
 
 ## Why This Pattern is Necessary
@@ -237,7 +242,12 @@ After updating code to use this pattern:
 
 ## Summary
 
-**Golden Rule**: ALWAYS wrap ALL parameters with `to_d1_null()` before passing to `.bind()`
+**Golden Rule**: ALWAYS wrap ALL parameters with `to_d1_null()` when passing to `.bind()`
+
+**Best Practice**: Call `to_d1_null()` directly in the `.bind()` call to minimize FFI boundary crossings:
+```python
+await db.prepare("...").bind(to_d1_null(param1), to_d1_null(param2)).run()
+```
 
 Whether a parameter is required or optional, None or not None, wrap it with `to_d1_null()` to ensure it safely crosses the Python-JavaScript FFI boundary.
 
