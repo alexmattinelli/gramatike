@@ -871,7 +871,8 @@ async def update_user_profile(db, user_id, **kwargs):
         return False
     
     set_clause = ', '.join(f"{k} = ?" for k in updates.keys())
-    values = list(updates.values()) + [sanitize_for_d1(user_id)]
+    # Convert all values to D1-safe format (wrap with to_d1_null)
+    values = [to_d1_null(v) for v in updates.values()] + [to_d1_null(sanitize_for_d1(user_id))]
     
     await db.prepare(f"""
         UPDATE user SET {set_clause} WHERE id = ?
@@ -1499,11 +1500,17 @@ async def submit_dynamic_response(db, dynamic_id, usuario_id, payload):
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_dynamic_id, s_usuario_id, s_payload_json = sanitize_params(dynamic_id, usuario_id, payload_json)
     
+    # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_dynamic_id = to_d1_null(s_dynamic_id)
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    d1_payload_json = to_d1_null(s_payload_json)
+    
     result = await db.prepare("""
         INSERT INTO dynamic_response (dynamic_id, usuario_id, payload)
         VALUES (?, ?, ?)
         RETURNING id
-    """).bind(s_dynamic_id, s_usuario_id, s_payload_json).first()
+    """).bind(d1_dynamic_id, d1_usuario_id, d1_payload_json).first()
     return safe_get(result, 'id')
 
 
@@ -1641,16 +1648,24 @@ async def create_email_token(db, usuario_id, tipo, expires_hours=24, novo_email=
         usuario_id, token, tipo, novo_email, expires_at
     )
     
+    # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    d1_token = to_d1_null(s_token)
+    d1_tipo = to_d1_null(s_tipo)
+    d1_novo_email = to_d1_null(s_novo_email)
+    d1_expires_at = to_d1_null(s_expires_at)
+    
     if s_novo_email:
         await db.prepare("""
             INSERT INTO email_token (usuario_id, token, tipo, novo_email, expires_at)
             VALUES (?, ?, ?, ?, ?)
-        """).bind(s_usuario_id, s_token, s_tipo, s_novo_email, s_expires_at).run()
+        """).bind(d1_usuario_id, d1_token, d1_tipo, d1_novo_email, d1_expires_at).run()
     else:
         await db.prepare("""
             INSERT INTO email_token (usuario_id, token, tipo, expires_at)
             VALUES (?, ?, ?, ?)
-        """).bind(s_usuario_id, s_token, s_tipo, s_expires_at).run()
+        """).bind(d1_usuario_id, d1_token, d1_tipo, d1_expires_at).run()
     
     return token
 
@@ -1929,12 +1944,18 @@ async def remove_amizade(db, usuario_id, amigue_id):
     s_usuario_id, s_amigue_id = sanitize_params(usuario_id, amigue_id)
     if s_usuario_id is None or s_amigue_id is None:
         return
+    
+    # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    d1_amigue_id = to_d1_null(s_amigue_id)
+    
     await db.prepare("""
         DELETE FROM amizade
         WHERE ((usuario1_id = ? AND usuario2_id = ?)
             OR (usuario1_id = ? AND usuario2_id = ?))
         AND status = 'aceita'
-    """).bind(s_usuario_id, s_amigue_id, s_amigue_id, s_usuario_id).run()
+    """).bind(d1_usuario_id, d1_amigue_id, d1_amigue_id, d1_usuario_id).run()
 
 
 # ============================================================================
@@ -1947,13 +1968,17 @@ async def create_report(db, post_id, usuario_id, motivo, category=None):
     s_post_id, s_usuario_id, s_motivo, s_category = sanitize_params(post_id, usuario_id, motivo, category)
     
     # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_post_id = to_d1_null(s_post_id)
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    d1_motivo = to_d1_null(s_motivo)
     d1_category = to_d1_null(s_category)
     
     result = await db.prepare("""
         INSERT INTO report (post_id, usuario_id, motivo, category)
         VALUES (?, ?, ?, ?)
         RETURNING id
-    """).bind(s_post_id, s_usuario_id, s_motivo, d1_category).first()
+    """).bind(d1_post_id, d1_usuario_id, d1_motivo, d1_category).first()
     return safe_get(result, 'id')
 
 
@@ -2680,10 +2705,13 @@ async def award_badge(db, usuario_id, badge_nome):
     if s_usuario_id is None or s_badge_nome is None:
         return False
     
+    # Convert to D1-safe format
+    d1_badge_nome = to_d1_null(s_badge_nome)
+    
     # Buscar badge por nome
     badge = await db.prepare("""
         SELECT id FROM badge WHERE nome = ?
-    """).bind(s_badge_nome).first()
+    """).bind(d1_badge_nome).first()
     
     if not badge:
         return False
@@ -2692,10 +2720,14 @@ async def award_badge(db, usuario_id, badge_nome):
     if badge_id is None:
         return False
     
+    # Convert all parameters to D1-safe format
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    d1_badge_id = to_d1_null(badge_id)
+    
     try:
         await db.prepare("""
             INSERT INTO user_badge (usuario_id, badge_id) VALUES (?, ?)
-        """).bind(s_usuario_id, badge_id).run()
+        """).bind(d1_usuario_id, d1_badge_id).run()
         
         # Notificar usuárie
         await create_notification(db, s_usuario_id, 'badge',
@@ -3347,11 +3379,18 @@ async def send_direct_message(db, remetente_id, destinatarie_id, conteudo):
     s_remetente_id, s_destinatarie_id, s_conteudo = sanitize_params(
         remetente_id, destinatarie_id, conteudo
     )
+    
+    # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_remetente_id = to_d1_null(s_remetente_id)
+    d1_destinatarie_id = to_d1_null(s_destinatarie_id)
+    d1_conteudo = to_d1_null(s_conteudo)
+    
     result = await db.prepare("""
         INSERT INTO mensagem_direta (remetente_id, destinatarie_id, conteudo)
         VALUES (?, ?, ?)
         RETURNING id
-    """).bind(s_remetente_id, s_destinatarie_id, s_conteudo).first()
+    """).bind(d1_remetente_id, d1_destinatarie_id, d1_conteudo).first()
     
     # Notificar destinatárie
     await create_notification(db, s_destinatarie_id, 'mensagem',
@@ -3567,11 +3606,18 @@ async def send_group_message(db, grupo_id, usuario_id, conteudo):
     """Envia mensagem no grupo."""
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_grupo_id, s_usuario_id, s_conteudo = sanitize_params(grupo_id, usuario_id, conteudo)
+    
+    # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_grupo_id = to_d1_null(s_grupo_id)
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    d1_conteudo = to_d1_null(s_conteudo)
+    
     result = await db.prepare("""
         INSERT INTO grupo_mensagem (grupo_id, usuario_id, conteudo)
         VALUES (?, ?, ?)
         RETURNING id
-    """).bind(s_grupo_id, s_usuario_id, s_conteudo).first()
+    """).bind(d1_grupo_id, d1_usuario_id, d1_conteudo).first()
     return safe_get(result, 'id')
 
 
