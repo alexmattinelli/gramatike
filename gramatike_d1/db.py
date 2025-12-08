@@ -13,24 +13,27 @@
 # D1_TYPE_ERROR, SEMPRE siga este padrão ao usar .bind():
 #
 # 1. Sanitize parâmetros com sanitize_params() ou sanitize_for_d1()
-# 2. Use d1_params() para converter TODOS os parâmetros e armazená-los em uma variável
-# 3. Use *params no .bind() para expandir os valores
+# 2. Chame to_d1_null() DIRETAMENTE dentro de .bind() para minimizar FFI crossings
 #
-# EXEMPLO CORRETO:
+# EXEMPLO CORRETO (RECOMENDADO):
 #   s_usuario_id, s_conteudo = sanitize_params(usuario_id, conteudo)
-#   params = d1_params(s_usuario_id, s_conteudo)
-#   await db.prepare("INSERT INTO ... VALUES (?, ?)").bind(*params).run()
+#   await db.prepare("INSERT INTO ... VALUES (?, ?)").bind(
+#       to_d1_null(s_usuario_id),
+#       to_d1_null(s_conteudo)
+#   ).run()
 #
-# ALTERNATIVA MAIS CONCISA:
-#   params = d1_params(usuario_id, conteudo)  # d1_params já faz o sanitize
+# ALTERNATIVA (para muitos parâmetros):
+#   params = d1_params(usuario_id, conteudo)  # d1_params já faz sanitize + to_d1_null
 #   await db.prepare("INSERT INTO ... VALUES (?, ?)").bind(*params).run()
+#   # NOTA: Este padrão pode causar 2 FFI crossings em alguns casos
 #
 # NUNCA faça:
-#   # ❌ Chamar to_d1_null() diretamente em bind() pode causar FFI boundary issues
-#   await db.prepare("...").bind(to_d1_null(value1), to_d1_null(value2)).run()
-#   
 #   # ❌ Usar valores não sanitizados pode causar D1_TYPE_ERROR
 #   await db.prepare("...").bind(usuario_id, conteudo).run()
+#   
+#   # ❌ Armazenar to_d1_null() em variáveis pode causar FFI boundary issues
+#   d1_value = to_d1_null(s_usuario_id)
+#   await db.prepare("...").bind(d1_value).run()
 #
 # ============================================================================
 
@@ -1146,16 +1149,19 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
         console.error("[create_post] conteudo is None after sanitization")
         return None
     
-    # Convert to D1-safe values (None -> JS null) to prevent D1_TYPE_ERROR
-    # Store converted values in variables BEFORE .bind() to prevent FFI boundary issues
-    # Storing the result prevents undefined from propagating through the FFI boundary
-    params = d1_params(s_usuario_id, s_conteudo, s_imagem, s_usuario_id)
+    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
+    # This reduces FFI crossings from 2 to 1, preventing values from becoming undefined
     result = await db.prepare("""
         INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
         SELECT ?, username, ?, ?, datetime('now')
         FROM user WHERE id = ?
         RETURNING id
-    """).bind(*params).first()
+    """).bind(
+        to_d1_null(s_usuario_id),
+        to_d1_null(s_conteudo),
+        to_d1_null(s_imagem),
+        to_d1_null(s_usuario_id)
+    ).first()
     return safe_get(result, 'id')
 
 
