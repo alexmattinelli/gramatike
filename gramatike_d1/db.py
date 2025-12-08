@@ -28,12 +28,16 @@
 #   # NOTA: Este padrão pode causar 2 FFI crossings em alguns casos
 #
 # NUNCA faça:
-#   # ❌ Usar valores não sanitizados pode causar D1_TYPE_ERROR
-#   await db.prepare("...").bind(to_d1_null(usuario_id), conteudo).run()
+#   # ❌ Usar valores não sanitizados diretamente pode causar D1_TYPE_ERROR
+#   await db.prepare("...").bind(usuario_id, conteudo).run()
 #   
 #   # ❌ Armazenar to_d1_null() em variáveis pode causar FFI boundary issues
 #   d1_value = to_d1_null(s_usuario_id)
 #   await db.prepare("...").bind(d1_value).run()
+#   
+#   # ❌ Passar valores sanitizados diretamente sem to_d1_null()
+#   s_param = sanitize_for_d1(param)
+#   await db.prepare("...").bind(s_param).run()
 #
 # ============================================================================
 
