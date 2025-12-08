@@ -4,6 +4,33 @@
 #
 # NOTA: Renomeado de 'workers/' para 'gramatike_d1/' para evitar conflito
 # com o módulo 'workers' built-in do Cloudflare Workers Python.
+#
+# ============================================================================
+# IMPORTANTE: Prevenindo D1_TYPE_ERROR
+# ============================================================================
+#
+# D1 não aceita JavaScript 'undefined' como valor de bind. Para prevenir erros
+# D1_TYPE_ERROR, SEMPRE siga este padrão ao usar .bind():
+#
+# 1. Sanitize parâmetros com sanitize_params() ou sanitize_for_d1()
+# 2. Converta TODOS os parâmetros com to_d1_null() antes de .bind()
+#
+# EXEMPLO CORRETO:
+#   s_usuario_id, s_conteudo = sanitize_params(usuario_id, conteudo)
+#   d1_usuario_id = to_d1_null(s_usuario_id)
+#   d1_conteudo = to_d1_null(s_conteudo)
+#   await db.prepare("INSERT INTO ... VALUES (?, ?)").bind(d1_usuario_id, d1_conteudo).run()
+#
+# ALTERNATIVA: Use d1_params() para sanitizar e converter de uma vez:
+#   params = d1_params(usuario_id, conteudo)
+#   await db.prepare("INSERT INTO ... VALUES (?, ?)").bind(*params).run()
+#
+# NUNCA faça:
+#   s_usuario_id, s_conteudo = sanitize_params(usuario_id, conteudo)
+#   await db.prepare("INSERT INTO ... VALUES (?, ?)").bind(s_usuario_id, s_conteudo).run()
+#   # ❌ Pode causar D1_TYPE_ERROR se valores cruzarem a barreira FFI como undefined
+#
+# ============================================================================
 
 import json
 import sys
@@ -33,15 +60,27 @@ except ImportError:
 def to_d1_null(value):
     """Converts Python None to JavaScript null for D1 queries.
     
+    ⚠️ CRITICAL: ALWAYS use this function to wrap parameters before .bind()
+    
     In the Pyodide/Cloudflare Workers environment, Python None is converted to
     JavaScript undefined when crossing the FFI boundary, which D1 cannot handle.
     This function converts None to JavaScript null, which D1 accepts as SQL NULL.
     
+    Even non-None values should be wrapped with this function as a safety measure,
+    as values can unexpectedly become undefined when crossing the FFI boundary.
+    
     Args:
-        value: The value to convert (only None is converted)
+        value: The value to convert (None is converted to JS null, others pass through)
         
     Returns:
         JavaScript null if value is None (in Pyodide), otherwise the original value
+        
+    Example:
+        # ALWAYS wrap ALL bind parameters:
+        d1_user_id = to_d1_null(sanitized_user_id)
+        d1_content = to_d1_null(sanitized_content)
+        await db.prepare("INSERT INTO post (user_id, content) VALUES (?, ?)")
+            .bind(d1_user_id, d1_content).run()
     """
     if value is None and _IN_PYODIDE:
         return JS_NULL
@@ -374,15 +413,26 @@ def sanitize_params(*args):
 def d1_params(*args):
     """Sanitizes parameters for D1 SQL queries, converting None to JavaScript null.
     
+    ⚠️ RECOMMENDED: Use this function to prepare ALL parameters for .bind()
+    
     This is the preferred function for preparing parameters for D1's .bind() method.
     It sanitizes all values using sanitize_for_d1() and then converts any Python None
     values to JavaScript null, which D1 accepts as SQL NULL.
+    
+    This function combines sanitize_for_d1() and to_d1_null() in a single call,
+    making it easier to prepare multiple parameters safely.
     
     Args:
         *args: Values to sanitize for D1 queries
         
     Returns:
         A tuple of sanitized values where None values are converted to JS null
+        
+    Example:
+        # Prepare all parameters in one call:
+        params = d1_params(usuario_id, conteudo, imagem)
+        await db.prepare("INSERT INTO post (user_id, content, image) VALUES (?, ?, ?)")
+            .bind(*params).run()
     """
     return tuple(to_d1_null(sanitize_for_d1(arg)) for arg in args)
 
