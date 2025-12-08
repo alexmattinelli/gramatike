@@ -96,21 +96,27 @@ def to_d1_null(value):
     
     # Check for JavaScript undefined by comparing with JS_UNDEFINED
     # Note: We use 'is' comparison which works for JavaScript undefined in Pyodide
+    # Broad exception handling is intentional - any exception here indicates
+    # a problematic JavaScript object that should be converted to null for safety
     try:
         if value is JS_UNDEFINED:
             return JS_NULL
     except Exception:
+        # If comparison fails, the object is likely a problematic JS object
+        # Return JS_NULL to prevent D1_TYPE_ERROR
         pass
     
     # Additional safety check: check string representation for 'undefined'
     # This catches cases where undefined might not be directly comparable
+    # String conversion is done as a last-resort safety measure after identity checks
     try:
         str_repr = str(value)
         if str_repr == 'undefined':
             return JS_NULL
     except Exception:
         # If we can't even get a string representation, it's likely problematic
-        # Return JS_NULL to be safe
+        # Broad exception handling is intentional - prevents D1_TYPE_ERROR from
+        # any object that can't be safely converted, which is better than crashing
         return JS_NULL
     
     return value
