@@ -929,8 +929,9 @@ class Default(WorkerEntrypoint):
                         # Fetch the asset using the ASSETS binding
                         asset_response = await assets.fetch(f"https://assets/{file_path}")
                         if asset_response.status == 200:
-                            # Get content from the response
-                            content = await asset_response.arrayBuffer()
+                            # Get content from the response using bytes() instead of arrayBuffer()
+                            # arrayBuffer() is a JavaScript method not available in Pyodide
+                            content = await asset_response.bytes()
                             
                             # Determine content type based on file extension
                             content_type = get_mime_type(file_path)

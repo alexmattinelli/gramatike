@@ -1139,6 +1139,7 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
     # Use sanitize_for_d1 to handle undefined/JsProxy values
     s_usuario_id = sanitize_for_d1(usuario_id)
     s_conteudo = sanitize_for_d1(conteudo)
+    s_imagem = sanitize_for_d1(imagem)
     
     if s_usuario_id is None:
         console.error("[create_post] usuario_id is None after sanitization")
@@ -1147,17 +1148,18 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
         console.error("[create_post] conteudo is None after sanitization")
         return None
     
-    # Use d1_params to sanitize and convert to D1-safe values in one step
-    # This avoids type conversion issues that can occur when values cross the FFI boundary
-    # d1_params handles: sanitize_for_d1() + to_d1_null() for all parameters
-    params = d1_params(usuario_id, conteudo, imagem, usuario_id)
+    # Convert to D1-safe values (None -> JS null) to prevent D1_TYPE_ERROR
+    # Pass parameters individually instead of unpacking to avoid FFI boundary issues
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    d1_conteudo = to_d1_null(s_conteudo)
+    d1_imagem = to_d1_null(s_imagem)
     
     result = await db.prepare("""
         INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
         SELECT ?, username, ?, ?, datetime('now')
         FROM user WHERE id = ?
         RETURNING id
-    """).bind(*params).first()
+    """).bind(d1_usuario_id, d1_conteudo, d1_imagem, d1_usuario_id).first()
     return safe_get(result, 'id')
 
 
