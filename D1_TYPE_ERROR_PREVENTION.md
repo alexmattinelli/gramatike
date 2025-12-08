@@ -23,21 +23,19 @@ In the Pyodide environment (Python running in Cloudflare Workers), there's a For
 The `to_d1_null()` function is defined in `gramatike_d1/db.py`:
 
 ```python
-from js import null as JS_NULL, undefined as JS_UNDEFINED
+from js import null as JS_NULL
 
 def to_d1_null(value):
     """Converts Python None and JavaScript undefined to JavaScript null for D1 queries."""
     if value is None:
         return JS_NULL
-    if value is JS_UNDEFINED:
-        return JS_NULL
-    # Also checks string representation for 'undefined' as safety measure
+    # Check string representation for 'undefined' (no need to import undefined)
     if str(value) == 'undefined':
         return JS_NULL
     return value
 ```
 
-**Key Enhancement**: The function now detects and converts both Python `None` AND JavaScript `undefined` values to `JS_NULL`, providing complete protection against D1_TYPE_ERROR.
+**Key Enhancement**: The function now detects and converts both Python `None` AND JavaScript `undefined` values to `JS_NULL`, providing complete protection against D1_TYPE_ERROR. It uses string checking to detect undefined without needing to import it.
 
 ### Step 2: ALWAYS wrap ALL bind parameters
 
@@ -209,8 +207,8 @@ await db.prepare("...").bind(d1_usuario_id, d1_conteudo, d1_imagem, d1_usuario_i
 
 ### `to_d1_null(value)`
 - Converts Python `None` AND JavaScript `undefined` to JavaScript `null` (in Pyodide environment)
-- Checks value identity (`is None`, `is JS_UNDEFINED`)
-- Also checks string representation as safety measure (`str(value) == 'undefined'`)
+- Checks value identity for `None`
+- Checks string representation for `'undefined'` (no need to import undefined)
 - Returns the original value if not None/undefined
 - Use this for individual parameters
 

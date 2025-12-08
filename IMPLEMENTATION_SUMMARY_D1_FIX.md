@@ -8,7 +8,7 @@
 
 **Root Cause**: Values can become JavaScript `undefined` (not just Python `None`) when crossing the FFI boundary. The original `to_d1_null()` function didn't detect or convert `undefined` values.
 
-**Solution**: Enhanced `to_d1_null()` with multi-layer undefined detection:
+**Solution**: Enhanced `to_d1_null()` with string-based undefined detection (simpler approach, no need to import undefined):
 
 ```python
 # OLD (only checked for None)
@@ -17,22 +17,20 @@ def to_d1_null(value):
         return JS_NULL
     return value
 
-# NEW (checks for both None AND undefined)
+# NEW (checks for both None AND undefined via string check)
 def to_d1_null(value):
     if value is None:
         return JS_NULL
-    if value is JS_UNDEFINED:  # ← New: Direct undefined check
-        return JS_NULL
-    if str(value) == 'undefined':  # ← New: String representation check
+    if str(value) == 'undefined':  # ← Detects undefined without importing it
         return JS_NULL
     return value
 ```
 
 **Changes Made**:
-1. Import `undefined` from `js` module: `from js import console, null as JS_NULL, undefined as JS_UNDEFINED`
-2. Added direct identity check: `if value is JS_UNDEFINED`
-3. Added string representation check: `if str(value) == 'undefined'`
-4. Added exception handling for safety
+1. No need to import `undefined` from `js` module - just use `from js import null as JS_NULL`
+2. Added string representation check: `if str(value) == 'undefined'`
+3. Added exception handling for safety when stringifying problematic objects
+4. Simpler, cleaner approach that avoids unnecessary JavaScript imports
 
 This provides comprehensive protection against both Python `None` and JavaScript `undefined` values.
 

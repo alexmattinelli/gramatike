@@ -41,9 +41,9 @@ import secrets
 
 # Import JavaScript console for proper log levels in Cloudflare Workers
 # console.log = info level, console.warn = warning, console.error = error
-# Also import JavaScript's null and undefined to properly handle None values in D1 queries
+# Also import JavaScript's null to properly handle None values in D1 queries
 try:
-    from js import console, null as JS_NULL, undefined as JS_UNDEFINED
+    from js import console, null as JS_NULL
     _IN_PYODIDE = True
 except ImportError:
     # Fallback for local testing - create a mock console
@@ -54,7 +54,6 @@ except ImportError:
         def error(self, *args): print(*args, file=sys.stderr)
     console = MockConsole()
     JS_NULL = None  # In non-Pyodide environments, use Python None
-    JS_UNDEFINED = None  # In non-Pyodide environments, treat as None
     _IN_PYODIDE = False
 
 
@@ -94,29 +93,16 @@ def to_d1_null(value):
     if value is None:
         return JS_NULL
     
-    # Check for JavaScript undefined by comparing with JS_UNDEFINED
-    # Note: We use 'is' comparison which works for JavaScript undefined in Pyodide
-    # Broad exception handling is intentional - any exception here indicates
-    # a problematic JavaScript object that should be converted to null for safety
-    try:
-        if value is JS_UNDEFINED:
-            return JS_NULL
-    except Exception:
-        # If comparison fails, the object is likely a problematic JS object
-        # Return JS_NULL to prevent D1_TYPE_ERROR
-        pass
-    
-    # Additional safety check: check string representation for 'undefined'
-    # This catches cases where undefined might not be directly comparable
-    # String conversion is done as a last-resort safety measure after identity checks
+    # Check for JavaScript undefined by checking string representation
+    # This is more reliable than importing undefined and doing identity comparison
+    # Most undefined values will stringify to 'undefined'
     try:
         str_repr = str(value)
         if str_repr == 'undefined':
             return JS_NULL
     except Exception:
-        # If we can't even get a string representation, it's likely problematic
-        # Broad exception handling is intentional - prevents D1_TYPE_ERROR from
-        # any object that can't be safely converted, which is better than crashing
+        # If we can't get a string representation, it's likely a problematic
+        # JavaScript object. Return JS_NULL to prevent D1_TYPE_ERROR
         return JS_NULL
     
     return value
