@@ -940,17 +940,30 @@ async def create_user(db, username, email, password, nome=None):
     # Sanitize all parameters to prevent D1_TYPE_ERROR from undefined values
     s_username, s_email, s_hashed, s_nome = sanitize_params(username, email, hashed, nome)
     
-    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
-    result = await db.prepare("""
-        INSERT INTO user (username, email, password, nome, created_at)
-        VALUES (?, ?, ?, ?, datetime('now'))
-        RETURNING id
-    """).bind(
-        to_d1_null(s_username),
-        to_d1_null(s_email),
-        to_d1_null(s_hashed),
-        to_d1_null(s_nome)
-    ).first()
+    # Use inline ternary to avoid FFI boundary issues with function returns
+    # Direct reference to JS_NULL prevents Python->JS conversion issues
+    if _IN_PYODIDE:
+        result = await db.prepare("""
+            INSERT INTO user (username, email, password, nome, created_at)
+            VALUES (?, ?, ?, ?, datetime('now'))
+            RETURNING id
+        """).bind(
+            JS_NULL if s_username is None else s_username,
+            JS_NULL if s_email is None else s_email,
+            JS_NULL if s_hashed is None else s_hashed,
+            JS_NULL if s_nome is None else s_nome
+        ).first()
+    else:
+        result = await db.prepare("""
+            INSERT INTO user (username, email, password, nome, created_at)
+            VALUES (?, ?, ?, ?, datetime('now'))
+            RETURNING id
+        """).bind(
+            s_username,
+            s_email,
+            s_hashed,
+            s_nome
+        ).first()
     return safe_get(result, 'id')
 
 
@@ -989,17 +1002,29 @@ async def create_session(db, user_id, user_agent=None, ip_address=None):
         user_id, token, expires_at, user_agent, ip_address
     )
     
-    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
-    await db.prepare("""
-        INSERT INTO user_session (user_id, token, expires_at, user_agent, ip_address)
-        VALUES (?, ?, ?, ?, ?)
-    """).bind(
-        to_d1_null(s_user_id),
-        to_d1_null(s_token),
-        to_d1_null(s_expires_at),
-        to_d1_null(s_user_agent),
-        to_d1_null(s_ip_address)
-    ).run()
+    # Use inline ternary to avoid FFI boundary issues with function returns
+    if _IN_PYODIDE:
+        await db.prepare("""
+            INSERT INTO user_session (user_id, token, expires_at, user_agent, ip_address)
+            VALUES (?, ?, ?, ?, ?)
+        """).bind(
+            JS_NULL if s_user_id is None else s_user_id,
+            JS_NULL if s_token is None else s_token,
+            JS_NULL if s_expires_at is None else s_expires_at,
+            JS_NULL if s_user_agent is None else s_user_agent,
+            JS_NULL if s_ip_address is None else s_ip_address
+        ).run()
+    else:
+        await db.prepare("""
+            INSERT INTO user_session (user_id, token, expires_at, user_agent, ip_address)
+            VALUES (?, ?, ?, ?, ?)
+        """).bind(
+            s_user_id,
+            s_token,
+            s_expires_at,
+            s_user_agent,
+            s_ip_address
+        ).run()
     
     return token
 
