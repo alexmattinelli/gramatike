@@ -1411,9 +1411,6 @@ class Default(WorkerEntrypoint):
                         conteudo = conteudo.strip()
                     
                     if not conteudo:
-                        conteudo = None
-                    
-                    if not conteudo:
                         console.error("[posts_multi] conteudo is empty")
                         return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
                     
