@@ -240,20 +240,27 @@ def safe_get(result, key, default=None):
     
     This is a convenience function for accessing single values from D1 results,
     particularly useful for patterns like: safe_get(result, 'id')
+    
+    IMPORTANT: Always sanitizes return values to prevent JavaScript undefined
+    from leaking through and causing D1_TYPE_ERROR.
     """
     if result is None:
         return default
     
     # If it's already a dict, just access it
     if isinstance(result, dict):
-        return result.get(key, default)
+        value = result.get(key, default)
+        # Sanitize the value before returning to catch any undefined values
+        return sanitize_for_d1(value) if value is not default else default
     
     # Try to_py() first for JsProxy
     if hasattr(result, 'to_py'):
         try:
             converted = result.to_py()
             if isinstance(converted, dict):
-                return converted.get(key, default)
+                value = converted.get(key, default)
+                # Sanitize the value before returning
+                return sanitize_for_d1(value) if value is not default else default
         except Exception:
             pass
     
@@ -261,8 +268,11 @@ def safe_get(result, key, default=None):
     try:
         value = result[key]
         if hasattr(value, 'to_py'):
-            return value.to_py()
-        return value
+            py_value = value.to_py()
+            # Sanitize the converted value
+            return sanitize_for_d1(py_value)
+        # Sanitize the direct value
+        return sanitize_for_d1(value)
     except (KeyError, TypeError, IndexError):
         pass
     
@@ -270,7 +280,9 @@ def safe_get(result, key, default=None):
     try:
         d = safe_dict(result)
         if d:
-            return d.get(key, default)
+            value = d.get(key, default)
+            # Sanitize the value before returning
+            return sanitize_for_d1(value) if value is not default else default
     except Exception:
         pass
     
