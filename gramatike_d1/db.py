@@ -930,7 +930,8 @@ async def update_user_profile(db, user_id, **kwargs):
     
     set_clause = ', '.join(f"{k} = ?" for k in updates.keys())
     # Convert all values to D1-safe format (wrap with to_d1_null)
-    values = [to_d1_null(v) for v in updates.values()] + [to_d1_null(sanitize_for_d1(user_id))]
+    s_user_id = sanitize_for_d1(user_id)
+    values = [to_d1_null(v) for v in updates.values()] + [to_d1_null(s_user_id)]
     
     await db.prepare(f"""
         UPDATE user SET {set_clause} WHERE id = ?
