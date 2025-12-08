@@ -95,7 +95,9 @@ def to_d1_null(value):
     
     # Check for JavaScript undefined by checking string representation
     # This catches edge cases where values become undefined when crossing FFI boundary
-    # NOTE: We do NOT convert JavaScript 'null' here because it's already a valid D1 value
+    # NOTE: In Pyodide/Cloudflare Workers, JavaScript undefined ALWAYS converts to
+    # the string 'undefined', making this a reliable detection method.
+    # We do NOT convert JavaScript 'null' here because it's already a valid D1 value.
     try:
         str_repr = str(value)
         if str_repr == 'undefined':
