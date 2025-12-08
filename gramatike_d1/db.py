@@ -111,20 +111,13 @@ def to_d1_null(value):
         console.warn(f"[to_d1_null] str() failed on value, returning JS_NULL: {e}")
         return JS_NULL
     
-    # Check 3: Type name contains 'undefined'
+    # Check 3: Type name matches known undefined patterns
+    # Only check for exact JavaScript undefined type names to avoid false positives
     try:
         type_name = type(value).__name__
-        if 'undefined' in type_name.lower():
-            console.warn(f"[to_d1_null] Detected undefined in type name: {type_name}, converting to JS_NULL")
+        if type_name in ('JsUndefined', 'undefined'):
+            console.warn(f"[to_d1_null] Detected JS undefined type: {type_name}, converting to JS_NULL")
             return JS_NULL
-    except Exception:
-        pass
-    
-    # Check 4: Try to detect null-like values that should stay as they are
-    # JavaScript null is valid and should NOT be converted
-    try:
-        if str(value) == 'null':
-            return value  # Keep JavaScript null as is
     except Exception:
         pass
     
