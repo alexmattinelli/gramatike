@@ -918,9 +918,13 @@ async def get_user_by_email(db, email):
     s_email = sanitize_for_d1(email)
     if s_email is None:
         return None
+    
+    # Wrap parameter to prevent D1_TYPE_ERROR
+    d1_email = to_d1_null(s_email)
+    
     result = await db.prepare(
         "SELECT * FROM user WHERE email = ?"
-    ).bind(s_email).first()
+    ).bind(d1_email).first()
     if result:
         return safe_dict(result)
     return None
@@ -1004,12 +1008,16 @@ async def get_session(db, token):
     s_token = sanitize_for_d1(token)
     if s_token is None:
         return None
+    
+    # Wrap parameter to prevent D1_TYPE_ERROR
+    d1_token = to_d1_null(s_token)
+    
     result = await db.prepare("""
         SELECT s.*, u.username, u.email, u.is_admin, u.is_superadmin, u.is_banned
         FROM user_session s
         JOIN user u ON s.user_id = u.id
         WHERE s.token = ? AND s.expires_at > datetime('now')
-    """).bind(s_token).first()
+    """).bind(d1_token).first()
     if result:
         return safe_dict(result)
     return None
@@ -3473,30 +3481,36 @@ async def update_user_preferences(db, usuario_id, **kwargs):
         return False
     
     # Atualizar cada campo individualmente para evitar SQL dinâmico
+    # Wrap s_usuario_id once before the loop
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    
     for key, value in filtered_kwargs.items():
+        # Wrap value for each iteration to prevent D1_TYPE_ERROR
+        d1_value = to_d1_null(value)
+        
         # Os nomes de colunas são validados pela whitelist acima
         if key == 'tema':
-            await db.prepare("UPDATE user_preferences SET tema = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET tema = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(d1_value, d1_usuario_id).run()
         elif key == 'fonte_tamanho':
-            await db.prepare("UPDATE user_preferences SET fonte_tamanho = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET fonte_tamanho = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(d1_value, d1_usuario_id).run()
         elif key == 'fonte_familia':
-            await db.prepare("UPDATE user_preferences SET fonte_familia = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET fonte_familia = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(d1_value, d1_usuario_id).run()
         elif key == 'alto_contraste':
-            await db.prepare("UPDATE user_preferences SET alto_contraste = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET alto_contraste = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(d1_value, d1_usuario_id).run()
         elif key == 'animacoes_reduzidas':
-            await db.prepare("UPDATE user_preferences SET animacoes_reduzidas = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET animacoes_reduzidas = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(d1_value, d1_usuario_id).run()
         elif key == 'exibir_libras':
-            await db.prepare("UPDATE user_preferences SET exibir_libras = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET exibir_libras = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(d1_value, d1_usuario_id).run()
         elif key == 'audio_habilitado':
-            await db.prepare("UPDATE user_preferences SET audio_habilitado = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET audio_habilitado = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(d1_value, d1_usuario_id).run()
         elif key == 'velocidade_audio':
-            await db.prepare("UPDATE user_preferences SET velocidade_audio = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET velocidade_audio = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(d1_value, d1_usuario_id).run()
         elif key == 'notificacoes_email':
-            await db.prepare("UPDATE user_preferences SET notificacoes_email = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET notificacoes_email = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(d1_value, d1_usuario_id).run()
         elif key == 'notificacoes_push':
-            await db.prepare("UPDATE user_preferences SET notificacoes_push = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET notificacoes_push = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(d1_value, d1_usuario_id).run()
         elif key == 'idioma':
-            await db.prepare("UPDATE user_preferences SET idioma = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(value, s_usuario_id).run()
+            await db.prepare("UPDATE user_preferences SET idioma = ?, updated_at = datetime('now') WHERE usuario_id = ?").bind(d1_value, d1_usuario_id).run()
     
     return True
 
@@ -3945,9 +3959,13 @@ async def get_or_create_hashtag(db, tag):
     if s_tag is None:
         return None
     s_tag = s_tag.lower()
+    
+    # Wrap parameter to prevent D1_TYPE_ERROR
+    d1_tag = to_d1_null(s_tag)
+    
     result = await db.prepare(
         "SELECT * FROM hashtag WHERE tag = ?"
-    ).bind(s_tag).first()
+    ).bind(d1_tag).first()
     if result:
         return safe_dict(result)
     # Criar nova
@@ -3955,7 +3973,7 @@ async def get_or_create_hashtag(db, tag):
         INSERT INTO hashtag (tag, count_uso, created_at)
         VALUES (?, 1, datetime('now'))
         RETURNING id
-    """).bind(s_tag).first()
+    """).bind(d1_tag).first()
     if new_result:
         new_id = safe_get(new_result, 'id')
         return {'id': new_id, 'tag': s_tag, 'count_uso': 1}
@@ -4096,9 +4114,13 @@ async def get_emoji_by_codigo(db, codigo):
     s_codigo = sanitize_for_d1(codigo)
     if s_codigo is None:
         return None
+    
+    # Wrap parameter to prevent D1_TYPE_ERROR
+    d1_codigo = to_d1_null(s_codigo)
+    
     result = await db.prepare(
         "SELECT * FROM emoji_custom WHERE codigo = ? AND ativo = 1"
-    ).bind(s_codigo).first()
+    ).bind(d1_codigo).first()
     return safe_dict(result) if result else None
 
 
@@ -4193,9 +4215,13 @@ async def get_feature_flag(db, nome):
     s_nome = sanitize_for_d1(nome)
     if s_nome is None:
         return True
+    
+    # Wrap parameter to prevent D1_TYPE_ERROR
+    d1_nome = to_d1_null(s_nome)
+    
     result = await db.prepare(
         "SELECT ativo FROM feature_flag WHERE nome = ?"
-    ).bind(s_nome).first()
+    ).bind(d1_nome).first()
     return bool(safe_get(result, 'ativo', 1)) if result else True
 
 
