@@ -1149,18 +1149,19 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
         console.error("[create_post] conteudo is None after sanitization")
         return None
     
-    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
-    # This reduces FFI crossings from 2 to 1, preventing values from becoming undefined
+    # Call to_d1_null() directly in bind() to prevent D1_TYPE_ERROR
+    # This reduces FFI crossings from 2 to 1, preventing Python None from becoming JS undefined
+    # which D1 cannot handle (causes "D1_TYPE_ERROR: Type 'undefined' not supported")
     result = await db.prepare("""
         INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
         SELECT ?, username, ?, ?, datetime('now')
         FROM user WHERE id = ?
         RETURNING id
     """).bind(
-        to_d1_null(s_usuario_id),
+        to_d1_null(s_usuario_id),  # for usuario_id column
         to_d1_null(s_conteudo),
         to_d1_null(s_imagem),
-        to_d1_null(s_usuario_id)
+        to_d1_null(s_usuario_id)   # for WHERE clause (to fetch username)
     ).first()
     return safe_get(result, 'id')
 
