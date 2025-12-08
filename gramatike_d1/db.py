@@ -846,13 +846,17 @@ async def create_user(db, username, email, password, nome=None):
     s_username, s_email, s_hashed, s_nome = sanitize_params(username, email, hashed, nome)
     
     # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_username = to_d1_null(s_username)
+    d1_email = to_d1_null(s_email)
+    d1_hashed = to_d1_null(s_hashed)
     d1_nome = to_d1_null(s_nome)
     
     result = await db.prepare("""
         INSERT INTO user (username, email, password, nome, created_at)
         VALUES (?, ?, ?, ?, datetime('now'))
         RETURNING id
-    """).bind(s_username, s_email, s_hashed, d1_nome).first()
+    """).bind(d1_username, d1_email, d1_hashed, d1_nome).first()
     return safe_get(result, 'id')
 
 
@@ -890,13 +894,17 @@ async def create_session(db, user_id, user_agent=None, ip_address=None):
     )
     
     # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_user_id = to_d1_null(s_user_id)
+    d1_token = to_d1_null(s_token)
+    d1_expires_at = to_d1_null(s_expires_at)
     d1_user_agent = to_d1_null(s_user_agent)
     d1_ip_address = to_d1_null(s_ip_address)
     
     await db.prepare("""
         INSERT INTO user_session (user_id, token, expires_at, user_agent, ip_address)
         VALUES (?, ?, ?, ?, ?)
-    """).bind(s_user_id, s_token, s_expires_at, d1_user_agent, d1_ip_address).run()
+    """).bind(d1_user_id, d1_token, d1_expires_at, d1_user_agent, d1_ip_address).run()
     
     return token
 
@@ -1069,6 +1077,9 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
     # Convert Python None to JavaScript null for D1
     # This is required because Python None becomes JavaScript undefined in Pyodide,
     # but D1 expects JavaScript null for SQL NULL values
+    # We must convert ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    d1_conteudo = to_d1_null(s_conteudo)
     d1_imagem = to_d1_null(s_imagem)
     
     result = await db.prepare("""
@@ -1076,7 +1087,7 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
         SELECT ?, username, ?, ?, datetime('now')
         FROM user WHERE id = ?
         RETURNING id
-    """).bind(s_usuario_id, s_conteudo, d1_imagem, s_usuario_id).first()
+    """).bind(d1_usuario_id, d1_conteudo, d1_imagem, d1_usuario_id).first()
     return safe_get(result, 'id')
 
 
@@ -1092,22 +1103,30 @@ async def delete_post(db, post_id, deleted_by=None):
     s_post_id, s_deleted_by = sanitize_params(post_id, deleted_by)
     
     # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_post_id = to_d1_null(s_post_id)
     d1_deleted_by = to_d1_null(s_deleted_by)
     
     await db.prepare("""
         UPDATE post SET is_deleted = 1, deleted_at = datetime('now'), deleted_by = ?
         WHERE id = ?
-    """).bind(d1_deleted_by, s_post_id).run()
+    """).bind(d1_deleted_by, d1_post_id).run()
 
 
 async def like_post(db, user_id, post_id):
     """Curte um post."""
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_user_id, s_post_id = sanitize_params(user_id, post_id)
+    
+    # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_user_id = to_d1_null(s_user_id)
+    d1_post_id = to_d1_null(s_post_id)
+    
     try:
         await db.prepare("""
             INSERT INTO post_likes (user_id, post_id) VALUES (?, ?)
-        """).bind(s_user_id, s_post_id).run()
+        """).bind(d1_user_id, d1_post_id).run()
         return True
     except:
         return False
@@ -1117,9 +1136,15 @@ async def unlike_post(db, user_id, post_id):
     """Remove curtida de um post."""
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_user_id, s_post_id = sanitize_params(user_id, post_id)
+    
+    # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_user_id = to_d1_null(s_user_id)
+    d1_post_id = to_d1_null(s_post_id)
+    
     await db.prepare("""
         DELETE FROM post_likes WHERE user_id = ? AND post_id = ?
-    """).bind(s_user_id, s_post_id).run()
+    """).bind(d1_user_id, d1_post_id).run()
 
 
 async def has_liked(db, user_id, post_id):
@@ -1164,11 +1189,18 @@ async def create_comment(db, post_id, usuario_id, conteudo):
     """Cria um novo comentário."""
     # Sanitize all parameters to prevent D1_TYPE_ERROR from undefined values
     s_post_id, s_usuario_id, s_conteudo = sanitize_params(post_id, usuario_id, conteudo)
+    
+    # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_post_id = to_d1_null(s_post_id)
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    d1_conteudo = to_d1_null(s_conteudo)
+    
     result = await db.prepare("""
         INSERT INTO comentario (post_id, usuario_id, conteudo, data)
         VALUES (?, ?, ?, datetime('now'))
         RETURNING id
-    """).bind(s_post_id, s_usuario_id, s_conteudo).first()
+    """).bind(d1_post_id, d1_usuario_id, d1_conteudo).first()
     return safe_get(result, 'id')
 
 
@@ -1182,10 +1214,16 @@ async def follow_user(db, seguidore_id, seguide_id):
     s_seguidore_id, s_seguide_id = sanitize_params(seguidore_id, seguide_id)
     if s_seguidore_id == s_seguide_id:
         return False
+    
+    # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_seguidore_id = to_d1_null(s_seguidore_id)
+    d1_seguide_id = to_d1_null(s_seguide_id)
+    
     try:
         await db.prepare("""
             INSERT INTO seguidories (seguidore_id, seguide_id) VALUES (?, ?)
-        """).bind(s_seguidore_id, s_seguide_id).run()
+        """).bind(d1_seguidore_id, d1_seguide_id).run()
         return True
     except:
         return False
@@ -1195,9 +1233,15 @@ async def unfollow_user(db, seguidore_id, seguide_id):
     """Deixar de seguir ume usuárie."""
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_seguidore_id, s_seguide_id = sanitize_params(seguidore_id, seguide_id)
+    
+    # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
+    d1_seguidore_id = to_d1_null(s_seguidore_id)
+    d1_seguide_id = to_d1_null(s_seguide_id)
+    
     await db.prepare("""
         DELETE FROM seguidories WHERE seguidore_id = ? AND seguide_id = ?
-    """).bind(s_seguidore_id, s_seguide_id).run()
+    """).bind(d1_seguidore_id, d1_seguide_id).run()
 
 
 async def is_following(db, seguidore_id, seguide_id):
@@ -1973,15 +2017,17 @@ async def create_support_ticket(db, mensagem, usuario_id=None, nome=None, email=
     s_usuario_id, s_nome, s_email, s_mensagem = sanitize_params(usuario_id, nome, email, mensagem)
     
     # Convert Python None to JavaScript null for D1
+    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
     d1_usuario_id = to_d1_null(s_usuario_id)
     d1_nome = to_d1_null(s_nome)
     d1_email = to_d1_null(s_email)
+    d1_mensagem = to_d1_null(s_mensagem)
     
     result = await db.prepare("""
         INSERT INTO support_ticket (usuario_id, nome, email, mensagem)
         VALUES (?, ?, ?, ?)
         RETURNING id
-    """).bind(d1_usuario_id, d1_nome, d1_email, s_mensagem).first()
+    """).bind(d1_usuario_id, d1_nome, d1_email, d1_mensagem).first()
     return safe_get(result, 'id')
 
 
