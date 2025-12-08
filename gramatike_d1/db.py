@@ -105,11 +105,19 @@ def to_d1_null(value):
     # We do NOT convert JavaScript 'null' here because it's already a valid D1 value.
     try:
         str_repr = str(value)
-        if str_repr == 'undefined':
+        if str_repr == 'undefined' or str_repr == '':
             return JS_NULL
     except Exception:
         # If we can't get a string representation, it's likely a problematic
         # JavaScript object. Return JS_NULL to prevent D1_TYPE_ERROR
+        return JS_NULL
+    
+    # Additional check: try to access the type name to detect undefined
+    try:
+        type_name = type(value).__name__
+        if 'undefined' in type_name.lower():
+            return JS_NULL
+    except Exception:
         return JS_NULL
     
     return value
@@ -1149,20 +1157,35 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
         console.error("[create_post] conteudo is None after sanitization")
         return None
     
-    # Call to_d1_null() directly in bind() to prevent D1_TYPE_ERROR
-    # This reduces FFI crossings from 2 to 1, preventing Python None from becoming JS undefined
-    # which D1 cannot handle (causes "D1_TYPE_ERROR: Type 'undefined' not supported")
-    result = await db.prepare("""
-        INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
-        SELECT ?, username, ?, ?, datetime('now')
-        FROM user WHERE id = ?
-        RETURNING id
-    """).bind(
-        to_d1_null(s_usuario_id),  # for usuario_id column
-        to_d1_null(s_conteudo),
-        to_d1_null(s_imagem),
-        to_d1_null(s_usuario_id)   # for WHERE clause (to fetch username)
-    ).first()
+    # Use inline ternary to avoid FFI boundary issues with function returns
+    # Direct reference to JS_NULL prevents Python->JS conversion issues
+    # that can cause "D1_TYPE_ERROR: Type 'undefined' not supported"
+    if _IN_PYODIDE:
+        # In Pyodide, use direct ternary expressions to minimize FFI crossings
+        result = await db.prepare("""
+            INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
+            SELECT ?, username, ?, ?, datetime('now')
+            FROM user WHERE id = ?
+            RETURNING id
+        """).bind(
+            JS_NULL if s_usuario_id is None else s_usuario_id,  # for usuario_id column
+            JS_NULL if s_conteudo is None else s_conteudo,
+            JS_NULL if s_imagem is None else s_imagem,
+            JS_NULL if s_usuario_id is None else s_usuario_id   # for WHERE clause (to fetch username)
+        ).first()
+    else:
+        # Non-Pyodide environment - use regular Python None
+        result = await db.prepare("""
+            INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
+            SELECT ?, username, ?, ?, datetime('now')
+            FROM user WHERE id = ?
+            RETURNING id
+        """).bind(
+            s_usuario_id,
+            s_conteudo,
+            s_imagem,
+            s_usuario_id
+        ).first()
     return safe_get(result, 'id')
 
 
