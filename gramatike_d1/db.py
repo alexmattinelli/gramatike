@@ -93,33 +93,42 @@ def to_d1_null(value):
             return None
         return value
     
-    # In Pyodide environment, check for both None and undefined
-    # Check for Python None
+    # In Pyodide environment, perform comprehensive checks for None and undefined
+    
+    # Check 1: Python None (identity check)
     if value is None:
         return JS_NULL
     
-    # Check for JavaScript undefined by checking string representation
-    # This catches edge cases where values become undefined when crossing FFI boundary
-    # NOTE: In Pyodide/Cloudflare Workers, JavaScript undefined ALWAYS converts to
-    # the string 'undefined', making this a reliable detection method.
-    # We do NOT convert JavaScript 'null' here because it's already a valid D1 value.
+    # Check 2: JavaScript undefined by string representation
+    # This is the most reliable check as undefined always converts to 'undefined' string
     try:
         str_repr = str(value)
-        if str_repr == 'undefined' or str_repr == '':
+        if str_repr == 'undefined':
+            console.warn(f"[to_d1_null] Detected undefined value (str check), converting to JS_NULL")
             return JS_NULL
-    except Exception:
-        # If we can't get a string representation, it's likely a problematic
-        # JavaScript object. Return JS_NULL to prevent D1_TYPE_ERROR
+    except Exception as e:
+        # If str() fails, it's likely a problematic JavaScript object
+        console.warn(f"[to_d1_null] str() failed on value, returning JS_NULL: {e}")
         return JS_NULL
     
-    # Additional check: try to access the type name to detect undefined
+    # Check 3: Type name contains 'undefined'
     try:
         type_name = type(value).__name__
         if 'undefined' in type_name.lower():
+            console.warn(f"[to_d1_null] Detected undefined in type name: {type_name}, converting to JS_NULL")
             return JS_NULL
     except Exception:
-        return JS_NULL
+        pass
     
+    # Check 4: Try to detect null-like values that should stay as they are
+    # JavaScript null is valid and should NOT be converted
+    try:
+        if str(value) == 'null':
+            return value  # Keep JavaScript null as is
+    except Exception:
+        pass
+    
+    # If all checks pass, return the value as is
     return value
 
 # ============================================================================
@@ -940,30 +949,18 @@ async def create_user(db, username, email, password, nome=None):
     # Sanitize all parameters to prevent D1_TYPE_ERROR from undefined values
     s_username, s_email, s_hashed, s_nome = sanitize_params(username, email, hashed, nome)
     
-    # Use inline ternary to avoid FFI boundary issues with function returns
-    # Direct reference to JS_NULL prevents Python->JS conversion issues
-    if _IN_PYODIDE:
-        result = await db.prepare("""
-            INSERT INTO user (username, email, password, nome, created_at)
-            VALUES (?, ?, ?, ?, datetime('now'))
-            RETURNING id
-        """).bind(
-            JS_NULL if s_username is None else s_username,
-            JS_NULL if s_email is None else s_email,
-            JS_NULL if s_hashed is None else s_hashed,
-            JS_NULL if s_nome is None else s_nome
-        ).first()
-    else:
-        result = await db.prepare("""
-            INSERT INTO user (username, email, password, nome, created_at)
-            VALUES (?, ?, ?, ?, datetime('now'))
-            RETURNING id
-        """).bind(
-            s_username,
-            s_email,
-            s_hashed,
-            s_nome
-        ).first()
+    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
+    # The enhanced to_d1_null() now handles all edge cases of undefined values
+    result = await db.prepare("""
+        INSERT INTO user (username, email, password, nome, created_at)
+        VALUES (?, ?, ?, ?, datetime('now'))
+        RETURNING id
+    """).bind(
+        to_d1_null(s_username),
+        to_d1_null(s_email),
+        to_d1_null(s_hashed),
+        to_d1_null(s_nome)
+    ).first()
     return safe_get(result, 'id')
 
 
@@ -1002,29 +999,18 @@ async def create_session(db, user_id, user_agent=None, ip_address=None):
         user_id, token, expires_at, user_agent, ip_address
     )
     
-    # Use inline ternary to avoid FFI boundary issues with function returns
-    if _IN_PYODIDE:
-        await db.prepare("""
-            INSERT INTO user_session (user_id, token, expires_at, user_agent, ip_address)
-            VALUES (?, ?, ?, ?, ?)
-        """).bind(
-            JS_NULL if s_user_id is None else s_user_id,
-            JS_NULL if s_token is None else s_token,
-            JS_NULL if s_expires_at is None else s_expires_at,
-            JS_NULL if s_user_agent is None else s_user_agent,
-            JS_NULL if s_ip_address is None else s_ip_address
-        ).run()
-    else:
-        await db.prepare("""
-            INSERT INTO user_session (user_id, token, expires_at, user_agent, ip_address)
-            VALUES (?, ?, ?, ?, ?)
-        """).bind(
-            s_user_id,
-            s_token,
-            s_expires_at,
-            s_user_agent,
-            s_ip_address
-        ).run()
+    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
+    # The enhanced to_d1_null() now handles all edge cases of undefined values
+    await db.prepare("""
+        INSERT INTO user_session (user_id, token, expires_at, user_agent, ip_address)
+        VALUES (?, ?, ?, ?, ?)
+    """).bind(
+        to_d1_null(s_user_id),
+        to_d1_null(s_token),
+        to_d1_null(s_expires_at),
+        to_d1_null(s_user_agent),
+        to_d1_null(s_ip_address)
+    ).run()
     
     return token
 
@@ -1182,35 +1168,19 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
         console.error("[create_post] conteudo is None after sanitization")
         return None
     
-    # Use inline ternary to avoid FFI boundary issues with function returns
-    # Direct reference to JS_NULL prevents Python->JS conversion issues
-    # that can cause "D1_TYPE_ERROR: Type 'undefined' not supported"
-    if _IN_PYODIDE:
-        # In Pyodide, use direct ternary expressions to minimize FFI crossings
-        result = await db.prepare("""
-            INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
-            SELECT ?, username, ?, ?, datetime('now')
-            FROM user WHERE id = ?
-            RETURNING id
-        """).bind(
-            JS_NULL if s_usuario_id is None else s_usuario_id,  # for usuario_id column
-            JS_NULL if s_conteudo is None else s_conteudo,
-            JS_NULL if s_imagem is None else s_imagem,
-            JS_NULL if s_usuario_id is None else s_usuario_id   # for WHERE clause (to fetch username)
-        ).first()
-    else:
-        # Non-Pyodide environment - use regular Python None
-        result = await db.prepare("""
-            INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
-            SELECT ?, username, ?, ?, datetime('now')
-            FROM user WHERE id = ?
-            RETURNING id
-        """).bind(
-            s_usuario_id,
-            s_conteudo,
-            s_imagem,
-            s_usuario_id
-        ).first()
+    # Call to_d1_null() directly in bind() to prevent D1_TYPE_ERROR
+    # The enhanced to_d1_null() now handles all edge cases of undefined values
+    result = await db.prepare("""
+        INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
+        SELECT ?, username, ?, ?, datetime('now')
+        FROM user WHERE id = ?
+        RETURNING id
+    """).bind(
+        to_d1_null(s_usuario_id),  # for usuario_id column
+        to_d1_null(s_conteudo),
+        to_d1_null(s_imagem),
+        to_d1_null(s_usuario_id)   # for WHERE clause (to fetch username)
+    ).first()
     return safe_get(result, 'id')
 
 
