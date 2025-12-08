@@ -1,5 +1,43 @@
 # Summary: D1_TYPE_ERROR Fix Implementation
 
+## Latest Update (December 2025)
+
+### Enhanced `to_d1_null()` to Detect JavaScript `undefined`
+
+**Problem**: Even with the previous fix wrapping all parameters with `to_d1_null()`, production errors still occurred because the function only checked for Python `None` but not JavaScript `undefined`.
+
+**Root Cause**: Values can become JavaScript `undefined` (not just Python `None`) when crossing the FFI boundary. The original `to_d1_null()` function didn't detect or convert `undefined` values.
+
+**Solution**: Enhanced `to_d1_null()` with multi-layer undefined detection:
+
+```python
+# OLD (only checked for None)
+def to_d1_null(value):
+    if value is None and _IN_PYODIDE:
+        return JS_NULL
+    return value
+
+# NEW (checks for both None AND undefined)
+def to_d1_null(value):
+    if value is None:
+        return JS_NULL
+    if value is JS_UNDEFINED:  # ← New: Direct undefined check
+        return JS_NULL
+    if str(value) == 'undefined':  # ← New: String representation check
+        return JS_NULL
+    return value
+```
+
+**Changes Made**:
+1. Import `undefined` from `js` module: `from js import console, null as JS_NULL, undefined as JS_UNDEFINED`
+2. Added direct identity check: `if value is JS_UNDEFINED`
+3. Added string representation check: `if str(value) == 'undefined'`
+4. Added exception handling for safety
+
+This provides comprehensive protection against both Python `None` and JavaScript `undefined` values.
+
+---
+
 ## Issue
 
 Production error in Cloudflare Workers:

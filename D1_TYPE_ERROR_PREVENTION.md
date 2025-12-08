@@ -23,14 +23,21 @@ In the Pyodide environment (Python running in Cloudflare Workers), there's a For
 The `to_d1_null()` function is defined in `gramatike_d1/db.py`:
 
 ```python
-from js import null as JS_NULL
+from js import null as JS_NULL, undefined as JS_UNDEFINED
 
 def to_d1_null(value):
-    """Converts Python None to JavaScript null for D1 queries."""
-    if value is None and _IN_PYODIDE:
+    """Converts Python None and JavaScript undefined to JavaScript null for D1 queries."""
+    if value is None:
+        return JS_NULL
+    if value is JS_UNDEFINED:
+        return JS_NULL
+    # Also checks string representation for 'undefined' as safety measure
+    if str(value) == 'undefined':
         return JS_NULL
     return value
 ```
+
+**Key Enhancement**: The function now detects and converts both Python `None` AND JavaScript `undefined` values to `JS_NULL`, providing complete protection against D1_TYPE_ERROR.
 
 ### Step 2: ALWAYS wrap ALL bind parameters
 
@@ -193,15 +200,18 @@ await db.prepare("...").bind(d1_usuario_id, d1_conteudo, d1_imagem, d1_usuario_i
 ## Why This Pattern is Necessary
 
 1. **Python None → JavaScript undefined**: When Python `None` crosses the Pyodide FFI boundary, it can become JavaScript `undefined`
-2. **D1 rejects undefined**: D1's `.bind()` method throws `D1_TYPE_ERROR` when it receives `undefined`
-3. **JavaScript null works**: D1 accepts JavaScript `null` as a valid SQL NULL value
-4. **Safety for all values**: Even non-None values can become undefined in certain edge cases during FFI crossing
+2. **Values can become undefined**: Even non-None values can unexpectedly become `undefined` when crossing the FFI boundary
+3. **D1 rejects undefined**: D1's `.bind()` method throws `D1_TYPE_ERROR` when it receives `undefined`
+4. **JavaScript null works**: D1 accepts JavaScript `null` as a valid SQL NULL value
+5. **Enhanced detection**: The `to_d1_null()` function now detects BOTH Python `None` and JavaScript `undefined`, converting both to `JS_NULL`
 
 ## Helper Functions Reference
 
 ### `to_d1_null(value)`
-- Converts Python `None` to JavaScript `null` (in Pyodide environment)
-- Returns the original value if not `None`
+- Converts Python `None` AND JavaScript `undefined` to JavaScript `null` (in Pyodide environment)
+- Checks value identity (`is None`, `is JS_UNDEFINED`)
+- Also checks string representation as safety measure (`str(value) == 'undefined'`)
+- Returns the original value if not None/undefined
 - Use this for individual parameters
 
 ### `sanitize_for_d1(value)`

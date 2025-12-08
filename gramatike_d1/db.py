@@ -41,9 +41,9 @@ import secrets
 
 # Import JavaScript console for proper log levels in Cloudflare Workers
 # console.log = info level, console.warn = warning, console.error = error
-# Also import JavaScript's null to properly handle None values in D1 queries
+# Also import JavaScript's null and undefined to properly handle None values in D1 queries
 try:
-    from js import console, null as JS_NULL
+    from js import console, null as JS_NULL, undefined as JS_UNDEFINED
     _IN_PYODIDE = True
 except ImportError:
     # Fallback for local testing - create a mock console
@@ -54,26 +54,27 @@ except ImportError:
         def error(self, *args): print(*args, file=sys.stderr)
     console = MockConsole()
     JS_NULL = None  # In non-Pyodide environments, use Python None
+    JS_UNDEFINED = None  # In non-Pyodide environments, treat as None
     _IN_PYODIDE = False
 
 
 def to_d1_null(value):
-    """Converts Python None to JavaScript null for D1 queries.
+    """Converts Python None and JavaScript undefined to JavaScript null for D1 queries.
     
     ⚠️ CRITICAL: ALWAYS use this function to wrap parameters before .bind()
     
     In the Pyodide/Cloudflare Workers environment, Python None is converted to
     JavaScript undefined when crossing the FFI boundary, which D1 cannot handle.
-    This function converts None to JavaScript null, which D1 accepts as SQL NULL.
+    This function converts None and undefined to JavaScript null, which D1 accepts as SQL NULL.
     
     Even non-None values should be wrapped with this function as a safety measure,
     as values can unexpectedly become undefined when crossing the FFI boundary.
     
     Args:
-        value: The value to convert (None is converted to JS null, others pass through)
+        value: The value to convert (None/undefined is converted to JS null, others pass through)
         
     Returns:
-        JavaScript null if value is None (in Pyodide), otherwise the original value
+        JavaScript null if value is None or undefined (in Pyodide), otherwise the original value
         
     Example:
         # ALWAYS wrap ALL bind parameters:
@@ -82,8 +83,36 @@ def to_d1_null(value):
         await db.prepare("INSERT INTO post (user_id, content) VALUES (?, ?)")
             .bind(d1_user_id, d1_content).run()
     """
-    if value is None and _IN_PYODIDE:
+    if not _IN_PYODIDE:
+        # In non-Pyodide environments, just return None for None values
+        if value is None:
+            return None
+        return value
+    
+    # In Pyodide environment, check for both None and undefined
+    # Check for Python None
+    if value is None:
         return JS_NULL
+    
+    # Check for JavaScript undefined by comparing with JS_UNDEFINED
+    # Note: We use 'is' comparison which works for JavaScript undefined in Pyodide
+    try:
+        if value is JS_UNDEFINED:
+            return JS_NULL
+    except Exception:
+        pass
+    
+    # Additional safety check: check string representation for 'undefined'
+    # This catches cases where undefined might not be directly comparable
+    try:
+        str_repr = str(value)
+        if str_repr == 'undefined':
+            return JS_NULL
+    except Exception:
+        # If we can't even get a string representation, it's likely problematic
+        # Return JS_NULL to be safe
+        return JS_NULL
+    
     return value
 
 # ============================================================================
