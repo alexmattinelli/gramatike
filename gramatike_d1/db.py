@@ -41,20 +41,30 @@ import secrets
 
 # Import JavaScript console for proper log levels in Cloudflare Workers
 # console.log = info level, console.warn = warning, console.error = error
-# Also import JavaScript's null to properly handle None values in D1 queries
+# Also import JavaScript's null and undefined to properly handle values in D1 queries
 try:
-    from js import console, null as JS_NULL
+    from js import console, null as JS_NULL, undefined as JS_UNDEFINED
     _IN_PYODIDE = True
+    _HAS_JS_UNDEFINED = True
 except ImportError:
-    # Fallback for local testing - create a mock console
-    class MockConsole:
-        def log(self, *args): print(*args)
-        def info(self, *args): print(*args)
-        def warn(self, *args): print(*args, file=sys.stderr)
-        def error(self, *args): print(*args, file=sys.stderr)
-    console = MockConsole()
-    JS_NULL = None  # In non-Pyodide environments, use Python None
-    _IN_PYODIDE = False
+    try:
+        # Try importing without undefined
+        from js import console, null as JS_NULL
+        _IN_PYODIDE = True
+        _HAS_JS_UNDEFINED = False
+        JS_UNDEFINED = None
+    except ImportError:
+        # Fallback for local testing - create a mock console
+        class MockConsole:
+            def log(self, *args): print(*args)
+            def info(self, *args): print(*args)
+            def warn(self, *args): print(*args, file=sys.stderr)
+            def error(self, *args): print(*args, file=sys.stderr)
+        console = MockConsole()
+        JS_NULL = None  # In non-Pyodide environments, use Python None
+        JS_UNDEFINED = None
+        _IN_PYODIDE = False
+        _HAS_JS_UNDEFINED = False
 
 
 def to_d1_null(value):
@@ -92,6 +102,15 @@ def to_d1_null(value):
     # Check for Python None
     if value is None:
         return JS_NULL
+    
+    # Check for JavaScript undefined by identity comparison if available
+    if _HAS_JS_UNDEFINED:
+        try:
+            # Use identity check (is) for undefined
+            if value is JS_UNDEFINED:
+                return JS_NULL
+        except Exception:
+            pass
     
     # Check for JavaScript undefined and null by checking string representation
     # This is more reliable than importing undefined and doing identity comparison
@@ -1099,6 +1118,11 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
     s_user_id = sanitize_for_d1(user_id)
     offset = (s_page - 1) * s_per_page
     
+    # Wrap parameters with to_d1_null to prevent D1_TYPE_ERROR
+    d1_user_id = to_d1_null(s_user_id)
+    d1_per_page = to_d1_null(s_per_page)
+    d1_offset = to_d1_null(offset)
+    
     # Build query with proper parameterization
     if s_user_id and not include_deleted:
         result = await db.prepare("""
@@ -1110,7 +1134,7 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
             WHERE p.is_deleted = 0 AND p.usuario_id = ?
             ORDER BY p.data DESC
             LIMIT ? OFFSET ?
-        """).bind(s_user_id, s_per_page, offset).all()
+        """).bind(d1_user_id, d1_per_page, d1_offset).all()
     elif s_user_id:
         result = await db.prepare("""
             SELECT p.*, u.username, u.foto_perfil,
@@ -1121,7 +1145,7 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
             WHERE p.usuario_id = ?
             ORDER BY p.data DESC
             LIMIT ? OFFSET ?
-        """).bind(s_user_id, s_per_page, offset).all()
+        """).bind(d1_user_id, d1_per_page, d1_offset).all()
     elif not include_deleted:
         result = await db.prepare("""
             SELECT p.*, u.username, u.foto_perfil,
@@ -1132,7 +1156,7 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
             WHERE p.is_deleted = 0
             ORDER BY p.data DESC
             LIMIT ? OFFSET ?
-        """).bind(s_per_page, offset).all()
+        """).bind(d1_per_page, d1_offset).all()
     else:
         result = await db.prepare("""
             SELECT p.*, u.username, u.foto_perfil,
@@ -1142,7 +1166,7 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
             LEFT JOIN user u ON p.usuario_id = u.id
             ORDER BY p.data DESC
             LIMIT ? OFFSET ?
-        """).bind(s_per_page, offset).all()
+        """).bind(d1_per_page, d1_offset).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1153,6 +1177,10 @@ async def get_post_by_id(db, post_id):
     s_post_id = sanitize_for_d1(post_id)
     if s_post_id is None:
         return None
+    
+    # Wrap with to_d1_null to prevent D1_TYPE_ERROR
+    d1_post_id = to_d1_null(s_post_id)
+    
     result = await db.prepare("""
         SELECT p.*, u.username, u.foto_perfil,
                (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
@@ -1160,7 +1188,7 @@ async def get_post_by_id(db, post_id):
         FROM post p
         LEFT JOIN user u ON p.usuario_id = u.id
         WHERE p.id = ?
-    """).bind(s_post_id).first()
+    """).bind(d1_post_id).first()
     if result:
         return safe_dict(result)
     return None
