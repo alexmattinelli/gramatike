@@ -93,25 +93,35 @@ def to_d1_null(value):
             return None
         return value
     
-    # In Pyodide environment, check for both None and undefined
-    # Check for Python None
+    # In Pyodide environment, perform comprehensive checks for None and undefined
+    
+    # Check 1: Python None (identity check)
     if value is None:
         return JS_NULL
     
-    # Check for JavaScript undefined by checking string representation
-    # This catches edge cases where values become undefined when crossing FFI boundary
-    # NOTE: In Pyodide/Cloudflare Workers, JavaScript undefined ALWAYS converts to
-    # the string 'undefined', making this a reliable detection method.
-    # We do NOT convert JavaScript 'null' here because it's already a valid D1 value.
+    # Check 2: JavaScript undefined by string representation
+    # This is the most reliable check as undefined always converts to 'undefined' string
     try:
         str_repr = str(value)
         if str_repr == 'undefined':
+            console.warn(f"[to_d1_null] Detected undefined value (str check), converting to JS_NULL")
             return JS_NULL
-    except Exception:
-        # If we can't get a string representation, it's likely a problematic
-        # JavaScript object. Return JS_NULL to prevent D1_TYPE_ERROR
+    except Exception as e:
+        # If str() fails, it's likely a problematic JavaScript object
+        console.warn(f"[to_d1_null] str() failed on value, returning JS_NULL: {e}")
         return JS_NULL
     
+    # Check 3: Type name matches known undefined patterns
+    # Only check for exact JavaScript undefined type names to avoid false positives
+    try:
+        type_name = type(value).__name__
+        if type_name in ('JsUndefined', 'undefined'):
+            console.warn(f"[to_d1_null] Detected JS undefined type: {type_name}, converting to JS_NULL")
+            return JS_NULL
+    except Exception:
+        pass
+    
+    # If all checks pass, return the value as is
     return value
 
 # ============================================================================
@@ -933,6 +943,7 @@ async def create_user(db, username, email, password, nome=None):
     s_username, s_email, s_hashed, s_nome = sanitize_params(username, email, hashed, nome)
     
     # Call to_d1_null() directly in bind() to prevent FFI boundary issues
+    # The enhanced to_d1_null() now handles all edge cases of undefined values
     result = await db.prepare("""
         INSERT INTO user (username, email, password, nome, created_at)
         VALUES (?, ?, ?, ?, datetime('now'))
@@ -982,6 +993,7 @@ async def create_session(db, user_id, user_agent=None, ip_address=None):
     )
     
     # Call to_d1_null() directly in bind() to prevent FFI boundary issues
+    # The enhanced to_d1_null() now handles all edge cases of undefined values
     await db.prepare("""
         INSERT INTO user_session (user_id, token, expires_at, user_agent, ip_address)
         VALUES (?, ?, ?, ?, ?)
@@ -1149,19 +1161,37 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
         console.error("[create_post] conteudo is None after sanitization")
         return None
     
+    # First, get the username from the user table
+    # This validates that the user exists before attempting to create the post
+    # Note: The post table has a foreign key to user(id), so if user doesn't exist,
+    # the INSERT would fail anyway. This explicit check provides better error messages.
+    user_result = await db.prepare("""
+        SELECT username FROM user WHERE id = ?
+    """).bind(
+        to_d1_null(s_usuario_id)
+    ).first()
+    
+    if not user_result:
+        console.error(f"[create_post] User with id {s_usuario_id} not found in user table")
+        return None
+    
+    s_usuario = safe_get(user_result, 'username')
+    if s_usuario is None:
+        console.error(f"[create_post] Username is None for user_id {s_usuario_id}")
+        return None
+    
+    # Now insert the post with the username we just fetched
     # Call to_d1_null() directly in bind() to prevent D1_TYPE_ERROR
-    # This reduces FFI crossings from 2 to 1, preventing Python None from becoming JS undefined
-    # which D1 cannot handle (causes "D1_TYPE_ERROR: Type 'undefined' not supported")
+    # The enhanced to_d1_null() now handles all edge cases of undefined values
     result = await db.prepare("""
         INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
-        SELECT ?, username, ?, ?, datetime('now')
-        FROM user WHERE id = ?
+        VALUES (?, ?, ?, ?, datetime('now'))
         RETURNING id
     """).bind(
-        to_d1_null(s_usuario_id),  # for usuario_id column
+        to_d1_null(s_usuario_id),
+        to_d1_null(s_usuario),
         to_d1_null(s_conteudo),
-        to_d1_null(s_imagem),
-        to_d1_null(s_usuario_id)   # for WHERE clause (to fetch username)
+        to_d1_null(s_imagem)
     ).first()
     return safe_get(result, 'id')
 
