@@ -1161,18 +1161,35 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
         console.error("[create_post] conteudo is None after sanitization")
         return None
     
+    # First, get the username from the user table
+    # This validates that the user exists before attempting to create the post
+    user_result = await db.prepare("""
+        SELECT username FROM user WHERE id = ?
+    """).bind(
+        to_d1_null(s_usuario_id)
+    ).first()
+    
+    if not user_result:
+        console.error(f"[create_post] User with id {s_usuario_id} not found")
+        return None
+    
+    s_usuario = safe_get(user_result, 'username')
+    if not s_usuario:
+        console.error(f"[create_post] Username is None for user_id {s_usuario_id}")
+        return None
+    
+    # Now insert the post with the username we just fetched
     # Call to_d1_null() directly in bind() to prevent D1_TYPE_ERROR
     # The enhanced to_d1_null() now handles all edge cases of undefined values
     result = await db.prepare("""
         INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
-        SELECT ?, username, ?, ?, datetime('now')
-        FROM user WHERE id = ?
+        VALUES (?, ?, ?, ?, datetime('now'))
         RETURNING id
     """).bind(
-        to_d1_null(s_usuario_id),  # for usuario_id column
+        to_d1_null(s_usuario_id),
+        to_d1_null(s_usuario),
         to_d1_null(s_conteudo),
-        to_d1_null(s_imagem),
-        to_d1_null(s_usuario_id)   # for WHERE clause (to fetch username)
+        to_d1_null(s_imagem)
     ).first()
     return safe_get(result, 'id')
 
