@@ -1163,6 +1163,8 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
     
     # First, get the username from the user table
     # This validates that the user exists before attempting to create the post
+    # Note: The post table has a foreign key to user(id), so if user doesn't exist,
+    # the INSERT would fail anyway. This explicit check provides better error messages.
     user_result = await db.prepare("""
         SELECT username FROM user WHERE id = ?
     """).bind(
@@ -1170,11 +1172,11 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
     ).first()
     
     if not user_result:
-        console.error(f"[create_post] User with id {s_usuario_id} not found")
+        console.error(f"[create_post] User with id {s_usuario_id} not found in user table")
         return None
     
     s_usuario = safe_get(user_result, 'username')
-    if not s_usuario:
+    if s_usuario is None:
         console.error(f"[create_post] Username is None for user_id {s_usuario_id}")
         return None
     
