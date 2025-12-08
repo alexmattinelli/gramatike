@@ -983,9 +983,13 @@ async def delete_session(db, token):
     s_token = sanitize_for_d1(token)
     if s_token is None:
         return
+    
+    # Wrap parameter to prevent D1_TYPE_ERROR
+    d1_token = to_d1_null(s_token)
+    
     await db.prepare(
         "DELETE FROM user_session WHERE token = ?"
-    ).bind(s_token).run()
+    ).bind(d1_token).run()
 
 
 async def cleanup_expired_sessions(db):
@@ -1738,20 +1742,28 @@ async def use_email_token(db, token):
     """Marca token como usado."""
     # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
     s_token = sanitize_for_d1(token)
+    
+    # Wrap parameter to prevent D1_TYPE_ERROR
+    d1_token = to_d1_null(s_token)
+    
     await db.prepare("""
         UPDATE email_token SET used = 1, used_at = datetime('now')
         WHERE token = ?
-    """).bind(s_token).run()
+    """).bind(d1_token).run()
 
 
 async def confirm_user_email(db, usuario_id):
     """Confirma o email de usuárie."""
     # Sanitize parameter to prevent D1_TYPE_ERROR from undefined values
     s_usuario_id = sanitize_for_d1(usuario_id)
+    
+    # Wrap parameter to prevent D1_TYPE_ERROR
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    
     await db.prepare("""
         UPDATE user SET email_confirmed = 1, email_confirmed_at = datetime('now')
         WHERE id = ?
-    """).bind(s_usuario_id).run()
+    """).bind(d1_usuario_id).run()
 
 
 async def update_user_password(db, usuario_id, new_password):
@@ -1759,20 +1771,30 @@ async def update_user_password(db, usuario_id, new_password):
     hashed = hash_password(new_password)
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_hashed, s_usuario_id = sanitize_params(hashed, usuario_id)
+    
+    # Wrap all parameters to prevent D1_TYPE_ERROR
+    d1_hashed = to_d1_null(s_hashed)
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    
     await db.prepare("""
         UPDATE user SET password = ?
         WHERE id = ?
-    """).bind(s_hashed, s_usuario_id).run()
+    """).bind(d1_hashed, d1_usuario_id).run()
 
 
 async def update_user_email(db, usuario_id, new_email):
     """Atualiza o email de usuárie."""
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_new_email, s_usuario_id = sanitize_params(new_email, usuario_id)
+    
+    # Wrap all parameters to prevent D1_TYPE_ERROR
+    d1_new_email = to_d1_null(s_new_email)
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    
     await db.prepare("""
         UPDATE user SET email = ?, email_confirmed = 0
         WHERE id = ?
-    """).bind(s_new_email, s_usuario_id).run()
+    """).bind(d1_new_email, d1_usuario_id).run()
 
 
 # ============================================================================
@@ -1846,10 +1868,15 @@ async def mark_notification_read(db, notification_id, usuario_id):
     s_notification_id, s_usuario_id = sanitize_params(notification_id, usuario_id)
     if s_notification_id is None or s_usuario_id is None:
         return
+    
+    # Wrap all parameters to prevent D1_TYPE_ERROR
+    d1_notification_id = to_d1_null(s_notification_id)
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    
     await db.prepare("""
         UPDATE notification SET lida = 1
         WHERE id = ? AND usuario_id = ?
-    """).bind(s_notification_id, s_usuario_id).run()
+    """).bind(d1_notification_id, d1_usuario_id).run()
 
 
 async def mark_all_notifications_read(db, usuario_id):
@@ -1858,10 +1885,14 @@ async def mark_all_notifications_read(db, usuario_id):
     s_usuario_id = sanitize_for_d1(usuario_id)
     if s_usuario_id is None:
         return
+    
+    # Wrap parameter to prevent D1_TYPE_ERROR
+    d1_usuario_id = to_d1_null(s_usuario_id)
+    
     await db.prepare("""
         UPDATE notification SET lida = 1
         WHERE usuario_id = ? AND lida = 0
-    """).bind(s_usuario_id).run()
+    """).bind(d1_usuario_id).run()
 
 
 # ============================================================================
@@ -1875,12 +1906,16 @@ async def send_friend_request(db, solicitante_id, destinatarie_id):
     if s_solicitante_id is None or s_destinatarie_id is None:
         return None, "IDs inválidos"
     
+    # Wrap all parameters to prevent D1_TYPE_ERROR
+    d1_solicitante_id = to_d1_null(s_solicitante_id)
+    d1_destinatarie_id = to_d1_null(s_destinatarie_id)
+    
     # Verifica se já existe relação
     existing = await db.prepare("""
         SELECT * FROM amizade
         WHERE (usuario1_id = ? AND usuario2_id = ?)
            OR (usuario1_id = ? AND usuario2_id = ?)
-    """).bind(s_solicitante_id, s_destinatarie_id, s_destinatarie_id, s_solicitante_id).first()
+    """).bind(d1_solicitante_id, d1_destinatarie_id, d1_destinatarie_id, d1_solicitante_id).first()
     
     if existing:
         return None, "Já existe uma solicitação de amizade"
@@ -1890,7 +1925,7 @@ async def send_friend_request(db, solicitante_id, destinatarie_id):
         INSERT INTO amizade (usuario1_id, usuario2_id, solicitante_id, status)
         VALUES (?, ?, ?, 'pendente')
         RETURNING id
-    """).bind(s_solicitante_id, s_destinatarie_id, s_solicitante_id).first()
+    """).bind(d1_solicitante_id, d1_destinatarie_id, d1_solicitante_id).first()
     
     # Notifica destinatárie
     await create_notification(db, s_destinatarie_id, 'amizade_pedido',
@@ -4053,7 +4088,11 @@ async def delete_emoji_custom(db, emoji_id):
     s_emoji_id = sanitize_for_d1(emoji_id)
     if s_emoji_id is None:
         return False
-    await db.prepare("DELETE FROM emoji_custom WHERE id = ?").bind(s_emoji_id).run()
+    
+    # Wrap parameter to prevent D1_TYPE_ERROR
+    d1_emoji_id = to_d1_null(s_emoji_id)
+    
+    await db.prepare("DELETE FROM emoji_custom WHERE id = ?").bind(d1_emoji_id).run()
     return True
 
 
