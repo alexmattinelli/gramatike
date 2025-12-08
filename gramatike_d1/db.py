@@ -93,12 +93,11 @@ def to_d1_null(value):
     if value is None:
         return JS_NULL
     
-    # Check for JavaScript undefined by checking string representation
-    # This is more reliable than importing undefined and doing identity comparison
-    # Most undefined values will stringify to 'undefined'
+    # Check for JavaScript undefined/null by checking string representation
+    # This catches edge cases where values become undefined/null when crossing FFI boundary
     try:
         str_repr = str(value)
-        if str_repr == 'undefined':
+        if str_repr in ('undefined', 'null'):
             return JS_NULL
     except Exception:
         # If we can't get a string representation, it's likely a problematic
@@ -1050,7 +1049,9 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
     offset = (s_page - 1) * s_per_page
     
     # Build query with proper parameterization
+    # Use d1_params to ensure all bind values are D1-safe (handles None -> JS null conversion)
     if s_user_id and not include_deleted:
+        params = d1_params(s_user_id, s_per_page, offset)
         result = await db.prepare("""
             SELECT p.*, u.username, u.foto_perfil,
                    (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
@@ -1060,8 +1061,9 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
             WHERE p.is_deleted = 0 AND p.usuario_id = ?
             ORDER BY p.data DESC
             LIMIT ? OFFSET ?
-        """).bind(s_user_id, s_per_page, offset).all()
+        """).bind(*params).all()
     elif s_user_id:
+        params = d1_params(s_user_id, s_per_page, offset)
         result = await db.prepare("""
             SELECT p.*, u.username, u.foto_perfil,
                    (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
@@ -1071,8 +1073,9 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
             WHERE p.usuario_id = ?
             ORDER BY p.data DESC
             LIMIT ? OFFSET ?
-        """).bind(s_user_id, s_per_page, offset).all()
+        """).bind(*params).all()
     elif not include_deleted:
+        params = d1_params(s_per_page, offset)
         result = await db.prepare("""
             SELECT p.*, u.username, u.foto_perfil,
                    (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
@@ -1082,8 +1085,9 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
             WHERE p.is_deleted = 0
             ORDER BY p.data DESC
             LIMIT ? OFFSET ?
-        """).bind(s_per_page, offset).all()
+        """).bind(*params).all()
     else:
+        params = d1_params(s_per_page, offset)
         result = await db.prepare("""
             SELECT p.*, u.username, u.foto_perfil,
                    (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
@@ -1092,7 +1096,7 @@ async def get_posts(db, page=1, per_page=20, user_id=None, include_deleted=False
             LEFT JOIN user u ON p.usuario_id = u.id
             ORDER BY p.data DESC
             LIMIT ? OFFSET ?
-        """).bind(s_per_page, offset).all()
+        """).bind(*params).all()
     
     return [safe_dict(row) for row in result.results] if result.results else []
 
@@ -1103,6 +1107,9 @@ async def get_post_by_id(db, post_id):
     s_post_id = sanitize_for_d1(post_id)
     if s_post_id is None:
         return None
+    
+    # Use d1_params to ensure bind value is D1-safe
+    params = d1_params(s_post_id)
     result = await db.prepare("""
         SELECT p.*, u.username, u.foto_perfil,
                (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
@@ -1110,7 +1117,7 @@ async def get_post_by_id(db, post_id):
         FROM post p
         LEFT JOIN user u ON p.usuario_id = u.id
         WHERE p.id = ?
-    """).bind(s_post_id).first()
+    """).bind(*params).first()
     if result:
         return safe_dict(result)
     return None
@@ -1128,16 +1135,11 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
     Returns:
         The ID of the created post, or None if creation failed
     """
-    # Log input types for debugging D1_TYPE_ERROR issues
-    console.log(f"[create_post] Input types: usuario_id={type(usuario_id).__name__}, conteudo={type(conteudo).__name__}, imagem={type(imagem).__name__}")
+    # Validate required fields before processing
+    # Use sanitize_for_d1 to handle undefined/JsProxy values
+    s_usuario_id = sanitize_for_d1(usuario_id)
+    s_conteudo = sanitize_for_d1(conteudo)
     
-    # Sanitize all parameters to prevent D1_TYPE_ERROR from undefined values
-    s_usuario_id, s_conteudo, s_imagem = sanitize_params(usuario_id, conteudo, imagem)
-    
-    # Log sanitized values for debugging
-    console.log(f"[create_post] Sanitized: usuario_id={s_usuario_id} ({type(s_usuario_id).__name__}), conteudo_len={len(s_conteudo) if s_conteudo else 0}, imagem={s_imagem is not None}")
-    
-    # Validate required fields after sanitization
     if s_usuario_id is None:
         console.error("[create_post] usuario_id is None after sanitization")
         return None
@@ -1145,42 +1147,17 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
         console.error("[create_post] conteudo is None after sanitization")
         return None
     
-    # Ensure s_usuario_id is an integer (D1 expects proper types)
-    try:
-        s_usuario_id = int(s_usuario_id)
-    except (ValueError, TypeError) as e:
-        console.error(f"[create_post] Failed to convert usuario_id to int: {e}")
-        return None
-    
-    # Ensure s_conteudo is a string
-    if not isinstance(s_conteudo, str):
-        try:
-            s_conteudo = str(s_conteudo)
-        except Exception as e:
-            console.error(f"[create_post] Failed to convert conteudo to str: {e}")
-            return None
-    
-    # Ensure s_imagem is either None or a string
-    if s_imagem is not None and not isinstance(s_imagem, str):
-        try:
-            s_imagem = str(s_imagem)
-        except Exception:
-            s_imagem = None  # Default to None if conversion fails
-    
-    # Convert Python None to JavaScript null for D1
-    # This is required because Python None becomes JavaScript undefined in Pyodide,
-    # but D1 expects JavaScript null for SQL NULL values
-    # We must convert ALL parameters to prevent undefined from crossing the FFI boundary
-    d1_usuario_id = to_d1_null(s_usuario_id)
-    d1_conteudo = to_d1_null(s_conteudo)
-    d1_imagem = to_d1_null(s_imagem)
+    # Use d1_params to sanitize and convert to D1-safe values in one step
+    # This avoids type conversion issues that can occur when values cross the FFI boundary
+    # d1_params handles: sanitize_for_d1() + to_d1_null() for all parameters
+    params = d1_params(usuario_id, conteudo, imagem, usuario_id)
     
     result = await db.prepare("""
         INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
         SELECT ?, username, ?, ?, datetime('now')
         FROM user WHERE id = ?
         RETURNING id
-    """).bind(d1_usuario_id, d1_conteudo, d1_imagem, d1_usuario_id).first()
+    """).bind(*params).first()
     return safe_get(result, 'id')
 
 
