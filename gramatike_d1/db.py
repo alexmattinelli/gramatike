@@ -13,22 +13,24 @@
 # D1_TYPE_ERROR, SEMPRE siga este padrão ao usar .bind():
 #
 # 1. Sanitize parâmetros com sanitize_params() ou sanitize_for_d1()
-# 2. Converta TODOS os parâmetros com to_d1_null() antes de .bind()
+# 2. Use d1_params() para converter TODOS os parâmetros e armazená-los em uma variável
+# 3. Use *params no .bind() para expandir os valores
 #
 # EXEMPLO CORRETO:
 #   s_usuario_id, s_conteudo = sanitize_params(usuario_id, conteudo)
-#   d1_usuario_id = to_d1_null(s_usuario_id)
-#   d1_conteudo = to_d1_null(s_conteudo)
-#   await db.prepare("INSERT INTO ... VALUES (?, ?)").bind(d1_usuario_id, d1_conteudo).run()
+#   params = d1_params(s_usuario_id, s_conteudo)
+#   await db.prepare("INSERT INTO ... VALUES (?, ?)").bind(*params).run()
 #
-# ALTERNATIVA: Use d1_params() para sanitizar e converter de uma vez:
-#   params = d1_params(usuario_id, conteudo)
+# ALTERNATIVA MAIS CONCISA:
+#   params = d1_params(usuario_id, conteudo)  # d1_params já faz o sanitize
 #   await db.prepare("INSERT INTO ... VALUES (?, ?)").bind(*params).run()
 #
 # NUNCA faça:
-#   s_usuario_id, s_conteudo = sanitize_params(usuario_id, conteudo)
-#   await db.prepare("INSERT INTO ... VALUES (?, ?)").bind(s_usuario_id, s_conteudo).run()
-#   # ❌ Pode causar D1_TYPE_ERROR se valores cruzarem a barreira FFI como undefined
+#   # ❌ Chamar to_d1_null() diretamente em bind() pode causar FFI boundary issues
+#   await db.prepare("...").bind(to_d1_null(value1), to_d1_null(value2)).run()
+#   
+#   # ❌ Usar valores não sanitizados pode causar D1_TYPE_ERROR
+#   await db.prepare("...").bind(usuario_id, conteudo).run()
 #
 # ============================================================================
 
@@ -868,10 +870,11 @@ async def get_user_by_id(db, user_id):
     if s_user_id is None:
         return None
     
-    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
+    # Use d1_params to properly handle FFI boundary issues
+    params = d1_params(s_user_id)
     result = await db.prepare(
         "SELECT * FROM user WHERE id = ?"
-    ).bind(to_d1_null(s_user_id)).first()
+    ).bind(*params).first()
     if result:
         return safe_dict(result)
     return None
@@ -885,10 +888,11 @@ async def get_user_by_username(db, username):
         return None
     
     try:
-        # Call to_d1_null() directly in bind() to prevent FFI boundary issues
+        # Use d1_params to properly handle FFI boundary issues
+        params = d1_params(s_username)
         result = await db.prepare(
             "SELECT * FROM user WHERE username = ?"
-        ).bind(to_d1_null(s_username)).first()
+        ).bind(*params).first()
         # Use console.log for debug/info messages
         console.log(f"[get_user_by_username] Query result for '{s_username}': {result}, type: {type(result)}")
         if result:
@@ -909,10 +913,11 @@ async def get_user_by_email(db, email):
     if s_email is None:
         return None
     
-    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
+    # Use d1_params to properly handle FFI boundary issues
+    params = d1_params(s_email)
     result = await db.prepare(
         "SELECT * FROM user WHERE email = ?"
-    ).bind(to_d1_null(s_email)).first()
+    ).bind(*params).first()
     if result:
         return safe_dict(result)
     return None
@@ -995,13 +1000,14 @@ async def get_session(db, token):
     if s_token is None:
         return None
     
-    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
+    # Use d1_params to properly handle FFI boundary issues
+    params = d1_params(s_token)
     result = await db.prepare("""
         SELECT s.*, u.username, u.email, u.is_admin, u.is_superadmin, u.is_banned
         FROM user_session s
         JOIN user u ON s.user_id = u.id
         WHERE s.token = ? AND s.expires_at > datetime('now')
-    """).bind(to_d1_null(s_token)).first()
+    """).bind(*params).first()
     if result:
         return safe_dict(result)
     return None
@@ -1014,10 +1020,11 @@ async def delete_session(db, token):
     if s_token is None:
         return
     
-    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
+    # Use d1_params to properly handle FFI boundary issues
+    params = d1_params(s_token)
     await db.prepare(
         "DELETE FROM user_session WHERE token = ?"
-    ).bind(to_d1_null(s_token)).run()
+    ).bind(*params).run()
 
 
 async def cleanup_expired_sessions(db):
@@ -1140,18 +1147,15 @@ async def create_post(db, usuario_id, conteudo, imagem=None):
         return None
     
     # Convert to D1-safe values (None -> JS null) to prevent D1_TYPE_ERROR
-    # Call to_d1_null() DIRECTLY in bind() to avoid FFI boundary issues with intermediate variables
+    # Store converted values in variables BEFORE .bind() to prevent FFI boundary issues
+    # Storing the result prevents undefined from propagating through the FFI boundary
+    params = d1_params(s_usuario_id, s_conteudo, s_imagem, s_usuario_id)
     result = await db.prepare("""
         INSERT INTO post (usuario_id, usuario, conteudo, imagem, data)
         SELECT ?, username, ?, ?, datetime('now')
         FROM user WHERE id = ?
         RETURNING id
-    """).bind(
-        to_d1_null(s_usuario_id),
-        to_d1_null(s_conteudo),
-        to_d1_null(s_imagem),
-        to_d1_null(s_usuario_id)
-    ).first()
+    """).bind(*params).first()
     return safe_get(result, 'id')
 
 
@@ -1166,11 +1170,12 @@ async def delete_post(db, post_id, deleted_by=None):
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_post_id, s_deleted_by = sanitize_params(post_id, deleted_by)
     
-    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
+    # Use d1_params to properly handle FFI boundary issues
+    params = d1_params(s_deleted_by, s_post_id)
     await db.prepare("""
         UPDATE post SET is_deleted = 1, deleted_at = datetime('now'), deleted_by = ?
         WHERE id = ?
-    """).bind(to_d1_null(s_deleted_by), to_d1_null(s_post_id)).run()
+    """).bind(*params).run()
 
 
 async def like_post(db, user_id, post_id):
@@ -1178,11 +1183,12 @@ async def like_post(db, user_id, post_id):
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_user_id, s_post_id = sanitize_params(user_id, post_id)
     
-    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
+    # Use d1_params to properly handle FFI boundary issues
+    params = d1_params(s_user_id, s_post_id)
     try:
         await db.prepare("""
             INSERT INTO post_likes (user_id, post_id) VALUES (?, ?)
-        """).bind(to_d1_null(s_user_id), to_d1_null(s_post_id)).run()
+        """).bind(*params).run()
         return True
     except:
         return False
@@ -1193,10 +1199,11 @@ async def unlike_post(db, user_id, post_id):
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_user_id, s_post_id = sanitize_params(user_id, post_id)
     
-    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
+    # Use d1_params to properly handle FFI boundary issues
+    params = d1_params(s_user_id, s_post_id)
     await db.prepare("""
         DELETE FROM post_likes WHERE user_id = ? AND post_id = ?
-    """).bind(to_d1_null(s_user_id), to_d1_null(s_post_id)).run()
+    """).bind(*params).run()
 
 
 async def has_liked(db, user_id, post_id):
@@ -1206,10 +1213,11 @@ async def has_liked(db, user_id, post_id):
     if s_user_id is None or s_post_id is None:
         return False
     
-    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
+    # Use d1_params to properly handle FFI boundary issues
+    params = d1_params(s_user_id, s_post_id)
     result = await db.prepare("""
         SELECT 1 FROM post_likes WHERE user_id = ? AND post_id = ?
-    """).bind(to_d1_null(s_user_id), to_d1_null(s_post_id)).first()
+    """).bind(*params).first()
     return result is not None
 
 
