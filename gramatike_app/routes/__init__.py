@@ -1203,6 +1203,13 @@ def login():
             if pwd_ok:
                 login_user(user, remember=True)  # Adiciona remember=True para persistir sessão
                 current_app.logger.info(f'[Login] Login bem-sucedido: {user.username} (ID: {user.id})')
+                
+                # Verifica se o login foi bem-sucedido
+                if not current_user.is_authenticated:
+                    current_app.logger.error(f'[Login] Falha ao autenticar usuárie após login_user: {user.username}')
+                    flash('Erro ao processar login. Tente novamente.', 'error')
+                    return render_template('login.html')
+                
                 # Redireciona para a página de feed após login bem-sucedido
                 feed_url = url_for('main.feed')
                 current_app.logger.info(f'[Login] Redirecionando para: {feed_url}')
