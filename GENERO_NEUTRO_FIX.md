@@ -87,7 +87,7 @@ O projeto Gramátike segue estas convenções de gênero neutro em português:
 - **seguidor** → **seguidore**
 - **seguido** → **seguide**
 - **todos** → **todes**
-- **ele/ela** → **ile/elu**
+- **ele/ela** → **elu/delu**
 
 Estas mudanças refletem o compromisso do projeto com a inclusão e acessibilidade linguística.
 
