@@ -16,8 +16,9 @@ def init_local_database():
     from gramatike_app import create_app
     from gramatike_app.models import db
     
-    # Configura para usar SQLite local
-    os.environ.setdefault('DATABASE_URL', 'sqlite:///instance/app.db')
+    # Configura para usar SQLite local (pode ser sobrescrito por DATABASE_URL)
+    if not os.environ.get('DATABASE_URL'):
+        os.environ['DATABASE_URL'] = 'sqlite:///instance/app.db'
     
     app = create_app()
     
@@ -31,7 +32,7 @@ def init_local_database():
             print(f"✅ Banco de dados OK - {user_count} usuáries encontrades")
             return True
         except Exception as e:
-            print(f"⚠️  Problema detectado: {e}")
+            print(f"⚠️  Problema detectado no banco de dados")
             print("🔧 Criando/recriando tabelas...")
             
             try:
@@ -40,7 +41,8 @@ def init_local_database():
                 print("✅ Tabelas criadas com sucesso!")
                 return True
             except Exception as create_error:
-                print(f"❌ Erro ao criar tabelas: {create_error}")
+                print(f"❌ Erro ao criar tabelas")
+                print(f"   Verifique as permissões e o caminho do banco de dados")
                 return False
 
 def verify_d1_instructions():
