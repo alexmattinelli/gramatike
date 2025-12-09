@@ -809,6 +809,7 @@ def index():
     """Página inicial: redireciona para feed se autenticade, landing para visitantes."""
     # Se usuárie estiver autenticade, redireciona para o feed
     if current_user.is_authenticated:
+        current_app.logger.info(f'[Index] Usuárie autenticade {current_user.username} redirecionando para feed')
         return redirect(url_for('main.feed'))
     
     # Para visitantes, mostra a landing page
@@ -818,9 +819,18 @@ def index():
 @login_required
 def feed():
     """Página de feed - requer autenticação."""
-    # Garante que as tabelas essenciais existam antes de renderizar o feed
-    _ensure_core_tables()
-    return render_template('feed.html')
+    try:
+        current_app.logger.info(f'[Feed] Acesso ao feed por usuárie: {current_user.username} (ID: {current_user.id})')
+        # Garante que as tabelas essenciais existam antes de renderizar o feed
+        _ensure_core_tables()
+        return render_template('feed.html')
+    except Exception as e:
+        current_app.logger.error(f'[Feed] Erro ao carregar feed: {e}')
+        import traceback
+        current_app.logger.error(f'[Feed Traceback]\n{traceback.format_exc()}')
+        # Se houver erro ao carregar o feed, tenta redirecionar para landing ou mostra erro
+        flash('Erro ao carregar o feed. Por favor, tente novamente.', 'error')
+        return redirect(url_for('main.index'))
 
 # ------------------ Admin Divulgação ------------------
 @bp.route('/admin/divulgacao')
@@ -1191,10 +1201,12 @@ def login():
             pwd_ok = user.check_password(pwd)
             
             if pwd_ok:
-                login_user(user)
+                login_user(user, remember=True)  # Adiciona remember=True para persistir sessão
                 current_app.logger.info(f'[Login] Login bem-sucedido: {user.username} (ID: {user.id})')
                 # Redireciona para a página de feed após login bem-sucedido
-                return redirect(url_for('main.feed'))
+                feed_url = url_for('main.feed')
+                current_app.logger.info(f'[Login] Redirecionando para: {feed_url}')
+                return redirect(feed_url)
             else:
                 current_app.logger.warning(f'[Login] Senha incorreta para: {user.username}')
                 flash('Login inválido. Verifique seu usuárie/email e senha.', 'error')
