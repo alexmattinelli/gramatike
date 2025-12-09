@@ -83,11 +83,11 @@ def api_gramatike_search():
     
     items = []
     try:
-        # Obtém id do usuário @gramatike se existir
+        # Obtém id de usuárie @gramatike se existir
         gk_user = User.query.filter(User.username == 'gramatike').first()
         post_query = Post.query.filter(((Post.is_deleted == False) | (Post.is_deleted.is_(None))))
         if gk_user:
-            post_query = post_query.filter((Post.usuario_id == gk_user.id) | (Post.usuarie == 'gramatike'))
+            post_query = post_query.filter((Post.usuarie_id == gk_user.id) | (Post.usuarie == 'gramatike'))
         else:
             # fallback: filtra por nome textual
             post_query = post_query.filter(Post.usuarie == 'gramatike')
@@ -254,7 +254,7 @@ def resend_verification_email():
 
 ## (Funções auxiliares Lune removidas)
 
-# API para buscar usuário por username
+# API para buscar usuárie por username
 @bp.route('/api/usuarios/username/<username>', methods=['GET'])
 def buscar_usuario_por_username(username):
     user = User.query.filter_by(username=username).first()
@@ -315,7 +315,7 @@ def api_amigues():
     try:
         user = current_user
         seguindo_ids = {u.id for u in user.seguindo}
-        # amigues = usuários que seguem o user E são seguidos por ele
+        # amigues = usuáries que seguem o user E são seguides por ele
         mutual = [u for u in user.seguidories if u.id in seguindo_ids]
         out = []
         for m in mutual:
@@ -335,7 +335,7 @@ def api_amigues():
 @bp.route('/api/notifications', methods=['GET'])
 @login_required
 def api_notifications():
-    """Retorna notificações do usuário (novos seguidories e curtidas)."""
+    """Retorna notificações de usuárie (noves seguidories e curtidas)."""
     try:
         user = current_user
         notifications = []
@@ -400,13 +400,13 @@ def api_notifications():
         current_app.logger.warning(f"api_notifications failed: {e}")
         return jsonify([])
 
-# ROTA ALTERNATIVA: Postagens do usuário logado
+# ROTA ALTERNATIVA: Postagens de usuárie logade
 @bp.route('/api/posts/me', methods=['GET'])
 @login_required
 def get_posts_me():
     user = current_user
     posts = Post.query.filter(
-        ((Post.usuario_id == user.id) | (Post.usuarie == user.username)) & ((Post.is_deleted == False) | (Post.is_deleted.is_(None)))
+        ((Post.usuarie_id == user.id) | (Post.usuarie == user.username)) & ((Post.is_deleted == False) | (Post.is_deleted.is_(None)))
     ).order_by(Post.data.desc()).all()
     result = []
     for p in posts:
@@ -437,12 +437,12 @@ def get_posts_me():
         })
     return jsonify(result)
 
-# API: Postagens de um usuário específico (pública)
+# API: Postagens de usuárie específique (pública)
 @bp.route('/api/posts/usuarie/<int:user_id>', methods=['GET'])
 def get_posts_usuario(user_id):
     user = User.query.get_or_404(user_id)
     posts = Post.query.filter(
-        ((Post.usuario_id == user.id) | (Post.usuarie == user.username)) & ((Post.is_deleted == False) | (Post.is_deleted.is_(None)))
+        ((Post.usuarie_id == user.id) | (Post.usuarie == user.username)) & ((Post.is_deleted == False) | (Post.is_deleted.is_(None)))
     ).order_by(Post.data.desc()).all()
     result = []
     for p in posts:
@@ -512,20 +512,20 @@ def editar_perfil():
         if novo_username and novo_username != user.username:
             # Validate username - no spaces allowed and length requirements
             if ' ' in novo_username:
-                return jsonify({'erro': 'Nome de usuário não pode conter espaços.'}), 400
+                return jsonify({'erro': 'Nome de usuárie não pode conter espaços.'}), 400
             
             if len(novo_username) < 5:
-                return jsonify({'erro': 'Nome de usuário deve ter no mínimo 5 caracteres.'}), 400
+                return jsonify({'erro': 'Nome de usuárie deve ter no mínimo 5 caracteres.'}), 400
             
             if len(novo_username) > 45:
-                return jsonify({'erro': 'Nome de usuário deve ter no máximo 45 caracteres.'}), 400
+                return jsonify({'erro': 'Nome de usuárie deve ter no máximo 45 caracteres.'}), 400
             ok_u, cat_u, matched_u = check_text(novo_username)
             if not ok_u:
                 return jsonify({'erro': refusal_message_pt(cat_u, matched_u)}), 400
             # checar unicidade
             existente = User.query.filter(User.username == novo_username, User.id != user.id).first()
             if existente:
-                return jsonify({'erro': 'Este nome de usuário já está em uso.'}), 400
+                return jsonify({'erro': 'Este nome de usuárie já está em uso.'}), 400
             user.username = novo_username
     if email is not None:
         novo_email = (email or '').strip()
@@ -601,7 +601,7 @@ def editar_perfil():
                 current_app.logger.warning(f'Falha no upload/salvamento de avatar: {_e_save}')
             except Exception:
                 pass
-    # Atualização de senha (opcional): só processa se usuário enviou nova senha
+    # Atualização de senha (opcional): só processa se usuárie enviou nova senha
     if (new_password or password_confirm):
         if (new_password or '').strip() == '' or (password_confirm or '').strip() == '':
             return jsonify({'erro': 'Informe e confirme a nova senha.'}), 400
@@ -636,7 +636,7 @@ def confirm_change_email():
     if not user:
         flash('Usuárie não encontrade.')
         return redirect(url_for('main.login'))
-    # Evita colidir com outro usuário que registrou este e-mail nesse meio tempo
+    # Evita colidir com outre usuárie que registrou este e-mail nesse meio tempo
     existente = User.query.filter(User.email == new_email, User.id != user.id).first()
     if existente:
         flash('Este e-mail já está em uso por outra conta.')
@@ -1160,7 +1160,7 @@ def login():
             
             if not user:
                 current_app.logger.warning(f'[Login] Usuárie não encontrade: {ident}')
-                flash('Login inválido. Verifique seu usuário/email e senha.', 'error')
+                flash('Login inválido. Verifique seu usuárie/email e senha.', 'error')
                 return render_template('login.html')
             
             current_app.logger.info(f'[Login] Usuárie encontrade: {user.username} (ID: {user.id})')
@@ -1180,7 +1180,7 @@ def login():
                 return redirect(url_for('main.index'))
             else:
                 current_app.logger.warning(f'[Login] Senha incorreta para: {user.username}')
-                flash('Login inválido. Verifique seu usuário/email e senha.', 'error')
+                flash('Login inválido. Verifique seu usuárie/email e senha.', 'error')
                 return render_template('login.html')
                 
         except Exception as e:
@@ -1467,7 +1467,7 @@ def dinamica_admin(dyn_id: int):
         cfg = _json.loads(d.config) if d.config else {}
     except Exception:
         cfg = {}
-    # Carregar respostas com dados de usuário
+    # Carregar respostas com dados de usuárie
     from gramatike_app.models import User
     rows = []
     for r in d.responses:
@@ -2114,8 +2114,8 @@ def api_posts_multi_create():
             paths.append(rel)
             meta.append({'path': rel, 'w': w, 'h': h})
     post = Post(
-        usuario=current_user.username,
-        usuario_id=current_user.id,
+        usuarie=current_user.username,
+        usuarie_id=current_user.id,
         conteudo=conteudo,
         imagem='|'.join(paths),
         data=datetime.utcnow()
@@ -2333,11 +2333,11 @@ def get_posts():
         except Exception as e:
             current_app.logger.warning(f'[ERRO DATA POST] id={p.id} data={p.data} erro={e}')
             data_str = ''
-        # Buscar o usuário autor do post
+        # Buscar usuárie autore do post
         autor = None
-        if hasattr(p, 'usuario_id') and p.usuario_id:
-            autor = User.query.get(p.usuario_id)
-        elif hasattr(p, 'usuario') and p.usuarie:
+        if hasattr(p, 'usuarie_id') and p.usuarie_id:
+            autor = User.query.get(p.usuarie_id)
+        elif hasattr(p, 'usuarie') and p.usuarie:
             autor = User.query.filter_by(username=p.usuarie).first()
         foto_perfil = autor.foto_perfil if autor and autor.foto_perfil else 'img/perfil.png'
         liked = False
@@ -2378,8 +2378,8 @@ def create_post():
     usuario_nome = current_user.username if hasattr(current_user, 'username') else data.get('usuarie', 'Usuárie')
     usuario_id = current_user.id if hasattr(current_user, 'id') else None
     post = Post(
-        usuario=usuario_nome,
-        usuario_id=usuario_id,
+        usuarie=usuario_nome,
+        usuarie_id=usuario_id,
         conteudo=data['conteudo'],
         imagem=data.get('imagem', ''),
         data=datetime.now()
@@ -2392,7 +2392,7 @@ def create_post():
 @login_required
 def soft_delete_post(post_id):
     post = Post.query.get_or_404(post_id)
-    if post.usuario_id != current_user.id and not current_user.is_admin:
+    if post.usuarie_id != current_user.id and not current_user.is_admin:
         return jsonify({'error':'forbidden'}), 403
     post.is_deleted = True
     post.deleted_at = datetime.utcnow()
@@ -2462,7 +2462,7 @@ def comentarios(post_id):
 @bp.route('/configuracoes')
 @login_required
 def configuracoes():
-    # Passa o usuário autenticado como 'user' para o template
+    # Passa usuárie autenticade como 'user' para o template
     return render_template('configuracoes.html', user=current_user)
 
 @bp.route('/suporte', methods=['GET','POST'])
@@ -2564,15 +2564,15 @@ def cadastro():
 
         # Validate username - no spaces allowed and length requirements
         if ' ' in username:
-            flash('Nome de usuário não pode conter espaços.', 'error')
+            flash('Nome de usuárie não pode conter espaços.', 'error')
             return redirect(url_for('main.cadastro'))
         
         if len(username) < 5:
-            flash('Nome de usuário deve ter no mínimo 5 caracteres.', 'error')
+            flash('Nome de usuárie deve ter no mínimo 5 caracteres.', 'error')
             return redirect(url_for('main.cadastro'))
         
         if len(username) > 45:
-            flash('Nome de usuário deve ter no máximo 45 caracteres.', 'error')
+            flash('Nome de usuárie deve ter no máximo 45 caracteres.', 'error')
             return redirect(url_for('main.cadastro'))
 
         # Verifica se o e-mail já existe
@@ -2580,12 +2580,12 @@ def cadastro():
             flash('E-mail já cadastrado.', 'error')
             return redirect(url_for('main.cadastro'))
 
-        # Verifica se o nome de usuário já existe
+        # Verifica se o nome de usuárie já existe
         if User.query.filter_by(username=username).first():
-            flash('Nome de usuário já está em uso.', 'error')
+            flash('Nome de usuárie já está em uso.', 'error')
             return redirect(url_for('main.cadastro'))
 
-        # Cria o novo usuário
+        # Cria nove usuárie
         novo_usuario = User(
             nome=nome if nome else None,
             username=username,
@@ -2732,7 +2732,7 @@ def api_palavra_do_dia():
     indice = dia_do_ano % len(palavras)
     palavra = palavras[indice]
     
-    # Verifica se usuário já interagiu hoje
+    # Verifica se usuárie já interagiu hoje
     ja_interagiu = False
     if current_user.is_authenticated:
         from gramatike_app.models import PalavraDoDiaInteracao
@@ -2756,7 +2756,7 @@ def api_palavra_do_dia():
 @bp.route('/api/palavra-do-dia/interagir', methods=['POST'])
 @login_required
 def api_palavra_do_dia_interagir():
-    """Registra interação do usuário com a palavra do dia."""
+    """Registra interação de usuárie com a palavra do dia."""
     from gramatike_app.models import PalavraDoDia, PalavraDoDiaInteracao
     from datetime import datetime
     

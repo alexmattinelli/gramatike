@@ -19,21 +19,29 @@ def login():
         return redirect(url_for('main.index'))
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        try:
+            # Tenta buscar usuário - pode falhar se tabelas não existem
+            user = User.query.filter_by(username=form.username.data).first()
+        except Exception as db_error:
+            current_app.logger.error(f"Erro de banco de dados no login: {db_error}")
+            flash('Sistema temporariamente indisponível. Por favor, tente novamente mais tarde.', 'error')
+            return render_template('login.html', form=form)
+        
         from datetime import datetime
         if user is None or not user.check_password(form.password.data):
-            flash('Usuárie ou senha inválidos')
+            flash('Usuárie ou senha inválidos', 'error')
             return redirect(url_for('main.login'))
         # Verificações de moderação
         if getattr(user, 'is_banned', False):
-            flash(f'Conta banida: {user.ban_reason or "motivo não especificado"}')
+            flash(f'Conta banida: {user.ban_reason or "motivo não especificado"}', 'error')
             return redirect(url_for('main.login'))
         if getattr(user, 'suspended_until', None):
             if user.suspended_until and datetime.utcnow() < user.suspended_until:
                 ate = user.suspended_until.strftime('%d/%m %H:%M')
-                flash(f'Conta suspensa até {ate}.')
+                flash(f'Conta suspensa até {ate}.', 'error')
                 return redirect(url_for('main.login'))
         login_user(user, remember=form.remember_me.data)
+        flash('Login realizado com sucesso!', 'success')
         return redirect(url_for('main.index'))
     return render_template('login.html', form=form)
 
@@ -48,23 +56,29 @@ def register():
         return redirect(url_for('main.index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
-        # Definir senha com hash seguro
         try:
-            user.set_password(form.password.data)
-        except Exception:
-            flash('Falha ao definir senha. Tente novamente.')
-            return redirect(url_for('main.register'))
-        db.session.add(user)
-        db.session.commit()
-        # E-mail de boas-vindas (não bloqueante)
-        try:
-            html = render_welcome_email(user.username or user.email)
-            send_email(user.email, 'Bem-vinde ao Gramátike', html)
-        except Exception:
-            pass
-        flash('Registro concluído! Agora pode fazer login.')
-        return redirect(url_for('main.login'))
+            user = User(username=form.username.data, email=form.email.data)
+            # Definir senha com hash seguro
+            try:
+                user.set_password(form.password.data)
+            except Exception:
+                flash('Falha ao definir senha. Tente novamente.', 'error')
+                return redirect(url_for('main.register'))
+            db.session.add(user)
+            db.session.commit()
+            # E-mail de boas-vindas (não bloqueante)
+            try:
+                html = render_welcome_email(user.username or user.email)
+                send_email(user.email, 'Bem-vinde ao Gramátike', html)
+            except Exception:
+                pass
+            flash('Registro feito com sucesso.', 'success')
+            return redirect(url_for('main.login'))
+        except Exception as db_error:
+            current_app.logger.error(f"Erro ao registrar usuárie: {db_error}")
+            db.session.rollback()
+            flash('Sistema temporariamente indisponível. Por favor, tente novamente mais tarde.', 'error')
+            return render_template('register.html', form=form)
     return render_template('register.html', form=form)
 
 @bp.route('/perfil')

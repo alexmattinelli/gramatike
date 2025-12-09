@@ -39,9 +39,15 @@ Configure um workflow do GitHub Actions com:
 
 ### ⚠️ Erro "Sistema temporariamente indisponível"?
 
-Se você está vendo este erro, as tabelas do banco de dados não foram criadas. Execute:
+Se você está vendo este erro, as tabelas do banco de dados não foram criadas. 
+
+**🔧 Solução Rápida:**
 
 ```bash
+# Para desenvolvimento local (SQLite):
+python scripts/init_database.py
+
+# Para produção (Cloudflare D1):
 # 1. Autenticar (se necessário)
 wrangler login
 
@@ -52,7 +58,25 @@ wrangler d1 execute gramatike --file=./schema.d1.sql
 npm run deploy
 ```
 
-Ou use o script automatizado: `./scripts/setup_d1_database.sh`
+📖 **Guia completo de troubleshooting:** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+
+### 🔄 Recuperação de Banco de Dados
+
+Se as tabelas foram excluídas acidentalmente:
+
+1. **Desenvolvimento Local:**
+   ```bash
+   python scripts/init_database.py
+   python create_superadmin.py  # Recriar admin
+   ```
+
+2. **Cloudflare D1:**
+   ```bash
+   wrangler d1 execute gramatike --file=./schema.d1.sql
+   npm run deploy
+   ```
+
+Veja mais detalhes em [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ### Cloudflare D1 (Recomendado para Workers)
 
