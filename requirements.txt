@@ -1,3 +1,11 @@
+# NOTA: Este arquivo NÃO é usado para Cloudflare Workers deployment!
+# 
+# Cloudflare Workers usa pyproject.toml para dependências.
+# Este arquivo é para desenvolvimento local com Flask.
+#
+# Para deployment: npm run deploy (via wrangler.toml)
+# Veja: CLOUDFLARE_DEPLOYMENT_GUIDE.md
+
 Flask>=3.0,<3.2
 Werkzeug>=3.0,<3.2
 flask_sqlalchemy

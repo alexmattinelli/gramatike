@@ -1,15 +1,15 @@
-# Build command: python -m pip install -r requirements.txt
-# Build output directory: /
-# Root directory: /
+# NOTA: Este arquivo é para Cloudflare Pages deployment.
+# No entanto, Cloudflare Pages Functions NÃO suporta requirements.txt ainda.
+# 
+# Para deploy desta aplicação, use Cloudflare Workers via wrangler:
+#   npm run deploy
+#
+# Veja README.md para instruções completas.
+#
+# Este arquivo é mantido apenas para compatibilidade com Pages,
+# mas sem build command que tenta instalar pacotes Python.
 
 [build]
-  command = "python -m pip install -r requirements-prod.txt"
+  # Sem build command - Pages Functions não suporta requirements.txt ainda
+  # O deploy correto é via Cloudflare Workers (wrangler.toml)
   publish = "gramatike_app/static"
-
-[build.environment]
-  PYTHON_VERSION = "3.12"
-
-[[redirects]]
-  from = "/*"
-  to = "/functions/[[path]]"
-  status = 200

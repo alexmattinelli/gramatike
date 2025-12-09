@@ -1,33 +1,70 @@
-# Deploy Gramátike no Cloudflare Pages Functions
+# Deploy Gramátike no Cloudflare
 
-## Passos para Deploy
+## ⚠️ IMPORTANTE: Este projeto usa Cloudflare Workers, NÃO Pages Functions
 
-1. **Remova qualquer comando de build personalizado do painel do Cloudflare Pages.**
-   - Se necessário, use apenas:
-     ```
-     pip install -r requirements.txt
-     ```
-   - Ou deixe o campo de build vazio.
+**Cloudflare Pages Functions não suporta `requirements.txt` ainda.**
 
-2. **Garanta que o diretório `functions/` está presente**
-   - Todos os handlers Python devem estar em `functions/`.
+Se você está vendo o erro:
+> "You cannot yet deploy Python Workers that depend on packages defined in requirements.txt"
 
-3. **Garanta que as dependências estão em `requirements.txt`**
-   - Exemplo: `jinja2`, `starlette`, etc.
+É porque está tentando usar Pages Functions. **Use Cloudflare Workers em vez disso.**
 
-4. **Se quiser, use o script de build automático:**
-   - No campo de build do painel, coloque:
-     ```
-     bash build.sh
-     ```
+## ✅ Deploy Correto (Cloudflare Workers)
 
-5. **Output directory:**
-   - Deixe vazio ou use `public` se tiver assets estáticos.
+```bash
+# 1. Instalar uv (gerenciador de pacotes Python)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-6. **Variáveis de ambiente:**
-   - Configure o binding do D1 normalmente no `wrangler.toml`.
-   - Não precisa de `DATABASE_URL`.
+# 2. Instalar dependências
+npm install
+uv sync
 
-7. **Deploy!**
+# 3. Autenticar (se necessário)
+npx wrangler login
 
-Se aparecer erro de build, envie a mensagem completa para diagnóstico.
+# 4. Deploy
+npm run deploy
+```
+
+## 📖 Guia Completo
+
+Veja o guia completo de deployment em: **[CLOUDFLARE_DEPLOYMENT_GUIDE.md](CLOUDFLARE_DEPLOYMENT_GUIDE.md)**
+
+O guia inclui:
+- Diferenças entre Workers e Pages Functions
+- Configuração completa de variáveis de ambiente
+- Gerenciamento de dependências via `pyproject.toml`
+- Troubleshooting de erros comuns
+- Deploy via GitHub Actions
+
+## 🔧 Configuração Rápida
+
+1. **D1 Database:**
+   ```bash
+   wrangler d1 create gramatike
+   wrangler d1 execute gramatike --file=./schema.d1.sql
+   ```
+
+2. **Variáveis de Ambiente:**
+   - Configure no dashboard: Workers & Pages > Gramátike > Settings > Variables
+   - Mínimo: `SECRET_KEY`
+
+3. **Deploy:**
+   ```bash
+   npm run deploy
+   ```
+
+## ❌ NÃO Use Pages Functions
+
+O diretório `functions/` e o arquivo `_pages.toml` são mantidos por compatibilidade, mas **não são usados para deployment**.
+
+**Deployment correto:**
+- ✅ Via `wrangler.toml` (Workers)
+- ✅ Entry point: `index.py`
+- ✅ Dependências: `pyproject.toml`
+- ✅ Comando: `npm run deploy`
+
+**NÃO use:**
+- ❌ Git push para Pages
+- ❌ Build command com `requirements.txt`
+- ❌ Pages Functions com dependências Python

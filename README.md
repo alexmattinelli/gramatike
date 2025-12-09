@@ -2,15 +2,22 @@
 
 ## Cloudflare Workers Python
 
-Esta aplicacao usa Cloudflare Workers Python (Pyodide) com o padrao nativo WorkerEntrypoint. O deploy deve ser feito usando `pywrangler`.
+Esta aplicacao usa **Cloudflare Workers Python** (Pyodide) com o padrao nativo WorkerEntrypoint. O deploy deve ser feito usando `wrangler`.
+
+**⚠️ IMPORTANTE:** 
+- Este projeto usa **Cloudflare Workers**, NÃO Cloudflare Pages Functions
+- Pages Functions não suporta `requirements.txt` ainda
+- Se você vê erro sobre "requirements.txt", use Workers deployment (veja abaixo)
 
 **NOTA:** FastAPI nao pode ser implantado no Cloudflare Workers Python. Veja: https://github.com/cloudflare/workers-sdk/issues/5608
 
 ### Deploy via CLI (Recomendado)
 
 1. Instale [uv](https://docs.astral.sh/uv/getting-started/installation/) (gerenciador de pacotes Python)
-2. Instale as dependencias: `uv sync`
-3. Deploy: `npm run deploy` (ou `uv run pywrangler deploy`)
+2. Instale as dependencias: `npm install && uv sync`
+3. Deploy: `npm run deploy`
+
+**📖 Guia Completo:** Veja [CLOUDFLARE_DEPLOYMENT_GUIDE.md](CLOUDFLARE_DEPLOYMENT_GUIDE.md) para instruções detalhadas.
 
 ### Deploy via GitHub Actions
 
@@ -29,10 +36,10 @@ Configure um workflow do GitHub Actions com:
 ### Notas Importantes
 
 - O Cloudflare Workers Python usa o padrao nativo WorkerEntrypoint (sem FastAPI)
+- Dependências são gerenciadas via `pyproject.toml` e `uv`, NÃO `requirements.txt`
 - O arquivo `uv.lock` garante que as dependencias sejam resolvidas corretamente
 - Variaveis de ambiente (Settings > Environment Variables):
    - `SECRET_KEY`: uma string segura
-   - `DATABASE_URL`: Postgres gerenciado (recomendado para producao)
    - Variaveis do Cloudflare R2 (veja abaixo)
 
 ## Banco de Dados

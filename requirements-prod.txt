@@ -1,3 +1,15 @@
+# NOTA: Este arquivo NÃO é usado para Cloudflare Workers deployment!
+# 
+# Cloudflare Pages Functions não suporta requirements.txt ainda.
+# Este projeto usa Cloudflare Workers com dependências em pyproject.toml.
+#
+# Para deployment, use: npm run deploy (via wrangler.toml)
+# Veja: CLOUDFLARE_DEPLOYMENT_GUIDE.md
+#
+# Este arquivo é mantido apenas para:
+# - Desenvolvimento local com Flask
+# - Deploy tradicional (não-Cloudflare) se necessário
+
 Flask>=3.0,<3.2
 Werkzeug>=3.0,<3.2
 flask_sqlalchemy
