@@ -741,6 +741,12 @@ def index():
     # Para visitantes, mostra a landing page
     return render_template('landing.html')
 
+@bp.route('/feed')
+@login_required
+def feed():
+    """Página de feed - requer autenticação."""
+    return render_template('feed.html')
+
 # ------------------ Admin Divulgação ------------------
 @bp.route('/admin/divulgacao')
 @login_required
@@ -1112,7 +1118,8 @@ def login():
             if pwd_ok:
                 login_user(user)
                 current_app.logger.info(f'[Login] Login bem-sucedido: {user.username} (ID: {user.id})')
-                return redirect(url_for('main.index'))
+                # Redireciona para a página de feed após login bem-sucedido
+                return redirect(url_for('main.feed'))
             else:
                 current_app.logger.warning(f'[Login] Senha incorreta para: {user.username}')
                 flash('Login inválido. Verifique seu usuárie/email e senha.', 'error')
