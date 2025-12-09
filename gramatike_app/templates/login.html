@@ -70,7 +70,7 @@
       {% endwith %}
       <h2>Entrar</h2>
       <form method="post">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
     <label for="email">Usuárie / Email</label>
   <input type="text" id="email" name="email" required autocomplete="username" placeholder="Usuárie ou email" value="" />
         <label for="password" style="margin-top:1rem;">Senha</label>
