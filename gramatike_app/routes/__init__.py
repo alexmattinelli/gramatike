@@ -87,7 +87,7 @@ def api_gramatike_search():
         gk_user = User.query.filter(User.username == 'gramatike').first()
         post_query = Post.query.filter(((Post.is_deleted == False) | (Post.is_deleted.is_(None))))
         if gk_user:
-            post_query = post_query.filter((Post.usuario_id == gk_user.id) | (Post.usuarie == 'gramatike'))
+            post_query = post_query.filter((Post.usuarie_id == gk_user.id) | (Post.usuarie == 'gramatike'))
         else:
             # fallback: filtra por nome textual
             post_query = post_query.filter(Post.usuarie == 'gramatike')
@@ -406,7 +406,7 @@ def api_notifications():
 def get_posts_me():
     user = current_user
     posts = Post.query.filter(
-        ((Post.usuario_id == user.id) | (Post.usuarie == user.username)) & ((Post.is_deleted == False) | (Post.is_deleted.is_(None)))
+        ((Post.usuarie_id == user.id) | (Post.usuarie == user.username)) & ((Post.is_deleted == False) | (Post.is_deleted.is_(None)))
     ).order_by(Post.data.desc()).all()
     result = []
     for p in posts:
@@ -442,7 +442,7 @@ def get_posts_me():
 def get_posts_usuario(user_id):
     user = User.query.get_or_404(user_id)
     posts = Post.query.filter(
-        ((Post.usuario_id == user.id) | (Post.usuarie == user.username)) & ((Post.is_deleted == False) | (Post.is_deleted.is_(None)))
+        ((Post.usuarie_id == user.id) | (Post.usuarie == user.username)) & ((Post.is_deleted == False) | (Post.is_deleted.is_(None)))
     ).order_by(Post.data.desc()).all()
     result = []
     for p in posts:
@@ -2114,8 +2114,8 @@ def api_posts_multi_create():
             paths.append(rel)
             meta.append({'path': rel, 'w': w, 'h': h})
     post = Post(
-        usuario=current_user.username,
-        usuario_id=current_user.id,
+        usuarie=current_user.username,
+        usuarie_id=current_user.id,
         conteudo=conteudo,
         imagem='|'.join(paths),
         data=datetime.utcnow()
@@ -2335,9 +2335,9 @@ def get_posts():
             data_str = ''
         # Buscar usuárie autore do post
         autor = None
-        if hasattr(p, 'usuario_id') and p.usuario_id:
-            autor = User.query.get(p.usuario_id)
-        elif hasattr(p, 'usuario') and p.usuarie:
+        if hasattr(p, 'usuarie_id') and p.usuarie_id:
+            autor = User.query.get(p.usuarie_id)
+        elif hasattr(p, 'usuarie') and p.usuarie:
             autor = User.query.filter_by(username=p.usuarie).first()
         foto_perfil = autor.foto_perfil if autor and autor.foto_perfil else 'img/perfil.png'
         liked = False
@@ -2378,8 +2378,8 @@ def create_post():
     usuario_nome = current_user.username if hasattr(current_user, 'username') else data.get('usuarie', 'Usuárie')
     usuario_id = current_user.id if hasattr(current_user, 'id') else None
     post = Post(
-        usuario=usuario_nome,
-        usuario_id=usuario_id,
+        usuarie=usuario_nome,
+        usuarie_id=usuario_id,
         conteudo=data['conteudo'],
         imagem=data.get('imagem', ''),
         data=datetime.now()
@@ -2392,7 +2392,7 @@ def create_post():
 @login_required
 def soft_delete_post(post_id):
     post = Post.query.get_or_404(post_id)
-    if post.usuario_id != current_user.id and not current_user.is_admin:
+    if post.usuarie_id != current_user.id and not current_user.is_admin:
         return jsonify({'error':'forbidden'}), 403
     post.is_deleted = True
     post.deleted_at = datetime.utcnow()
