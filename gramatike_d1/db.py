@@ -732,18 +732,18 @@ async def ensure_database_initialized(db):
         console.log(f"[D1 Init] Superadmin check result: {superadmin}")
         
         if not superadmin:
-            # Verificar se o usuário 'gramatike' já existe (sem ser superadmin)
+            # Verificar se ê usuárie 'gramatike' já existe (sem ser superadmin)
             existing_user = await db.prepare(
                 "SELECT id, username, is_superadmin FROM user WHERE username = 'gramatike' LIMIT 1"
             ).first()
             
             if existing_user:
-                console.log(f"[D1 Init] Usuário 'gramatike' já existe: {existing_user}")
+                console.log(f"[D1 Init] Usuárie 'gramatike' já existe: {existing_user}")
                 # Se existe mas não é superadmin, promover a superadmin
                 await db.prepare("""
                     UPDATE user SET is_admin = 1, is_superadmin = 1 WHERE username = 'gramatike'
                 """).run()
-                console.log("[D1 Init] Usuário 'gramatike' promovido a superadmin!")
+                console.log("[D1 Init] Usuárie 'gramatike' promovide a superadmin!")
             else:
                 # Criar senha hasheada para o superadmin
                 salt = secrets.token_hex(16)
@@ -764,9 +764,9 @@ async def ensure_database_initialized(db):
         else:
             console.log("[D1 Init] Superadmin já existe, pulando criação.")
         
-        # Verificar quantos usuários existem no banco
+        # Verificar quantos usuáries existem no banco
         user_count = await db.prepare("SELECT COUNT(*) as count FROM user").first()
-        console.log(f"[D1 Init] Total de usuários no banco: {user_count}")
+        console.log(f"[D1 Init] Total de usuáries no banco: {user_count}")
         
         _db_initialized = True
         console.log("[D1 Init] Inicialização concluída com sucesso!")

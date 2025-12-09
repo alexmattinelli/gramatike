@@ -10,7 +10,7 @@ from ._template_processor import render_template
 
 
 async def on_request(request, env, context):
-    """Handle gerenciar usuários page requests."""
+    """Handle gerenciar usuáries page requests."""
     html = render_template('gerenciar_usuarios.html')
     return Response(html, headers={'Content-Type': 'text/html; charset=utf-8'})
 
