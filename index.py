@@ -906,6 +906,11 @@ class Default(WorkerEntrypoint):
             if db and DB_AVAILABLE:
                 try:
                     current_user = await get_current_user(db, request)
+                    # Log auth status for debugging
+                    if current_user:
+                        console.log(f"[Auth] User authenticated: {current_user.get('username')} (ID: {current_user.get('id')})")
+                    else:
+                        console.log(f"[Auth] No authenticated user for path: {path}")
                 except Exception as e:
                     # Warnings use console.warn
                     console.warn(f"[Auth Warning] get_current_user failed: {e}")
@@ -2368,8 +2373,10 @@ class Default(WorkerEntrypoint):
         """Página inicial - Feed/Rede Social - usando template externo."""
         # Se usuário não está autenticado, mostra a landing page usando template externo
         if current_user is None or not current_user:
+            console.log("[Index] User not authenticated - showing landing.html")
             return render_template('landing.html')
 
+        console.log(f"[Index] User authenticated - showing feed.html for {current_user.get('username')}")
         # Usuário está autenticado - mostra o feed com posts
         posts = []
         divulgacoes = []
