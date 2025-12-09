@@ -4,6 +4,7 @@ from flask_login import login_user, logout_user, login_required, LoginManager, c
 from datetime import datetime, timedelta
 import os
 import re
+import traceback
 from werkzeug.utils import secure_filename
 from mimetypes import guess_type
 from gramatike_app.utils.storage import upload_to_storage, build_avatar_path, build_post_image_path, build_apostila_path, build_divulgacao_path
@@ -809,6 +810,7 @@ def index():
     """Página inicial: redireciona para feed se autenticade, landing para visitantes."""
     # Se usuárie estiver autenticade, redireciona para o feed
     if current_user.is_authenticated:
+        current_app.logger.info(f'[Index] Usuárie autenticade {current_user.username} redirecionando para feed')
         return redirect(url_for('main.feed'))
     
     # Para visitantes, mostra a landing page
@@ -818,9 +820,17 @@ def index():
 @login_required
 def feed():
     """Página de feed - requer autenticação."""
-    # Garante que as tabelas essenciais existam antes de renderizar o feed
-    _ensure_core_tables()
-    return render_template('feed.html')
+    try:
+        current_app.logger.info(f'[Feed] Acesso ao feed por usuárie: {current_user.username} (ID: {current_user.id})')
+        # Garante que as tabelas essenciais existam antes de renderizar o feed
+        _ensure_core_tables()
+        return render_template('feed.html')
+    except Exception as e:
+        current_app.logger.error(f'[Feed] Erro ao carregar feed: {e}')
+        current_app.logger.error(f'[Feed Traceback]\n{traceback.format_exc()}')
+        # Se houver erro ao carregar o feed, tenta redirecionar para landing ou mostra erro
+        flash('Erro ao carregar o feed. Por favor, tente novamente.', 'error')
+        return redirect(url_for('main.index'))
 
 # ------------------ Admin Divulgação ------------------
 @bp.route('/admin/divulgacao')
@@ -1191,17 +1201,27 @@ def login():
             pwd_ok = user.check_password(pwd)
             
             if pwd_ok:
-                login_user(user)
+                login_user(user, remember=True)  # Adiciona remember=True para persistir sessão
                 current_app.logger.info(f'[Login] Login bem-sucedido: {user.username} (ID: {user.id})')
+                
+                # Verifica se o login foi bem-sucedido (detecta problemas de sessão em ambiente serverless)
+                # Em ambientes serverless (Cloudflare Pages/Workers), às vezes a sessão pode não persistir
+                # imediatamente após login_user() devido a configurações de cookie ou storage
+                if not current_user.is_authenticated:
+                    current_app.logger.error(f'[Login] Falha ao autenticar usuárie após login_user: {user.username}')
+                    flash('Erro ao processar login. Tente novamente.', 'error')
+                    return render_template('login.html')
+                
                 # Redireciona para a página de feed após login bem-sucedido
-                return redirect(url_for('main.feed'))
+                feed_url = url_for('main.feed')
+                current_app.logger.info(f'[Login] Redirecionando para: {feed_url}')
+                return redirect(feed_url)
             else:
                 current_app.logger.warning(f'[Login] Senha incorreta para: {user.username}')
                 flash('Login inválido. Verifique seu usuárie/email e senha.', 'error')
                 return render_template('login.html')
                 
         except Exception as e:
-            import traceback
             current_app.logger.error(f'[Login Error] {type(e).__name__}: {str(e)}')
             current_app.logger.error(f'[Login Traceback]\n{traceback.format_exc()}')
             flash('Erro ao processar login.', 'error')
