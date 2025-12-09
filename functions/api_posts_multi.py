@@ -182,7 +182,7 @@ async def on_request(request, env, context):
         params = d1_params(usuarie_id, conteudo, now, usuarie_id)
         
         sql = """
-            INSERT INTO post (usuarie_id, usuario, conteudo, data)
+            INSERT INTO post (usuarie_id, usuarie, conteudo, data)
             SELECT ?, username, ?, ?
             FROM user WHERE id = ?
         """
