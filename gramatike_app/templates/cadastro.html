@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<style>
+body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+}
+</style>
+<style>
+body, p, label, input, button, a, span, li, td, th, div, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+}
+</style>
+    <meta charset="UTF-8">
+    <title>Cadastro</title>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
+    <meta name="theme-color" content="#9B5DE5">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+        <style>
+            :root { --bg:#f5f7fb; --text:#333; --accent:#9B5DE5; }
+            body { margin:0; background:var(--bg); font-family:'Nunito', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color:var(--text); }
+            .wrap { min-height:100vh; display:flex; align-items:flex-start; justify-content:center; padding:2.2rem 1rem 3rem; }
+            .card { width:100%; max-width:420px; background:#fff; border-radius:18px; padding:1.8rem 1.4rem 2rem; box-shadow:0 10px 26px -4px rgba(0,0,0,.12), 0 4px 10px -2px rgba(0,0,0,.08); }
+            h2 { margin:0 0 1rem; text-align:center; font-weight:800; letter-spacing:.4px; }
+            label { display:block; font-size:.72rem; font-weight:700; letter-spacing:.6px; margin:.6rem 0 .35rem; text-transform:uppercase; opacity:.8; }
+            input, select { width:100%; padding:.75rem .85rem; border:1.5px solid #d9e1ea; border-radius:12px; background:#fff; font-size:.9rem; outline:none; transition:border-color .2s, box-shadow .2s; }
+            input:focus, select:focus { border-color:var(--accent); box-shadow:0 0 0 3px #9b5de522; }
+            .btn { margin-top:1.1rem; width:100%; background:var(--accent); color:#fff; font-weight:800; font-size:.95rem; letter-spacing:.6px; padding:.9rem 1rem .95rem; border:none; border-radius:14px; cursor:pointer; box-shadow:0 2px 8px -2px #9B5DE599; }
+            .btn:hover { filter:brightness(0.96); }
+            .flash-messages { margin:0 0 1rem; list-style:none; padding:0; display:flex; flex-direction:column; gap:.55rem; }
+            .flash-messages li { font-size:.72rem; font-weight:600; padding:.65rem .75rem; border-radius:10px; line-height:1.25; }
+            .flash-success { background:#e8f9f0; color:#1e8052; box-shadow:0 0 0 1px #b2e7cd inset; }
+            .flash-error { background:#ffecec; color:#c0392b; box-shadow:0 0 0 1px #f5b7b1 inset; }
+        </style>
+    <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
+</head>
+<body>
+    <div class="wrap"><div class="card">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flash-messages">
+              {% for category, message in messages %}
+                <li class="flash-{{ category }}">{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <h2>Cadastro</h2>
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+            {# {% csrf_token %} #}
+            <label for="username">Nome</label>
+            <input type="text" name="nome" required>
+                
+            <label for="username">Usuárie</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="email">E-mail</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Senha</label>
+            <input type="password" id="password" name="password" required>
+
+
+        <label for="genero">Gênero</label>
+        <select id="genero" name="genero" required>
+            <option value="">Selecione</option>
+            <option value="Não-binárie">Não-binárie</option>
+            <option value="Mulher">Mulher</option>
+            <option value="Homem">Homem</option>
+            <option value="Outro">Outro</option>
+        </select>
+
+        <label for="pronome">Pronome</label>
+        <select id="pronome" name="pronome" required>
+            <option value="">Selecione</option>
+            <option value="elu/delu">elu/delu</option>
+            <option value="ela/dela">ela/dela</option>
+            <option value="ele/dele">ele/dele</option>
+            <option value="Outro">Outro</option>
+        </select>
+
+        <label for="data_nascimento">Data de nascimento</label>
+        <input type="date" id="data_nascimento" name="data_nascimento" required>
+
+            <button class="btn" type="submit">Cadastrar</button>
+        </form>
+    </div></div>
+</body>
+</html>

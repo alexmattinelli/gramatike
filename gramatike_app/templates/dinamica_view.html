@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ d.titulo }} — Dinâmica</title>
+  <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
+  <style>
+    :root { --primary:#9B5DE5; --border:#e5e7eb; --card:#fff; --bg:#f7f8ff; --text:#222; }
+    html, body { height:100%; max-width:100vw; overflow-x:hidden; }
+    body { margin:0; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); display:flex; flex-direction:column; min-height:100vh; }
+    header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; max-width:100%; overflow-x:hidden; }
+  .logo { font-family:'Mansalva', cursive; font-size:2.4rem; color:#fff; font-weight:400; margin:0; text-align:center; overflow-wrap:break-word; }
+  /* Mobile: Header mais compacto */
+  @media (max-width:768px){ 
+    header.site-head { padding:12px clamp(12px,3vw,24px) 18px; max-width:100%; }
+    .logo { font-size:1.8rem; max-width:100%; } 
+    main { padding:0 12px; margin:1.5rem auto 2rem; max-width:100%; overflow-x:hidden; }
+    .card { padding:.9rem; border-radius:16px; max-width:100%; overflow-x:hidden; box-sizing:border-box; }
+    .poll-label { min-width:70px; font-size:.7rem; overflow-wrap:break-word; word-break:break-word; }
+    .poll-row { flex-wrap:wrap; gap:.4rem; }
+    .poll-bar { min-width:120px; flex:1 1 120px; }
+    .poll-pct { width:auto; min-width:50px; }
+    .cloud { padding:.8rem; gap:.4rem .6rem; max-width:100%; box-sizing:border-box; }
+    .builder-card { max-width:100%; box-sizing:border-box; padding:.6rem; overflow-wrap:break-word; }
+    input[type="text"], textarea { font-size:16px; max-width:100%; box-sizing:border-box; } /* Prevent iOS zoom */
+  }
+    main { width:100%; max-width:860px; margin:2rem auto 4rem; padding:0 clamp(16px,4vw,40px); flex:1 0 auto; overflow-x:hidden; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1rem 1.2rem; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); max-width:100%; box-sizing:border-box; }
+    .muted { color:#666; font-weight:600; }
+    .options { display:grid; gap:.5rem; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.6rem 1rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito'; font-weight:800; letter-spacing:.3px; background:#fff; color:#9B5DE5; }
+    .btn.primary { background:#9B5DE5; color:#fff; border:none; }
+  /* Word cloud - texto puro, sem pills */
+  .cloud { display:flex; flex-wrap:wrap; gap:.5rem .8rem; align-items:flex-end; justify-content:center; margin-top:1rem; padding:1.2rem; background:rgba(155,93,229,0.03); border-radius:16px; border:1px solid rgba(155,93,229,0.1); overflow-wrap:break-word; word-wrap:break-word; max-width:100%; box-sizing:border-box; }
+  .cloud .w { display:inline-block; font-weight:900; letter-spacing:.3px; line-height:1.2; will-change:transform; word-break:break-word; max-width:100%; }
+  /* Poll bars */
+  .poll-bars { display:flex; flex-direction:column; gap:.45rem; margin-top:.5rem; max-width:100%; }
+  .poll-row { display:flex; align-items:center; gap:.6rem; max-width:100%; flex-wrap:nowrap; }
+  .poll-label { min-width:120px; font-weight:800; color:#9B5DE5; font-size:.8rem; overflow-wrap:break-word; flex-shrink:0; }
+  .poll-bar { flex:1; min-width:0; height:14px; background:#f1edf9; border:1px solid #e1d4fb; border-radius:999px; overflow:hidden; }
+  .poll-fill { height:100%; background:#9B5DE5; border-radius:999px; }
+  .poll-pct { width:46px; text-align:right; font-size:.75rem; font-weight:800; color:#555; flex-shrink:0; }
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <h1 class="logo">{{ d.titulo }}</h1>
+  </header>
+  <main>
+    <div class="card" style="margin-bottom:1rem;">
+      {% if d.descricao %}<p class="muted" style="margin-top:0;">{{ d.descricao }}</p>{% endif %}
+      {% if d.tipo == 'oneword' %}
+        {% if user_response %}
+          <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
+            <strong>✓ Você já respondeu:</strong> {{ user_response.word1 }}{% if user_response.word2 %}, {{ user_response.word2 }}{% endif %}{% if user_response.word3 %}, {{ user_response.word3 }}{% endif %}
+          </div>
+          {% if agg.counts %}
+            <h3 style="margin-top:1.5rem; margin-bottom:1.2rem;">Nuvem de palavras</h3>
+            <div id="word-cloud" class="cloud" aria-label="Nuvem de palavras"></div>
+            <div id="wc-data" data-entries='{{ agg.counts.most_common(80) | tojson | safe }}' style="display:none"></div>
+            <noscript>
+              <h4 style="margin-top:.8rem;">Top palavras</h4>
+              <ul>
+                {% for w,c in agg.counts.most_common(10) %}
+                  <li><strong>{{ w }}</strong>: {{ c }}</li>
+                {% endfor %}
+              </ul>
+            </noscript>
+            <script>
+              (function(){
+                try{
+                  var dataEl = document.getElementById('wc-data');
+                  if(!dataEl) return;
+                  var entries = [];
+                  try { entries = JSON.parse(dataEl.getAttribute('data-entries') || '[]'); } catch(e) { entries = []; }
+                  if(!entries || !entries.length) return;
+                  var max = entries[0][1];
+                  var min = entries[entries.length-1][1];
+                  var clamp = function(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); };
+                  function seed(word){
+                    var s=0; for(var i=0;i<word.length;i++){ s = (s*31 + word.charCodeAt(i)) >>> 0; } return s;
+                  }
+                  var wrap = document.getElementById('word-cloud');
+                  wrap.innerHTML='';
+                  entries.forEach(function(pair){
+                    var word = pair[0];
+                    var cnt = pair[1];
+                    var ratio = max===min ? 1 : (cnt - min) / (max - min);
+                    var size = Math.round(14 + ratio * 34); // 14px..48px
+                    var span = document.createElement('span');
+                    span.className = 'w';
+                    span.style.fontSize = size + 'px';
+                    // cor em tons roxos/rosas variando com a palavra e frequência
+                    var baseH = 275; // roxo base
+                    var hue = baseH + (seed(word) % 40) - 20; // +-20 deg
+                    var sat = Math.round(50 + ratio*40); // 50..90
+                    var light = Math.round(35 + (1-ratio)*20); // 35..55
+                    span.style.color = 'hsl(' + hue + ', ' + sat + '%, ' + light + '%)';
+                    // leve rotação para lembrar um mosaico
+                    var ang = ((seed(word) % 7) - 3) * 4; // -12..+12
+                    span.style.transform = 'rotate(' + ang + 'deg)';
+                    span.style.transformOrigin = 'center bottom';
+                    span.title = cnt + (cnt===1 ? ' ocorrência' : ' ocorrências');
+                    span.textContent = word;
+                    wrap.appendChild(span);
+                  });
+                }catch(e){ /* ignore */ }
+              })();
+            </script>
+          {% endif %}
+        {% else %}
+          <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+            <label style="font-weight:700; margin-bottom:.4rem; display:block;">Palavra 1</label>
+            <input type="text" name="word1" required style="width:100%; padding:.6rem; border:1px solid var(--border); border-radius:8px; margin-bottom:1rem;" />
+            
+            <label style="font-weight:700; margin-bottom:.4rem; display:block;">Palavra 2</label>
+            <input type="text" name="word2" style="width:100%; padding:.6rem; border:1px solid var(--border); border-radius:8px; margin-bottom:1rem;" />
+            
+            <label style="font-weight:700; margin-bottom:.4rem; display:block;">Palavra 3</label>
+            <input type="text" name="word3" style="width:100%; padding:.6rem; border:1px solid var(--border); border-radius:8px; margin-bottom:1rem;" />
+            
+            <button type="submit" class="btn primary">Enviar</button>
+          </form>
+        {% endif %}
+      {% elif d.tipo == 'poll' %}
+        {% if user_response %}
+          {% set user_option_idx = user_response.option %}
+          {% set options_list = cfg.get('options', []) %}
+          {% set user_option_text = options_list[user_option_idx] if user_option_idx < (options_list|length) else 'Opção inválida' %}
+          <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
+            <strong>✓ Você já votou:</strong> {{ user_option_text }}
+          </div>
+          {% if agg.counts %}
+            {% set total = (agg.counts | sum) if agg.counts else 0 %}
+            {% set colors = ['#9B5DE5', '#F15BB5', '#00BBF9', '#00F5FF', '#FEE440', '#FCA311'] %}
+            {% set options_list = cfg.get('options', []) %}
+            <h3 style="margin-top:1rem;">Parciais</h3>
+            <div class="poll-bars" role="list" aria-label="Resultados parciais da enquete">
+              {% for opt in options_list %}
+                {% set c = agg.counts[loop.index0] if agg.counts else 0 %}
+                {% set pct = ( (c * 100.0) / (total if total else 1) ) | round(0, 'floor') %}
+                {% set bar_color = colors[loop.index0 % colors|length] %}
+                <div class="poll-row" role="listitem">
+                  <div class="poll-label">{{ opt }}</div>
+                  <div class="poll-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ pct }}" aria-label="{{ opt }}: {{ pct }}%">
+                    <div class="poll-fill" data-pct="{{ '%d' % pct }}" style="background:{{ bar_color }};"></div>
+                  </div>
+                  <div class="poll-pct">{{ '%d' % pct }}% ({{ c }})</div>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="muted" style="margin-top:.4rem; font-size:.75rem;">Total de votos: {{ total }}</div>
+            <script>
+              (function(){
+                try{
+                  document.querySelectorAll('.poll-fill[data-pct]').forEach(function(el){
+                    var pct = parseInt(el.getAttribute('data-pct'), 10) || 0;
+                    pct = Math.max(0, Math.min(100, pct));
+                    el.style.width = pct + '%';
+                  });
+                }catch(e){}
+              })();
+            </script>
+          {% endif %}
+        {% else %}
+          <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="options">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+            {% set options_list = cfg.get('options', []) %}
+            {% for opt in options_list %}
+              <label style="display:flex; align-items:center; gap:.5rem;">
+                <input type="radio" name="option" value="{{ loop.index0 }}" required /> {{ opt }}
+              </label>
+            {% endfor %}
+            <button type="submit" class="btn primary" style="margin-top:.6rem;">Votar</button>
+          </form>
+        {% endif %}
+      {% elif d.tipo == 'form' %}
+        <form method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" class="dinamica-form" style="display:flex;flex-direction:column;gap:12px;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+          {% set fields = cfg.get('fields', []) %}
+          {% for q in fields %}
+            <div class="q-card" style="padding:10px;border:1px solid #e3e3e3;border-radius:8px;">
+              <label style="font-weight:600;display:block;margin-bottom:6px;">
+                {{ q.label or ('Pergunta ' ~ loop.index) }}
+                {% if q.required %}<span style="color:#d00">*</span>{% endif %}
+              </label>
+              {% if q.type == 'short' %}
+                <input type="text" name="q_{{ q.id }}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" {% if q.required %}required{% endif %} />
+              {% elif q.type == 'paragraph' %}
+                <textarea name="q_{{ q.id }}" rows="4" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" {% if q.required %}required{% endif %}></textarea>
+              {% elif q.type == 'multiple_choice' %}
+                {% for opt in q.options %}
+                  <label style="display:flex;align-items:center;gap:8px;margin:4px 0;">
+                    <input type="radio" name="q_{{ q.id }}" value="{{ opt }}" {% if q.required and loop.first %}required{% endif %} />
+                    <span>{{ opt }}</span>
+                  </label>
+                {% endfor %}
+              {% else %}
+                <input type="text" name="q_{{ q.id }}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;" {% if q.required %}required{% endif %} />
+              {% endif %}
+            </div>
+          {% else %}
+            <p>Formulário sem perguntas configuradas.</p>
+          {% endfor %}
+          <button type="submit" class="btn primary" style="align-self:flex-start;padding:10px 16px;border:none;border-radius:8px;cursor:pointer;">Enviar</button>
+        </form>
+      {% elif d.tipo == 'quemsouleu' %}
+        {% if user_response %}
+          <div style="padding:.8rem; background:#e8f5e9; border:1px solid #4caf50; border-radius:8px; margin-bottom:1rem;">
+            <strong>✓ Você já completou esta dinâmica!</strong>
+          </div>
+          <div style="text-align:center; margin-top:1.5rem;">
+            <button class="btn primary" id="verRespostasBtn">Ver Minhas Respostas</button>
+          </div>
+          <div id="respostasDiv" style="display:none; margin-top:1rem;">
+            <h3 style="margin-top:1.5rem; margin-bottom:1rem; color:#9B5DE5;">Suas Respostas</h3>
+            {% set items = cfg.get('items', []) %}
+            {% set respostas = user_response.respostas %}
+            {% for item in items %}
+              <div class="builder-card" style="margin-bottom:.8rem;">
+                <div style="font-weight:700; color:#9B5DE5; margin-bottom:.5rem;">Item {{ loop.index }}</div>
+                {% if item.tipo == 'frase' %}
+                  <p style="margin:.3rem 0;"><em>"{{ item.conteudo }}"</em></p>
+                {% else %}
+                  <img src="{{ item.conteudo }}" alt="Item {{ loop.index }}" style="max-width:100%; height:auto; border-radius:8px; margin:.5rem 0;" />
+                {% endif %}
+                <div style="margin-top:.5rem;">
+                  <strong>Sua resposta:</strong> {{ respostas[loop.index0] if respostas and loop.index0 < (respostas|length) else '(sem resposta)' }}
+                </div>
+              </div>
+            {% endfor %}
+            <div style="background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; padding:1rem; margin-top:1.5rem;">
+              <h4 style="margin:0 0 .5rem; color:#9B5DE5; display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Moral da História</h4>
+              <p style="margin:0;">{{ cfg.get('moral', '') }}</p>
+            </div>
+          </div>
+          <script>
+            document.getElementById('verRespostasBtn').addEventListener('click', function(){
+              var div = document.getElementById('respostasDiv');
+              div.style.display = div.style.display === 'none' ? 'block' : 'none';
+              this.textContent = div.style.display === 'none' ? 'Ver Minhas Respostas' : 'Ocultar Respostas';
+            });
+          </script>
+        {% else %}
+          <div id="quemsouleuInstrucoes">
+            <div style="background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; padding:1rem; margin-bottom:1rem;">
+              <h3 style="margin:0 0 .5rem; color:#9B5DE5;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Instruções</h3>
+              <p style="margin:0;">Você verá {{ cfg.get('items', [])|length }} {% if cfg.get('items', [])|length == 1 %}item{% else %}itens{% endif %} (frases ou fotos). Para cada um, digite sua resposta sobre: <strong>{{ cfg.get('questao_tipo', '') }}</strong></p>
+            </div>
+            <button class="btn primary" id="iniciarBtn">Começar</button>
+          </div>
+          <div id="quemsouleuJogo" style="display:none;">
+            <div id="itemAtual"></div>
+            <form id="quemsouleuForm" method="POST" action="{{ url_for('main.dinamica_responder', dyn_id=d.id) }}" style="margin-top:1rem;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+              <div id="respostasInputs"></div>
+            </form>
+          </div>
+          <script>
+          (function(){
+            var items = {{ cfg.get('items', []) | tojson | safe }};
+            var questaoTipo = {{ cfg.get('questao_tipo', '') | tojson | safe }};
+            var currentIdx = 0;
+            var respostas = new Array(items.length).fill('');
+            
+            document.getElementById('iniciarBtn').addEventListener('click', function(){
+              document.getElementById('quemsouleuInstrucoes').style.display = 'none';
+              document.getElementById('quemsouleuJogo').style.display = 'block';
+              mostrarItem(0);
+            });
+            
+            function mostrarItem(idx){
+              currentIdx = idx;
+              var item = items[idx];
+              var div = document.getElementById('itemAtual');
+              var html = '<div class="builder-card" style="text-align:center;">';
+              html += '<div style="font-weight:700; color:#9B5DE5; margin-bottom:.8rem;">Item ' + (idx+1) + ' de ' + items.length + '</div>';
+              
+              if(item.tipo === 'frase'){
+                html += '<p style="font-size:1.2rem; margin:1rem 0; font-weight:600;"><em>"' + item.conteudo + '"</em></p>';
+              } else {
+                html += '<img src="' + item.conteudo + '" alt="Item" style="max-width:100%; max-height:400px; height:auto; border-radius:8px; margin:.5rem 0;" />';
+              }
+              
+              html += '<div style="margin-top:1.5rem;">';
+              html += '<label style="font-weight:700; display:block; margin-bottom:.5rem;">' + questaoTipo + '</label>';
+              html += '<input type="text" id="respostaAtual" value="' + (respostas[idx] || '') + '" style="width:100%; max-width:400px; padding:.8rem; border:1px solid var(--border); border-radius:8px; font-size:1rem;" />';
+              html += '</div>';
+              html += '<div style="display:flex; gap:.5rem; justify-content:center; margin-top:1.5rem;">';
+              if(idx > 0){
+                html += '<button type="button" class="btn" id="anteriorBtn">← Anterior</button>';
+              }
+              if(idx < items.length - 1){
+                html += '<button type="button" class="btn primary" id="proximoBtn">Próximo →</button>';
+              } else {
+                html += '<button type="button" class="btn primary" id="finalizarBtn">Finalizar ✓</button>';
+              }
+              html += '</div>';
+              html += '</div>';
+              
+              div.innerHTML = html;
+              
+              var input = document.getElementById('respostaAtual');
+              input.focus();
+              input.addEventListener('input', function(){
+                respostas[currentIdx] = this.value;
+              });
+              
+              var anteriorBtn = document.getElementById('anteriorBtn');
+              if(anteriorBtn){
+                anteriorBtn.addEventListener('click', function(){
+                  respostas[currentIdx] = document.getElementById('respostaAtual').value;
+                  mostrarItem(currentIdx - 1);
+                });
+              }
+              
+              var proximoBtn = document.getElementById('proximoBtn');
+              if(proximoBtn){
+                proximoBtn.addEventListener('click', function(){
+                  respostas[currentIdx] = document.getElementById('respostaAtual').value;
+                  mostrarItem(currentIdx + 1);
+                });
+              }
+              
+              var finalizarBtn = document.getElementById('finalizarBtn');
+              if(finalizarBtn){
+                finalizarBtn.addEventListener('click', function(){
+                  respostas[currentIdx] = document.getElementById('respostaAtual').value;
+                  // Criar inputs hidden e submeter
+                  var form = document.getElementById('quemsouleuForm');
+                  var inputsDiv = document.getElementById('respostasInputs');
+                  inputsDiv.innerHTML = '';
+                  respostas.forEach(function(resp, i){
+                    var inp = document.createElement('input');
+                    inp.type = 'hidden';
+                    inp.name = 'resposta_' + i;
+                    inp.value = resp || '';
+                    inputsDiv.appendChild(inp);
+                  });
+                  form.submit();
+                });
+              }
+            }
+          })();
+          </script>
+        {% endif %}
+      {% endif %}
+    </div>
+  </main>
+  <footer style="background:#9B5DE5; color:#fff; text-align:center; padding:1rem 0 1.1rem; font-size:.8rem; border-top-left-radius:28px; border-top-right-radius:28px; margin-top:40px;">© 2025 Gramátike • Linguagem Viva e de Todes</footer>
+  <style>@media (max-width: 980px){ footer { display:none !important; } }</style>
+</body>
+</html>
