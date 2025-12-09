@@ -7,13 +7,12 @@ except ImportError:
     from starlette.responses import Response
 
 from ._template_processor import render_template
+from gramatike_d1.auth import get_current_user
 
 
 async def on_request(request, env, context):
     """Handle home page requests."""
     # Check if user is authenticated
-    from gramatike_d1.auth import get_current_user
-    
     db = getattr(env, 'DB', None) if env else None
     user = None
     
@@ -21,11 +20,11 @@ async def on_request(request, env, context):
         try:
             user = await get_current_user(db, request)
             if user:
-                print(f"[Index] User authenticated: {user.get('username')} (ID: {user.get('id')}) - showing feed.html")
+                print("[Index] User authenticated - showing feed.html")
             else:
                 print("[Index] User not authenticated - showing landing.html")
         except Exception as e:
-            print(f"[Index] Error checking authentication: {type(e).__name__}: {str(e)}")
+            print(f"[Index] Error checking authentication: {type(e).__name__}")
     else:
         print("[Index] DB not available - showing landing.html")
     

@@ -101,11 +101,13 @@ This fix is ready for deployment to Cloudflare Workers. No database migrations o
 **After**: User logs in → Direct redirect to /index.html → Session cookie preserved → Authentication check → Shows feed.html → User sees their feed
 
 ## Logging
-The fix includes detailed logging that will appear in Cloudflare Workers logs:
-- `[Index] User authenticated: {username} (ID: {id}) - showing feed.html` - User successfully logged in
+The fix includes logging that will appear in Cloudflare Workers logs:
+- `[Index] User authenticated - showing feed.html` - User successfully logged in
 - `[Index] User not authenticated - showing landing.html` - User not logged in (expected for visitors)
-- `[Index] Error checking authentication: {error}` - Authentication check failed (investigate)
+- `[Index] Error checking authentication: {ErrorType}` - Authentication check failed (investigate)
 - `[Index] DB not available - showing landing.html` - Database connection issue (critical)
+
+**Note**: Logs do not include usernames or user IDs to protect user privacy.
 
 ---
 
