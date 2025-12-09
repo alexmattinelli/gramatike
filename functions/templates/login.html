@@ -59,15 +59,6 @@
 <body>
   <div class="login-wrapper">
     <div class="login-card">
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          <ul class="flash-messages">
-            {% for category, message in messages %}
-              <li class="flash-{{ category }}">{{ message }}</li>
-            {% endfor %}
-          </ul>
-        {% endif %}
-      {% endwith %}
       <h2>Entrar</h2>
       <form method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
