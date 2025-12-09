@@ -4,6 +4,7 @@ from flask_login import login_user, logout_user, login_required, LoginManager, c
 from datetime import datetime, timedelta
 import os
 import re
+import traceback
 from werkzeug.utils import secure_filename
 from mimetypes import guess_type
 from gramatike_app.utils.storage import upload_to_storage, build_avatar_path, build_post_image_path, build_apostila_path, build_divulgacao_path
@@ -826,7 +827,6 @@ def feed():
         return render_template('feed.html')
     except Exception as e:
         current_app.logger.error(f'[Feed] Erro ao carregar feed: {e}')
-        import traceback
         current_app.logger.error(f'[Feed Traceback]\n{traceback.format_exc()}')
         # Se houver erro ao carregar o feed, tenta redirecionar para landing ou mostra erro
         flash('Erro ao carregar o feed. Por favor, tente novamente.', 'error')
@@ -1204,7 +1204,9 @@ def login():
                 login_user(user, remember=True)  # Adiciona remember=True para persistir sessão
                 current_app.logger.info(f'[Login] Login bem-sucedido: {user.username} (ID: {user.id})')
                 
-                # Verifica se o login foi bem-sucedido
+                # Verifica se o login foi bem-sucedido (detecta problemas de sessão em ambiente serverless)
+                # Em ambientes serverless (Cloudflare Pages/Workers), às vezes a sessão pode não persistir
+                # imediatamente após login_user() devido a configurações de cookie ou storage
                 if not current_user.is_authenticated:
                     current_app.logger.error(f'[Login] Falha ao autenticar usuárie após login_user: {user.username}')
                     flash('Erro ao processar login. Tente novamente.', 'error')
@@ -1220,7 +1222,6 @@ def login():
                 return render_template('login.html')
                 
         except Exception as e:
-            import traceback
             current_app.logger.error(f'[Login Error] {type(e).__name__}: {str(e)}')
             current_app.logger.error(f'[Login Traceback]\n{traceback.format_exc()}')
             flash('Erro ao processar login.', 'error')
