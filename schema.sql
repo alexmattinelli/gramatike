@@ -82,12 +82,12 @@ CREATE INDEX IF NOT EXISTS idx_comentario_data ON comentario(data);
 -- ============================================================================
 -- Followers (many-to-many)
 -- ============================================================================
-CREATE TABLE IF NOT EXISTS seguidores (
-    seguidor_id INTEGER NOT NULL,
-    seguido_id INTEGER NOT NULL,
-    PRIMARY KEY (seguidor_id, seguido_id),
-    FOREIGN KEY (seguidor_id) REFERENCES user(id),
-    FOREIGN KEY (seguido_id) REFERENCES user(id)
+CREATE TABLE IF NOT EXISTS seguidories (
+    seguidore_id INTEGER NOT NULL,
+    seguide_id INTEGER NOT NULL,
+    PRIMARY KEY (seguidore_id, seguide_id),
+    FOREIGN KEY (seguidore_id) REFERENCES user(id),
+    FOREIGN KEY (seguide_id) REFERENCES user(id)
 );
 
 -- ============================================================================
