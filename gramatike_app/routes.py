@@ -72,7 +72,7 @@ def register():
                 send_email(user.email, 'Bem-vinde ao Gramátike', html)
             except Exception:
                 pass
-            flash('Registro concluído! Agora pode fazer login.', 'success')
+            flash('Registro feito com sucesso', 'success')
             return redirect(url_for('main.login'))
         except Exception as db_error:
             current_app.logger.error(f"Erro ao registrar usuárie: {db_error}")
