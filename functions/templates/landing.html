@@ -10,21 +10,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root { --primary:#9B5DE5; --border:#e5e7eb; --card:#fff; --bg:#f7f8ff; --text:#222; --text-dim:#6b6b78; }
-        body { margin:0; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
-        header.site-head { background:#333; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; }
+        body { margin:0; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; background:var(--primary); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+        header.site-head { background:var(--primary); padding:28px clamp(16px,4vw,40px) 46px; position:relative; display:flex; flex-direction:column; align-items:center; }
         .logo { font-family:'Mansalva', cursive; font-size:2.4rem; color:#fff; font-weight:400; margin:0; }
-        main { flex:1; width:100%; max-width:980px; margin:2rem auto 4rem; padding:0 clamp(16px,4vw,40px); }
+        main { flex:1; width:100%; max-width:980px; margin:0 auto; padding:2rem clamp(16px,4vw,40px) 4rem; background:var(--bg); border-top-left-radius:40px; border-top-right-radius:40px; }
         .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1.5rem; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); }
         .btn { display:inline-flex; align-items:center; justify-content:center; padding:0.7rem 1.2rem; border-radius:12px; font-weight:700; text-decoration:none; transition:0.2s; }
         .btn-primary { background:var(--primary); color:#fff; border:none; }
         .btn-primary:hover { background:#7d3dc9; }
         .modules-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:1rem; }
-        .module-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.2rem; text-align:center; text-decoration:none; color:var(--text); transition:0.2s; }
+        .module-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.2rem; text-align:center; color:var(--text); transition:0.2s; cursor:pointer; }
         .module-card:hover { transform:translateY(-4px); box-shadow:0 12px 24px rgba(0,0,0,0.12); }
         .module-card .icon { font-size:2rem; margin-bottom:0.5rem; }
         .module-card h3 { margin:0 0 0.3rem; color:var(--primary); font-size:1rem; }
         .module-card p { margin:0; font-size:0.8rem; color:var(--text-dim); }
-        footer { background:#333; color:#fff; padding:1.2rem; text-align:center; font-size:0.8rem; border-top-left-radius:40px; border-top-right-radius:40px; }
+        .footer-text { margin-top:2rem; text-align:center; font-size:0.85rem; color:var(--text-dim); font-weight:600; padding:1rem 0; }
+        .preview-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding:2rem; }
+        .preview-modal.active { display:flex; }
+        .preview-content { background:var(--card); border-radius:24px; padding:2rem; max-width:600px; width:100%; max-height:80vh; overflow-y:auto; position:relative; box-shadow:0 20px 60px rgba(0,0,0,0.3); }
+        .preview-close { position:absolute; top:1rem; right:1rem; background:var(--primary); color:#fff; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:1.2rem; line-height:1; }
+        .preview-close:hover { background:#7d3dc9; }
+        .preview-item { padding:1rem; border-bottom:1px solid var(--border); }
+        .preview-item:last-child { border-bottom:none; }
+        .preview-item h4 { color:var(--primary); margin:0 0 0.5rem; font-size:0.95rem; }
+        .preview-item p { color:var(--text-dim); margin:0; font-size:0.8rem; line-height:1.4; }
         @media (max-width: 768px) {
             .logo { font-size:1.8rem; }
             header.site-head { padding:18px clamp(12px,3vw,24px) 28px; }
@@ -39,7 +48,7 @@
         <div class="card" style="text-align: center; margin-bottom: 2rem;">
             <h2 style="color: var(--primary); margin-bottom: 0.5rem;">Bem-vinde ao Gramátike!</h2>
             <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
-                Plataforma educacional de gramática portuguesa com foco em inclusão e gênero neutro.
+                Rede socioeducacional que integra convivência, recursos educativos e atividades interativas.
             </p>
             <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
                 <a href="/login" class="btn btn-primary">Entrar</a>
@@ -49,40 +58,197 @@
         
         <h2 style="text-align: center; color: var(--primary); margin: 2rem 0 1.5rem;">Explore</h2>
         <div class="modules-grid">
-            <a href="/educacao" class="module-card">
+            <div class="module-card" onclick="showPreview('palavras')">
                 <div class="icon">📚</div>
-                <h3>Educação</h3>
-                <p>Aprenda gramática de forma inclusiva</p>
-            </a>
-            <a href="/dinamicas" class="module-card">
+                <h3>Palavras do Dia</h3>
+                <p>Aprenda novas palavras diariamente</p>
+            </div>
+            <div class="module-card" onclick="showPreview('dinamicas')">
                 <div class="icon">🎮</div>
                 <h3>Dinâmicas</h3>
                 <p>Jogos e atividades</p>
-            </a>
-            <a href="/exercicios" class="module-card">
+            </div>
+            <div class="module-card" onclick="showPreview('exercicios')">
                 <div class="icon">✏️</div>
                 <h3>Exercícios</h3>
                 <p>Pratique gramática</p>
-            </a>
-            <a href="/artigos" class="module-card">
+            </div>
+            <div class="module-card" onclick="showPreview('artigos')">
                 <div class="icon">📰</div>
                 <h3>Artigos</h3>
                 <p>Conteúdo educacional</p>
-            </a>
-            <a href="/apostilas" class="module-card">
+            </div>
+            <div class="module-card" onclick="showPreview('apostilas')">
                 <div class="icon">📖</div>
                 <h3>Apostilas</h3>
                 <p>Material de estudo</p>
-            </a>
-            <a href="/" class="module-card">
+            </div>
+            <div class="module-card" onclick="showPreview('portal')">
                 <div class="icon">💬</div>
                 <h3>Portal Gramátike</h3>
                 <p>Acesse a comunidade</p>
-            </a>
+            </div>
+        </div>
+        <div class="footer-text">
+            © Gramátike • Língua Viva e de Todes
         </div>
     </main>
-    <footer>
-        <span>Gramátike © 2025</span>
-    </footer>
+    
+    <!-- Preview Modal -->
+    <div id="previewModal" class="preview-modal" onclick="closePreview(event)">
+        <div class="preview-content" onclick="event.stopPropagation()">
+            <button class="preview-close" onclick="closePreview()">&times;</button>
+            <div id="previewBody"></div>
+        </div>
+    </div>
+    
+    <script>
+        const previews = {
+            palavras: {
+                title: '📚 Palavras do Dia',
+                content: `
+                    <div class="preview-item">
+                        <h4>🌟 Palavra de Hoje: Resiliência</h4>
+                        <p><strong>Significado:</strong> Capacidade de se recuperar de adversidades e adaptar-se a mudanças.</p>
+                        <p><strong>Exemplo:</strong> "A resiliência da equipe foi fundamental para superar os desafios."</p>
+                    </div>
+                    <div class="preview-item">
+                        <h4>💡 Dica Gramatical</h4>
+                        <p>A palavra "resiliência" é derivada do latim "resilire" (saltar para trás, voltar).</p>
+                    </div>
+                    <p style="text-align: center; margin-top: 1.5rem;">
+                        <a href="/educacao" class="btn btn-primary">Ver Todas as Palavras</a>
+                    </p>
+                `
+            },
+            dinamicas: {
+                title: '🎮 Dinâmicas Interativas',
+                content: `
+                    <div class="preview-item">
+                        <h4>🎯 Jogo da Forca Gramatical</h4>
+                        <p>Descubra palavras relacionadas à gramática portuguesa de forma divertida!</p>
+                    </div>
+                    <div class="preview-item">
+                        <h4>🧩 Quiz de Conjugação Verbal</h4>
+                        <p>Teste seus conhecimentos sobre verbos e suas conjugações.</p>
+                    </div>
+                    <div class="preview-item">
+                        <h4>🎪 Desafio de Ortografia</h4>
+                        <p>Pratique ortografia com palavras de diferentes níveis de dificuldade.</p>
+                    </div>
+                    <p style="text-align: center; margin-top: 1.5rem;">
+                        <a href="/dinamicas" class="btn btn-primary">Explorar Dinâmicas</a>
+                    </p>
+                `
+            },
+            exercicios: {
+                title: '✏️ Exercícios de Gramática',
+                content: `
+                    <div class="preview-item">
+                        <h4>📝 Concordância Nominal e Verbal</h4>
+                        <p>Pratique com exercícios sobre concordância em frases do dia a dia.</p>
+                    </div>
+                    <div class="preview-item">
+                        <h4>🔤 Regência Verbal e Nominal</h4>
+                        <p>Aprenda a usar corretamente preposições com verbos e nomes.</p>
+                    </div>
+                    <div class="preview-item">
+                        <h4>📋 Pontuação e Sintaxe</h4>
+                        <p>Exercícios sobre vírgulas, pontos e estrutura das frases.</p>
+                    </div>
+                    <p style="text-align: center; margin-top: 1.5rem;">
+                        <a href="/exercicios" class="btn btn-primary">Começar Exercícios</a>
+                    </p>
+                `
+            },
+            artigos: {
+                title: '📰 Artigos Educacionais',
+                content: `
+                    <div class="preview-item">
+                        <h4>✍️ A Importância da Linguagem Inclusiva</h4>
+                        <p>Como usar pronomes neutros e linguagem inclusiva na prática.</p>
+                    </div>
+                    <div class="preview-item">
+                        <h4>🌍 Variações Regionais do Português</h4>
+                        <p>Explore as diferenças entre português brasileiro e europeu.</p>
+                    </div>
+                    <div class="preview-item">
+                        <h4>📖 História da Língua Portuguesa</h4>
+                        <p>Conheça a evolução do português desde suas origens latinas.</p>
+                    </div>
+                    <p style="text-align: center; margin-top: 1.5rem;">
+                        <a href="/artigos" class="btn btn-primary">Ler Mais Artigos</a>
+                    </p>
+                `
+            },
+            apostilas: {
+                title: '📖 Apostilas de Estudo',
+                content: `
+                    <div class="preview-item">
+                        <h4>📚 Gramática Básica Completa</h4>
+                        <p>Material PDF com todos os fundamentos da gramática portuguesa.</p>
+                    </div>
+                    <div class="preview-item">
+                        <h4>🎓 Guia de Redação Inclusiva</h4>
+                        <p>Aprenda técnicas de escrita inclusiva e neutra.</p>
+                    </div>
+                    <div class="preview-item">
+                        <h4>📝 Ortografia e Acentuação</h4>
+                        <p>Regras completas de ortografia segundo o novo acordo ortográfico.</p>
+                    </div>
+                    <p style="text-align: center; margin-top: 1.5rem;">
+                        <a href="/apostilas" class="btn btn-primary">Ver Apostilas</a>
+                    </p>
+                `
+            },
+            portal: {
+                title: '💬 Portal Gramátike',
+                content: `
+                    <div class="preview-item">
+                        <h4>👥 Comunidade Ativa</h4>
+                        <p>Conecte-se com outras pessoas interessadas em gramática portuguesa.</p>
+                    </div>
+                    <div class="preview-item">
+                        <h4>💭 Fórum de Discussão</h4>
+                        <p>Tire dúvidas e compartilhe conhecimentos sobre a língua.</p>
+                    </div>
+                    <div class="preview-item">
+                        <h4>🌟 Perfil Personalizado</h4>
+                        <p>Acompanhe seu progresso e conquistas no aprendizado.</p>
+                    </div>
+                    <p style="text-align: center; margin-top: 1.5rem;">
+                        <a href="/" class="btn btn-primary">Entrar no Portal</a>
+                    </p>
+                `
+            }
+        };
+        
+        function showPreview(type) {
+            const modal = document.getElementById('previewModal');
+            const body = document.getElementById('previewBody');
+            const preview = previews[type];
+            
+            body.innerHTML = `
+                <h2 style="color: var(--primary); margin: 0 0 1.5rem; font-size: 1.5rem;">${preview.title}</h2>
+                ${preview.content}
+            `;
+            
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closePreview(event) {
+            if (!event || event.target.id === 'previewModal' || event.target.classList.contains('preview-close')) {
+                const modal = document.getElementById('previewModal');
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+        
+        // Close on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closePreview();
+        });
+    </script>
 </body>
 </html>
