@@ -733,78 +733,13 @@ def admin_resolve_report(report_id):
 
 @bp.route('/')
 def index():
-    """Página inicial com destaques dinâmicos.
-    - Edu: divulgações curadas.
-    - Trending: posts com mais likes últimos 7 dias.
-    - Comentados: posts com mais comentários últimos 7 dias.
-    """
-    from sqlalchemy import func
-    now = datetime.utcnow()
-    window_ini = now - timedelta(days=7)
-
-    # Divulgações curadas (admin) – sempre buscar frescos
-    try:
-        div_edu = (Divulgacao.query.filter_by(area='edu', ativo=True)
-                   .filter(Divulgacao.show_on_index == True)
-                   .order_by(Divulgacao.ordem.asc(), Divulgacao.created_at.desc())
-                   .limit(6).all())
-    except Exception:
-        # Fallback caso coluna não exista ainda
-        div_edu = (Divulgacao.query.filter_by(area='edu', ativo=True)
-                   .order_by(Divulgacao.ordem.asc(), Divulgacao.created_at.desc())
-                   .limit(6).all())
-    # Removido fallback automático para EduContent: só mostra o que for publicado como Divulgacao
-
-    # Subqueries para likes e comentários (Delu)
-    likes_sub = (db.session.query(Post.id.label('pid'), func.count(post_likes.c.user_id).label('likes'))
-                 .outerjoin(post_likes, post_likes.c.post_id == Post.id)
-                 .filter(((Post.is_deleted == False) | (Post.is_deleted.is_(None))) & (Post.data >= window_ini))
-                 .group_by(Post.id)
-                 .subquery())
-    comments_sub = (db.session.query(Comentario.post_id.label('pid'), func.count(Comentario.id).label('comments'))
-                    .filter(Comentario.data >= window_ini)
-                    .group_by(Comentario.post_id)
-                    .subquery())
-
-    # Trending por likes
-    trending_posts = (db.session.query(Post, func.coalesce(likes_sub.c.likes, 0).label('lk'))
-                      .outerjoin(likes_sub, likes_sub.c.pid == Post.id)
-                      .filter(((Post.is_deleted == False) | (Post.is_deleted.is_(None))) & (Post.data >= window_ini))
-                      .order_by(func.coalesce(likes_sub.c.likes, 0).desc(), Post.data.desc())
-                      .limit(5)
-                      .all())
-
-    # Mais comentados
-    commented_posts = (db.session.query(Post, func.coalesce(comments_sub.c.comments, 0).label('cm'))
-                       .outerjoin(comments_sub, comments_sub.c.pid == Post.id)
-                       .filter(((Post.is_deleted == False) | (Post.is_deleted.is_(None))) & (Post.data >= window_ini))
-                       .order_by(func.coalesce(comments_sub.c.comments, 0).desc(), Post.data.desc())
-                       .limit(5)
-                       .all())
-
-    def post_to_dict(p: Post, likes_count=0, comments_count=0):
-        try:
-            data_str = p.data.strftime('%d/%m %H:%M') if p.data else ''
-        except Exception:
-            data_str = ''
-        texto = (p.conteudo or '').strip().replace('\n', ' ')
-        excerpt = (texto[:80] + '…') if len(texto) > 80 else texto
-        return {
-            'id': p.id,
-            'usuarie': p.usuarie or 'Usuárie',
-            'excerpt': excerpt or '(sem texto)',
-            'likes': likes_count,
-            'comments': comments_count,
-            'data': data_str
-        }
-
-    delu_trending = [post_to_dict(p, likes_count=lk) for p, lk in trending_posts]
-    delu_commented = [post_to_dict(p, comments_count=cm) for p, cm in commented_posts]
-
-    return render_template('index.html',
-                           div_edu=div_edu,
-                           delu_trending=delu_trending,
-                           delu_commented=delu_commented)
+    """Página inicial: feed para usuáries autenticades, landing para visitantes."""
+    # Se usuárie estiver autenticade, mostra o feed
+    if current_user.is_authenticated:
+        return render_template('feed.html')
+    
+    # Para visitantes, mostra a landing page
+    return render_template('landing.html')
 
 # ------------------ Admin Divulgação ------------------
 @bp.route('/admin/divulgacao')
