@@ -21,16 +21,16 @@ def upgrade():
     op.create_table('word_exclusion',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('dynamic_id', sa.Integer(), nullable=False),
-    sa.Column('usuario_id', sa.Integer(), nullable=False),
+    sa.Column('usuarie_id', sa.Integer(), nullable=False),
     sa.Column('palavra', sa.String(length=100), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['dynamic_id'], ['dynamic.id'], ),
-    sa.ForeignKeyConstraint(['usuario_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['usuarie_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_word_exclusion_created_at'), 'word_exclusion', ['created_at'], unique=False)
     op.create_index(op.f('ix_word_exclusion_dynamic_id'), 'word_exclusion', ['dynamic_id'], unique=False)
-    op.create_index(op.f('ix_word_exclusion_usuario_id'), 'word_exclusion', ['usuario_id'], unique=False)
+    op.create_index(op.f('ix_word_exclusion_usuario_id'), 'word_exclusion', ['usuarie_id'], unique=False)
     # ### end Alembic commands ###
 
 

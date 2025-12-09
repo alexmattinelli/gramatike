@@ -67,12 +67,12 @@ ADMIN_CSS = """
         .inline-form button { padding:.55rem 1rem; background:var(--accent); color:#fff; font-weight:600; border:none; border-radius:9px; cursor:pointer; font-size:.7rem; letter-spacing:.5px; box-shadow:var(--shadow-sm); }
         .inline-form button:hover { background:var(--accent-hover); }
         /* Table */
-        table.admin-users { width:100%; border-collapse:separate; border-spacing:0; font-size:0.74rem; overflow:hidden; border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow-sm); }
-        table.admin-users th, table.admin-users td { padding:9px 12px; text-align:left; }
-        table.admin-users thead th { background:var(--bg-alt); position:sticky; top:0; z-index:1; font-weight:600; font-size:.68rem; letter-spacing:.7px; text-transform:uppercase; color:var(--text-soft); border-bottom:1px solid var(--border); }
-        table.admin-users tbody tr { border-bottom:1px solid var(--border); transition:.25s; }
-        table.admin-users tbody tr:last-child { border-bottom:none; }
-        table.admin-users tbody tr:hover { background:rgba(0,0,0,.03); }
+        table.admin-usuaries { width:100%; border-collapse:separate; border-spacing:0; font-size:0.74rem; overflow:hidden; border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow-sm); }
+        table.admin-usuaries th, table.admin-usuaries td { padding:9px 12px; text-align:left; }
+        table.admin-usuaries thead th { background:var(--bg-alt); position:sticky; top:0; z-index:1; font-weight:600; font-size:.68rem; letter-spacing:.7px; text-transform:uppercase; color:var(--text-soft); border-bottom:1px solid var(--border); }
+        table.admin-usuaries tbody tr { border-bottom:1px solid var(--border); transition:.25s; }
+        table.admin-usuaries tbody tr:last-child { border-bottom:none; }
+        table.admin-usuaries tbody tr:hover { background:rgba(0,0,0,.03); }
         .badge { display:inline-block; padding:3px 8px 4px; border-radius:14px; font-size:0.55rem; font-weight:600; letter-spacing:.6px; background:var(--bg); color:var(--text-soft); text-transform:uppercase; box-shadow:inset 0 0 0 1px var(--border); }
         .badge-admin { background:var(--accent); color:#fff; box-shadow:none; }
         .badge-superadmin { background:linear-gradient(120deg,#ffb347,#ff6b6b); color:#fff; box-shadow:none; }
@@ -85,8 +85,8 @@ ADMIN_CSS = """
         button.action-btn.danger { border-color:var(--danger); color:var(--danger); }
         .muted { color:var(--text-soft); font-size:0.62rem; }
     /* Gramátike (antigo Delu) reports table override smaller font */
-    #tab-gramatike table.admin-users { font-size:.66rem; }
-    #tab-gramatike table.admin-users th { font-size:.55rem; }
+    #tab-gramatike table.admin-usuaries { font-size:.66rem; }
+    #tab-gramatike table.admin-usuaries th { font-size:.55rem; }
         /* ===== Fim das alterações ===== */
     /* Avisos rápidos (Publi) */
     .publi-aviso-form { display:flex; flex-direction:column; gap:.55rem; }
@@ -110,11 +110,11 @@ ADMIN_CSS = """
         /* Responsive */
         @media (max-width:880px){
             header h1 { font-size:1.05rem; }
-            table.admin-users thead { display:none; }
-            table.admin-users, table.admin-users tbody, table.admin-users tr, table.admin-users td { display:block; width:100%; }
-            table.admin-users tr { margin:0 0 .75rem; background:var(--bg-alt); border:1px solid var(--border); border-radius:14px; padding:.4rem .6rem .55rem; }
-            table.admin-users td { border:none !important; padding:5px 4px; font-size:.68rem; }
-            table.admin-users td::before { content:attr(data-label); display:block; font-weight:600; font-size:.55rem; text-transform:uppercase; letter-spacing:.5px; color:var(--text-soft); margin-bottom:1px; }
+            table.admin-usuaries thead { display:none; }
+            table.admin-usuaries, table.admin-usuaries tbody, table.admin-usuaries tr, table.admin-usuaries td { display:block; width:100%; }
+            table.admin-usuaries tr { margin:0 0 .75rem; background:var(--bg-alt); border:1px solid var(--border); border-radius:14px; padding:.4rem .6rem .55rem; }
+            table.admin-usuaries td { border:none !important; padding:5px 4px; font-size:.68rem; }
+            table.admin-usuaries td::before { content:attr(data-label); display:block; font-weight:600; font-size:.55rem; text-transform:uppercase; letter-spacing:.5px; color:var(--text-soft); margin-bottom:1px; }
             .actions-stack { max-width:100%; }
         }
 .tabs { display:flex; gap:.6rem; border-bottom:2px solid #e3e8ef; margin-bottom:1.2rem; flex-wrap:wrap; }
@@ -124,9 +124,9 @@ ADMIN_CSS = """
             section.tab-panel { display:none; animation: fade .35s ease; }
             section.tab-panel.active { display:block; }
             @keyframes fade { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
-            table.admin-users { width:100%; border-collapse: collapse; font-size:0.95rem; }
-            table.admin-users th, table.admin-users td { padding:8px 10px; border:1px solid #e2e6eb; text-align:left; }
-            table.admin-users th { background:#f5f7fa; }
+            table.admin-usuaries { width:100%; border-collapse: collapse; font-size:0.95rem; }
+            table.admin-usuaries th, table.admin-usuaries td { padding:8px 10px; border:1px solid #e2e6eb; text-align:left; }
+            table.admin-usuaries th { background:#f5f7fa; }
             .badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:0.58rem; font-weight:600; letter-spacing:.5px; }
             .badge-admin { background:#9B5DE5; color:#fff; }
             .badge-superadmin { background:linear-gradient(120deg,#ffb347,#ff6b6b); color:#fff; box-shadow:0 0 0 1px #ffa540 inset; }
@@ -204,7 +204,7 @@ GERAL_TAB_HTML = f"""
                 </form>
                 <div style="margin-top:.8rem;">
                     <!-- IF blocked_words START -->
-                        <table class="admin-users" style="font-size:.72rem;">
+                        <table class="admin-usuaries" style="font-size:.72rem;">
                             <thead>
                                 <tr>
                                     <th style="width:55%">Termo</th>
@@ -251,7 +251,7 @@ GERAL_TAB_HTML = f"""
                     <!-- IF END -->
                 </div>
             </div>
-            <table class="admin-users" role="grid" aria-describedby="legenda-usuarios">
+            <table class="admin-usuaries" role="grid" aria-describedby="legenda-usuaries">
                 <thead>
                     <tr><th>ID</th><th>Username</th><th>Email</th><th>Privilégios</th><th>Ações</th></tr>
                 </thead>
@@ -268,7 +268,7 @@ GERAL_TAB_HTML = f"""
                         <td data-label="Ações">
                             <!-- IF not u.is_superadmin START -->
                                 <div class="actions-stack">
-                                    <form class="inline" method="POST" action="/main/gerenciar_usuarios">
+                                    <form class="inline" method="POST" action="/main/gerenciar_usuaries">
                                         
                                         <input type="hidden" name="user_id" value="{u.id}" />
                                         <button type="submit" class="action-btn"><!-- IF u.is_admin START -->Remover Admin<!-- ELSE -->Tornar Admin<!-- IF END --></button>
@@ -298,7 +298,7 @@ GERAL_TAB_HTML = f"""
                                         </form>
                                     <!-- IF END -->
                                     <!-- IF u.id != current_user.id START -->
-                                    <form class="inline" method="POST" action="/admin/excluir_usuario/{u.id}" onsubmit="return confirm('Excluir {u.username}?');">
+                                    <form class="inline" method="POST" action="/admin/excluir_usuarie/{u.id}" onsubmit="return confirm('Excluir {u.username}?');">
                                         
                                         <button type="submit" class="action-btn danger">Excluir</button>
                                     </form>
@@ -1587,7 +1587,7 @@ GRAMATIKE_TAB_HTML = f"""
                 </div>
                 <div class="card" style="grid-column:1/-1;">
                     <h4>Denúncias</h4>
-                    <table class="admin-users" style="font-size:.7rem;">
+                    <table class="admin-usuaries" style="font-size:.7rem;">
                         <thead>
                             <tr><th>ID</th><th>Post</th><th>Autor</th><th>Denunciante</th><th>Motivo</th><th>Categoria</th><th>Data</th><th>Status</th><th>Ações</th></tr>
                         </thead>
@@ -1596,8 +1596,8 @@ GRAMATIKE_TAB_HTML = f"""
                             <tr>
                                 <td>{r.id}</td>
                                 <td>#{r.post_id}</td>
-                                <td>{{ r.post.usuario if r.post else '?' }}</td>
-                                <td>{{ r.usuario.username if r.usuario else '?' }}</td>
+                                <td>{{ r.post.usuarie if r.post else '?' }}</td>
+                                <td>{{ r.usuarie.username if r.usuario else '?' }}</td>
                                 <td>{r.motivo}</td>
                                 <td>
                                     <!-- IF r.category START -->

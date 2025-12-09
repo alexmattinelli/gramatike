@@ -36,19 +36,19 @@ CREATE INDEX IF NOT EXISTS idx_user_created_at ON user(created_at);
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS post (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    usuario TEXT,
-    usuario_id INTEGER,
+    usuarie TEXT,
+    usuarie_id INTEGER,
     conteudo TEXT,
     imagem TEXT,
     data TEXT,
     is_deleted INTEGER DEFAULT 0,
     deleted_at TEXT,
     deleted_by INTEGER,
-    FOREIGN KEY (usuario_id) REFERENCES user(id),
+    FOREIGN KEY (usuarie_id) REFERENCES user(id),
     FOREIGN KEY (deleted_by) REFERENCES user(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_post_usuario_id ON post(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_post_usuarie_id ON post(usuarie_id);
 CREATE INDEX IF NOT EXISTS idx_post_data ON post(data);
 CREATE INDEX IF NOT EXISTS idx_post_is_deleted ON post(is_deleted);
 
@@ -56,10 +56,10 @@ CREATE INDEX IF NOT EXISTS idx_post_is_deleted ON post(is_deleted);
 -- Post likes (many-to-many)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS post_likes (
-    user_id INTEGER NOT NULL,
+    usuarie_id INTEGER NOT NULL,
     post_id INTEGER NOT NULL,
-    PRIMARY KEY (user_id, post_id),
-    FOREIGN KEY (user_id) REFERENCES user(id),
+    PRIMARY KEY (usuarie_id, post_id),
+    FOREIGN KEY (usuarie_id) REFERENCES user(id),
     FOREIGN KEY (post_id) REFERENCES post(id)
 );
 
@@ -68,11 +68,11 @@ CREATE TABLE IF NOT EXISTS post_likes (
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS comentario (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    usuario_id INTEGER,
+    usuarie_id INTEGER,
     conteudo TEXT,
     post_id INTEGER,
     data TEXT,
-    FOREIGN KEY (usuario_id) REFERENCES user(id),
+    FOREIGN KEY (usuarie_id) REFERENCES user(id),
     FOREIGN KEY (post_id) REFERENCES post(id)
 );
 
@@ -177,14 +177,14 @@ CREATE INDEX IF NOT EXISTS idx_exercise_question_section_id ON exercise_question
 CREATE TABLE IF NOT EXISTS report (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     post_id INTEGER,
-    usuario_id INTEGER,
+    usuarie_id INTEGER,
     motivo TEXT,
     category TEXT,
     data TEXT,
     resolved INTEGER DEFAULT 0,
     resolved_at TEXT,
     FOREIGN KEY (post_id) REFERENCES post(id),
-    FOREIGN KEY (usuario_id) REFERENCES user(id)
+    FOREIGN KEY (usuarie_id) REFERENCES user(id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_report_resolved ON report(resolved);
@@ -194,7 +194,7 @@ CREATE INDEX IF NOT EXISTS idx_report_resolved ON report(resolved);
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS support_ticket (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    usuario_id INTEGER,
+    usuarie_id INTEGER,
     nome TEXT,
     email TEXT,
     mensagem TEXT NOT NULL,
@@ -202,7 +202,7 @@ CREATE TABLE IF NOT EXISTS support_ticket (
     created_at TEXT,
     updated_at TEXT,
     resposta TEXT,
-    FOREIGN KEY (usuario_id) REFERENCES user(id)
+    FOREIGN KEY (usuarie_id) REFERENCES user(id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_support_ticket_status ON support_ticket(status);
@@ -254,11 +254,11 @@ CREATE INDEX IF NOT EXISTS idx_dynamic_active ON dynamic(active);
 CREATE TABLE IF NOT EXISTS dynamic_response (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     dynamic_id INTEGER NOT NULL,
-    usuario_id INTEGER,
+    usuarie_id INTEGER,
     payload TEXT,
     created_at TEXT,
     FOREIGN KEY (dynamic_id) REFERENCES dynamic(id),
-    FOREIGN KEY (usuario_id) REFERENCES user(id)
+    FOREIGN KEY (usuarie_id) REFERENCES user(id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_dynamic_response_dynamic_id ON dynamic_response(dynamic_id);
@@ -283,12 +283,12 @@ CREATE INDEX IF NOT EXISTS idx_palavra_do_dia_ordem ON palavra_do_dia(ordem);
 CREATE TABLE IF NOT EXISTS palavra_do_dia_interacao (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     palavra_id INTEGER NOT NULL,
-    usuario_id INTEGER NOT NULL,
+    usuarie_id INTEGER NOT NULL,
     tipo TEXT NOT NULL,
     frase TEXT,
     created_at TEXT,
     FOREIGN KEY (palavra_id) REFERENCES palavra_do_dia(id),
-    FOREIGN KEY (usuario_id) REFERENCES user(id)
+    FOREIGN KEY (usuarie_id) REFERENCES user(id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_palavra_interacao_palavra_id ON palavra_do_dia_interacao(palavra_id);

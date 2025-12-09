@@ -95,8 +95,8 @@ def render_template(template_name, **context):
     user_username_js = context.get('user_username_js', '')
     html = html.replace('<!-- USER_USERNAME_JS_PLACEHOLDER -->', user_username_js)
     
-    user_id = context.get('user_id', 0)
-    html = html.replace('<!-- USER_ID_PLACEHOLDER -->', str(user_id))
+    usuarie_id = context.get('usuarie_id', 0)
+    html = html.replace('<!-- USER_ID_PLACEHOLDER -->', str(usuarie_id))
     
     # Replace admin-specific placeholders
     total_users = context.get('total_users', 0)

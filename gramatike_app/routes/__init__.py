@@ -87,10 +87,10 @@ def api_gramatike_search():
         gk_user = User.query.filter(User.username == 'gramatike').first()
         post_query = Post.query.filter(((Post.is_deleted == False) | (Post.is_deleted.is_(None))))
         if gk_user:
-            post_query = post_query.filter((Post.usuario_id == gk_user.id) | (Post.usuario == 'gramatike'))
+            post_query = post_query.filter((Post.usuario_id == gk_user.id) | (Post.usuarie == 'gramatike'))
         else:
             # fallback: filtra por nome textual
-            post_query = post_query.filter(Post.usuario == 'gramatike')
+            post_query = post_query.filter(Post.usuarie == 'gramatike')
         if q:
             like = f"%{q}%"
             post_query = post_query.filter(Post.conteudo.ilike(like))
@@ -273,7 +273,7 @@ def search_usuarios():
     return jsonify([
         {'id':u.id,'username':u.username,'nome':u.nome} for u in users
     ])
-# --- Rotas de seguir/deixar de seguir e APIs de seguidores/seguindo ---
+# --- Rotas de seguir/deixar de seguir e APIs de seguidories/seguindo ---
 @bp.route('/api/seguir/<int:user_id>', methods=['POST'])
 @login_required
 def seguir_usuario(user_id):
@@ -296,7 +296,7 @@ def deixar_de_seguir_usuario(user_id):
         db.session.commit()
     return '', 204
 
-@bp.route('/api/seguidores/<int:user_id>', methods=['GET'])
+@bp.route('/api/seguidories/<int:user_id>', methods=['GET'])
 def listar_seguidories(user_id):
     user = User.query.get_or_404(user_id)
     seguidories = [{'id': u.id, 'username': u.username, 'nome': u.nome} for u in user.seguidories]
@@ -406,7 +406,7 @@ def api_notifications():
 def get_posts_me():
     user = current_user
     posts = Post.query.filter(
-        ((Post.usuario_id == user.id) | (Post.usuario == user.username)) & ((Post.is_deleted == False) | (Post.is_deleted.is_(None)))
+        ((Post.usuario_id == user.id) | (Post.usuarie == user.username)) & ((Post.is_deleted == False) | (Post.is_deleted.is_(None)))
     ).order_by(Post.data.desc()).all()
     result = []
     for p in posts:
@@ -425,7 +425,7 @@ def get_posts_me():
             pass
         result.append({
             'id': p.id,
-            'usuario': user.username,
+            'usuarie': user.username,
             'conteudo': p.conteudo or '',
             'imagem': imagens_concat,
             'images': imagens_list,
@@ -438,11 +438,11 @@ def get_posts_me():
     return jsonify(result)
 
 # API: Postagens de um usuário específico (pública)
-@bp.route('/api/posts/usuario/<int:user_id>', methods=['GET'])
+@bp.route('/api/posts/usuarie/<int:user_id>', methods=['GET'])
 def get_posts_usuario(user_id):
     user = User.query.get_or_404(user_id)
     posts = Post.query.filter(
-        ((Post.usuario_id == user.id) | (Post.usuario == user.username)) & ((Post.is_deleted == False) | (Post.is_deleted.is_(None)))
+        ((Post.usuario_id == user.id) | (Post.usuarie == user.username)) & ((Post.is_deleted == False) | (Post.is_deleted.is_(None)))
     ).order_by(Post.data.desc()).all()
     result = []
     for p in posts:
@@ -461,7 +461,7 @@ def get_posts_usuario(user_id):
             pass
         result.append({
             'id': p.id,
-            'usuario': user.username,
+            'usuarie': user.username,
             'conteudo': p.conteudo or '',
             'imagem': imagens_concat,
             'images': imagens_list,
@@ -669,7 +669,7 @@ def load_user(user_id):
 def relatar_post(post_id):
     post = Post.query.get_or_404(post_id)
     # Não deixa relatar o próprio post
-    if post.usuario == current_user.username:
+    if post.usuarie == current_user.username:
         return jsonify({'error': 'Você não pode relatar seu próprio post.'}), 403
     # Verifica se já relatou
     ja_reportou = Report.query.filter_by(post_id=post_id, usuario_id=current_user.id).first()
@@ -791,7 +791,7 @@ def index():
         excerpt = (texto[:80] + '…') if len(texto) > 80 else texto
         return {
             'id': p.id,
-            'usuario': p.usuario or 'Usuárie',
+            'usuarie': p.usuarie or 'Usuárie',
             'excerpt': excerpt or '(sem texto)',
             'likes': likes_count,
             'comments': comments_count,
@@ -2299,7 +2299,7 @@ def get_posts():
         for pattern in patterns:
             like = f"%{pattern}%"
             like_clauses.append(Post.conteudo.ilike(like))
-            like_clauses.append(Post.usuario.ilike(like))
+            like_clauses.append(Post.usuarie.ilike(like))
         query = query.filter(or_(*like_clauses))
 
     # Filtro por período
@@ -2337,8 +2337,8 @@ def get_posts():
         autor = None
         if hasattr(p, 'usuario_id') and p.usuario_id:
             autor = User.query.get(p.usuario_id)
-        elif hasattr(p, 'usuario') and p.usuario:
-            autor = User.query.filter_by(username=p.usuario).first()
+        elif hasattr(p, 'usuario') and p.usuarie:
+            autor = User.query.filter_by(username=p.usuarie).first()
         foto_perfil = autor.foto_perfil if autor and autor.foto_perfil else 'img/perfil.png'
         liked = False
         try:
@@ -2352,7 +2352,7 @@ def get_posts():
         imagens_list = [seg for seg in imagens_concat.split('|') if seg]
         result.append({
             'id': p.id,
-            'usuario': p.usuario or 'Usuárie',
+            'usuarie': p.usuarie or 'Usuárie',
             'conteudo': p.conteudo or '',
             'imagem': imagens_concat,
             'images': imagens_list,
@@ -2375,7 +2375,7 @@ def create_post():
         ok_img, cat_img, matched_img = check_image_hint(data.get('imagem'))
         if not ok_img:
             return jsonify({'error': 'imagem_bloqueada', 'reason': cat_img, 'message': refusal_message_pt(cat_img, matched_img)}), 400
-    usuario_nome = current_user.username if hasattr(current_user, 'username') else data.get('usuario', 'Usuárie')
+    usuario_nome = current_user.username if hasattr(current_user, 'username') else data.get('usuarie', 'Usuárie')
     usuario_id = current_user.id if hasattr(current_user, 'id') else None
     post = Post(
         usuario=usuario_nome,
@@ -2452,7 +2452,7 @@ def comentarios(post_id):
         comentarios = Comentario.query.filter_by(post_id=post.id).order_by(Comentario.data.desc()).all()
         return jsonify([
             {
-                'usuario': c.usuario.username if c.usuario and hasattr(c.usuario, 'username') else 'Usuárie',
+                'usuarie': c.usuarie.username if c.usuarie and hasattr(c.usuarie, 'username') else 'Usuárie',
                 'conteudo': c.conteudo,
                 'data': c.data.strftime('%d/%m/%Y %H:%M')
             }

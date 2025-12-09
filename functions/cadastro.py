@@ -34,8 +34,8 @@ async def on_request(request, env, context):
                 if db:
                     try:
                         from gramatike_d1.auth import register, login, set_session_cookie
-                        user_id, err = await register(db, username, email, password, nome)
-                        if user_id:
+                        usuarie_id, err = await register(db, username, email, password, nome)
+                        if usuarie_id:
                             # Auto-login after registration
                             token, _ = await login(db, request, email, password)
                             if token:

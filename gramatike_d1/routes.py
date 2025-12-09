@@ -58,12 +58,12 @@ async def api_create_post(db, request, user):
     if len(conteudo) > 5000:
         return {'error': 'Conteúdo muito longo (máx 5000 caracteres)'}, 400
     
-    # Sanitize user_id to prevent D1_TYPE_ERROR from undefined values
-    user_id = sanitize_for_d1(user.get('id') if isinstance(user, dict) else user['id'])
-    if user_id is None:
+    # Sanitize usuarie_id to prevent D1_TYPE_ERROR from undefined values
+    usuarie_id = sanitize_for_d1(user.get('id') if isinstance(user, dict) else user['id'])
+    if usuarie_id is None:
         return {'error': 'Usuárie inválide'}, 400
     
-    post_id = await create_post(db, user_id, conteudo, imagem)
+    post_id = await create_post(db, usuarie_id, conteudo, imagem)
     if not post_id:
         return {'error': 'Erro ao criar post'}, 500
     
@@ -90,7 +90,7 @@ async def api_delete_post(db, request, user, post_id):
         return {'error': 'Post não encontrado'}, 404
     
     # Verifica permissão
-    if post['usuario_id'] != user['id'] and not user.get('is_admin'):
+    if post['usuarie_id'] != user['id'] and not user.get('is_admin'):
         return {'error': 'Sem permissão'}, 403
     
     await delete_post(db, post_id, user['id'])
@@ -128,7 +128,7 @@ async def api_create_comment(db, request, user, post_id):
 # ============================================================================
 
 async def api_get_profile(db, request, username):
-    """GET /api/usuario/{username} - Perfil de usuárie."""
+    """GET /api/usuarie/{username} - Perfil de usuárie."""
     user = await get_user_by_username(db, username)
     if not user:
         return {'error': 'Usuárie não encontrade'}, 404
@@ -151,7 +151,7 @@ async def api_get_profile(db, request, username):
 
 
 async def api_follow_user(db, request, user, username):
-    """POST /api/usuario/{username}/seguir - Seguir usuárie."""
+    """POST /api/usuarie/{username}/seguir - Seguir usuárie."""
     target = await get_user_by_username(db, username)
     if not target:
         return {'error': 'Usuárie não encontrade'}, 404
@@ -328,14 +328,14 @@ async def api_register(db, request):
     password = body.get('password', '')
     nome = body.get('nome', '').strip() or None
     
-    user_id, error = await register(db, username, email, password, nome)
+    usuarie_id, error = await register(db, username, email, password, nome)
     if error:
         return {'error': error}, 400
     
     # Auto-login após registro
     token, _ = await login(db, request, email, password)
     
-    return {'success': True, 'user_id': user_id}, 201, {'Set-Cookie': set_session_cookie(token)}
+    return {'success': True, 'usuarie_id': usuarie_id}, 201, {'Set-Cookie': set_session_cookie(token)}
 
 
 async def api_me(db, request):

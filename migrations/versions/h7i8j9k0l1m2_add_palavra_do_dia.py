@@ -37,18 +37,18 @@ def upgrade():
     op.create_table('palavra_do_dia_interacao',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('palavra_id', sa.Integer(), nullable=False),
-        sa.Column('usuario_id', sa.Integer(), nullable=False),
+        sa.Column('usuarie_id', sa.Integer(), nullable=False),
         sa.Column('tipo', sa.String(length=20), nullable=False),
         sa.Column('frase', sa.Text(), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(['palavra_id'], ['palavra_do_dia.id'], ),
-        sa.ForeignKeyConstraint(['usuario_id'], ['user.id'], ),
+        sa.ForeignKeyConstraint(['usuarie_id'], ['user.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('palavra_do_dia_interacao', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_palavra_do_dia_interacao_created_at'), ['created_at'], unique=False)
         batch_op.create_index(batch_op.f('ix_palavra_do_dia_interacao_palavra_id'), ['palavra_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_palavra_do_dia_interacao_usuario_id'), ['usuario_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_palavra_do_dia_interacao_usuario_id'), ['usuarie_id'], unique=False)
 
 
 def downgrade():

@@ -41,10 +41,10 @@ async def on_request(request, env, context):
         user = await get_current_user(db, request)
         if not user:
             return json_response({'success': False, 'error': 'Não autenticado'}, 401)
-        # Sanitize usuario_id immediately after extraction to prevent D1_TYPE_ERROR
-        usuario_id = sanitize_for_d1(user.get('id') if isinstance(user, dict) else user['id'])
-        if usuario_id is None:
-            print("[posts_multi] usuario_id is None after sanitization")
+        # Sanitize usuarie_id immediately after extraction to prevent D1_TYPE_ERROR
+        usuarie_id = sanitize_for_d1(user.get('id') if isinstance(user, dict) else user['id'])
+        if usuarie_id is None:
+            print("[posts_multi] usuarie_id is None after sanitization")
             return json_response({'success': False, 'error': 'Usuárie inválide'}, 401)
     except Exception as e:
         print(f"[posts_multi] Auth error: {e}")
@@ -176,13 +176,13 @@ async def on_request(request, env, context):
         if not conteudo:
             return json_response({'success': False, 'error': 'conteudo_vazio'}, 400)
         
-        # Create post - include usuario (username) from user table
+        # Create post - include usuarie (username) from user table
         # Use d1_params to properly sanitize values and convert None to JavaScript null
         now = datetime.utcnow().isoformat()
-        params = d1_params(usuario_id, conteudo, now, usuario_id)
+        params = d1_params(usuarie_id, conteudo, now, usuarie_id)
         
         sql = """
-            INSERT INTO post (usuario_id, usuario, conteudo, data)
+            INSERT INTO post (usuarie_id, usuarie, conteudo, data)
             SELECT ?, username, ?, ?
             FROM user WHERE id = ?
         """

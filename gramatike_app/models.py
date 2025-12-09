@@ -136,8 +136,8 @@ post_likes = db.Table('post_likes',
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    usuario = db.Column(db.String(80))
-    usuario_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # Novo campo: id do usuário
+    usuarie = db.Column(db.String(80))
+    usuarie_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # Novo campo: id do usuário
     conteudo = db.Column(db.Text)
     imagem = db.Column(db.Text)
     data = db.Column(db.DateTime)
@@ -156,8 +156,8 @@ class OutroRecurso(db.Model):
 
 class Comentario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    usuario = db.relationship('User')
+    usuarie_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    usuarie = db.relationship('User')
     conteudo = db.Column(db.Text)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
     data = db.Column(db.DateTime, default=datetime.utcnow)
@@ -165,9 +165,9 @@ class Comentario(db.Model):
 
 class Curtida(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    usuarie_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
-    usuario = db.relationship('User')
+    usuarie = db.relationship('User')
 
 
 # Modelo de seguidories (seguindo/seguidories)
@@ -179,25 +179,25 @@ seguidories = db.Table('seguidories',
 class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
-    usuario_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    usuarie_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     motivo = db.Column(db.Text)
     category = db.Column(db.String(40))  # ex.: odio, violencia, assedio, nudez, spam, suicidio, outro
     data = db.Column(db.DateTime, default=datetime.utcnow)
     post = db.relationship('Post')
-    usuario = db.relationship('User')
+    usuarie = db.relationship('User')
     resolved = db.Column(db.Boolean, default=False)
     resolved_at = db.Column(db.DateTime)
 
 class SupportTicket(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    usuarie_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     nome = db.Column(db.String(150))
     email = db.Column(db.String(180))
     mensagem = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(30), default='aberto', index=True)  # aberto, em_andamento, resolvido
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     updated_at = db.Column(db.DateTime)
-    usuario = db.relationship('User')
+    usuarie = db.relationship('User')
     resposta = db.Column(db.Text)
 
 # Adicionar métodos de seguidories ao User
@@ -297,11 +297,11 @@ class Dynamic(db.Model):
 class DynamicResponse(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dynamic_id = db.Column(db.Integer, db.ForeignKey('dynamic.id'), index=True, nullable=False)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True)
+    usuarie_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True)
     payload = db.Column(db.Text)  # JSON com voto/entrada
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     dynamic = db.relationship('Dynamic', backref=db.backref('responses', lazy='dynamic'))
-    usuario = db.relationship('User')
+    usuarie = db.relationship('User')
     def __repr__(self):
         return f"<DynamicResponse dyn={self.dynamic_id} user={self.usuario_id}>"
 
@@ -309,11 +309,11 @@ class DynamicResponse(db.Model):
 class WordExclusion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dynamic_id = db.Column(db.Integer, db.ForeignKey('dynamic.id'), index=True, nullable=False)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=False)
+    usuarie_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=False)
     palavra = db.Column(db.String(100), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     dynamic = db.relationship('Dynamic')
-    usuario = db.relationship('User')
+    usuarie = db.relationship('User')
     
     def __repr__(self):
         return f"<WordExclusion dyn={self.dynamic_id} user={self.usuario_id} palavra={self.palavra}>"
@@ -348,12 +348,12 @@ class PalavraDoDia(db.Model):
 class PalavraDoDiaInteracao(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     palavra_id = db.Column(db.Integer, db.ForeignKey('palavra_do_dia.id'), index=True, nullable=False)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=False)
+    usuarie_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=False)
     tipo = db.Column(db.String(20), nullable=False)  # 'frase' | 'significado'
     frase = db.Column(db.Text)  # Preenchido apenas se tipo='frase'
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     palavra = db.relationship('PalavraDoDia', backref=db.backref('interacoes', lazy='dynamic'))
-    usuario = db.relationship('User')
+    usuarie = db.relationship('User')
 
     def __repr__(self):
         return f"<PalavraDoDiaInteracao palavra={self.palavra_id} user={self.usuario_id} tipo={self.tipo}>"
