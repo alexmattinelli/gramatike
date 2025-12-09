@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página não encontrada — Gramátike</title>
+    <link rel="manifest" href="/static/manifest.webmanifest">
+    <link rel="stylesheet" href="/static/gramatike_common.css">
+    <meta name="theme-color" content="#9B5DE5">
+    <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#9B5DE5; --border:#e5e7eb; --card:#fff; --bg:#f7f8ff; --text:#222; --text-dim:#6b6b78; }
+        body { margin:0; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+        header.site-head { background:#333; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; }
+        .logo { font-family:'Mansalva', cursive; font-size:2.4rem; color:#fff; font-weight:400; margin:0; }
+        main { flex:1; width:100%; max-width:980px; margin:2rem auto 4rem; padding:0 clamp(16px,4vw,40px); }
+        .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1.5rem; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); }
+        .btn { display:inline-flex; align-items:center; justify-content:center; padding:0.7rem 1.2rem; border-radius:12px; font-weight:700; text-decoration:none; transition:0.2s; }
+        .btn-primary { background:var(--primary); color:#fff; border:none; }
+        .btn-primary:hover { background:#7d3dc9; }
+        footer { background:#333; color:#fff; padding:1.2rem; text-align:center; font-size:0.8rem; border-top-left-radius:40px; border-top-right-radius:40px; }
+        @media (max-width: 768px) {
+            .logo { font-size:1.8rem; }
+            header.site-head { padding:18px clamp(12px,3vw,24px) 28px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-head">
+        <h1 class="logo">Gramátike</h1>
+    </header>
+    <main>
+        <div class="card" style="text-align: center;">
+            <h2 style="color: var(--primary);">Página não encontrada</h2>
+            <p style="color: var(--text-dim); margin: 1rem 0;">
+                A página <code style="background: #f1edff; padding: 2px 8px; border-radius: 6px;"><!-- VAR: path --></code> não existe.
+            </p>
+            <a href="/" class="btn btn-primary">Voltar ao início</a>
+        </div>
+    </main>
+    <footer>
+        <span>Gramátike © 2025</span>
+    </footer>
+</body>
+</html>

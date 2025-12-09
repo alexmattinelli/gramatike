@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Respostas — {{ d.titulo }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
+  <style>
+    :root { --primary:#9B5DE5; --border:#e5e7eb; --card:#fff; --bg:#f7f8ff; --text:#222; }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; overflow-x:hidden; width:100%; max-width:100vw; }
+    body { font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
+    header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; }
+    .logo { font-family:'Mansalva', cursive; font-size:2.2rem; color:#fff; font-weight:400; margin:0; text-align:center; }
+    main { width:100%; max-width:980px; margin:2rem auto 4rem; padding:0 clamp(16px,4vw,40px); }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1rem 1.2rem; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); }
+    .muted { color:#666; font-weight:600; }
+    .chip { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .55rem; border-radius:14px; border:1px solid var(--border); background:#fafafa; font-size:.75rem; font-weight:800; color:#9B5DE5; }
+    .row { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+    .table { width:100%; border-collapse: collapse; }
+    .table th, .table td { text-align:left; padding:.5rem .6rem; border-bottom:1px solid var(--border); }
+    .badge { font-size:.75rem; color:#9B5DE5; font-weight:800; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.45rem .8rem; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-family:'Nunito'; font-weight:800; letter-spacing:.3px; background:#fff; color:#9B5DE5; }
+    .btn.primary { background:#9B5DE5; color:#fff; border:none; }
+    .pill { padding:.2rem .5rem; border:1px solid var(--border); border-radius:999px; font-size:.75rem; }
+    @media (max-width: 768px) {
+      header.site-head { padding:12px 16px 18px; }
+      .logo { font-size:1.5rem; }
+      main { padding:0 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <h1 class="logo">{{ d.titulo }}</h1>
+  </header>
+  <main>
+    <div class="row" style="justify-content:space-between; margin-bottom:1rem;">
+      <div class="row">
+        <span class="chip">{{ d.tipo }}</span>
+        {% if d.active %}<span class="pill">Ativa</span>{% else %}<span class="pill">Inativa</span>{% endif %}
+      </div>
+      <div class="row">
+        <a class="btn" href="{{ url_for('main.dinamicas_home') }}">Voltar</a>
+        <a class="btn" href="{{ url_for('main.dinamica_export_csv', dyn_id=d.id) }}">Baixar CSV</a>
+        <a class="btn" href="{{ url_for('main.dinamica_view', dyn_id=d.id) }}">Abrir pública</a>
+      </div>
+    </div>
+
+    {% if d.descricao %}
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="muted">{{ d.descricao }}</div>
+      </div>
+    {% endif %}
+
+    {% if d.tipo == 'oneword' %}
+      <div class="card" style="margin-bottom:1rem;">
+        <h3 style="margin-top:0;">Palavras mais frequentes</h3>
+        {% if agg.counts %}
+          <ul>
+            {% for w,c in agg.counts.most_common(20) %}
+              <li><strong>{{ w }}</strong>: {{ c }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="muted">Sem respostas ainda.</p>
+        {% endif %}
+      </div>
+    {% elif d.tipo == 'poll' %}
+      <div class="card" style="margin-bottom:1rem;">
+        <h3 style="margin-top:0;">Parciais da enquete</h3>
+        {% set opts = cfg.get('options', []) %}
+        {% set colors = ['#9B5DE5', '#F15BB5', '#00BBF9', '#00F5FF', '#FEE440', '#FCA311'] %}
+        {% if agg.counts %}
+          {% for opt in opts %}
+            {% set bar_color = colors[loop.index0 % colors|length] %}
+            <div style="margin:.35rem 0;">
+              <div style="display:flex; justify-content:space-between;">
+                <strong>{{ opt }}</strong>
+                <span class="badge">{{ agg.counts[loop.index0] }}</span>
+              </div>
+              <div style="height:8px; background:#eee; border-radius:6px; overflow:hidden;">
+                {% set total = 0 %}
+                {% for n in agg.counts %}{% set total = total + n %}{% endfor %}
+                {% set pct = (agg.counts[loop.index0] / (total if total>0 else 1)) * 100 %}
+                {% set pct_str = '%.1f' % pct %}
+                <div class="bar-fill" data-w="{{ pct_str }}" style="height:100%; background:{{ bar_color }};"></div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="muted">Sem votos ainda.</p>
+        {% endif %}
+      </div>
+    {% elif d.tipo == 'quemsouleu' %}
+      {% if agg.item_stats %}
+      <div class="card" style="margin-bottom:1rem;">
+        <h3 style="margin-top:0;">Taxa de Acertos</h3>
+        <div style="padding:1rem; background:#f0e5ff; border:1px solid #9B5DE5; border-radius:12px; margin-bottom:1rem;">
+          <div style="font-size:1.8rem; font-weight:800; color:#9B5DE5; text-align:center;">
+            {{ '%.1f' % agg.overall_accuracy }}%
+          </div>
+          <div style="text-align:center; color:#666; font-size:.85rem; margin-top:.3rem;">Taxa de Acertos Geral</div>
+        </div>
+        <h4 style="margin-top:1.2rem; margin-bottom:.8rem; color:#9B5DE5;">Por Item:</h4>
+        {% for stat in agg.item_stats %}
+          <div style="margin-bottom:1rem; padding:.8rem; background:#f9f9f9; border-radius:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem;">
+              <div>
+                <strong>Item {{ loop.index }}</strong>
+                <span class="chip" style="margin-left:.4rem;">{{ stat.tipo }}</span>
+              </div>
+              <div style="font-size:1.2rem; font-weight:800; color:#9B5DE5;">{{ '%.1f' % stat.accuracy }}%</div>
+            </div>
+            {% if stat.tipo == 'frase' %}
+              <div style="font-style:italic; color:#666; margin-bottom:.3rem;">"{{ stat.conteudo[:80] }}{{ '...' if stat.conteudo|length > 80 else '' }}"</div>
+            {% else %}
+              <div style="color:#666; margin-bottom:.3rem;">Foto: <a href="{{ stat.conteudo }}" target="_blank">ver imagem</a></div>
+            {% endif %}
+            <div style="color:#666; font-size:.85rem;">
+              Resposta correta: <strong>{{ stat.resposta_correta }}</strong>
+              {% if stat.alternativas and stat.alternativas|length > 0 %}
+              <div style="font-size:.8rem; margin-top:.2rem; color:#888;">
+                Alternativas: {{ stat.alternativas|join(', ') }}
+              </div>
+              {% endif %}
+            </div>
+            <div style="color:#888; font-size:.8rem; margin-top:.3rem;">
+              {{ stat.correct_count }} de {{ stat.total }} acertaram
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endif %}
+
+    <div class="card">
+      <h3 style="margin-top:0;">Respostas</h3>
+      {% if (rows or [])|length == 0 %}
+        <p class="muted">Sem respostas ainda.</p>
+      {% else %}
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Usuárie</th>
+              <th>Quando</th>
+              <th>Conteúdo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if d.tipo == 'oneword' %}
+              {% for r in rows %}
+              <tr>
+                <td>@{{ r.user.username }}</td>
+                <td>{{ r.created_at }}</td>
+                <td>
+                  {% if r.payload.word1 %}
+                    {{ r.payload.word1 }}{% if r.payload.word2 %}, {{ r.payload.word2 }}{% endif %}{% if r.payload.word3 %}, {{ r.payload.word3 }}{% endif %}
+                  {% else %}
+                    {{ r.payload.word }}
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            {% elif d.tipo == 'poll' %}
+              {% set opts = cfg.get('options', []) %}
+              {% for r in rows %}
+              {% set idx = r.payload.option %}
+              <tr>
+                <td>@{{ r.user.username }}</td>
+                <td>{{ r.created_at }}</td>
+                <td>{{ opts[idx] if idx is not none and 0 <= idx < opts|length else '—' }}</td>
+              </tr>
+              {% endfor %}
+            {% elif d.tipo == 'quemsouleu' %}
+              {% for r in rows %}
+              <tr>
+                <td>@{{ r.user.username }}</td>
+                <td>{{ r.created_at }}</td>
+                <td>
+                  {% set respostas = r.payload.respostas or [] %}
+                  {% for resp in respostas %}
+                    <div><strong>Item {{ loop.index }}:</strong> {{ resp }}</div>
+                  {% endfor %}
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              {% set by_id = {} %}
+              {% for q in (cfg.get('fields', []) or []) %}{% set _ = by_id.__setitem__(q.id|string, q) %}{% endfor %}
+              {% for r in rows %}
+                <tr>
+                  <td>@{{ r.user.username }}</td>
+                  <td>{{ r.created_at }}</td>
+                  <td>
+                    {% for ans in (r.payload.answers or []) %}
+                      {% set q = by_id.get(ans.id|string) %}
+                      <div><strong>{{ q.label if q else ('q' ~ ans.id) }}:</strong> {{ ans.value }}</div>
+                    {% endfor %}
+                  </td>
+                </tr>
+              {% endfor %}
+            {% endif %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
+  </main>
+  <script>
+  (function(){
+    // aplica largura das barras da enquete sem usar expressões no CSS inline
+    document.querySelectorAll('.bar-fill[data-w]')?.forEach(function(el){
+      var w = el.getAttribute('data-w');
+      if(w){ el.style.width = w + '%'; }
+    });
+  })();
+  </script>
+</body>
+</html>
