@@ -732,7 +732,7 @@ async def ensure_database_initialized(db):
         console.log(f"[D1 Init] Superadmin check result: {superadmin}")
         
         if not superadmin:
-            # Verificar se e usuárie 'gramatike' já existe (sem ser superadmin)
+            # Verificar se ê usuárie 'gramatike' já existe (sem ser superadmin)
             existing_user = await db.prepare(
                 "SELECT id, username, is_superadmin FROM user WHERE username = 'gramatike' LIMIT 1"
             ).first()
