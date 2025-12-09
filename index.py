@@ -1555,7 +1555,7 @@ class Default(WorkerEntrypoint):
             # FOLLOW/UNFOLLOW
             # ================================================================
             
-            if path.startswith('/api/usuario/') and '/seguir' in path and method == 'POST':
+            if path.startswith('/api/usuarie/') and '/seguir' in path and method == 'POST':
                 if not current_user:
                     return json_response({"error": "Não autenticado"}, 401)
                 
@@ -2385,7 +2385,7 @@ class Default(WorkerEntrypoint):
         if posts:
             for p in posts:
                 # Buscar dados do autor - escaped para segurança
-                autor_username = escape_html(p.get('usuario', 'Usuárie'))
+                autor_username = escape_html(p.get('usuarie', 'Usuárie'))
                 autor_foto = normalize_image_url(p.get('foto_perfil'))
                 
                 data_str = ""
@@ -2793,8 +2793,8 @@ class Default(WorkerEntrypoint):
             post_html = f"""
             <div class="feed-item">
                 <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:0.8rem;">
-                    <img src="{normalize_image_url(post.get('foto_perfil'))}" alt="@{escape_html(post.get('usuario', ''))}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
-                    <strong style="color:var(--primary);">@{escape_html(post.get('usuario', ''))}</strong>
+                    <img src="{normalize_image_url(post.get('foto_perfil'))}" alt="@{escape_html(post.get('usuarie', ''))}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+                    <strong style="color:var(--primary);">@{escape_html(post.get('usuarie', ''))}</strong>
                 </div>
                 <p class="fi-body">{escape_html(post.get('conteudo', ''))}</p>
                 <div style="margin-top: 0.8rem; font-size: 0.7rem; color: var(--text-dim);">

@@ -70,7 +70,7 @@ def register():
 @bp.route('/perfil')
 @login_required
 def meu_perfil():
-    return render_template('meu_perfil.html', usuario=current_user)
+    return render_template('meu_perfil.html', usuarie=current_user)
 
 
 
@@ -91,7 +91,7 @@ def get_posts():
     return jsonify([
         {
             'id': p.id,
-            'usuario': p.usuario,
+            'usuarie': p.usuarie,
             'conteudo': p.conteudo,
             'imagem': p.imagem,
             'data': p.data.strftime('%d/%m/%Y %H:%M')
@@ -130,7 +130,7 @@ def create_post():
         return jsonify({'success': False, 'error': 'conteudo_vazio'}), 400
     username = current_user.username if current_user.is_authenticated else 'Usuárie'
     post = Post(
-        usuario=username,
+        usuarie=username,
         usuario_id=current_user.id if current_user.is_authenticated else None,
         conteudo=conteudo,
         imagem=imagem_path,
@@ -182,7 +182,7 @@ def create_post_multi():
         paths.append(f"uploads/posts/{fname}")
         meta.append({'path': f"uploads/posts/{fname}", 'w': w, 'h': h})
     post = Post(
-        usuario=current_user.username,
+        usuarie=current_user.username,
         usuario_id=current_user.id,
         conteudo=conteudo,
         imagem='|'.join(paths),
@@ -258,5 +258,5 @@ main_perfil_bp = Blueprint('main_perfil', __name__)
 @main_perfil_bp.route('/main_perfil')
 @login_required
 def main_perfil():
-    return render_template('meu_perfil.html', usuario=current_user)
+    return render_template('meu_perfil.html', usuarie=current_user)
 

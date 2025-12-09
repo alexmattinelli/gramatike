@@ -1105,7 +1105,7 @@ def palavra_do_dia_respostas():
         result.append({
             'id': i.id,
             'palavra': i.palavra.palavra if i.palavra else 'N/A',
-            'usuario': i.usuario.username if i.usuario else 'N/A',
+            'usuarie': i.usuarie.username if i.usuarie else 'N/A',
             'tipo': i.tipo,
             'frase': i.frase,
             'data': i.created_at.strftime('%d/%m/%Y %H:%M') if i.created_at else 'N/A'
