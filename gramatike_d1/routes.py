@@ -33,7 +33,7 @@ async def api_get_posts(db, request, params):
     
     posts = await get_posts(db, page=page, per_page=per_page)
     
-    # Verifica se usuário logado curtiu cada post
+    # Verifica se usuárie logade curtiu cada post
     user = await get_current_user(db, request)
     if user:
         for post in posts:
@@ -128,10 +128,10 @@ async def api_create_comment(db, request, user, post_id):
 # ============================================================================
 
 async def api_get_profile(db, request, username):
-    """GET /api/usuario/{username} - Perfil do usuário."""
+    """GET /api/usuario/{username} - Perfil de usuárie."""
     user = await get_user_by_username(db, username)
     if not user:
-        return {'error': 'Usuário não encontrado'}, 404
+        return {'error': 'Usuárie não encontrade'}, 404
     
     # Remove senha
     user.pop('password', None)
@@ -142,7 +142,7 @@ async def api_get_profile(db, request, username):
     user['followers_count'] = len(followers)
     user['following_count'] = len(following)
     
-    # Verifica se usuário logado segue
+    # Verifica se usuárie logade segue
     current = await get_current_user(db, request)
     if current and current['id'] != user['id']:
         user['is_following'] = await is_following(db, current['id'], user['id'])
@@ -151,10 +151,10 @@ async def api_get_profile(db, request, username):
 
 
 async def api_follow_user(db, request, user, username):
-    """POST /api/usuario/{username}/seguir - Seguir usuário."""
+    """POST /api/usuario/{username}/seguir - Seguir usuárie."""
     target = await get_user_by_username(db, username)
     if not target:
-        return {'error': 'Usuário não encontrado'}, 404
+        return {'error': 'Usuárie não encontrade'}, 404
     
     already = await is_following(db, user['id'], target['id'])
     
