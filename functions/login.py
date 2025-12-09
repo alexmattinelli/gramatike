@@ -39,7 +39,7 @@ async def on_request(request, env, context):
                                 '',
                                 status=302,
                                 headers={
-                                    'Location': '/index.html',
+                                    'Location': '/feed.html',
                                     'Set-Cookie': set_session_cookie(token)
                                 }
                             )
