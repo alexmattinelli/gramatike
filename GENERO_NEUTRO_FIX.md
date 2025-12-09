@@ -104,3 +104,40 @@ Após aplicar esta correção:
 1. Execute `flask db upgrade` em todos os ambientes
 2. Verifique que posts podem ser criados normalmente
 3. Teste a funcionalidade de seguir/deixar de seguir usuáries
+
+## Atualização: Pastas de Database (2025-12-09)
+
+Após feedback do mantenedor, também foram atualizadas as referências nas pastas de database:
+
+### Arquivos Atualizados
+
+#### gramatike_d1/db.py
+- Comentários de inicialização do banco de dados
+- "Verificar se o usuário 'gramatike' já existe" → "Verificar se e usuárie 'gramatike' já existe"
+- "Usuário 'gramatike' promovido" → "Usuárie 'gramatike' promovide"
+- "Total de usuários no banco" → "Total de usuáries no banco"
+
+#### gramatike_d1/routes.py
+- Docstrings das funções de API
+- Comentários sobre verificação de usuários
+- Mensagens de erro retornadas pela API
+- "Perfil do usuário" → "Perfil de usuárie"
+- "Seguir usuário" → "Seguir usuárie"
+- "Usuário não encontrado" → "Usuárie não encontrade"
+- "usuário logado" → "usuárie logade"
+
+#### functions/gerenciar_usuarios.py
+- Docstring da função handler
+- "gerenciar usuários" → "gerenciar usuáries"
+
+### Resultado
+
+✅ **100% de consistência** alcançada em:
+- Schemas SQL (schema.sql, schema.d1.sql)
+- Modelos Python (models.py)
+- Código de banco de dados (gramatike_d1/)
+- Funções serverless (functions/)
+- Comentários e documentação
+- Mensagens de erro e logs
+
+Todas as referências agora usam terminologia de gênero neutro de forma consistente em todo o projeto.
