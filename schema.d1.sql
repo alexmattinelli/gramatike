@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS comentario (
 );
 
 CREATE INDEX IF NOT EXISTS idx_comentario_post ON comentario(post_id);
-CREATE INDEX IF NOT EXISTS idx_comentario_usuario ON comentario(usuarie_id);
+CREATE INDEX IF NOT EXISTS idx_comentario_usuarie ON comentario(usuarie_id);
 
 CREATE TABLE IF NOT EXISTS curtida (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -225,7 +225,7 @@ CREATE TABLE IF NOT EXISTS dynamic_response (
 );
 
 CREATE INDEX IF NOT EXISTS idx_dynamic_response_dynamic ON dynamic_response(dynamic_id);
-CREATE INDEX IF NOT EXISTS idx_dynamic_response_usuario ON dynamic_response(usuarie_id);
+CREATE INDEX IF NOT EXISTS idx_dynamic_response_usuarie ON dynamic_response(usuarie_id);
 
 CREATE TABLE IF NOT EXISTS word_exclusion (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -417,7 +417,7 @@ CREATE TABLE IF NOT EXISTS email_token (
 );
 
 CREATE INDEX IF NOT EXISTS idx_email_token_token ON email_token(token);
-CREATE INDEX IF NOT EXISTS idx_email_token_usuario ON email_token(usuarie_id);
+CREATE INDEX IF NOT EXISTS idx_email_token_usuarie ON email_token(usuarie_id);
 CREATE INDEX IF NOT EXISTS idx_email_token_tipo ON email_token(tipo);
 
 -- ============================================================================
@@ -443,7 +443,7 @@ CREATE TABLE IF NOT EXISTS notification (
     FOREIGN KEY (comentario_id) REFERENCES comentario(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_notification_usuario ON notification(usuarie_id);
+CREATE INDEX IF NOT EXISTS idx_notification_usuarie ON notification(usuarie_id);
 CREATE INDEX IF NOT EXISTS idx_notification_lida ON notification(lida);
 CREATE INDEX IF NOT EXISTS idx_notification_created ON notification(created_at);
 
@@ -453,20 +453,20 @@ CREATE INDEX IF NOT EXISTS idx_notification_created ON notification(created_at);
 
 CREATE TABLE IF NOT EXISTS amizade (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    usuario1_id INTEGER NOT NULL,
-    usuario2_id INTEGER NOT NULL,
+    usuarie1_id INTEGER NOT NULL,
+    usuarie2_id INTEGER NOT NULL,
     status TEXT DEFAULT 'pendente',  -- 'pendente', 'aceita', 'recusada'
     solicitante_id INTEGER NOT NULL,  -- quem enviou o pedido
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT,
-    FOREIGN KEY (usuario1_id) REFERENCES user(id) ON DELETE CASCADE,
-    FOREIGN KEY (usuario2_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuarie1_id) REFERENCES user(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuarie2_id) REFERENCES user(id) ON DELETE CASCADE,
     FOREIGN KEY (solicitante_id) REFERENCES user(id),
-    UNIQUE(usuario1_id, usuario2_id)
+    UNIQUE(usuarie1_id, usuarie2_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_amizade_usuario1 ON amizade(usuario1_id);
-CREATE INDEX IF NOT EXISTS idx_amizade_usuario2 ON amizade(usuario2_id);
+CREATE INDEX IF NOT EXISTS idx_amizade_usuarie1 ON amizade(usuarie1_id);
+CREATE INDEX IF NOT EXISTS idx_amizade_usuarie2 ON amizade(usuarie2_id);
 CREATE INDEX IF NOT EXISTS idx_amizade_status ON amizade(status);
 
 -- ============================================================================
@@ -485,7 +485,7 @@ CREATE TABLE IF NOT EXISTS upload (
     FOREIGN KEY (usuarie_id) REFERENCES user(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_upload_usuario ON upload(usuarie_id);
+CREATE INDEX IF NOT EXISTS idx_upload_usuarie ON upload(usuarie_id);
 CREATE INDEX IF NOT EXISTS idx_upload_tipo ON upload(tipo);
 
 -- ============================================================================
@@ -522,7 +522,7 @@ CREATE TABLE IF NOT EXISTS activity_log (
     FOREIGN KEY (usuarie_id) REFERENCES user(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_activity_log_usuario ON activity_log(usuarie_id);
+CREATE INDEX IF NOT EXISTS idx_activity_log_usuarie ON activity_log(usuarie_id);
 CREATE INDEX IF NOT EXISTS idx_activity_log_acao ON activity_log(acao);
 CREATE INDEX IF NOT EXISTS idx_activity_log_created ON activity_log(created_at);
 
@@ -542,7 +542,7 @@ CREATE TABLE IF NOT EXISTS user_points (
     FOREIGN KEY (usuarie_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_points_usuario ON user_points(usuarie_id);
+CREATE INDEX IF NOT EXISTS idx_user_points_usuarie ON user_points(usuarie_id);
 CREATE INDEX IF NOT EXISTS idx_user_points_total ON user_points(pontos_total);
 
 CREATE TABLE IF NOT EXISTS badge (
@@ -566,7 +566,7 @@ CREATE TABLE IF NOT EXISTS user_badge (
     FOREIGN KEY (badge_id) REFERENCES badge(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_badge_usuario ON user_badge(usuarie_id);
+CREATE INDEX IF NOT EXISTS idx_user_badge_usuarie ON user_badge(usuarie_id);
 
 -- ============================================================================
 -- PROGRESSO EM EXERCÍCIOS (com controle de pontuação)
@@ -586,7 +586,7 @@ CREATE TABLE IF NOT EXISTS exercise_progress (
     FOREIGN KEY (question_id) REFERENCES exercise_question(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_exercise_progress_usuario ON exercise_progress(usuarie_id);
+CREATE INDEX IF NOT EXISTS idx_exercise_progress_usuarie ON exercise_progress(usuarie_id);
 CREATE INDEX IF NOT EXISTS idx_exercise_progress_question ON exercise_progress(question_id);
 
 -- Controle de exercícios já pontuados (não pode ganhar ponto novamente)
@@ -676,7 +676,7 @@ CREATE TABLE IF NOT EXISTS flashcard_review (
     FOREIGN KEY (flashcard_id) REFERENCES flashcard(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_flashcard_review_usuario ON flashcard_review(usuarie_id);
+CREATE INDEX IF NOT EXISTS idx_flashcard_review_usuarie ON flashcard_review(usuarie_id);
 CREATE INDEX IF NOT EXISTS idx_flashcard_review_next ON flashcard_review(next_review);
 
 -- ============================================================================
@@ -693,7 +693,7 @@ CREATE TABLE IF NOT EXISTS favorito (
     FOREIGN KEY (usuarie_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_favorito_usuario ON favorito(usuarie_id);
+CREATE INDEX IF NOT EXISTS idx_favorito_usuarie ON favorito(usuarie_id);
 CREATE INDEX IF NOT EXISTS idx_favorito_tipo ON favorito(tipo);
 
 -- ============================================================================
@@ -711,7 +711,7 @@ CREATE TABLE IF NOT EXISTS user_history (
     FOREIGN KEY (usuarie_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_history_usuario ON user_history(usuarie_id);
+CREATE INDEX IF NOT EXISTS idx_user_history_usuarie ON user_history(usuarie_id);
 CREATE INDEX IF NOT EXISTS idx_user_history_created ON user_history(created_at);
 
 -- ============================================================================
@@ -833,7 +833,7 @@ CREATE TABLE IF NOT EXISTS mencao (
     FOREIGN KEY (autor_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_mencao_usuario ON mencao(usuarie_id);
+CREATE INDEX IF NOT EXISTS idx_mencao_usuarie ON mencao(usuarie_id);
 CREATE INDEX IF NOT EXISTS idx_mencao_autor ON mencao(autor_id);
 CREATE INDEX IF NOT EXISTS idx_mencao_tipo ON mencao(tipo);
 

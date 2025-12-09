@@ -2032,8 +2032,8 @@ async def send_friend_request(db, solicitante_id, destinatarie_id):
     # Verifica se já existe relação
     existing = await db.prepare("""
         SELECT * FROM amizade
-        WHERE (usuario1_id = ? AND usuario2_id = ?)
-           OR (usuario1_id = ? AND usuario2_id = ?)
+        WHERE (usuarie1_id = ? AND usuarie2_id = ?)
+           OR (usuarie1_id = ? AND usuarie2_id = ?)
     """).bind(d1_solicitante_id, d1_destinatarie_id, d1_destinatarie_id, d1_solicitante_id).first()
     
     if existing:
@@ -2041,7 +2041,7 @@ async def send_friend_request(db, solicitante_id, destinatarie_id):
     
     # Cria solicitação
     result = await db.prepare("""
-        INSERT INTO amizade (usuario1_id, usuario2_id, solicitante_id, status)
+        INSERT INTO amizade (usuarie1_id, usuarie2_id, solicitante_id, status)
         VALUES (?, ?, ?, 'pendente')
         RETURNING id
     """).bind(d1_solicitante_id, d1_destinatarie_id, d1_solicitante_id).first()
@@ -2065,7 +2065,7 @@ async def respond_friend_request(db, amizade_id, usuarie_id, aceitar=True):
     amizade = await db.prepare("""
         SELECT * FROM amizade
         WHERE id = ? AND status = 'pendente'
-        AND (usuario1_id = ? OR usuario2_id = ?)
+        AND (usuarie1_id = ? OR usuarie2_id = ?)
         AND solicitante_id != ?
     """).bind(to_d1_null(s_amizade_id), to_d1_null(s_usuarie_id), to_d1_null(s_usuarie_id), to_d1_null(s_usuarie_id)).first()
     
@@ -2098,8 +2098,8 @@ async def get_amigues(db, usuarie_id):
         SELECT u.id, u.username, u.nome, u.foto_perfil, a.created_at as amigues_desde
         FROM amizade a
         JOIN user u ON (
-            (a.usuario1_id = ? AND a.usuario2_id = u.id)
-            OR (a.usuario2_id = ? AND a.usuario1_id = u.id)
+            (a.usuarie1_id = ? AND a.usuarie2_id = u.id)
+            OR (a.usuarie2_id = ? AND a.usuarie1_id = u.id)
         )
         WHERE a.status = 'aceita'
         ORDER BY u.nome, u.username
@@ -2118,7 +2118,7 @@ async def get_pending_friend_requests(db, usuarie_id):
         SELECT a.*, u.username, u.nome, u.foto_perfil
         FROM amizade a
         JOIN user u ON a.solicitante_id = u.id
-        WHERE (a.usuario1_id = ? OR a.usuario2_id = ?)
+        WHERE (a.usuarie1_id = ? OR a.usuarie2_id = ?)
         AND a.status = 'pendente'
         AND a.solicitante_id != ?
         ORDER BY a.created_at DESC
@@ -2135,8 +2135,8 @@ async def are_amigues(db, usuarie1_id, usuarie2_id):
         return False
     result = await db.prepare("""
         SELECT 1 FROM amizade
-        WHERE ((usuario1_id = ? AND usuario2_id = ?)
-            OR (usuario1_id = ? AND usuario2_id = ?))
+        WHERE ((usuarie1_id = ? AND usuarie2_id = ?)
+            OR (usuarie1_id = ? AND usuarie2_id = ?))
         AND status = 'aceita'
     """).bind(to_d1_null(s_usuarie1_id), to_d1_null(s_usuarie2_id), to_d1_null(s_usuarie2_id), to_d1_null(s_usuarie1_id)).first()
     return result is not None
@@ -2156,8 +2156,8 @@ async def remove_amizade(db, usuarie_id, amigue_id):
     
     await db.prepare("""
         DELETE FROM amizade
-        WHERE ((usuario1_id = ? AND usuario2_id = ?)
-            OR (usuario1_id = ? AND usuario2_id = ?))
+        WHERE ((usuarie1_id = ? AND usuarie2_id = ?)
+            OR (usuarie1_id = ? AND usuarie2_id = ?))
         AND status = 'aceita'
     """).bind(d1_usuarie_id, d1_amigue_id, d1_amigue_id, d1_usuarie_id).run()
 
@@ -2984,7 +2984,7 @@ async def check_and_award_badges(db, usuarie_id):
     # Badge por amigues
     amigues_count = await db.prepare("""
         SELECT COUNT(*) as count FROM amizade
-        WHERE (usuario1_id = ? OR usuario2_id = ?) AND status = 'aceita'
+        WHERE (usuarie1_id = ? OR usuarie2_id = ?) AND status = 'aceita'
     """).bind(to_d1_null(s_usuarie_id), to_d1_null(s_usuarie_id)).first()
     if amigues_count and safe_get(amigues_count, 'count', 0) >= 5:
         if await award_badge(db, s_usuarie_id, 'Social'):

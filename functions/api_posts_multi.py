@@ -176,7 +176,7 @@ async def on_request(request, env, context):
         if not conteudo:
             return json_response({'success': False, 'error': 'conteudo_vazio'}, 400)
         
-        # Create post - include usuario (username) from user table
+        # Create post - include usuarie (username) from user table
         # Use d1_params to properly sanitize values and convert None to JavaScript null
         now = datetime.utcnow().isoformat()
         params = d1_params(usuarie_id, conteudo, now, usuarie_id)

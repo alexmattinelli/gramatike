@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS post (
     FOREIGN KEY (deleted_by) REFERENCES user(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_post_usuario_id ON post(usuarie_id);
+CREATE INDEX IF NOT EXISTS idx_post_usuarie_id ON post(usuarie_id);
 CREATE INDEX IF NOT EXISTS idx_post_data ON post(data);
 CREATE INDEX IF NOT EXISTS idx_post_is_deleted ON post(is_deleted);
 

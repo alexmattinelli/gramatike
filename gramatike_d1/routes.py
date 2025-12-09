@@ -128,7 +128,7 @@ async def api_create_comment(db, request, user, post_id):
 # ============================================================================
 
 async def api_get_profile(db, request, username):
-    """GET /api/usuario/{username} - Perfil de usuárie."""
+    """GET /api/usuarie/{username} - Perfil de usuárie."""
     user = await get_user_by_username(db, username)
     if not user:
         return {'error': 'Usuárie não encontrade'}, 404
@@ -151,7 +151,7 @@ async def api_get_profile(db, request, username):
 
 
 async def api_follow_user(db, request, user, username):
-    """POST /api/usuario/{username}/seguir - Seguir usuárie."""
+    """POST /api/usuarie/{username}/seguir - Seguir usuárie."""
     target = await get_user_by_username(db, username)
     if not target:
         return {'error': 'Usuárie não encontrade'}, 404
