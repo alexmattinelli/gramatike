@@ -8,12 +8,13 @@
     <link rel="stylesheet" href="/static/gramatike_common.css">
     <meta name="theme-color" content="#9B5DE5">
     <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root { --primary:#9B5DE5; --border:#e5e7eb; --card:#fff; --bg:#f7f8ff; --text:#222; --text-dim:#6b6b78; }
         body { margin:0; font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; background:var(--primary); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
         header.site-head { background:var(--primary); padding:28px clamp(16px,4vw,40px) 46px; position:relative; display:flex; flex-direction:column; align-items:center; }
         .logo { font-family:'Mansalva', cursive; font-size:2.4rem; color:#fff; font-weight:400; margin:0; }
-        main { flex:1; width:100%; max-width:980px; margin:0 auto; padding:2rem clamp(16px,4vw,40px) 4rem; background:var(--bg); border-top-left-radius:40px; border-top-right-radius:40px; }
+        main { flex:1; width:100%; max-width:1200px; margin:0 auto; padding:2rem clamp(16px,4vw,40px) 4rem; background:var(--bg); border-top-left-radius:40px; border-top-right-radius:40px; }
         .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1.5rem; box-shadow:0 10px 24px -8px rgba(0,0,0,.10); }
         .btn { display:inline-flex; align-items:center; justify-content:center; padding:0.7rem 1.2rem; border-radius:12px; font-weight:700; text-decoration:none; transition:0.2s; }
         .btn-primary { background:var(--primary); color:#fff; border:none; }
@@ -59,32 +60,32 @@
         <h2 style="text-align: center; color: var(--primary); margin: 2rem 0 1.5rem;">Explore</h2>
         <div class="modules-grid">
             <div class="module-card" onclick="showPreview('palavras')">
-                <div class="icon">📚</div>
+                <div class="icon"><i class="fas fa-book-open"></i></div>
                 <h3>Palavras do Dia</h3>
                 <p>Aprenda novas palavras diariamente</p>
             </div>
             <div class="module-card" onclick="showPreview('dinamicas')">
-                <div class="icon">🎮</div>
+                <div class="icon"><i class="fas fa-gamepad"></i></div>
                 <h3>Dinâmicas</h3>
                 <p>Jogos e atividades</p>
             </div>
             <div class="module-card" onclick="showPreview('exercicios')">
-                <div class="icon">✏️</div>
+                <div class="icon"><i class="fas fa-pencil-alt"></i></div>
                 <h3>Exercícios</h3>
                 <p>Pratique gramática</p>
             </div>
             <div class="module-card" onclick="showPreview('artigos')">
-                <div class="icon">📰</div>
+                <div class="icon"><i class="fas fa-newspaper"></i></div>
                 <h3>Artigos</h3>
                 <p>Conteúdo educacional</p>
             </div>
             <div class="module-card" onclick="showPreview('apostilas')">
-                <div class="icon">📖</div>
+                <div class="icon"><i class="fas fa-file-pdf"></i></div>
                 <h3>Apostilas</h3>
                 <p>Material de estudo</p>
             </div>
             <div class="module-card" onclick="showPreview('portal')">
-                <div class="icon">💬</div>
+                <div class="icon"><i class="fas fa-comments"></i></div>
                 <h3>Portal Gramátike</h3>
                 <p>Acesse a comunidade</p>
             </div>
