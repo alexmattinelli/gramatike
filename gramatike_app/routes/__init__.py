@@ -733,10 +733,10 @@ def admin_resolve_report(report_id):
 
 @bp.route('/')
 def index():
-    """Página inicial: feed para usuáries autenticades, landing para visitantes."""
-    # Se usuárie estiver autenticade, mostra o feed
+    """Página inicial: redireciona para feed se autenticade, landing para visitantes."""
+    # Se usuárie estiver autenticade, redireciona para o feed
     if current_user.is_authenticated:
-        return render_template('feed.html')
+        return redirect(url_for('main.feed'))
     
     # Para visitantes, mostra a landing page
     return render_template('landing.html')
