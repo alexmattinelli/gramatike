@@ -31,6 +31,79 @@ def _to_brasilia(dt: datetime) -> datetime:
     except Exception:
         return dt
 
+def _ensure_core_tables():
+    """Garante que as tabelas essenciais para o feed existam (SQLite/D1 fallback)."""
+    try:
+        engine = db.get_engine()
+        if engine.name == 'sqlite':
+            with engine.connect() as conn:
+                # Verifica e cria tabela 'post' se não existir
+                tbl_post = conn.exec_driver_sql("SELECT name FROM sqlite_master WHERE type='table' AND name='post'").fetchone()
+                if not tbl_post:
+                    conn.exec_driver_sql("""
+                        CREATE TABLE post (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            usuarie TEXT,
+                            usuarie_id INTEGER,
+                            conteudo TEXT,
+                            imagem TEXT,
+                            data TEXT DEFAULT (datetime('now')),
+                            is_deleted INTEGER DEFAULT 0,
+                            deleted_at TEXT,
+                            deleted_by INTEGER,
+                            FOREIGN KEY (usuarie_id) REFERENCES user(id),
+                            FOREIGN KEY (deleted_by) REFERENCES user(id)
+                        )
+                    """)
+                    conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS idx_post_usuarie_id ON post(usuarie_id)")
+                    conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS idx_post_data ON post(data)")
+                    conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS idx_post_is_deleted ON post(is_deleted)")
+                
+                # Verifica e cria tabela 'post_likes' se não existir
+                tbl_likes = conn.exec_driver_sql("SELECT name FROM sqlite_master WHERE type='table' AND name='post_likes'").fetchone()
+                if not tbl_likes:
+                    conn.exec_driver_sql("""
+                        CREATE TABLE post_likes (
+                            user_id INTEGER NOT NULL,
+                            post_id INTEGER NOT NULL,
+                            PRIMARY KEY (user_id, post_id),
+                            FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
+                            FOREIGN KEY (post_id) REFERENCES post(id) ON DELETE CASCADE
+                        )
+                    """)
+                
+                # Verifica e cria tabela 'user' se não existir
+                tbl_user = conn.exec_driver_sql("SELECT name FROM sqlite_master WHERE type='table' AND name='user'").fetchone()
+                if not tbl_user:
+                    conn.exec_driver_sql("""
+                        CREATE TABLE user (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            nome TEXT,
+                            username TEXT UNIQUE NOT NULL,
+                            email TEXT UNIQUE NOT NULL,
+                            password TEXT NOT NULL,
+                            email_confirmed INTEGER DEFAULT 0,
+                            email_confirmed_at TEXT,
+                            foto_perfil TEXT DEFAULT 'img/perfil.png',
+                            genero TEXT,
+                            pronome TEXT,
+                            bio TEXT,
+                            data_nascimento TEXT,
+                            created_at TEXT DEFAULT (datetime('now')),
+                            is_admin INTEGER DEFAULT 0,
+                            is_superadmin INTEGER DEFAULT 0,
+                            is_banned INTEGER DEFAULT 0,
+                            banned_at TEXT,
+                            ban_reason TEXT,
+                            suspended_until TEXT
+                        )
+                    """)
+                    conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS idx_user_username ON user(username)")
+                    conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS idx_user_email ON user(email)")
+                    conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS idx_user_created_at ON user(created_at)")
+    except Exception as _e:
+        current_app.logger.warning(f"ensure_core_tables failed: {_e}")
+
 def _ensure_edunovidade_table(seed=False):
     """Garante que a tabela edu_novidade exista (SQLite fallback) e opcionalmente faz seed do guia básico."""
     try:
@@ -745,6 +818,8 @@ def index():
 @login_required
 def feed():
     """Página de feed - requer autenticação."""
+    # Garante que as tabelas essenciais existam antes de renderizar o feed
+    _ensure_core_tables()
     return render_template('feed.html')
 
 # ------------------ Admin Divulgação ------------------
@@ -2223,12 +2298,21 @@ def get_posts():
     periodo: todos|24h|7d|30d
     """
     from sqlalchemy import or_, func
+    
+    # Garante que as tabelas essenciais existam
+    _ensure_core_tables()
+    
     q = (request.args.get('q') or '').strip()
     sort = (request.args.get('sort') or 'recentes').strip().lower()
     tipo = (request.args.get('tipo') or 'todos').strip().lower()
     periodo = (request.args.get('periodo') or 'todos').strip().lower()
 
-    query = Post.query.filter((Post.is_deleted == False) | (Post.is_deleted.is_(None)))
+    try:
+        query = Post.query.filter((Post.is_deleted == False) | (Post.is_deleted.is_(None)))
+    except Exception as e:
+        current_app.logger.error(f'[API /api/posts] Erro ao acessar tabela Post: {e}')
+        # Retorna lista vazia se a tabela não existir ou houver erro
+        return jsonify([])
 
     # Termo livre
     if q:
@@ -2261,16 +2345,27 @@ def get_posts():
         query = query.filter(Post.imagem.isnot(None)).filter(Post.imagem != '')
 
     # Ordenação
-    if sort == 'populares':
-        likes_join = db.session.query(
-            Post.id.label('pid'), func.count(User.id).label('lc')
-        ).outerjoin(Post.likes).group_by(Post.id).subquery()
-        query = query.outerjoin(likes_join, likes_join.c.pid == Post.id)
-        query = query.order_by(func.coalesce(likes_join.c.lc, 0).desc(), Post.data.desc())
-    else:
+    try:
+        if sort == 'populares':
+            likes_join = db.session.query(
+                Post.id.label('pid'), func.count(User.id).label('lc')
+            ).outerjoin(Post.likes).group_by(Post.id).subquery()
+            query = query.outerjoin(likes_join, likes_join.c.pid == Post.id)
+            query = query.order_by(func.coalesce(likes_join.c.lc, 0).desc(), Post.data.desc())
+        else:
+            query = query.order_by(Post.data.desc())
+    except Exception as e:
+        current_app.logger.warning(f'[API /api/posts] Erro ao aplicar ordenação: {e}')
+        # Fallback para ordenação simples
         query = query.order_by(Post.data.desc())
 
-    posts = query.all()
+    try:
+        posts = query.all()
+    except Exception as e:
+        current_app.logger.error(f'[API /api/posts] Erro ao executar query: {e}')
+        # Retorna lista vazia se houver erro na query
+        return jsonify([])
+    
     result = []
     for p in posts:
         try:
@@ -2281,10 +2376,13 @@ def get_posts():
             data_str = ''
         # Buscar usuárie autore do post
         autor = None
-        if hasattr(p, 'usuarie_id') and p.usuarie_id:
-            autor = User.query.get(p.usuarie_id)
-        elif hasattr(p, 'usuarie') and p.usuarie:
-            autor = User.query.filter_by(username=p.usuarie).first()
+        try:
+            if hasattr(p, 'usuarie_id') and p.usuarie_id:
+                autor = User.query.get(p.usuarie_id)
+            elif hasattr(p, 'usuarie') and p.usuarie:
+                autor = User.query.filter_by(username=p.usuarie).first()
+        except Exception as e:
+            current_app.logger.warning(f'[API /api/posts] Erro ao buscar autor do post {p.id}: {e}')
         foto_perfil = autor.foto_perfil if autor and autor.foto_perfil else 'img/perfil.png'
         liked = False
         try:
