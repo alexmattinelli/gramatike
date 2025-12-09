@@ -1162,13 +1162,13 @@ class Default(WorkerEntrypoint):
                 password = body.get('password', '')
                 nome = body.get('nome', '').strip() or None
                 
-                user_id, error = await register(db, username, email, password, nome)
+                usuarie_id, error = await register(db, username, email, password, nome)
                 if error:
                     return json_response({"error": error}, 400)
                 
                 token, _ = await login(db, request, email, password)
                 return json_response(
-                    {"success": True, "user_id": user_id},
+                    {"success": True, "usuarie_id": usuarie_id},
                     status=201,
                     headers={"Set-Cookie": set_session_cookie(token)}
                 )
@@ -1220,14 +1220,14 @@ class Default(WorkerEntrypoint):
                         return json_response({"error": "Conteúdo é obrigatório"}, 400)
                     
                     # Sanitize current_user['id'] - sanitize_for_d1 already returns proper Python types
-                    user_id = sanitize_for_d1(current_user.get('id'))
-                    if user_id is None:
+                    usuarie_id = sanitize_for_d1(current_user.get('id'))
+                    if usuarie_id is None:
                         return json_response({"error": "Usuárie inválide"}, 400)
                     
-                    post_id = await create_post(db, user_id, conteudo, imagem)
+                    post_id = await create_post(db, usuarie_id, conteudo, imagem)
                     
                     # Processar menções (@username)
-                    await process_mentions(db, conteudo, user_id, 'post', post_id)
+                    await process_mentions(db, conteudo, usuarie_id, 'post', post_id)
                     
                     # Processar hashtags (#tag)
                     await process_hashtags(db, conteudo, 'post', post_id)
@@ -1249,8 +1249,8 @@ class Default(WorkerEntrypoint):
                     else:
                         current_user_dict = safe_dict(current_user)
                     
-                    user_id = current_user_dict.get('id') if current_user_dict else None
-                    if user_id is None:
+                    usuarie_id = current_user_dict.get('id') if current_user_dict else None
+                    if usuarie_id is None:
                         console.error("[posts_multi] current_user.id is None")
                         return json_response({"error": "Usuárie inválide", "success": False}, 400)
                     
@@ -1399,11 +1399,11 @@ class Default(WorkerEntrypoint):
                     # Sanitize parameters - sanitize_for_d1 already returns proper Python types
                     # DO NOT use int() or str() after sanitization as this creates new objects
                     # that become 'undefined' when crossing the Pyodide FFI boundary to D1
-                    user_id = sanitize_for_d1(user_id)
+                    usuarie_id = sanitize_for_d1(usuarie_id)
                     conteudo = sanitize_for_d1(conteudo)
                     
-                    if user_id is None:
-                        console.error("[posts_multi] user_id is None after sanitize_for_d1")
+                    if usuarie_id is None:
+                        console.error("[posts_multi] usuarie_id is None after sanitize_for_d1")
                         return json_response({"error": "Usuárie inválide", "success": False}, 400)
                     
                     # Strip whitespace from conteudo if it's a string
@@ -1415,18 +1415,18 @@ class Default(WorkerEntrypoint):
                         return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
                     
                     # Log the final values before creating post
-                    console.log(f"[posts_multi] Creating post: user_id={user_id} ({type(user_id).__name__}), conteudo_len={len(conteudo)}")
+                    console.log(f"[posts_multi] Creating post: usuarie_id={usuarie_id} ({type(usuarie_id).__name__}), conteudo_len={len(conteudo)}")
                     
                     # For now, we don't handle image uploads in Cloudflare Workers
                     # (would need R2 storage integration)
                     # Just create the post with text content
-                    post_id = await create_post(db, user_id, conteudo, None)
+                    post_id = await create_post(db, usuarie_id, conteudo, None)
                     
                     if not post_id:
                         return json_response({"error": "Erro ao criar post", "success": False}, 500)
                     
                     # Process mentions (@username)
-                    await process_mentions(db, conteudo, user_id, 'post', post_id)
+                    await process_mentions(db, conteudo, usuarie_id, 'post', post_id)
                     
                     # Process hashtags (#tag)
                     await process_hashtags(db, conteudo, 'post', post_id)
@@ -1925,8 +1925,8 @@ class Default(WorkerEntrypoint):
             
             if path == '/api/flashcards/decks':
                 if method == 'GET':
-                    user_id = current_user['id'] if current_user else None
-                    decks = await get_flashcard_decks(db, user_id)
+                    usuarie_id = current_user['id'] if current_user else None
+                    decks = await get_flashcard_decks(db, usuarie_id)
                     return json_response({"decks": decks})
                 
                 if method == 'POST' and current_user:
@@ -2232,8 +2232,8 @@ class Default(WorkerEntrypoint):
                 
                 if method == 'GET':
                     apenas_meus = params.get('meus', ['0'])[0] == '1'
-                    user_id = current_user['id'] if current_user else None
-                    grupos = await get_study_groups(db, user_id, apenas_meus)
+                    usuarie_id = current_user['id'] if current_user else None
+                    grupos = await get_study_groups(db, usuarie_id, apenas_meus)
                     return json_response({"grupos": grupos})
                 
                 if method == 'POST' and current_user:
@@ -2449,7 +2449,7 @@ class Default(WorkerEntrypoint):
         
         # Info do usuário para JS - escaped para segurança
         user_username_js = escape_js_string(current_user.get('username', ''))
-        user_id = int(current_user.get('id', 0))
+        usuarie_id = int(current_user.get('id', 0))
         user_foto = normalize_image_url(current_user.get('foto_perfil'))
         
         # Admin button (only for admin/superadmin)
@@ -2487,7 +2487,7 @@ class Default(WorkerEntrypoint):
             divulgacoes_html=divulgacoes_html,
             user_foto=user_foto,
             user_username_js=user_username_js,
-            user_id=user_id,
+            usuarie_id=usuarie_id,
             admin_btn_html=admin_btn_html,
             auth_profile_link_html=auth_profile_link_html,
             mobile_nav_auth_html=mobile_nav_auth_html,
@@ -2603,8 +2603,8 @@ class Default(WorkerEntrypoint):
                     nome = form_data.get('nome', [''])[0].strip() or None
                     
                     if username and email and password:
-                        user_id, err = await register(db, username, email, password, nome)
-                        if user_id:
+                        usuarie_id, err = await register(db, username, email, password, nome)
+                        if usuarie_id:
                             # Auto-login
                             token, _ = await login(db, request, email, password)
                             if token:
@@ -2883,7 +2883,7 @@ class Default(WorkerEntrypoint):
                 return self._not_found_page(f'/u/{username}')
             
             # Buscar posts de usuárie
-            posts = await get_posts(db, user_id=user['id'], per_page=20)
+            posts = await get_posts(db, usuarie_id=user['id'], per_page=20)
             
             # Gerar HTML dos posts
             posts_html = ""
@@ -2909,8 +2909,8 @@ class Default(WorkerEntrypoint):
             return redirect('/login')
         
         # Validate current_user has required 'id' field and sanitize it
-        user_id = sanitize_for_d1(current_user.get('id') if isinstance(current_user, dict) else None)
-        if user_id is None:
+        usuarie_id = sanitize_for_d1(current_user.get('id') if isinstance(current_user, dict) else None)
+        if usuarie_id is None:
             console.error("[NovoPost] current_user.id is None")
             return redirect('/login')
         
@@ -2927,8 +2927,8 @@ class Default(WorkerEntrypoint):
                     conteudo = form_data.get('conteudo', [''])[0].strip()
                     
                     if conteudo:
-                        # Pass user_id (already validated and sanitized) instead of accessing dict again
-                        post_id = await create_post(db, user_id, conteudo, None)
+                        # Pass usuarie_id (already validated and sanitized) instead of accessing dict again
+                        post_id = await create_post(db, usuarie_id, conteudo, None)
                         if post_id:
                             return redirect('/')
                         else:
@@ -2952,7 +2952,7 @@ class Default(WorkerEntrypoint):
         posts = []
         if db and DB_AVAILABLE:
             try:
-                posts = await get_posts(db, user_id=user['id'], per_page=20)
+                posts = await get_posts(db, usuarie_id=user['id'], per_page=20)
             except:
                 pass
         
@@ -3076,8 +3076,8 @@ class Default(WorkerEntrypoint):
                         
                         if user:
                             # Create reset token
-                            user_id = user.get('id')
-                            token = await create_email_token(db, user_id, 'reset', expires_hours=1)
+                            usuarie_id = user.get('id')
+                            token = await create_email_token(db, usuarie_id, 'reset', expires_hours=1)
                             if token:
                                 # Token created successfully
                                 # Note: In Cloudflare Workers, email sending requires an external service
@@ -3168,8 +3168,8 @@ class Default(WorkerEntrypoint):
                     else:
                         # Update password
                         try:
-                            user_id = token_data.get('usuario_id')
-                            await update_user_password(db, user_id, password)
+                            usuarie_id = token_data.get('usuario_id')
+                            await update_user_password(db, usuarie_id, password)
                             await use_email_token(db, token)
                             # Redirect to login with success message
                             return redirect('/login')
