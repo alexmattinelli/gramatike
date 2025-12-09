@@ -1246,6 +1246,7 @@ def educacao():
 
 # Dinâmicas (criação) — por enquanto apenas admin
 @bp.route('/dinamicas')
+@login_required
 def dinamicas_home():
     is_admin = getattr(current_user, 'is_authenticated', False) and (getattr(current_user, 'is_admin', False) or getattr(current_user, 'is_superadmin', False))
     my_dynamics = []
@@ -2130,6 +2131,7 @@ def api_posts_multi_create():
 ## Rotas legacy de criação rápida removidas: /nova_postagem e /postar_estudo (agora gerenciadas pelo painel admin)
 
 @bp.route('/apostilas')
+@login_required
 def apostilas():
     q = request.args.get('q','').strip()
     topic_id = request.args.get('topic_id','').strip()
@@ -2153,6 +2155,7 @@ def apostilas():
                            page=page, last_page=last_page, total=total, per_page=per_page)
 
 @bp.route('/artigos')
+@login_required
 def artigos():
     q = request.args.get('q','').strip()
     topic_id = request.args.get('topic_id','').strip()
@@ -2201,6 +2204,7 @@ def api_redacao_temas():
     return jsonify(result)
 
 @bp.route('/exercicios')
+@login_required
 def exercicios():
     q = request.args.get('q','').strip()
     topics = ExerciseTopic.query.order_by(ExerciseTopic.nome.asc()).all()
