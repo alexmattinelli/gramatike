@@ -1009,7 +1009,7 @@ async def create_session(db, usuarie_id, user_agent=None, ip_address=None):
     # Call to_d1_null() directly in bind() to prevent FFI boundary issues
     # The enhanced to_d1_null() now handles all edge cases of undefined values
     await db.prepare("""
-        INSERT INTO user_session (usuarie_id, token, expires_at, user_agent, ip_address)
+        INSERT INTO user_session (user_id, token, expires_at, user_agent, ip_address)
         VALUES (?, ?, ?, ?, ?)
     """).bind(
         to_d1_null(s_user_id),
@@ -1033,7 +1033,7 @@ async def get_session(db, token):
     result = await db.prepare("""
         SELECT s.*, u.username, u.email, u.is_admin, u.is_superadmin, u.is_banned, u.foto_perfil
         FROM user_session s
-        JOIN user u ON s.usuarie_id = u.id
+        JOIN user u ON s.user_id = u.id
         WHERE s.token = ? AND s.expires_at > datetime('now')
     """).bind(to_d1_null(s_token)).first()
     if result:
