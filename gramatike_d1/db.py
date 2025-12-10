@@ -1031,7 +1031,7 @@ async def get_session(db, token):
     
     # Call to_d1_null() directly in bind() to prevent FFI boundary issues
     result = await db.prepare("""
-        SELECT s.*, u.username, u.email, u.is_admin, u.is_superadmin, u.is_banned
+        SELECT s.*, u.username, u.email, u.is_admin, u.is_superadmin, u.is_banned, u.foto_perfil
         FROM user_session s
         JOIN user u ON s.usuarie_id = u.id
         WHERE s.token = ? AND s.expires_at > datetime('now')
