@@ -230,6 +230,13 @@ button { font-family: var(--font-base); font-weight:600; }
   .shimmer { position:absolute; inset:0; background:linear-gradient(110deg, transparent 0%, rgba(255,255,255,.55) 45%, transparent 90%); animation:shimmer 1.4s linear infinite; mix-blend-mode:overlay; }
   @keyframes shimmer { from { transform:translateX(-100%);} to { transform:translateX(100%);} }
 
+  /* Flash Messages */
+  .flash-message { box-shadow: 0 4px 14px rgba(0,0,0,.1); }
+  .flash-success { background:#e8f9f0; color:#1e8052; border:1px solid #b2e7cd; }
+  .flash-error { background:#ffecec; color:#c0392b; border:1px solid #f5b7b1; }
+  .flash-warning { background:#fff3cd; color:#856404; border:1px solid #ffeaa7; }
+  .flash-info { background:#d1ecf1; color:#0c5460; border:1px solid #bee5eb; }
+  
   @media (max-width:600px) {
     header, main { padding:1rem; }
     nav a { margin-left:1rem; font-size:.95rem; }
@@ -250,6 +257,19 @@ button { font-family: var(--font-base); font-weight:600; }
 <div class="content-wrapper">
 <main class="site-main" style="width:100%; max-width:1400px; margin:0 auto 4rem; padding:0 32px; display:flex; gap:48px; align-items:flex-start; justify-content:flex-start; box-sizing:border-box;">
   <div class="feed-col" style="flex:1 1 960px; max-width:960px; min-width:0;">
+  
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages-container" style="margin:0 0 1.2rem;">
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}" style="padding:.85rem 1rem; border-radius:16px; margin-bottom:.6rem; font-size:.85rem; font-weight:600; line-height:1.4; animation:fadeIn .4s ease;">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
   
   <!-- Triângulo toggle para mostrar/esconder card de ações (mobile only) -->
   <div id="mobile-toggle-triangle" onclick="toggleMobileActionsCard()" style="display:none; width:100%; text-align:center; margin-bottom:.5rem; cursor:pointer;">
