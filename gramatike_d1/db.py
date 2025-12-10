@@ -541,13 +541,13 @@ async def ensure_database_initialized(db):
         await db.prepare("""
             CREATE TABLE IF NOT EXISTS user_session (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                usuarie_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
                 token TEXT UNIQUE NOT NULL,
                 created_at TEXT DEFAULT (datetime('now')),
                 expires_at TEXT NOT NULL,
                 user_agent TEXT,
                 ip_address TEXT,
-                FOREIGN KEY (usuarie_id) REFERENCES user(id) ON DELETE CASCADE
+                FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
             )
         """).run()
         
@@ -2564,7 +2564,7 @@ async def get_admin_stats(db):
     
     # Usuáries ativos (últimos 7 dias)
     result = await db.prepare("""
-        SELECT COUNT(DISTINCT usuarie_id) as count FROM user_session
+        SELECT COUNT(DISTINCT user_id) as count FROM user_session
         WHERE created_at > datetime('now', '-7 days')
     """).first()
     stats['usuaries_ativos'] = safe_get(result, 'count', 0)
