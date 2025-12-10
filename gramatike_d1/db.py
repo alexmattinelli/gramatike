@@ -555,7 +555,9 @@ async def ensure_database_initialized(db):
         # Verificar se a tabela tem a coluna errada
         try:
             pragma_result = await db.prepare("PRAGMA table_info(user_session)").all()
-            columns = [safe_get(col, 'name', '') for col in pragma_result.results if pragma_result and hasattr(pragma_result, 'results')]
+            columns = []
+            if pragma_result and hasattr(pragma_result, 'results') and pragma_result.results:
+                columns = [safe_get(col, 'name', '') for col in pragma_result.results]
             
             if 'usuarie_id' in columns and 'user_id' not in columns:
                 console.log("[D1 Migration] Detectada coluna usuarie_id em user_session, migrando para user_id...")
