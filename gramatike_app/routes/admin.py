@@ -127,7 +127,7 @@ def dashboard():
 @login_required
 def add_blocked_word():
     if not getattr(current_user, 'is_admin', False):
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     term = (request.form.get('term') or '').strip()
     category = (request.form.get('category') or 'custom').strip().lower()
     if not term:
@@ -149,7 +149,7 @@ def add_blocked_word():
 @login_required
 def delete_blocked_word(bid: int):
     if not getattr(current_user, 'is_admin', False):
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     bw = BlockedWord.query.get_or_404(bid)
     db.session.delete(bw)
     db.session.commit()
@@ -222,7 +222,7 @@ def stats_activity():
 @login_required
 def postar_estudo():
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     titulo = request.form['titulo']
     conteudo = request.form['conteudo']
     estudo = Estudo(titulo=titulo, conteudo=conteudo)
@@ -238,7 +238,7 @@ def postar_estudo():
 @login_required
 def novidades_create():
     if not getattr(current_user, 'is_admin', False):
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     titulo = (request.form.get('titulo') or '').strip()
     descricao = (request.form.get('descricao') or '').strip() or None
     link = (request.form.get('link') or '').strip() or None
@@ -255,7 +255,7 @@ def novidades_create():
 @login_required
 def novidades_edit(nid):
     if not getattr(current_user, 'is_admin', False):
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     n = EduNovidade.query.get_or_404(nid)
     n.titulo = (request.form.get('titulo') or '').strip()
     n.descricao = (request.form.get('descricao') or '').strip() or None
@@ -271,7 +271,7 @@ def novidades_edit(nid):
 @login_required
 def novidades_delete(nid):
     if not getattr(current_user, 'is_admin', False):
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     n = EduNovidade.query.get_or_404(nid)
     db.session.delete(n)
     db.session.commit()
@@ -283,7 +283,7 @@ def novidades_delete(nid):
 @login_required
 def edu_publicar():
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     tipo = request.form.get('tipo')
     titulo = request.form.get('titulo', '').strip()
     resumo = request.form.get('resumo', '').strip() or None
@@ -431,7 +431,7 @@ def edu_publicar():
 @login_required
 def promover_admin():
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     ident = request.form.get('ident','').strip()
     if not ident:
         flash('Informe username ou email.')
@@ -458,7 +458,7 @@ def promover_admin():
 @login_required
 def edu_create_topic():
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     nome = request.form.get('nome','').strip()
     descricao = request.form.get('descricao','').strip() or None
     if not nome:
@@ -477,7 +477,7 @@ def edu_create_topic():
 @login_required
 def edu_topic_create():
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     area = request.form.get('area','').strip()
     nome = request.form.get('nome','').strip()
     descricao = request.form.get('descricao','').strip() or None
@@ -497,7 +497,7 @@ def edu_topic_create():
 @login_required
 def edu_topic_update(topic_id):
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     topic = EduTopic.query.get_or_404(topic_id)
     nome = request.form.get('nome','').strip()
     descricao = request.form.get('descricao','').strip() or None
@@ -570,7 +570,7 @@ def get_edu_content(content_id: int):
 @login_required
 def update_edu_content(content_id: int):
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     c = EduContent.query.get_or_404(content_id)
     titulo = request.form.get('titulo','').strip() or c.titulo
     resumo = request.form.get('resumo','').strip() or None
@@ -676,7 +676,7 @@ def update_edu_content(content_id: int):
 @login_required
 def delete_edu_content(content_id: int):
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     c = EduContent.query.get_or_404(content_id)
     # Se for vídeo, tentar remover thumb local
     try:
@@ -712,7 +712,7 @@ def delete_edu_content(content_id: int):
 @login_required
 def edu_create_question():
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     topic_id = request.form.get('topic_id')
     section_id = request.form.get('section_id') or None
     enunciado = request.form.get('enunciado','').strip()
@@ -750,7 +750,7 @@ def get_question_json(question_id: int):
 @login_required
 def update_question(question_id: int):
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     q = ExerciseQuestion.query.get_or_404(question_id)
     q.enunciado = request.form.get('enunciado','').strip() or q.enunciado
     q.resposta = request.form.get('resposta','').strip() or None
@@ -772,7 +772,7 @@ def update_question(question_id: int):
 @login_required
 def delete_question(question_id: int):
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     q = ExerciseQuestion.query.get_or_404(question_id)
     db.session.delete(q)
     db.session.commit()
@@ -784,7 +784,7 @@ def delete_question(question_id: int):
 @login_required
 def exercicios_create_section():
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     topic_id = request.form.get('topic_id')
     nome = request.form.get('nome','').strip()
     descricao = request.form.get('descricao','').strip() or None
@@ -809,7 +809,7 @@ def exercicios_create_section():
 @login_required
 def exercicios_topic_update(topic_id):
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     topic = ExerciseTopic.query.get_or_404(topic_id)
     nome = request.form.get('nome','').strip()
     descricao = request.form.get('descricao','').strip() or None
@@ -831,7 +831,7 @@ def exercicios_topic_update(topic_id):
 @login_required
 def exercicios_section_update(section_id):
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     section = ExerciseSection.query.get_or_404(section_id)
     nome = request.form.get('nome','').strip()
     descricao = request.form.get('descricao','').strip() or None
@@ -860,7 +860,7 @@ def exercicios_section_update(section_id):
 def salvar_variacoes():
     # Rota legada descontinuada: agora usamos "Vídeos" em EDU
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     flash('A seção "Variações" foi substituída por "Vídeos". Publique vídeos em EDU > Vídeos.')
     return redirect(url_for('admin.dashboard', _anchor='edu'))
 
@@ -868,7 +868,7 @@ def salvar_variacoes():
 @login_required
 def excluir_usuario(user_id):
     if not current_user.is_admin:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     user = User.query.get_or_404(user_id)
     if getattr(user, 'is_superadmin', False):
         flash('Não é possível excluir o superadmin.')
@@ -899,7 +899,7 @@ def _can_act_on(user: User):
 @login_required
 def suspend_user(user_id):
     if not _ensure_admin():
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     user = User.query.get_or_404(user_id)
     if not _can_act_on(user):
         flash('Sem permissão para suspender este usuárie.')
@@ -920,7 +920,7 @@ def suspend_user(user_id):
 @login_required
 def unsuspend_user(user_id):
     if not _ensure_admin():
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     user = User.query.get_or_404(user_id)
     if not _can_act_on(user):
         flash('Sem permissão.')
@@ -934,7 +934,7 @@ def unsuspend_user(user_id):
 @login_required
 def ban_user(user_id):
     if not _ensure_admin():
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     user = User.query.get_or_404(user_id)
     if not _can_act_on(user):
         flash('Sem permissão.')
@@ -951,7 +951,7 @@ def ban_user(user_id):
 @login_required
 def unban_user(user_id):
     if not _ensure_admin():
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     user = User.query.get_or_404(user_id)
     if not _can_act_on(user):
         flash('Sem permissão.')
@@ -967,7 +967,7 @@ def unban_user(user_id):
 @login_required
 def resolve_report(report_id):
     if not _ensure_admin():
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     rep = Report.query.get_or_404(report_id)
     rep.resolved = True
     rep.resolved_at = datetime.utcnow()
@@ -979,7 +979,7 @@ def resolve_report(report_id):
 @login_required
 def delete_report_post(report_id):
     if not _ensure_admin():
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     rep = Report.query.get_or_404(report_id)
     post = Post.query.get(rep.post_id)
     if post:
@@ -997,7 +997,7 @@ def delete_report_post(report_id):
 def palavra_do_dia_create():
     """Criar uma nova palavra do dia."""
     if not _ensure_admin():
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     
     from gramatike_app.models import PalavraDoDia
     from sqlalchemy import func
@@ -1055,7 +1055,7 @@ def palavra_do_dia_list():
 def palavra_do_dia_toggle(palavra_id):
     """Ativar/desativar uma palavra do dia."""
     if not _ensure_admin():
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     
     from gramatike_app.models import PalavraDoDia
     
@@ -1072,7 +1072,7 @@ def palavra_do_dia_toggle(palavra_id):
 def palavra_do_dia_delete(palavra_id):
     """Excluir uma palavra do dia."""
     if not _ensure_admin():
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     
     from gramatike_app.models import PalavraDoDia
     

@@ -828,9 +828,10 @@ def feed():
     except Exception as e:
         current_app.logger.error(f'[Feed] Erro ao carregar feed: {e}')
         current_app.logger.error(f'[Feed Traceback]\n{traceback.format_exc()}')
-        # Se houver erro ao carregar o feed, tenta redirecionar para landing ou mostra erro
+        # Se houver erro ao carregar o feed, mostra mensagem de erro
         flash('Erro ao carregar o feed. Por favor, tente novamente.', 'error')
-        return redirect(url_for('main.index'))
+        # Retorna a landing page em caso de erro
+        return render_template('landing.html')
 
 # ------------------ Admin Divulgação ------------------
 @bp.route('/admin/divulgacao')

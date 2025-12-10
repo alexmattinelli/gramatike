@@ -26,7 +26,7 @@ def login():
             flash(f"Conta suspensa até {user.suspended_until.strftime('%d/%m %H:%M')}")
             return render_template('login.html')
         login_user(user)
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
 
     # GET
     return render_template('login.html')

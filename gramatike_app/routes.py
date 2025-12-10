@@ -16,7 +16,7 @@ def index():
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     form = LoginForm()
     if form.validate_on_submit():
         try:
@@ -42,7 +42,7 @@ def login():
                 return redirect(url_for('main.login'))
         login_user(user, remember=form.remember_me.data)
         flash('Login realizado com sucesso!', 'success')
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     return render_template('login.html', form=form)
 
 @bp.route('/logout')
@@ -53,7 +53,7 @@ def logout():
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.feed'))
     form = RegistrationForm()
     if form.validate_on_submit():
         try:
@@ -265,7 +265,7 @@ def esqueci_senha():
 @bp.route('/comentar', methods=['POST'])
 def comentar():
     # lógica para salvar o comentário
-    return redirect(url_for('main.index'))
+    return redirect(url_for('main.feed'))
 
 main_perfil_bp = Blueprint('main_perfil', __name__)
 
