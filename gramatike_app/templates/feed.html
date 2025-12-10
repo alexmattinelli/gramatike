@@ -251,7 +251,16 @@ button { font-family: var(--font-base); font-weight:600; }
 
 <header class="site-head">
   <h1 class="logo" title="Gramátike">Gramátike</h1>
-  <!-- AUTH_PROFILE_LINK_PLACEHOLDER -->
+  {% if current_user.is_authenticated %}
+    <a href="{{ url_for('main.meu_perfil') }}" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
+      {% if current_user.foto_perfil %}
+        {% set is_abs = current_user.foto_perfil.startswith('http://') or current_user.foto_perfil.startswith('https://') %}
+        <img src="{{ current_user.foto_perfil if is_abs else url_for('static', filename=current_user.foto_perfil) }}" alt="Avatar de {{ current_user.username }}" loading="lazy">
+      {% else %}
+        <span class="initial">{{ (current_user.username or '?')[:1].upper() }}</span>
+      {% endif %}
+    </a>
+  {% endif %}
 </header>
 
 <!-- Wrapper clarinho com borda curvada no topo -->
@@ -304,8 +313,17 @@ button { font-family: var(--font-base); font-weight:600; }
           <path d="M16 8v8"></path>
         </svg>
       </button>
-      <!-- ADMIN_BTN_PLACEHOLDER -->
-<button onclick="toggleNotifications()" class="search-btn icon-btn" title="Notificações" aria-label="Notificações" style="position:relative;">
+      {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+      <a href="{{ url_for('admin.dashboard') }}" class="search-btn icon-btn" title="Painel Admin" aria-label="Painel Admin">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+      </a>
+      {% endif %}
+      <button onclick="toggleNotifications()" class="search-btn icon-btn" title="Notificações" aria-label="Notificações" style="position:relative;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
@@ -415,7 +433,16 @@ button { font-family: var(--font-base); font-weight:600; }
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
         </a>
-        <!-- ADMIN_PAINEL_BTN_PLACEHOLDER -->
+        {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+        <a href="{{ url_for('admin.dashboard') }}" class="search-btn icon-btn" title="Painel Admin" aria-label="Painel Admin">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+        </a>
+        {% endif %}
       </div>
       <!-- Linha divisória -->
       <div class="amigues-divider" style="height:1px; background:var(--border); margin:.6rem 0 .8rem; border-radius:1px;"></div>
@@ -683,7 +710,24 @@ button { font-family: var(--font-base); font-weight:600; }
     </svg>
     <span>Em breve</span>
   </div>
-<!-- MOBILE_NAV_AUTH_PLACEHOLDER -->
+  {% if current_user.is_authenticated %}
+  <a href="{{ url_for('main.meu_perfil') }}" aria-label="Perfil" title="Perfil">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+    <span>Perfil</span>
+  </a>
+  {% else %}
+  <a href="{{ url_for('main.login') }}" aria-label="Entrar" title="Entrar">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+      <polyline points="10 17 15 12 10 7"></polyline>
+      <line x1="15" y1="12" x2="3" y2="12"></line>
+    </svg>
+    <span>Entrar</span>
+  </a>
+  {% endif %}
 </nav>
 
 <!-- Footer simples (apenas texto) - oculto no mobile -->
@@ -693,8 +737,13 @@ button { font-family: var(--font-base); font-weight:600; }
 
 <script src="/static/js/feed.js"></script>
 <script>
+{% if current_user.is_authenticated %}
+window.currentUser = "{{ current_user.username }}";
+window.currentUserId = {{ current_user.id }};
+{% else %}
 window.currentUser = "";
 window.currentUserId = "";
+{% endif %}
 window.currentUserId = window.currentUserId ? parseInt(window.currentUserId) : null;
 // Lista local de quem eu já sigo (usernames)
 window.FOLLOWING = window.FOLLOWING || new Set();
