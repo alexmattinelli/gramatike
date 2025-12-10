@@ -738,13 +738,12 @@ button { font-family: var(--font-base); font-weight:600; }
 <script src="/static/js/feed.js"></script>
 <script>
 {% if current_user.is_authenticated %}
-window.currentUser = "{{ current_user.username }}";
-window.currentUserId = {{ current_user.id }};
+window.currentUser = "{{ current_user.username|e }}";
+window.currentUserId = {{ current_user.id|int }};
 {% else %}
 window.currentUser = "";
-window.currentUserId = "";
+window.currentUserId = null;
 {% endif %}
-window.currentUserId = window.currentUserId ? parseInt(window.currentUserId) : null;
 // Lista local de quem eu já sigo (usernames)
 window.FOLLOWING = window.FOLLOWING || new Set();
 // Carrega lista de seguindo para poder esconder botões "Seguir" automaticamente
