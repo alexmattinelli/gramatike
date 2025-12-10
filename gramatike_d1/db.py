@@ -541,15 +541,63 @@ async def ensure_database_initialized(db):
         await db.prepare("""
             CREATE TABLE IF NOT EXISTS user_session (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                usuarie_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
                 token TEXT UNIQUE NOT NULL,
                 created_at TEXT DEFAULT (datetime('now')),
                 expires_at TEXT NOT NULL,
                 user_agent TEXT,
                 ip_address TEXT,
-                FOREIGN KEY (usuarie_id) REFERENCES user(id) ON DELETE CASCADE
+                FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
             )
         """).run()
+        
+        # Migração: Corrigir tabela user_session se tiver coluna usuarie_id (nome antigo)
+        # Verificar se a tabela tem a coluna errada
+        try:
+            pragma_result = await db.prepare("PRAGMA table_info(user_session)").all()
+            columns = []
+            if pragma_result and hasattr(pragma_result, 'results') and pragma_result.results:
+                columns = [safe_get(col, 'name', '') for col in pragma_result.results]
+            
+            if 'usuarie_id' in columns and 'user_id' not in columns:
+                console.log("[D1 Migration] Detectada coluna usuarie_id em user_session, migrando para user_id...")
+                
+                # Criar tabela temporária com schema correto
+                await db.prepare("""
+                    CREATE TABLE user_session_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        token TEXT UNIQUE NOT NULL,
+                        created_at TEXT DEFAULT (datetime('now')),
+                        expires_at TEXT NOT NULL,
+                        user_agent TEXT,
+                        ip_address TEXT,
+                        FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+                    )
+                """).run()
+                
+                # Copiar dados da tabela antiga para a nova
+                await db.prepare("""
+                    INSERT INTO user_session_new (id, user_id, token, created_at, expires_at, user_agent, ip_address)
+                    SELECT id, usuarie_id, token, created_at, expires_at, user_agent, ip_address
+                    FROM user_session
+                """).run()
+                
+                # Remover tabela antiga
+                await db.prepare("DROP TABLE user_session").run()
+                
+                # Renomear tabela nova para o nome original
+                await db.prepare("ALTER TABLE user_session_new RENAME TO user_session").run()
+                
+                # Recriar índices
+                await db.prepare("CREATE INDEX IF NOT EXISTS idx_session_token ON user_session(token)").run()
+                await db.prepare("CREATE INDEX IF NOT EXISTS idx_session_user ON user_session(user_id)").run()
+                await db.prepare("CREATE INDEX IF NOT EXISTS idx_session_expires ON user_session(expires_at)").run()
+                
+                console.log("[D1 Migration] Migração de user_session concluída com sucesso!")
+        except Exception as migration_error:
+            # Se a migração falhar, apenas registrar o erro e continuar
+            console.warn(f"[D1 Migration Warning] Erro ao verificar/migrar user_session: {migration_error}")
         
         # Criar tabela de posts
         await db.prepare("""
@@ -2564,7 +2612,7 @@ async def get_admin_stats(db):
     
     # Usuáries ativos (últimos 7 dias)
     result = await db.prepare("""
-        SELECT COUNT(DISTINCT usuarie_id) as count FROM user_session
+        SELECT COUNT(DISTINCT user_id) as count FROM user_session
         WHERE created_at > datetime('now', '-7 days')
     """).first()
     stats['usuaries_ativos'] = safe_get(result, 'count', 0)
