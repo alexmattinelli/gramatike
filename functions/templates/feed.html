@@ -243,7 +243,7 @@ button { font-family: var(--font-base); font-weight:600; }
 
 <header class="site-head">
   <h1 class="logo" title="Gramátike">Gramátike</h1>
-  <!-- AUTH_PROFILE_LINK_PLACEHOLDER -->
+  <!-- AUTH_PROFILE_LINK_PLACEHOLDER - Managed by serverless function -->
 </header>
 
 <!-- Wrapper clarinho com borda curvada no topo -->
@@ -674,9 +674,8 @@ button { font-family: var(--font-base); font-weight:600; }
 
 <script src="/static/js/feed.js"></script>
 <script>
-window.currentUser = "";
-window.currentUserId = "";
-window.currentUserId = window.currentUserId ? parseInt(window.currentUserId) : null;
+window.currentUser = "<!-- USER_USERNAME_JS_PLACEHOLDER -->";
+window.currentUserId = <!-- USER_ID_PLACEHOLDER -->;
 // Lista local de quem eu já sigo (usernames)
 window.FOLLOWING = window.FOLLOWING || new Set();
 // Carrega lista de seguindo para poder esconder botões "Seguir" automaticamente
