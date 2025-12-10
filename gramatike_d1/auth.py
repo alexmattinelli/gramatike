@@ -55,6 +55,7 @@ async def get_current_user(db, request):
     user_id = sanitize_for_d1(session.get('user_id'))
     username = sanitize_for_d1(session.get('username'))
     email = sanitize_for_d1(session.get('email'))
+    foto_perfil = sanitize_for_d1(session.get('foto_perfil'))
     
     if user_id is None:
         return None
@@ -63,6 +64,7 @@ async def get_current_user(db, request):
         'id': user_id,
         'username': username,
         'email': email,
+        'foto_perfil': foto_perfil,
         'is_admin': bool(session.get('is_admin')),
         'is_superadmin': bool(session.get('is_superadmin')),
     }
