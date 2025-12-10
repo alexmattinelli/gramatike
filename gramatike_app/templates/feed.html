@@ -53,7 +53,7 @@ button { font-family: var(--font-base); font-weight:600; }
   header.site-head { background: var(--primary); padding:28px clamp(16px,4vw,40px) 46px; border-radius:0; position:relative; display:flex; flex-direction:column; align-items:center; }
   .logo { font-family: var(--font-brand) !important; font-size:2.5rem; color:#fff; letter-spacing:1px; font-weight:400; }
   /* Mobile: Header mais compacto */
-  @media (max-width: 980px){ 
+  @media (max-width: 980px){
     header.site-head { padding:18px clamp(12px,3vw,24px) 28px; }
     .logo { font-size:1.8rem; }
   }
@@ -159,7 +159,7 @@ button { font-family: var(--font-base); font-weight:600; }
   .post-user { font-weight:600; font-size:1.05rem; color: var(--primary); }
   .post-date { font-size:.9rem; color: var(--text-secondary); margin-left:auto; font-weight:600; font-style: italic; }
   /* Reduzir data/hora no mobile */
-  @media (max-width: 980px){ 
+  @media (max-width: 980px){
     .post-username span { font-size:.7rem !important; }
   }
 
@@ -231,12 +231,13 @@ button { font-family: var(--font-base); font-weight:600; }
   @keyframes shimmer { from { transform:translateX(-100%);} to { transform:translateX(100%);} }
 
   /* Flash Messages */
-  .flash-message { box-shadow: 0 4px 14px rgba(0,0,0,.1); }
-  .flash-success { background:#e8f9f0; color:#1e8052; border:1px solid #b2e7cd; }
-  .flash-error { background:#ffecec; color:#c0392b; border:1px solid #f5b7b1; }
-  .flash-warning { background:#fff3cd; color:#856404; border:1px solid #ffeaa7; }
-  .flash-info { background:#d1ecf1; color:#0c5460; border:1px solid #bee5eb; }
-  
+  .flash-messages { margin:0 0 1.2rem; list-style:none; padding:0; display:flex; flex-direction:column; gap:.6rem; }
+  .flash-messages li { font-size:.85rem; font-weight:600; padding:.85rem 1rem; border-radius:16px; line-height:1.4; animation:fadeIn .4s ease; }
+  .flash-success { background:#e8f9f0; color:#1e8052; box-shadow:0 0 0 1px #b2e7cd inset; }
+  .flash-error { background:#ffecec; color:#c0392b; box-shadow:0 0 0 1px #f5b7b1 inset; }
+  .flash-warning { background:#fff3cd; color:#856404; box-shadow:0 0 0 1px #ffeaa7 inset; }
+  .flash-info { background:#d1ecf1; color:#0c5460; box-shadow:0 0 0 1px #bee5eb inset; }
+
   @media (max-width:600px) {
     header, main { padding:1rem; }
     nav a { margin-left:1rem; font-size:.95rem; }
@@ -257,20 +258,18 @@ button { font-family: var(--font-base); font-weight:600; }
 <div class="content-wrapper">
 <main class="site-main" style="width:100%; max-width:1400px; margin:0 auto 4rem; padding:0 32px; display:flex; gap:48px; align-items:flex-start; justify-content:flex-start; box-sizing:border-box;">
   <div class="feed-col" style="flex:1 1 960px; max-width:960px; min-width:0;">
-  
+
   <!-- Flash Messages -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-      <div class="flash-messages-container" style="margin:0 0 1.2rem;">
+      <ul class="flash-messages">
         {% for category, message in messages %}
-          <div class="flash-message flash-{{ category }}" style="padding:.85rem 1rem; border-radius:16px; margin-bottom:.6rem; font-size:.85rem; font-weight:600; line-height:1.4; animation:fadeIn .4s ease;">
-            {{ message }}
-          </div>
+          <li class="flash-{{ category }}">{{ message }}</li>
         {% endfor %}
-      </div>
+      </ul>
     {% endif %}
   {% endwith %}
-  
+
   <!-- Triângulo toggle para mostrar/esconder card de ações (mobile only) -->
   <div id="mobile-toggle-triangle" onclick="toggleMobileActionsCard()" style="display:none; width:100%; text-align:center; margin-bottom:.5rem; cursor:pointer;">
     <div id="triangle-icon" style="display:inline-flex; align-items:center; justify-content:center; background:var(--primary); width:40px; height:24px; border-radius:0 0 12px 12px; box-shadow:0 4px 12px rgba(155,93,229,.3); transition:transform .2s;">
@@ -279,7 +278,7 @@ button { font-family: var(--font-base); font-weight:600; }
       </svg>
     </div>
   </div>
-  
+
   <!-- Card de Ações Rápidas (mobile only - similar ao card de Amigues) -->
   <div id="mobile-actions-card" style="display:none; background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem;">
     <div style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0;">
@@ -333,7 +332,7 @@ button { font-family: var(--font-base); font-weight:600; }
       <button id="mobile_ttt_reset" type="button" style="margin-top:.8rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; padding:.5rem .9rem; font-size:.7rem; font-weight:800; letter-spacing:.4px; cursor:pointer; width:100%;">Reiniciar</button>
     </div>
   </div>
-  
+
   <div class="feed-controls" style="margin-top:0;">
     <div class="search-wrap">
       <input type="text" id="search-input" placeholder="Pesquisar" autocomplete="off" onkeydown="if(event.key==='Enter'){executarBusca();}" />
@@ -488,12 +487,12 @@ button { font-family: var(--font-base); font-weight:600; }
     justify-content: space-around;
     align-items: center;
   }
-  
+
   /* Ocultar o cabeçalho em mobile */
   header.site-head {
     display: none !important;
   }
-  
+
   /* Quando o header está oculto, ajustar o content-wrapper */
   .content-wrapper {
     margin-top: 0 !important; /* Remove margem negativa quando header oculto */
@@ -501,7 +500,7 @@ button { font-family: var(--font-base); font-weight:600; }
     border-top-left-radius: 0 !important;
     border-top-right-radius: 0 !important;
   }
-  
+
   /* Adicionar faixa roxa no topo em mobile para manter a identidade visual */
   body::before {
     content: "";
@@ -514,85 +513,85 @@ button { font-family: var(--font-base); font-weight:600; }
     right: 0;
     z-index: 0;
   }
-  
+
   /* Ajustar body para compensar a faixa */
   body {
     padding-top: 40px;
   }
-  
+
   /* Mostrar triângulo toggle no mobile */
   #mobile-toggle-triangle {
     display: block !important;
   }
-  
+
   /* Card de ações inicialmente escondido no mobile - mostrar ao clicar no triângulo */
   #mobile-actions-card {
     display: none !important;
     padding: 1rem 1.2rem .9rem !important; /* Card com mais padding */
     margin: 0 -1rem 1.4rem !important; /* Aumentar largura - mesma margem dos posts */
   }
-  
+
   #mobile-actions-card.visible {
     display: block !important;
   }
-  
+
   /* Botões do card de ações - mais quadrados e maiores */
   #mobile-actions-card .search-btn.icon-btn {
     width: 52px !important;
     height: 52px !important;
   }
-  
+
   #mobile-actions-card .search-btn.icon-btn svg {
     width: 24px !important;
     height: 24px !important;
   }
-  
+
   /* Adicionar padding no main (não no body) para compensar a barra inferior flutuante */
   main.site-main {
     margin-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
   }
-  
+
   /* Garantir que o footer não sobreponha a barra inferior */
   .footer-bar {
     margin-bottom: calc(80px + env(safe-area-inset-bottom));
   }
-  
+
   /* Ocultar footer de texto no mobile */
   #desktop-footer {
     display: none !important;
   }
-  
+
   /* Barra de busca com mesma largura dos cards de post no mobile */
   .feed-controls {
     margin: 1.2rem -1rem 2rem !important; /* Mesma largura dos posts */
     padding: 0 1rem !important; /* Padding interno para compensar */
   }
-  
+
   /* Cards de posts mais largos no mobile (igual educação) - ENLARGUECER */
   #feed-list article.post {
     padding: 1.5rem 1.2rem 1.3rem !important; /* Reduzir padding interno */
     margin: 0 -1rem 2.2rem !important; /* Aumentar largura - card quase encostando nas bordas */
   }
-  
+
   /* Aumentar conteúdo do card no mobile */
   .post-content {
     font-size: 1.15rem !important;
     line-height: 1.6 !important;
   }
-  
+
   /* Botões de ação MAIORES no mobile (não menores) */
   .post-actions button {
     padding: .5rem .95rem !important;
     font-size: .85rem !important;
     gap: .4rem !important;
   }
-  
+
   .post-menu-btn {
     width: 34px !important;
     height: 34px !important;
     font-size: 1rem !important;
   }
-  
+
   /* Post header - aumentar tamanho do username */
   .post-user {
     font-size: 1.1rem !important;
@@ -661,7 +660,7 @@ button { font-family: var(--font-base); font-weight:600; }
     </svg>
     <span>Início</span>
   </a>
-  
+
   <a href="/educacao" aria-label="Educação" title="Educação">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
@@ -669,14 +668,14 @@ button { font-family: var(--font-base); font-weight:600; }
     </svg>
     <span>Educação</span>
   </a>
-  
+
   <a href="/novo_post" aria-label="Criar post" title="Criar post" style="background: var(--primary); color: #ffffff; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #ffffff;">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <line x1="12" y1="5" x2="12" y2="19"></line>
       <line x1="5" y1="12" x2="19" y2="12"></line>
     </svg>
   </a>
-  
+
   <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px 12px; color: rgba(255,255,255,0.6); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.3px;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <circle cx="12" cy="12" r="10"></circle>
@@ -875,7 +874,7 @@ function renderPostImages(raw){
   const getSrc = (path) => /^https?:\/\//i.test(path) ? path : `/static/${path}`;
   // Melhor tratamento de erro: mostra placeholder ao invés de esconder
   const onError = `this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial,sans-serif%22 font-size=%2214%22 fill=%22%23999%22%3EImagem não disponível%3C/text%3E%3C/svg%3E'; this.style.cursor='default'; this.onclick=null; console.warn('Imagem falhou ao carregar:', this.getAttribute('data-original-src'));`;
-  
+
   if(parts.length === 1){
     const src = getSrc(parts[0]);
     return `<div class="post-media"><img src="${src}" alt="Imagem do post" data-original-src="${src}" onclick="openImageModal('${src}')" onerror="${onError}"/></div>`;
@@ -1159,22 +1158,22 @@ function compartilharPost(postId) {
 // Linkifica texto: escapa HTML, transforma @menções e #hashtags
 function parseTextWithLinks(text) {
   if(!text) return '';
-  
+
   // Check if content contains HTML tags (from rich text editor)
   const hasHTML = /<[^>]+>/.test(text);
-  
+
   if(hasHTML){
     // Content from rich text editor - preserve HTML but still parse mentions/hashtags
     let out = text;
     // Parse mentions and hashtags within text nodes only (not inside HTML tags)
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = out;
-    
+
     // Process text nodes to add mention and hashtag links
     const walker = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT, null, false);
     const textNodes = [];
     while(walker.nextNode()) textNodes.push(walker.currentNode);
-    
+
     textNodes.forEach(node => {
       let text = node.textContent;
       // Replace mentions and hashtags
@@ -1186,7 +1185,7 @@ function parseTextWithLinks(text) {
         node.parentNode.replaceChild(span, node);
       }
     });
-    
+
     return tempDiv.innerHTML;
   } else {
     // Plain text - escape and parse as before
@@ -1256,7 +1255,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(list.length>12){
       const more = document.createElement('div');
       more.style.cssText='margin-top:.4rem;font-size:.6rem;opacity:.6;font-weight:600;text-align:right;';
-      more.textContent = `+ ${list.length-12} outres`; 
+      more.textContent = `+ ${list.length-12} outres`;
       document.getElementById('amigues-card').appendChild(more);
     }
     // Hover effect via delegação
@@ -1350,21 +1349,21 @@ document.addEventListener('click', function(e){
   document.addEventListener('click', e=>{
     if(!e.target.closest('.search-wrap')) hide();
   });
-  const pick = (val, type) => { 
-    input.value = val; 
-    hide(); 
+  const pick = (val, type) => {
+    input.value = val;
+    hide();
     // If it's a user (starts with @), navigate to their profile
     if(type === 'user' && val.startsWith('@')) {
       const uname = val.substring(1); // Remove @ symbol
-      if(window.currentUser && uname === window.currentUser){ 
-        window.location.href = '/perfil'; 
+      if(window.currentUser && uname === window.currentUser){
+        window.location.href = '/perfil';
       } else {
-        fetch(`/api/usuarios/username/${uname}`).then(r=>r.json()).then(u=>{ 
-          if(u.id){ window.location.href = '/perfil/'+u.id; } 
+        fetch(`/api/usuarios/username/${uname}`).then(r=>r.json()).then(u=>{
+          if(u.id){ window.location.href = '/perfil/'+u.id; }
         });
       }
     } else {
-      executarBusca(); 
+      executarBusca();
     }
   };
   function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
@@ -1644,7 +1643,7 @@ function toggleNotifications() {
   const badge = document.getElementById('notifications-badge');
   const mobileBadge = document.getElementById('mobile-notifications-badge');
   const mobileActionsBadge = document.getElementById('mobile-actions-notif-badge');
-  
+
   if (panel.style.display === 'none') {
     panel.style.display = 'block';
     loadNotifications();
@@ -1666,19 +1665,19 @@ async function loadNotifications() {
   const badge = document.getElementById('notifications-badge');
   const mobileBadge = document.getElementById('mobile-notifications-badge');
   const mobileActionsBadge = document.getElementById('mobile-actions-notif-badge');
-  
+
   try {
     // Fetch user notifications (likes and followers) only - no support tickets
     const userNotifications = await fetch('/api/notifications').then(r => r.json()).catch(() => []);
-    
+
     // Build notifications array
     const notifications = [];
-    
+
     // Add user notifications (followers and likes) only
     userNotifications.forEach(n => {
       notifications.push(n);
     });
-    
+
     // Display notifications
     if (notifications.length === 0) {
       list.innerHTML = '<div style="text-align:center; color:#999; font-size:.75rem; padding:1rem;">Nenhuma notificação</div>';
@@ -1692,17 +1691,17 @@ async function loadNotifications() {
           <div style="font-size:.65rem; color:#999; margin-top:.3rem;">${n.time}</div>
         </a>
       `).join('');
-      
+
       // Create a hash of current notifications to detect changes
       const notifHash = JSON.stringify(notifications.map(n => n.message + n.link).sort());
       const lastNotifHash = localStorage.getItem('lastNotifHash');
-      
+
       // If notifications changed, reset the viewed flag
       if (notifHash !== lastNotifHash) {
         localStorage.setItem('lastNotifHash', notifHash);
         localStorage.removeItem('notificationsViewed');
       }
-      
+
       // Only show badge if notifications haven't been viewed
       const notificationsViewed = localStorage.getItem('notificationsViewed');
       if (notificationsViewed !== 'true') {
@@ -1734,7 +1733,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadNotifications();
   // Refresh notifications every 2 minutes
   setInterval(loadNotifications, 120000);
-  
+
   // Initialize mobile tic-tac-toe
   initMobileTicTacToe();
 });
@@ -1742,7 +1741,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Mobile Actions Card Functions
 function toggleMobileTicTacToe() {
   const panel = document.getElementById('mobile-ttt-panel');
-  
+
   // Toggle tic-tac-toe
   if (panel.style.display === 'none' || panel.style.display === '') {
     panel.style.display = 'block';
@@ -1754,7 +1753,7 @@ function toggleMobileTicTacToe() {
 function toggleMobileActionsCard() {
   const card = document.getElementById('mobile-actions-card');
   const triangleSvg = document.getElementById('triangle-svg');
-  
+
   if (card.classList.contains('visible')) {
     card.classList.remove('visible');
     if (triangleSvg) triangleSvg.style.transform = 'rotate(0deg)';
@@ -1770,25 +1769,25 @@ function initMobileTicTacToe() {
   const status = document.getElementById('mobile_ttt_status');
   const resetBtn = document.getElementById('mobile_ttt_reset');
   if (!board) return;
-  
+
   let state = Array(9).fill('');
   let turn = 'X';
   let gameOver = false;
-  
+
   const winPatterns = [
     [0,1,2], [3,4,5], [6,7,8],
     [0,3,6], [1,4,7], [2,5,8],
     [0,4,8], [2,4,6]
   ];
-  
+
   function checkWin(player) {
     return winPatterns.some(p => p.every(i => state[i] === player));
   }
-  
+
   function checkDraw() {
     return state.every(cell => cell !== '');
   }
-  
+
   function aiMove() {
     const empty = state.map((v, i) => v === '' ? i : null).filter(i => i !== null);
     if (empty.length > 0) {
@@ -1807,7 +1806,7 @@ function initMobileTicTacToe() {
       }
     }
   }
-  
+
   function handleClick(i) {
     if (gameOver || state[i] !== '' || turn !== 'X') return;
     state[i] = 'X';
@@ -1826,7 +1825,7 @@ function initMobileTicTacToe() {
     status.textContent = 'Vez do Robo...';
     setTimeout(aiMove, 500);
   }
-  
+
   function render() {
     const cells = board.querySelectorAll('button');
     cells.forEach((btn, i) => {
@@ -1834,7 +1833,7 @@ function initMobileTicTacToe() {
       btn.setAttribute('aria-label', state[i] ? `casa ${i+1} ${state[i]}` : `casa ${i+1} vazia`);
     });
   }
-  
+
   function reset() {
     state = Array(9).fill('');
     turn = 'X';
@@ -1842,11 +1841,11 @@ function initMobileTicTacToe() {
     status.textContent = 'Sua vez: você é X';
     render();
   }
-  
+
   board.querySelectorAll('button').forEach((btn, i) => {
     btn.addEventListener('click', () => handleClick(i));
   });
-  
+
   resetBtn.addEventListener('click', reset);
   render();
 }
