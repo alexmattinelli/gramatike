@@ -124,7 +124,68 @@ def to_d1_null(value):
     except Exception:
         pass
     
+    # Check 4: Try to access JavaScript undefined directly from js module
+    # Compare value with JavaScript's undefined to catch any undefined that slipped through
+    try:
+        from js import undefined as JS_UNDEFINED
+        # Use JavaScript's strict equality check
+        # Note: In Pyodide, we can't use 'is' or '==' reliably with JS objects
+        # Instead, check if converting both to string gives 'undefined'
+        if str(value) == str(JS_UNDEFINED):
+            console.warn(f"[to_d1_null] Detected undefined value (JS undefined comparison), converting to JS_NULL")
+            return JS_NULL
+    except (ImportError, Exception):
+        # If we can't import undefined or comparison fails, skip this check
+        pass
+    
+    # Check 5: Verify the value isn't a JsProxy that wraps undefined
+    # This catches edge cases where undefined is wrapped in a proxy object
+    if hasattr(value, 'typeof'):
+        try:
+            if value.typeof == 'undefined':
+                console.warn(f"[to_d1_null] Detected undefined via typeof check, converting to JS_NULL")
+                return JS_NULL
+        except Exception:
+            pass
+    
+    # Check 6: Final safety check - try to use the value in a boolean context
+    # If the value causes an exception when used, it's likely problematic
+    try:
+        # Force evaluation in a safe way
+        _ = bool(value)
+    except Exception as e:
+        console.warn(f"[to_d1_null] Value failed boolean evaluation, returning JS_NULL: {e}")
+        return JS_NULL
+    
+    # Check 7: For string values, ensure they're not the literal string 'undefined'
+    # Some APIs might return the string 'undefined' instead of actual undefined
+    if isinstance(value, str) and value == 'undefined':
+        console.warn(f"[to_d1_null] String value is literal 'undefined', converting to JS_NULL")
+        return JS_NULL
+    
+    # Check 8: Final validation - for Pyodide environment, explicitly convert Python native types
+    # to ensure they don't become undefined when returned
+    # This creates a NEW Python object that won't carry any JsProxy baggage
+    try:
+        # For basic types, create a fresh Python object to avoid FFI issues
+        if isinstance(value, bool):
+            # Boolean must be checked before int since bool is subclass of int
+            return bool(value)
+        elif isinstance(value, int):
+            return int(value)
+        elif isinstance(value, float):
+            return float(value)
+        elif isinstance(value, str):
+            return str(value)
+        elif isinstance(value, bytes):
+            return bytes(value)
+    except Exception as e:
+        console.warn(f"[to_d1_null] Failed to convert value to native Python type, returning JS_NULL: {e}")
+        return JS_NULL
+    
     # If all checks pass, return the value as is
+    # This should only be reached for complex types like lists/dicts that were
+    # intentionally passed and have already been sanitized
     return value
 
 # ============================================================================
