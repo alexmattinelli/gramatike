@@ -1208,27 +1208,26 @@ class Default(WorkerEntrypoint):
                     if hasattr(body, 'to_py'):
                         body = body.to_py()
                     
-                    # Safely get and sanitize values to prevent D1_TYPE_ERROR
-                    # DO NOT use int() or str() after sanitization - it creates new objects
-                    # that become 'undefined' when crossing the Pyodide FFI boundary
+                    # Safely get values from body
+                    # NOTE: Do NOT sanitize here - create_post() will handle sanitization
+                    # Double sanitization causes FFI boundary issues
                     conteudo = body.get('conteudo', '') if isinstance(body, dict) else ''
-                    conteudo = sanitize_for_d1(conteudo)
                     
                     # Strip whitespace if it's a string
                     if isinstance(conteudo, str):
                         conteudo = conteudo.strip()
                     
                     imagem = body.get('imagem') if isinstance(body, dict) else None
-                    imagem = sanitize_for_d1(imagem)
                     
                     if not conteudo:
                         return json_response({"error": "Conteúdo é obrigatório"}, 400)
                     
-                    # Sanitize current_user['id'] - sanitize_for_d1 already returns proper Python types
-                    usuarie_id = sanitize_for_d1(current_user.get('id'))
+                    # Get user ID without sanitization - create_post will sanitize
+                    usuarie_id = current_user.get('id')
                     if usuarie_id is None:
                         return json_response({"error": "Usuárie inválide"}, 400)
                     
+                    # create_post() will sanitize all parameters internally
                     post_id = await create_post(db, usuarie_id, conteudo, imagem)
                     
                     # Processar menções (@username)
@@ -1401,14 +1400,11 @@ class Default(WorkerEntrypoint):
                     if not conteudo:
                         return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
                     
-                    # Sanitize parameters - sanitize_for_d1 already returns proper Python types
-                    # DO NOT use int() or str() after sanitization as this creates new objects
-                    # that become 'undefined' when crossing the Pyodide FFI boundary to D1
-                    usuarie_id = sanitize_for_d1(usuarie_id)
-                    conteudo = sanitize_for_d1(conteudo)
-                    
+                    # Validate parameters before passing to create_post
+                    # NOTE: Do NOT sanitize here - create_post() will handle sanitization
+                    # Double sanitization causes FFI boundary issues where values become undefined
                     if usuarie_id is None:
-                        console.error("[posts_multi] usuarie_id is None after sanitize_for_d1")
+                        console.error("[posts_multi] usuarie_id is None")
                         return json_response({"error": "Usuárie inválide", "success": False}, 400)
                     
                     # Strip whitespace from conteudo if it's a string
@@ -1425,6 +1421,7 @@ class Default(WorkerEntrypoint):
                     # For now, we don't handle image uploads in Cloudflare Workers
                     # (would need R2 storage integration)
                     # Just create the post with text content
+                    # create_post() will sanitize all parameters internally
                     post_id = await create_post(db, usuarie_id, conteudo, None)
                     
                     if not post_id:
@@ -2937,8 +2934,10 @@ class Default(WorkerEntrypoint):
         if not current_user:
             return redirect('/login')
         
-        # Validate current_user has required 'id' field and sanitize it
-        usuarie_id = sanitize_for_d1(current_user.get('id') if isinstance(current_user, dict) else None)
+        # Validate current_user has required 'id' field
+        # NOTE: Do NOT sanitize here - create_post() will handle sanitization
+        # Double sanitization causes FFI boundary issues
+        usuarie_id = current_user.get('id') if isinstance(current_user, dict) else None
         if usuarie_id is None:
             console.error("[NovoPost] current_user.id is None")
             return redirect('/login')
@@ -2956,7 +2955,7 @@ class Default(WorkerEntrypoint):
                     conteudo = form_data.get('conteudo', [''])[0].strip()
                     
                     if conteudo:
-                        # Pass usuarie_id (already validated and sanitized) instead of accessing dict again
+                        # create_post() will sanitize all parameters internally
                         post_id = await create_post(db, usuarie_id, conteudo, None)
                         if post_id:
                             return redirect('/')
