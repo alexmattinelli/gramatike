@@ -84,11 +84,17 @@ def to_d1_null(value):
         JavaScript null if value is None or undefined (in Pyodide), otherwise the original value
         
     Example:
-        # ALWAYS wrap ALL bind parameters:
-        d1_user_id = to_d1_null(sanitized_user_id)
-        d1_content = to_d1_null(sanitized_content)
+        # ALWAYS wrap ALL bind parameters by calling to_d1_null DIRECTLY in .bind():
         await db.prepare("INSERT INTO post (usuarie_id, content) VALUES (?, ?)")
-            .bind(d1_user_id, d1_content).run()
+            .bind(
+                to_d1_null(sanitized_user_id),
+                to_d1_null(sanitized_content)
+            ).run()
+        
+        # ❌ NEVER store to_d1_null results in variables:
+        # d1_user_id = to_d1_null(sanitized_user_id)  # Causes extra FFI crossing!
+        # d1_content = to_d1_null(sanitized_content)
+        # await db.prepare("...").bind(d1_user_id, d1_content).run()
     """
     if not _IN_PYODIDE:
         # In non-Pyodide environments, perform basic checks
@@ -131,9 +137,11 @@ def to_d1_null(value):
     
     # Check 4: Try to access JavaScript undefined directly from js module
     # Compare value with JavaScript's undefined to catch any undefined that slipped through
+    # This is different from Check 2: Check 2 validates string representation for logging/debugging,
+    # while Check 4 performs actual comparison with JS undefined for definitive detection
     try:
         from js import undefined as JS_UNDEFINED
-        # Use JavaScript's strict equality check
+        # Use JavaScript's strict equality check via string comparison
         # Note: In Pyodide, we can't use 'is' or '==' reliably with JS objects
         # Instead, check if converting both to string gives 'undefined'
         if str(value) == str(JS_UNDEFINED):
