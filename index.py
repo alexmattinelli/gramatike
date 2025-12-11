@@ -1617,55 +1617,77 @@ class Default(WorkerEntrypoint):
                 if not current_user:
                     return json_response({"error": "Não autenticado"}, 401)
                 
-                amigues = await get_amigues(db, current_user['id'])
-                return json_response({"amigues": amigues})
+                try:
+                    amigues = await get_amigues(db, current_user['id'])
+                    return json_response({"amigues": amigues})
+                except Exception as e:
+                    # Log error for debugging (table might not exist in database)
+                    console.error(f"[API /api/amigues] Error: {type(e).__name__}: {e}")
+                    # Return empty list instead of 500 error for graceful degradation
+                    return json_response({"amigues": []})
             
             if path == '/api/amigues/pedidos':
                 if not current_user:
                     return json_response({"error": "Não autenticado"}, 401)
                 
-                pedidos = await get_pending_friend_requests(db, current_user['id'])
-                return json_response({"pedidos": pedidos})
+                try:
+                    pedidos = await get_pending_friend_requests(db, current_user['id'])
+                    return json_response({"pedidos": pedidos})
+                except Exception as e:
+                    console.error(f"[API /api/amigues/pedidos] Error: {type(e).__name__}: {e}")
+                    return json_response({"pedidos": []})
             
             if path == '/api/amigues/solicitar' and method == 'POST':
                 if not current_user:
                     return json_response({"error": "Não autenticado"}, 401)
                 
-                body = await request.json()
-                destinatarie_id = body.get('usuario_id')
-                
-                if not destinatarie_id:
-                    return json_response({"error": "ID de usuárie é obrigatório"}, 400)
-                
-                amizade_id, error = await send_friend_request(db, current_user['id'], destinatarie_id)
-                if error:
-                    return json_response({"error": error}, 400)
-                
-                return json_response({"id": amizade_id}, 201)
+                try:
+                    body = await request.json()
+                    destinatarie_id = body.get('usuario_id')
+                    
+                    if not destinatarie_id:
+                        return json_response({"error": "ID de usuárie é obrigatório"}, 400)
+                    
+                    amizade_id, error = await send_friend_request(db, current_user['id'], destinatarie_id)
+                    if error:
+                        return json_response({"error": error}, 400)
+                    
+                    return json_response({"id": amizade_id}, 201)
+                except Exception as e:
+                    console.error(f"[API /api/amigues/solicitar] Error: {type(e).__name__}: {e}")
+                    return json_response({"error": "Erro ao processar solicitação de amizade"}, 500)
             
             if path == '/api/amigues/responder' and method == 'POST':
                 if not current_user:
                     return json_response({"error": "Não autenticado"}, 401)
                 
-                body = await request.json()
-                amizade_id = body.get('amizade_id')
-                aceitar = body.get('aceitar', True)
-                
-                success, error = await respond_friend_request(db, amizade_id, current_user['id'], aceitar)
-                if error:
-                    return json_response({"error": error}, 400)
-                
-                return json_response({"success": True, "aceito": aceitar})
+                try:
+                    body = await request.json()
+                    amizade_id = body.get('amizade_id')
+                    aceitar = body.get('aceitar', True)
+                    
+                    success, error = await respond_friend_request(db, amizade_id, current_user['id'], aceitar)
+                    if error:
+                        return json_response({"error": error}, 400)
+                    
+                    return json_response({"success": True, "aceito": aceitar})
+                except Exception as e:
+                    console.error(f"[API /api/amigues/responder] Error: {type(e).__name__}: {e}")
+                    return json_response({"error": "Erro ao processar resposta de amizade"}, 500)
             
             if path == '/api/amigues/remover' and method == 'POST':
                 if not current_user:
                     return json_response({"error": "Não autenticado"}, 401)
                 
-                body = await request.json()
-                amigue_id = body.get('usuario_id')
-                
-                await remove_amizade(db, current_user['id'], amigue_id)
-                return json_response({"success": True})
+                try:
+                    body = await request.json()
+                    amigue_id = body.get('usuario_id')
+                    
+                    await remove_amizade(db, current_user['id'], amigue_id)
+                    return json_response({"success": True})
+                except Exception as e:
+                    console.error(f"[API /api/amigues/remover] Error: {type(e).__name__}: {e}")
+                    return json_response({"error": "Erro ao remover amizade"}, 500)
             
             # ================================================================
             # DENÚNCIAS
