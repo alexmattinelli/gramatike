@@ -79,11 +79,21 @@ def _get_js_null():
     
     try:
         # In Pyodide, import and return JavaScript null directly
+        # We import it fresh each time to avoid stale references
         from js import null
+        # Verify that null is actually the JavaScript null value
+        # by checking its string representation
+        if str(null) != 'null':
+            console.warn(f"[_get_js_null] WARNING: js.null has unexpected string representation: {str(null)}")
         return null
-    except (ImportError, Exception):
-        # If import fails, fallback to Python None
-        # This shouldn't happen in Pyodide, but be defensive
+    except ImportError as e:
+        # If import fails, this is a critical error in Pyodide environment
+        console.error(f"[_get_js_null] CRITICAL: Failed to import js.null: {e}")
+        # Fallback to None, but this will likely cause issues
+        return None
+    except Exception as e:
+        # Any other exception is also critical
+        console.error(f"[_get_js_null] CRITICAL: Unexpected error getting js.null: {e}")
         return None
 
 
