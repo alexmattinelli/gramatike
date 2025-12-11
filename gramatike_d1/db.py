@@ -308,6 +308,67 @@ def to_d1_null(value):
         console.warn(f"[to_d1_null] ULTRA FINAL CHECK: Value failed safety check, returning js_null: {e}")
         return js_null
 
+
+def safe_bind(*params):
+    """Ultra-defensive parameter binder for D1 queries.
+    
+    This function provides an additional safety layer on top of to_d1_null() to prevent
+    JavaScript undefined values from reaching D1's .bind() method. Even after to_d1_null()
+    processes parameters, values can become undefined when crossing the FFI boundary.
+    
+    This function validates each parameter one final time immediately before binding,
+    catching any undefined values that appeared during the FFI crossing.
+    
+    Args:
+        *params: Variable number of parameters that have already been processed by to_d1_null()
+        
+    Returns:
+        tuple: A tuple of validated parameters ready for D1 binding
+        
+    Example:
+        # Instead of:
+        await db.prepare("INSERT INTO post VALUES (?, ?, ?, ?)").bind(
+            to_d1_null(s_usuarie_id),
+            to_d1_null(s_usuarie),
+            to_d1_null(s_conteudo),
+            to_d1_null(s_imagem)
+        ).run()
+        
+        # Use:
+        params = safe_bind(
+            to_d1_null(s_usuarie_id),
+            to_d1_null(s_usuarie),
+            to_d1_null(s_conteudo),
+            to_d1_null(s_imagem)
+        )
+        await db.prepare("INSERT INTO post VALUES (?, ?, ?, ?)").bind(*params).run()
+    """
+    result = []
+    js_null = _get_js_null()
+    
+    for i, param in enumerate(params):
+        # Final validation: ensure param is not undefined
+        try:
+            # Check string representation first
+            str_repr = str(param)
+            if str_repr == 'undefined':
+                console.warn(f"[safe_bind] Parameter {i} is undefined, replacing with js_null")
+                result.append(js_null)
+                continue
+                
+            # Check if param can be used in a boolean context
+            # This will fail for undefined in most cases
+            _ = bool(param)
+            
+            # If we got here, param seems safe
+            result.append(param)
+        except Exception as e:
+            # If any check fails, use js_null
+            console.warn(f"[safe_bind] Parameter {i} failed validation: {e}, replacing with js_null")
+            result.append(js_null)
+    
+    return tuple(result)
+
 # ============================================================================
 # HELPERS DE DATABASE
 # ============================================================================
@@ -1431,18 +1492,19 @@ async def create_post(db, usuarie_id, conteudo, imagem=None):
         return None
     
     # Now insert the post with the username we just fetched
-    # Call to_d1_null() directly in bind() to prevent FFI boundary issues
-    # The enhanced to_d1_null() now handles all edge cases of undefined values
-    result = await db.prepare("""
-        INSERT INTO post (usuarie_id, usuarie, conteudo, imagem, data)
-        VALUES (?, ?, ?, ?, datetime('now'))
-        RETURNING id
-    """).bind(
+    # Use safe_bind() to add an extra validation layer before .bind()
+    # This prevents undefined values from reaching D1 even if they appear during FFI crossing
+    params = safe_bind(
         to_d1_null(s_usuarie_id),
         to_d1_null(s_usuarie),
         to_d1_null(s_conteudo),
         to_d1_null(s_imagem)
-    ).first()
+    )
+    result = await db.prepare("""
+        INSERT INTO post (usuarie_id, usuarie, conteudo, imagem, data)
+        VALUES (?, ?, ?, ?, datetime('now'))
+        RETURNING id
+    """).bind(*params).first()
     return safe_get(result, 'id')
 
 
