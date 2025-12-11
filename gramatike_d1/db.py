@@ -128,9 +128,10 @@ def to_d1_null(value):
         # d1_content = to_d1_null(sanitized_content)
         # await db.prepare("...").bind(d1_user_id, d1_content).run()
     """
-    # CRITICAL: Get a fresh reference to JavaScript null for each call
-    # This ensures we don't have stale references that might become undefined
-    js_null = _get_js_null()
+    # CRITICAL: Use the module-level JS_NULL constant
+    # Repeatedly importing fresh references can cause FFI issues
+    # The module-level constant is more stable across function calls
+    js_null = JS_NULL
     
     if not _IN_PYODIDE:
         # In non-Pyodide environments, perform basic checks
@@ -344,7 +345,8 @@ def safe_bind(*params):
         await db.prepare("INSERT INTO post VALUES (?, ?, ?, ?)").bind(*params).run()
     """
     result = []
-    js_null = _get_js_null()
+    # Use the module-level JS_NULL constant for stability
+    js_null = JS_NULL
     
     for i, param in enumerate(params):
         # Final validation: ensure param is not undefined
@@ -1487,8 +1489,15 @@ async def create_post(db, usuarie_id, conteudo, imagem=None):
         return None
     
     s_usuarie = safe_get(user_result, 'username')
+    # Check for both None and undefined (as a string)
+    if s_usuarie is None or str(s_usuarie) == 'undefined':
+        console.error(f"[create_post] Username is None/undefined for usuarie_id {s_usuarie_id}")
+        return None
+    
+    # Sanitize the username one more time to be absolutely sure
+    s_usuarie = sanitize_for_d1(s_usuarie)
     if s_usuarie is None:
-        console.error(f"[create_post] Username is None for usuarie_id {s_usuarie_id}")
+        console.error(f"[create_post] Username became None after sanitization for usuarie_id {s_usuarie_id}")
         return None
     
     # Now insert the post with the username we just fetched
