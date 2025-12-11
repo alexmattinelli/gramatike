@@ -267,6 +267,8 @@ def to_d1_null(value):
     # 
     # FINAL SAFETY NET: Before returning, do one last check to ensure we're not
     # accidentally returning JavaScript undefined
+    # NOTE: We check for 'undefined' again here (even though we checked earlier) because
+    # in rare cases, values might become undefined between checks due to FFI timing issues
     try:
         # Check if the value we're about to return would stringify to 'undefined'
         str_value = str(value)
@@ -274,14 +276,13 @@ def to_d1_null(value):
             console.warn(f"[to_d1_null] SAFETY NET: Value stringifies to 'undefined' at return point, converting to js_null")
             return js_null
         
-        # CRITICAL: Also check for empty string or 'null' string which might indicate issues
-        # In Pyodide, sometimes undefined objects stringify to empty string or 'null'
-        if str_value == '' or str_value == 'null':
-            # Empty string is valid for SQL strings, but 'null' string might be confused with SQL NULL
-            # Only convert 'null' string to js_null if it's not an intentional string value
-            if str_value == 'null' and not isinstance(value, str):
-                console.warn(f"[to_d1_null] SAFETY NET: Non-string value stringifies to 'null', converting to js_null")
-                return js_null
+        # CRITICAL: Also check for 'null' string which might indicate issues
+        # In Pyodide, sometimes undefined objects stringify to 'null'
+        # Only convert 'null' string to js_null if it's not an intentional string value
+        # Empty string is valid for SQL strings, so we allow it
+        if str_value == 'null' and not isinstance(value, str):
+            console.warn(f"[to_d1_null] SAFETY NET: Non-string value stringifies to 'null', converting to js_null")
+            return js_null
     except Exception as e:
         # If str() fails, the value is definitely problematic
         console.warn(f"[to_d1_null] SAFETY NET: Value cannot be stringified, returning js_null: {e}")
@@ -296,14 +297,15 @@ def to_d1_null(value):
             # Value is already js_null, which is correct
             return js_null
         
-        # Try to access the value's type - undefined often fails type checking
-        _ = type(value).__name__
+        # Try to use the value in a boolean context - undefined often fails
+        # This is simpler and more reliable than accessing __name__
+        _ = bool(value)
         
         # If we got here, the value seems safe to return
         return value
     except Exception as e:
         # If any operation on the value fails, it's likely undefined or corrupted
-        console.warn(f"[to_d1_null] ULTRA FINAL CHECK: Value failed type check, returning js_null: {e}")
+        console.warn(f"[to_d1_null] ULTRA FINAL CHECK: Value failed safety check, returning js_null: {e}")
         return js_null
 
 # ============================================================================
