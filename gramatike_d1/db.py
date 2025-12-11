@@ -311,38 +311,37 @@ def to_d1_null(value):
 
 
 def safe_bind(*params):
-    """Ultra-defensive parameter binder for D1 queries.
+    """⚠️ DEPRECATED: DO NOT USE - This function causes FFI boundary issues!
     
-    This function provides an additional safety layer on top of to_d1_null() to prevent
-    JavaScript undefined values from reaching D1's .bind() method. Even after to_d1_null()
-    processes parameters, values can become undefined when crossing the FFI boundary.
+    This function was intended to provide an additional safety layer on top of to_d1_null(),
+    but it creates the EXACT SAME anti-pattern as d1_params(). When you store the result of
+    to_d1_null() in a variable (which this function does), the values cross the FFI boundary
+    again when later used in .bind(), which can cause them to become 'undefined'.
     
-    This function validates each parameter one final time immediately before binding,
-    catching any undefined values that appeared during the FFI crossing.
-    
-    Args:
-        *params: Variable number of parameters that have already been processed by to_d1_null()
-        
-    Returns:
-        tuple: A tuple of validated parameters ready for D1 binding
-        
-    Example:
-        # Instead of:
-        await db.prepare("INSERT INTO post VALUES (?, ?, ?, ?)").bind(
-            to_d1_null(s_usuarie_id),
-            to_d1_null(s_usuarie),
-            to_d1_null(s_conteudo),
-            to_d1_null(s_imagem)
-        ).run()
-        
-        # Use:
+    ❌ NEVER DO THIS:
         params = safe_bind(
             to_d1_null(s_usuarie_id),
             to_d1_null(s_usuarie),
             to_d1_null(s_conteudo),
             to_d1_null(s_imagem)
         )
-        await db.prepare("INSERT INTO post VALUES (?, ?, ?, ?)").bind(*params).run()
+        await db.prepare("...").bind(*params).run()  # Values cross FFI again -> undefined!
+    
+    ✅ CORRECT PATTERN:
+        # Sanitize first
+        s_usuarie_id, s_usuarie, s_conteudo, s_imagem = sanitize_params(
+            usuarie_id, usuarie, conteudo, imagem
+        )
+        # Then call to_d1_null() directly in bind()
+        await db.prepare("INSERT INTO post VALUES (?, ?, ?, ?)").bind(
+            to_d1_null(s_usuarie_id),
+            to_d1_null(s_usuarie),
+            to_d1_null(s_conteudo),
+            to_d1_null(s_imagem)
+        ).run()
+    
+    This function is kept for backward compatibility but should not be used.
+    All code has been updated to use the correct pattern above.
     """
     result = []
     # Use the module-level JS_NULL constant for stability
@@ -1501,19 +1500,18 @@ async def create_post(db, usuarie_id, conteudo, imagem=None):
         return None
     
     # Now insert the post with the username we just fetched
-    # Use safe_bind() to add an extra validation layer before .bind()
-    # This prevents undefined values from reaching D1 even if they appear during FFI crossing
-    params = safe_bind(
-        to_d1_null(s_usuarie_id),
-        to_d1_null(s_usuarie),
-        to_d1_null(s_conteudo),
-        to_d1_null(s_imagem)
-    )
+    # CRITICAL: Call to_d1_null() directly in .bind() to avoid FFI boundary issues
+    # Storing to_d1_null() results in variables causes them to become undefined when crossing FFI again
     result = await db.prepare("""
         INSERT INTO post (usuarie_id, usuarie, conteudo, imagem, data)
         VALUES (?, ?, ?, ?, datetime('now'))
         RETURNING id
-    """).bind(*params).first()
+    """).bind(
+        to_d1_null(s_usuarie_id),
+        to_d1_null(s_usuarie),
+        to_d1_null(s_conteudo),
+        to_d1_null(s_imagem)
+    ).first()
     return safe_get(result, 'id')
 
 
