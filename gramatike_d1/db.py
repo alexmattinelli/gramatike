@@ -91,9 +91,14 @@ def to_d1_null(value):
             .bind(d1_user_id, d1_content).run()
     """
     if not _IN_PYODIDE:
-        # In non-Pyodide environments, just return None for None values
+        # In non-Pyodide environments, perform basic checks
         if value is None:
             return None
+        # Check for literal string 'undefined' even in non-Pyodide environments
+        # This can happen when testing or when data comes from external APIs
+        if isinstance(value, str) and value == 'undefined':
+            return None
+        # For other values, return as-is
         return value
     
     # In Pyodide environment, perform comprehensive checks for None and undefined
@@ -159,6 +164,7 @@ def to_d1_null(value):
     
     # Check 7: For string values, ensure they're not the literal string 'undefined'
     # Some APIs might return the string 'undefined' instead of actual undefined
+    # This MUST be checked BEFORE the type conversion in check 8
     if isinstance(value, str) and value == 'undefined':
         console.warn(f"[to_d1_null] String value is literal 'undefined', converting to JS_NULL")
         return JS_NULL
@@ -176,6 +182,7 @@ def to_d1_null(value):
         elif isinstance(value, float):
             return float(value)
         elif isinstance(value, str):
+            # String is already validated not to be 'undefined' by check 7
             return str(value)
         elif isinstance(value, bytes):
             return bytes(value)
@@ -1431,17 +1438,18 @@ async def create_comment(db, post_id, usuarie_id, conteudo):
     # Sanitize all parameters to prevent D1_TYPE_ERROR from undefined values
     s_post_id, s_usuarie_id, s_conteudo = sanitize_params(post_id, usuarie_id, conteudo)
     
-    # Convert Python None to JavaScript null for D1
-    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
-    d1_post_id = to_d1_null(s_post_id)
-    d1_usuarie_id = to_d1_null(s_usuarie_id)
-    d1_conteudo = to_d1_null(s_conteudo)
-    
+    # Call to_d1_null() DIRECTLY in bind() to prevent FFI boundary issues
+    # Storing to_d1_null() results in variables can cause values to become undefined
+    # when they cross the FFI boundary again during .bind()
     result = await db.prepare("""
         INSERT INTO comentario (post_id, usuarie_id, conteudo, data)
         VALUES (?, ?, ?, datetime('now'))
         RETURNING id
-    """).bind(d1_post_id, d1_usuarie_id, d1_conteudo).first()
+    """).bind(
+        to_d1_null(s_post_id),
+        to_d1_null(s_usuarie_id),
+        to_d1_null(s_conteudo)
+    ).first()
     return safe_get(result, 'id')
 
 
@@ -1456,15 +1464,14 @@ async def follow_user(db, seguidore_id, seguide_id):
     if s_seguidore_id == s_seguide_id:
         return False
     
-    # Convert Python None to JavaScript null for D1
-    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
-    d1_seguidore_id = to_d1_null(s_seguidore_id)
-    d1_seguide_id = to_d1_null(s_seguide_id)
-    
+    # Call to_d1_null() DIRECTLY in bind() to prevent FFI boundary issues
     try:
         await db.prepare("""
             INSERT INTO seguidories (seguidore_id, seguide_id) VALUES (?, ?)
-        """).bind(d1_seguidore_id, d1_seguide_id).run()
+        """).bind(
+            to_d1_null(s_seguidore_id),
+            to_d1_null(s_seguide_id)
+        ).run()
         return True
     except:
         return False
@@ -1475,14 +1482,13 @@ async def unfollow_user(db, seguidore_id, seguide_id):
     # Sanitize parameters to prevent D1_TYPE_ERROR from undefined values
     s_seguidore_id, s_seguide_id = sanitize_params(seguidore_id, seguide_id)
     
-    # Convert Python None to JavaScript null for D1
-    # Wrap ALL parameters to prevent undefined from crossing the FFI boundary
-    d1_seguidore_id = to_d1_null(s_seguidore_id)
-    d1_seguide_id = to_d1_null(s_seguide_id)
-    
+    # Call to_d1_null() DIRECTLY in bind() to prevent FFI boundary issues
     await db.prepare("""
         DELETE FROM seguidories WHERE seguidore_id = ? AND seguide_id = ?
-    """).bind(d1_seguidore_id, d1_seguide_id).run()
+    """).bind(
+        to_d1_null(s_seguidore_id),
+        to_d1_null(s_seguide_id)
+    ).run()
 
 
 async def is_following(db, seguidore_id, seguide_id):
