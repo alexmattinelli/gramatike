@@ -65,6 +65,38 @@ except ImportError:
     _IN_PYODIDE = False
 
 
+def _get_js_null():
+    """Helper function to reliably get JavaScript null.
+    
+    This function ensures we always return a proper JavaScript null value
+    that D1 will accept, even if there are FFI boundary issues.
+    
+    Returns:
+        JavaScript null in Pyodide environment, Python None otherwise
+    """
+    if not _IN_PYODIDE:
+        return None
+    
+    try:
+        # In Pyodide, import and return JavaScript null directly
+        # We import it fresh each time to avoid stale references
+        from js import null
+        # Verify that null is actually the JavaScript null value
+        # by checking its string representation
+        if str(null) != 'null':
+            console.warn(f"[_get_js_null] WARNING: js.null has unexpected string representation: {str(null)}")
+        return null
+    except ImportError as e:
+        # If import fails, this is a critical error in Pyodide environment
+        console.error(f"[_get_js_null] CRITICAL: Failed to import js.null: {e}")
+        # Fallback to None, but this will likely cause issues
+        return None
+    except Exception as e:
+        # Any other exception is also critical
+        console.error(f"[_get_js_null] CRITICAL: Unexpected error getting js.null: {e}")
+        return None
+
+
 def to_d1_null(value):
     """Converts Python None and JavaScript undefined to JavaScript null for D1 queries.
     
@@ -96,6 +128,10 @@ def to_d1_null(value):
         # d1_content = to_d1_null(sanitized_content)
         # await db.prepare("...").bind(d1_user_id, d1_content).run()
     """
+    # CRITICAL: Get a fresh reference to JavaScript null for each call
+    # This ensures we don't have stale references that might become undefined
+    js_null = _get_js_null()
+    
     if not _IN_PYODIDE:
         # In non-Pyodide environments, perform basic checks
         if value is None:
@@ -123,12 +159,12 @@ def to_d1_null(value):
                 # This is a JsProxy - check its typeof
                 try:
                     if value.typeof == 'undefined':
-                        return JS_NULL
+                        return js_null
                 except Exception:
                     pass
             # Also try direct equality check as a backup
             if value == JS_UNDEFINED:
-                return JS_NULL
+                return js_null
         except Exception:
             # If comparison fails, continue to other checks
             pass
@@ -138,27 +174,27 @@ def to_d1_null(value):
     
     # Check 1: Python None (identity check)
     if value is None:
-        return JS_NULL
+        return js_null
     
     # Check 2: JavaScript undefined by string representation
     # This is the most reliable check as undefined always converts to 'undefined' string
     try:
         str_repr = str(value)
         if str_repr == 'undefined':
-            console.warn(f"[to_d1_null] Detected undefined value (str check), converting to JS_NULL")
-            return JS_NULL
+            console.warn(f"[to_d1_null] Detected undefined value (str check), converting to js_null")
+            return js_null
     except Exception as e:
         # If str() fails, it's likely a problematic JavaScript object
-        console.warn(f"[to_d1_null] str() failed on value, returning JS_NULL: {e}")
-        return JS_NULL
+        console.warn(f"[to_d1_null] str() failed on value, returning js_null: {e}")
+        return js_null
     
     # Check 3: Type name matches known undefined patterns
     # Only check for exact JavaScript undefined type names to avoid false positives
     try:
         type_name = type(value).__name__
         if type_name in ('JsUndefined', 'undefined'):
-            console.warn(f"[to_d1_null] Detected JS undefined type: {type_name}, converting to JS_NULL")
-            return JS_NULL
+            console.warn(f"[to_d1_null] Detected JS undefined type: {type_name}, converting to js_null")
+            return js_null
     except Exception:
         pass
     
@@ -172,8 +208,8 @@ def to_d1_null(value):
         # Note: In Pyodide, we can't use 'is' or '==' reliably with JS objects
         # Instead, check if converting both to string gives 'undefined'
         if str(value) == str(JS_UNDEFINED):
-            console.warn(f"[to_d1_null] Detected undefined value (JS undefined comparison), converting to JS_NULL")
-            return JS_NULL
+            console.warn(f"[to_d1_null] Detected undefined value (JS undefined comparison), converting to js_null")
+            return js_null
     except (ImportError, Exception):
         # If we can't import undefined or comparison fails, skip this check
         pass
@@ -183,8 +219,8 @@ def to_d1_null(value):
     if hasattr(value, 'typeof'):
         try:
             if value.typeof == 'undefined':
-                console.warn(f"[to_d1_null] Detected undefined via typeof check, converting to JS_NULL")
-                return JS_NULL
+                console.warn(f"[to_d1_null] Detected undefined via typeof check, converting to js_null")
+                return js_null
         except Exception:
             pass
     
@@ -194,15 +230,15 @@ def to_d1_null(value):
         # Force evaluation in a safe way
         _ = bool(value)
     except Exception as e:
-        console.warn(f"[to_d1_null] Value failed boolean evaluation, returning JS_NULL: {e}")
-        return JS_NULL
+        console.warn(f"[to_d1_null] Value failed boolean evaluation, returning js_null: {e}")
+        return js_null
     
     # Check 7: For string values, ensure they're not the literal string 'undefined'
     # Some APIs might return the string 'undefined' instead of actual undefined
     # This MUST be checked BEFORE the type conversion in check 8
     if isinstance(value, str) and value == 'undefined':
-        console.warn(f"[to_d1_null] String value is literal 'undefined', converting to JS_NULL")
-        return JS_NULL
+        console.warn(f"[to_d1_null] String value is literal 'undefined', converting to js_null")
+        return js_null
     
     # Check 8: Final validation - for Pyodide environment, explicitly convert Python native types
     # to ensure they don't become undefined when returned
@@ -222,8 +258,8 @@ def to_d1_null(value):
         elif isinstance(value, bytes):
             return bytes(value)
     except Exception as e:
-        console.warn(f"[to_d1_null] Failed to convert value to native Python type, returning JS_NULL: {e}")
-        return JS_NULL
+        console.warn(f"[to_d1_null] Failed to convert value to native Python type, returning js_null: {e}")
+        return js_null
     
     # If all checks pass, return the value as is
     # This should only be reached for complex types like lists/dicts that were
@@ -231,17 +267,46 @@ def to_d1_null(value):
     # 
     # FINAL SAFETY NET: Before returning, do one last check to ensure we're not
     # accidentally returning JavaScript undefined
+    # NOTE: We check for 'undefined' again here (even though we checked earlier) because
+    # in rare cases, values might become undefined between checks due to FFI timing issues
     try:
         # Check if the value we're about to return would stringify to 'undefined'
-        if str(value) == 'undefined':
-            console.warn(f"[to_d1_null] SAFETY NET: Value stringifies to 'undefined' at return point, converting to JS_NULL")
-            return JS_NULL
-    except Exception:
+        str_value = str(value)
+        if str_value == 'undefined':
+            console.warn(f"[to_d1_null] SAFETY NET: Value stringifies to 'undefined' at return point, converting to js_null")
+            return js_null
+        
+        # CRITICAL: Also check for 'null' string which might indicate issues
+        # In Pyodide, sometimes undefined objects stringify to 'null'
+        # Only convert 'null' string to js_null if it's not an intentional string value
+        # Empty string is valid for SQL strings, so we allow it
+        if str_value == 'null' and not isinstance(value, str):
+            console.warn(f"[to_d1_null] SAFETY NET: Non-string value stringifies to 'null', converting to js_null")
+            return js_null
+    except Exception as e:
         # If str() fails, the value is definitely problematic
-        console.warn(f"[to_d1_null] SAFETY NET: Value cannot be stringified, returning JS_NULL")
-        return JS_NULL
+        console.warn(f"[to_d1_null] SAFETY NET: Value cannot be stringified, returning js_null: {e}")
+        return js_null
     
-    return value
+    # ULTRA FINAL CHECK: Try to access the value in a way that would fail for undefined
+    # This is a last-resort check to catch any edge cases we missed
+    try:
+        # Try to compare the value with js_null - if this fails, the value is problematic
+        # Note: We use try/except because even comparison can fail with undefined in Pyodide
+        if value is js_null:
+            # Value is already js_null, which is correct
+            return js_null
+        
+        # Try to use the value in a boolean context - undefined often fails
+        # This is simpler and more reliable than accessing __name__
+        _ = bool(value)
+        
+        # If we got here, the value seems safe to return
+        return value
+    except Exception as e:
+        # If any operation on the value fails, it's likely undefined or corrupted
+        console.warn(f"[to_d1_null] ULTRA FINAL CHECK: Value failed safety check, returning js_null: {e}")
+        return js_null
 
 # ============================================================================
 # HELPERS DE DATABASE
