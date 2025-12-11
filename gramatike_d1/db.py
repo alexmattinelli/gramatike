@@ -1015,6 +1015,108 @@ async def ensure_database_initialized(db):
             )
         """).run()
         
+        # Criar tabela de amizade (relacionamento bidirecional)
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS amizade (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                usuarie1_id INTEGER NOT NULL,
+                usuarie2_id INTEGER NOT NULL,
+                status TEXT DEFAULT 'pendente',
+                solicitante_id INTEGER NOT NULL,
+                created_at TEXT DEFAULT (datetime('now')),
+                updated_at TEXT,
+                FOREIGN KEY (usuarie1_id) REFERENCES user(id) ON DELETE CASCADE,
+                FOREIGN KEY (usuarie2_id) REFERENCES user(id) ON DELETE CASCADE,
+                FOREIGN KEY (solicitante_id) REFERENCES user(id),
+                UNIQUE(usuarie1_id, usuarie2_id)
+            )
+        """).run()
+        
+        # Criar índices para amizade
+        await db.prepare("CREATE INDEX IF NOT EXISTS idx_amizade_usuarie1 ON amizade(usuarie1_id)").run()
+        await db.prepare("CREATE INDEX IF NOT EXISTS idx_amizade_usuarie2 ON amizade(usuarie2_id)").run()
+        await db.prepare("CREATE INDEX IF NOT EXISTS idx_amizade_status ON amizade(status)").run()
+        
+        # Criar tabela de reports (content moderation)
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS report (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                post_id INTEGER,
+                usuarie_id INTEGER,
+                motivo TEXT,
+                category TEXT,
+                data TEXT DEFAULT (datetime('now')),
+                resolved INTEGER DEFAULT 0,
+                resolved_at TEXT,
+                FOREIGN KEY (post_id) REFERENCES post(id),
+                FOREIGN KEY (usuarie_id) REFERENCES user(id)
+            )
+        """).run()
+        
+        # Criar índice para report
+        await db.prepare("CREATE INDEX IF NOT EXISTS idx_report_resolved ON report(resolved)").run()
+        
+        # Criar tabela de support tickets
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS support_ticket (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                usuarie_id INTEGER,
+                nome TEXT,
+                email TEXT,
+                mensagem TEXT NOT NULL,
+                status TEXT DEFAULT 'aberto',
+                created_at TEXT DEFAULT (datetime('now')),
+                updated_at TEXT,
+                resposta TEXT,
+                FOREIGN KEY (usuarie_id) REFERENCES user(id)
+            )
+        """).run()
+        
+        # Criar índices para support_ticket
+        await db.prepare("CREATE INDEX IF NOT EXISTS idx_support_ticket_status ON support_ticket(status)").run()
+        await db.prepare("CREATE INDEX IF NOT EXISTS idx_support_ticket_created_at ON support_ticket(created_at)").run()
+        
+        # Criar tabela de notificações
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS notification (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                usuarie_id INTEGER NOT NULL,
+                tipo TEXT NOT NULL,
+                titulo TEXT,
+                mensagem TEXT,
+                link TEXT,
+                lida INTEGER DEFAULT 0,
+                created_at TEXT DEFAULT (datetime('now')),
+                from_usuarie_id INTEGER,
+                post_id INTEGER,
+                comentario_id INTEGER,
+                FOREIGN KEY (usuarie_id) REFERENCES user(id) ON DELETE CASCADE,
+                FOREIGN KEY (from_usuarie_id) REFERENCES user(id),
+                FOREIGN KEY (post_id) REFERENCES post(id),
+                FOREIGN KEY (comentario_id) REFERENCES comentario(id)
+            )
+        """).run()
+        
+        # Criar índices para notification
+        await db.prepare("CREATE INDEX IF NOT EXISTS idx_notification_usuarie ON notification(usuarie_id)").run()
+        await db.prepare("CREATE INDEX IF NOT EXISTS idx_notification_lida ON notification(lida)").run()
+        await db.prepare("CREATE INDEX IF NOT EXISTS idx_notification_created ON notification(created_at)").run()
+        
+        # Criar tabela de blocked words
+        await db.prepare("""
+            CREATE TABLE IF NOT EXISTS blocked_word (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                term TEXT UNIQUE NOT NULL,
+                category TEXT DEFAULT 'custom',
+                created_at TEXT DEFAULT (datetime('now')),
+                created_by INTEGER,
+                FOREIGN KEY (created_by) REFERENCES user(id)
+            )
+        """).run()
+        
+        # Criar índice para blocked_word
+        await db.prepare("CREATE INDEX IF NOT EXISTS idx_blocked_word_category ON blocked_word(category)").run()
+        
         # Verificar se existe superadmin, se não, criar um
         superadmin = await db.prepare(
             "SELECT id FROM user WHERE is_superadmin = 1 LIMIT 1"
