@@ -1591,14 +1591,10 @@ async def create_post(db, usuarie_id, conteudo, imagem=None):
     
     s_usuarie = safe_get(user_result, 'username')
     # Check for both None and undefined (as a string)
+    # Note: safe_get() already calls sanitize_for_d1() internally, so no need to sanitize again
+    # Double sanitization can cause FFI boundary issues where values become undefined
     if s_usuarie is None or str(s_usuarie) == 'undefined':
         console.error(f"[create_post] Username is None/undefined for usuarie_id {s_usuarie_id}")
-        return None
-    
-    # Sanitize the username one more time to be absolutely sure
-    s_usuarie = sanitize_for_d1(s_usuarie)
-    if s_usuarie is None:
-        console.error(f"[create_post] Username became None after sanitization for usuarie_id {s_usuarie_id}")
         return None
     
     # Now insert the post with the username we just fetched
