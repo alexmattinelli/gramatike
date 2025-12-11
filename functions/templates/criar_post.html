@@ -340,12 +340,24 @@ form.addEventListener('submit', async e => {
   if(!files.length) setProgress(10,'Iniciando…');
   setProgress(65,'Enviando…');
   fetch('/api/posts_multi', { method:'POST', body: fd })
-    .then(r=> r.json().then(j=>({ok:r.ok,data:j})))
+    .then(r=> r.json().then(j=>({ok:r.ok,data:j,status:r.status})))
     .then(resp=>{
       setProgress(100,'Concluído');
-  if(resp.ok && resp.data.success){ window.location.href = "/"; }
-      else { alert('Erro: '+(resp.data && resp.data.error || 'desconhecido')); btnSubmit.classList.remove('disabled'); btnSubmit.textContent='Publicar'; }
-    }).catch(()=> { alert('Falha de rede.'); btnSubmit.classList.remove('disabled'); btnSubmit.textContent='Publicar'; });
+      console.log('Response:', resp);
+      if(resp.ok && resp.data.success){ 
+        window.location.href = "/"; 
+      } else { 
+        console.error('Post creation failed:', resp);
+        alert('Erro: '+(resp.data && resp.data.error || 'desconhecido')); 
+        btnSubmit.classList.remove('disabled'); 
+        btnSubmit.textContent='Publicar'; 
+      }
+    }).catch((err)=> { 
+      console.error('Network error:', err);
+      alert('Falha de rede.'); 
+      btnSubmit.classList.remove('disabled'); 
+      btnSubmit.textContent='Publicar'; 
+    });
 });
 
 const imagensInput = document.getElementById('imagens');
