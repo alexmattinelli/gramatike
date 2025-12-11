@@ -340,21 +340,30 @@ form.addEventListener('submit', async e => {
   if(!files.length) setProgress(10,'Iniciando…');
   setProgress(65,'Enviando…');
   fetch('/api/posts_multi', { method:'POST', body: fd })
-    .then(r=> r.json().then(j=>({ok:r.ok,data:j,status:r.status})))
+    .then(r=> {
+      console.log('Response status:', r.status, r.statusText);
+      if (!r.ok) {
+        // Log non-OK status before trying to parse JSON
+        console.error('HTTP error status:', r.status);
+      }
+      return r.json().then(j=>({ok:r.ok,data:j,status:r.status}));
+    })
     .then(resp=>{
       setProgress(100,'Concluído');
-      console.log('Response:', resp);
+      console.log('Response data:', resp);
       if(resp.ok && resp.data.success){ 
+        console.log('Post created successfully, redirecting to feed');
         window.location.href = "/"; 
       } else { 
         console.error('Post creation failed:', resp);
-        alert('Erro: '+(resp.data && resp.data.error || 'desconhecido')); 
+        const errorMsg = (resp.data && resp.data.error) || 'Erro desconhecido (status: ' + resp.status + ')';
+        alert('Erro ao criar post: ' + errorMsg); 
         btnSubmit.classList.remove('disabled'); 
         btnSubmit.textContent='Publicar'; 
       }
     }).catch((err)=> { 
-      console.error('Network error:', err);
-      alert('Falha de rede.'); 
+      console.error('Network or parsing error:', err);
+      alert('Falha de rede ou erro ao processar resposta. Verifique sua conexão.'); 
       btnSubmit.classList.remove('disabled'); 
       btnSubmit.textContent='Publicar'; 
     });
