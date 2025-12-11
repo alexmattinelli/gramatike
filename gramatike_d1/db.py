@@ -109,6 +109,33 @@ def to_d1_null(value):
     
     # In Pyodide environment, perform comprehensive checks for None and undefined
     
+    # CRITICAL CHECK 0: Immediately try to access JavaScript's undefined for direct comparison
+    # This must be done BEFORE any other operations that might trigger conversion
+    # In some edge cases, value might BE the undefined object itself
+    try:
+        from js import undefined as JS_UNDEFINED
+        # Direct identity check - if value IS undefined, catch it immediately
+        # Note: We use try/except because in some contexts this comparison can fail
+        try:
+            # Use hasattr to check if this is the actual undefined object
+            # Comparing with == or is can be unreliable across the FFI boundary
+            if hasattr(value, 'typeof'):
+                # This is a JsProxy - check its typeof
+                try:
+                    if value.typeof == 'undefined':
+                        return JS_NULL
+                except Exception:
+                    pass
+            # Also try direct equality check as a backup
+            if value == JS_UNDEFINED:
+                return JS_NULL
+        except Exception:
+            # If comparison fails, continue to other checks
+            pass
+    except ImportError:
+        # JS module not available (shouldn't happen in Pyodide, but be safe)
+        pass
+    
     # Check 1: Python None (identity check)
     if value is None:
         return JS_NULL
@@ -201,6 +228,19 @@ def to_d1_null(value):
     # If all checks pass, return the value as is
     # This should only be reached for complex types like lists/dicts that were
     # intentionally passed and have already been sanitized
+    # 
+    # FINAL SAFETY NET: Before returning, do one last check to ensure we're not
+    # accidentally returning JavaScript undefined
+    try:
+        # Check if the value we're about to return would stringify to 'undefined'
+        if str(value) == 'undefined':
+            console.warn(f"[to_d1_null] SAFETY NET: Value stringifies to 'undefined' at return point, converting to JS_NULL")
+            return JS_NULL
+    except Exception:
+        # If str() fails, the value is definitely problematic
+        console.warn(f"[to_d1_null] SAFETY NET: Value cannot be stringified, returning JS_NULL")
+        return JS_NULL
+    
     return value
 
 # ============================================================================
