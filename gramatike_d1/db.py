@@ -124,12 +124,12 @@ def to_d1_null(value):
                 try:
                     if value.typeof == 'undefined':
                         return JS_NULL
-                except:
+                except Exception:
                     pass
             # Also try direct equality check as a backup
             if value == JS_UNDEFINED:
                 return JS_NULL
-        except:
+        except Exception:
             # If comparison fails, continue to other checks
             pass
     except ImportError:
@@ -236,7 +236,7 @@ def to_d1_null(value):
         if str(value) == 'undefined':
             console.warn(f"[to_d1_null] SAFETY NET: Value stringifies to 'undefined' at return point, converting to JS_NULL")
             return JS_NULL
-    except:
+    except Exception:
         # If str() fails, the value is definitely problematic
         console.warn(f"[to_d1_null] SAFETY NET: Value cannot be stringified, returning JS_NULL")
         return JS_NULL
