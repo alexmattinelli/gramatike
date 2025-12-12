@@ -145,7 +145,7 @@ def create_post():
     username = current_user.username if current_user.is_authenticated else 'Usuárie'
     post = Post(
         usuarie=username,
-        usuario_id=current_user.id if current_user.is_authenticated else None,
+        usuarie_id=current_user.id if current_user.is_authenticated else None,
         conteudo=conteudo,
         imagem=imagem_path,
         data=datetime.now()
@@ -197,7 +197,7 @@ def create_post_multi():
         meta.append({'path': f"uploads/posts/{fname}", 'w': w, 'h': h})
     post = Post(
         usuarie=current_user.username,
-        usuario_id=current_user.id,
+        usuarie_id=current_user.id,
         conteudo=conteudo,
         imagem='|'.join(paths),
         data=datetime.now()
@@ -222,7 +222,7 @@ def regenerate_post_thumbs(post_id):
     except ImportError:
         return jsonify({'error': 'Pillow not available in this environment', 'thumbs': []}), 200
     post = Post.query.get_or_404(post_id)
-    if post.usuario_id != current_user.id and not (getattr(current_user,'is_admin',False) or getattr(current_user,'is_superadmin',False)):
+    if post.usuarie_id != current_user.id and not (getattr(current_user,'is_admin',False) or getattr(current_user,'is_superadmin',False)):
         return jsonify({'error':'forbidden'}), 403
     basedir = os.path.join(current_app.root_path, 'static')
     out_dir = os.path.join(basedir, 'uploads', 'posts', 'thumbs')

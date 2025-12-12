@@ -429,7 +429,7 @@ def api_notifications():
             })
         
         # Get recent likes on user's posts (last 10)
-        user_posts = Post.query.filter_by(usuario_id=user.id, is_deleted=False).all()
+        user_posts = Post.query.filter_by(usuarie_id=user.id, is_deleted=False).all()
         user_post_ids = [p.id for p in user_posts]
         
         if user_post_ids:
@@ -746,13 +746,13 @@ def relatar_post(post_id):
     if post.usuarie == current_user.username:
         return jsonify({'error': 'Você não pode relatar seu próprio post.'}), 403
     # Verifica se já relatou
-    ja_reportou = Report.query.filter_by(post_id=post_id, usuario_id=current_user.id).first()
+    ja_reportou = Report.query.filter_by(post_id=post_id, usuarie_id=current_user.id).first()
     if ja_reportou:
         return jsonify({'error': 'Você já relatou este post.'}), 400
     payload = request.get_json(silent=True) or {}
     cat = (payload.get('category') or '').strip().lower() or None
     mot = (payload.get('motivo') or '').strip() or 'Relato via botão'
-    report = Report(post_id=post_id, usuario_id=current_user.id, motivo=mot, category=cat)
+    report = Report(post_id=post_id, usuarie_id=current_user.id, motivo=mot, category=cat)
     db.session.add(report)
     db.session.commit()
     return jsonify({'success': True})
@@ -1447,7 +1447,7 @@ def dinamica_view(dyn_id: int):
     # Check if current user has already responded (only if authenticated)
     user_response = None
     if getattr(current_user, 'is_authenticated', False):
-        prev = DynamicResponse.query.filter_by(dynamic_id=d.id, usuario_id=current_user.id).first()
+        prev = DynamicResponse.query.filter_by(dynamic_id=d.id, usuarie_id=current_user.id).first()
         if prev:
             try:
                 user_response = _json.loads(prev.payload) if prev.payload else {}
@@ -1514,7 +1514,7 @@ def dinamica_admin(dyn_id: int):
             payload = _json.loads(r.payload) if r.payload else {}
         except Exception:
             payload = {}
-        u = User.query.get(r.usuario_id)
+        u = User.query.get(r.usuarie_id)
         rows.append({
             'id': r.id,
             'user': {'id': u.id if u else None, 'username': u.username if u else 'desconhecide', 'nome': u.nome if u else ''},
@@ -1610,7 +1610,7 @@ def dinamica_export_csv(dyn_id: int):
     # gerar CSV na memória
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['timestamp','dynamic_id','usuario_id','tipo','content'])
+    writer.writerow(['timestamp','dynamic_id','usuarie_id','tipo','content'])
     cfg = {}
     try:
         cfg = _json.loads(d.config) if d.config else {}
@@ -1651,7 +1651,7 @@ def dinamica_export_csv(dyn_id: int):
                 val = ans.get('value') or ''
                 parts.append(f"{label}={val}")
             content = ' | '.join(parts)
-        writer.writerow([getattr(r.created_at,'isoformat',lambda: '')(), d.id, r.usuario_id, d.tipo, content])
+        writer.writerow([getattr(r.created_at,'isoformat',lambda: '')(), d.id, r.usuarie_id, d.tipo, content])
     output.seek(0)
     return Response(output.read(), mimetype='text/csv', headers={'Content-Disposition': f'attachment; filename=dinamica_{d.id}.csv'})
 
@@ -1855,7 +1855,7 @@ def dinamica_responder(dyn_id: int):
     import json as _json
     payload = {}
     # Impedir múltiplas respostas por usuárie
-    prev = DynamicResponse.query.filter_by(dynamic_id=d.id, usuario_id=current_user.id).first()
+    prev = DynamicResponse.query.filter_by(dynamic_id=d.id, usuarie_id=current_user.id).first()
     if prev:
         flash('Você já respondeu esta dinâmica.')
         return redirect(url_for('main.dinamica_view', dyn_id=d.id))
@@ -1934,7 +1934,7 @@ def dinamica_responder(dyn_id: int):
     else:
         flash('Tipo não suportado.')
         return redirect(url_for('main.dinamica_view', dyn_id=d.id))
-    dr = DynamicResponse(dynamic_id=d.id, usuario_id=current_user.id, payload=_json.dumps(payload))
+    dr = DynamicResponse(dynamic_id=d.id, usuarie_id=current_user.id, payload=_json.dumps(payload))
     db.session.add(dr)
     db.session.commit()
     # Salvar também em CSV por dinâmica ("planilha")
@@ -1949,7 +1949,7 @@ def dinamica_responder(dyn_id: int):
         with open(csv_path, 'a', encoding='utf-8', newline='') as f:
             writer = csv.writer(f)
             if not exists:
-                writer.writerow(['timestamp','dynamic_id','usuario_id','tipo','content'])
+                writer.writerow(['timestamp','dynamic_id','usuarie_id','tipo','content'])
             try:
                 from zoneinfo import ZoneInfo
                 stamp = _to_brasilia(_dt.datetime.utcnow()).isoformat()
@@ -2441,10 +2441,10 @@ def create_post():
         if not ok_img:
             return jsonify({'error': 'imagem_bloqueada', 'reason': cat_img, 'message': refusal_message_pt(cat_img, matched_img)}), 400
     usuario_nome = current_user.username if hasattr(current_user, 'username') else data.get('usuarie', 'Usuárie')
-    usuario_id = current_user.id if hasattr(current_user, 'id') else None
+    usuarie_id = current_user.id if hasattr(current_user, 'id') else None
     post = Post(
         usuarie=usuario_nome,
-        usuarie_id=usuario_id,
+        usuarie_id=usuarie_id,
         conteudo=data['conteudo'],
         imagem=data.get('imagem', ''),
         data=datetime.now()
@@ -2506,7 +2506,7 @@ def comentarios(post_id):
         if not ok:
             return jsonify({'error': 'conteudo_bloqueado', 'reason': cat, 'message': refusal_message_pt(cat, matched_word)}), 400
         comentario = Comentario(
-            usuario_id=current_user.id,
+            usuarie_id=current_user.id,
             conteudo=conteudo,
             post_id=post.id
         )
@@ -2539,7 +2539,7 @@ def suporte():
         if not mensagem:
             flash('Mensagem obrigatória.')
             return redirect(url_for('main.suporte'))
-        ticket = SupportTicket(usuario_id=current_user.id if current_user.is_authenticated else None,
+        ticket = SupportTicket(usuarie_id=current_user.id if current_user.is_authenticated else None,
                                nome=nome, email=email, mensagem=mensagem)
         db.session.add(ticket)
         db.session.commit()
@@ -2804,7 +2804,7 @@ def api_palavra_do_dia():
         hoje = datetime.utcnow().date()
         interacao_hoje = PalavraDoDiaInteracao.query.filter(
             PalavraDoDiaInteracao.palavra_id == palavra.id,
-            PalavraDoDiaInteracao.usuario_id == current_user.id,
+            PalavraDoDiaInteracao.usuarie_id == current_user.id,
             func.date(PalavraDoDiaInteracao.created_at) == hoje
         ).first()
         ja_interagiu = interacao_hoje is not None
@@ -2842,7 +2842,7 @@ def api_palavra_do_dia_interagir():
     hoje = datetime.utcnow().date()
     interacao_existente = PalavraDoDiaInteracao.query.filter(
         PalavraDoDiaInteracao.palavra_id == palavra_id,
-        PalavraDoDiaInteracao.usuario_id == current_user.id,
+        PalavraDoDiaInteracao.usuarie_id == current_user.id,
         func.date(PalavraDoDiaInteracao.created_at) == hoje
     ).first()
     
@@ -2859,7 +2859,7 @@ def api_palavra_do_dia_interagir():
     # Registra interação
     interacao = PalavraDoDiaInteracao(
         palavra_id=palavra_id,
-        usuario_id=current_user.id,
+        usuarie_id=current_user.id,
         tipo=tipo,
         frase=frase if tipo == 'frase' else None
     )
