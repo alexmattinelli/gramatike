@@ -1567,13 +1567,17 @@ async def create_post(db, usuarie_id, conteudo, imagem=None):
     s_usuarie_id = sanitize_for_d1(usuarie_id)
     s_conteudo = sanitize_for_d1(conteudo)
     s_imagem = sanitize_for_d1(imagem)
-    
-    if s_usuarie_id is None:
-        console.error("[create_post] usuarie_id is None after sanitization")
+    # Reforço: nunca permitir string 'undefined' ou undefined real
+    if s_imagem is None or str(s_imagem).strip().lower() == 'undefined':
+        s_imagem = None
+    if s_usuarie_id is None or str(s_usuarie_id).strip().lower() == 'undefined' or s_usuarie_id == '':
+        console.error(f"[create_post] usuarie_id inválido após sanitização: {usuarie_id} -> {s_usuarie_id}")
         return None
-    if s_conteudo is None:
-        console.error("[create_post] conteudo is None after sanitization")
+    if s_conteudo is None or str(s_conteudo).strip().lower() == 'undefined' or s_conteudo == '':
+        console.error(f"[create_post] conteudo inválido após sanitização: {conteudo} -> {s_conteudo}")
         return None
+    # Log para debug
+    console.log(f"[create_post] FINAL VALUES: usuarie_id={usuarie_id} -> {s_usuarie_id}, conteudo={conteudo} -> {s_conteudo}, imagem={imagem} -> {s_imagem}")
     
     # First, get the username from the user table
     # This validates that the user exists before attempting to create the post

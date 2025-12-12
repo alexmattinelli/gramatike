@@ -1424,6 +1424,13 @@ class Default(WorkerEntrypoint):
                     imagem = None
                     # Log os valores finais
                     console.log(f"[posts_multi] FINAL: usuarie_id={usuarie_id} ({type(usuarie_id).__name__}), conteudo='{conteudo}', imagem={imagem}")
+                    # Log extra para debug
+                    if usuarie_id is None or str(usuarie_id).lower() == 'undefined' or usuarie_id == '':
+                        console.error(f"[posts_multi] ERRO: usuarie_id inválido antes de create_post: {usuarie_id}")
+                        return json_response({"error": "Usuárie inválide", "success": False}, 400)
+                    if conteudo is None or str(conteudo).lower() == 'undefined' or conteudo == '':
+                        console.error(f"[posts_multi] ERRO: conteudo inválido antes de create_post: {conteudo}")
+                        return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
                     post_id = await create_post(db, usuarie_id, conteudo, imagem)
                     
                     if not post_id:
