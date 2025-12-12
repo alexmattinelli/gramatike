@@ -1416,13 +1416,15 @@ class Default(WorkerEntrypoint):
                         return json_response({"error": "Conteúdo é obrigatório", "success": False}, 400)
                     
                     # Log the final values before creating post
-                    console.log(f"[posts_multi] Creating post: usuarie_id={usuarie_id} ({type(usuarie_id).__name__}), conteudo_len={len(conteudo)}")
-                    
-                    # For now, we don't handle image uploads in Cloudflare Workers
-                    # (would need R2 storage integration)
-                    # Just create the post with text content
-                    # create_post() will sanitize all parameters internally
-                    post_id = await create_post(db, usuarie_id, conteudo, None)
+                    # Sanitização extra para garantir que nenhum valor undefined/string 'undefined' seja passado
+                    if usuarie_id is None or str(usuarie_id).lower() == 'undefined' or usuarie_id == '':
+                        usuarie_id = None
+                    if conteudo is None or str(conteudo).lower() == 'undefined':
+                        conteudo = ''
+                    imagem = None
+                    # Log os valores finais
+                    console.log(f"[posts_multi] FINAL: usuarie_id={usuarie_id} ({type(usuarie_id).__name__}), conteudo='{conteudo}', imagem={imagem}")
+                    post_id = await create_post(db, usuarie_id, conteudo, imagem)
                     
                     if not post_id:
                         return json_response({"error": "Erro ao criar post", "success": False}, 500)
