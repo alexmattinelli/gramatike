@@ -4641,10 +4641,10 @@ async def get_emoji_categories(db):
         WHERE ativo = 1
         GROUP BY categoria
         ORDER BY categoria
-    """).all()
+    """).all() 
     return [safe_dict(r) for r in results.results] if results.results else []
 
-
+ 
 def escape_html(text):
     """Escapa caracteres HTML para prevenir XSS."""
     if not text:
