@@ -408,8 +408,31 @@ def edu_publicar():
     if extra_dict:
         import json as _json
         extra = _json.dumps(extra_dict)
+    # Validação extra para evitar undefined/None em campos obrigatórios
+    # Campos obrigatórios: tipo, titulo
+    # Campos opcionais: resumo, corpo, url, file_path, extra, topic_id
+    # author_id sempre presente (current_user.id)
+    # Se algum campo obrigatório estiver None ou string vazia, aborta
+    if tipo is None or tipo == '' or titulo is None or titulo == '':
+        flash('Tipo e título são obrigatórios e não podem ser vazios.')
+        return redirect(url_for('admin.dashboard', _anchor='edu'))
+    # Garante que não vai nenhum undefined (JS) para o banco
+    # (no Flask, undefined vira None, mas pode vir string 'undefined' de JS)
+    for field in [tipo, titulo, resumo, corpo, url_field, file_path, extra, topic_id]:
+        if isinstance(field, str) and field.strip().lower() == 'undefined':
+            field = None
     try:
-        content = EduContent(tipo=tipo, titulo=titulo, resumo=resumo, corpo=corpo, url=url_field, file_path=file_path, extra=extra, author_id=current_user.id, topic_id=topic_id)
+        content = EduContent(
+            tipo=tipo,
+            titulo=titulo,
+            resumo=(None if resumo == '' or (isinstance(resumo, str) and resumo.strip().lower() == 'undefined') else resumo),
+            corpo=(None if corpo == '' or (isinstance(corpo, str) and corpo.strip().lower() == 'undefined') else corpo),
+            url=(None if url_field == '' or (isinstance(url_field, str) and url_field.strip().lower() == 'undefined') else url_field),
+            file_path=(None if file_path == '' or (isinstance(file_path, str) and file_path.strip().lower() == 'undefined') else file_path),
+            extra=(None if extra == '' or (isinstance(extra, str) and extra.strip().lower() == 'undefined') else extra),
+            author_id=current_user.id,
+            topic_id=(None if topic_id == '' or (isinstance(topic_id, str) and topic_id.strip().lower() == 'undefined') else topic_id)
+        )
         db.session.add(content)
         db.session.commit()
         flash('Conteúdo publicado!')
