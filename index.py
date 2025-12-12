@@ -2,7 +2,7 @@
 # Cloudflare Workers Python entry point with D1 Database
 # Uses native WorkerEntrypoint pattern + D1 SQLite
 # Docs: https://developers.cloudflare.com/workers/languages/python/
-#
+# 
 # Este arquivo serve as páginas HTML com a mesma estética e funcionalidades
 # da aplicação Flask original, usando Cloudflare D1 como banco de dados.
 # Usa linguagem neutra (usuáries, seguidories, amigues).
