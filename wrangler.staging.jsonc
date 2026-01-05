@@ -1,0 +1,23 @@
+{
+  // Wrangler staging configuration (enable traces for deeper debugging)
+  "name": "gramatike-staging",
+  "main": "index.py",
+  "compatibility_date": "2025-12-01",
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      // Enable traces in staging to collect end-to-end spans
+      "enabled": true,
+      "persist": true,
+      // sample at 25% to limit volume while still getting coverage
+      "head_sampling_rate": 0.25
+    }
+  }
+}

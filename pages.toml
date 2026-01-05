@@ -1,0 +1,6 @@
+[build]
+command = "npm run versions-upload"
+
+[env]
+# Use this branch for production builds if desired
+production_branch = "main"

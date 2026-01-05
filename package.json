@@ -1,14 +1,15 @@
 {
-	"name": "gramatike",
-	"version": "1.0.0",
-	"private": true,
-	"description": "Gramátike - Portuguese grammar education platform",
-	"scripts": {
-		"deploy": "npx wrangler deploy",
-		"dev": "npx wrangler dev",
-		"start": "npx wrangler dev"
-	},
-	"devDependencies": {
-		"wrangler": "^4.46.0"
-	}
+  "name": "gramatike",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gramátike - Portuguese grammar education platform",
+  "scripts": {
+    "deploy": "npx wrangler deploy",
+    "versions-upload": "npx wrangler versions upload",
+    "dev": "npx wrangler dev",
+    "start": "npx wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.46.0"
+  }
 }

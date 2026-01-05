@@ -1,0 +1,32 @@
+name: Deploy Worker via Wrangler (with Python flags)
+
+on:
+  push:
+    branches:
+      - main
+      - copilot/add-posts-test-ci
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    name: Upload Worker Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+
+      - name: Upload Worker version (wrangler)
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          # Use the npm script which includes the compatibility flags
+          npm run versions-upload
