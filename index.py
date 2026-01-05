@@ -1418,6 +1418,14 @@ class Default(WorkerEntrypoint):
                     # Set imagem to None (image upload not implemented yet in this endpoint)
                     imagem = None
                     
+                    # IMPORTANT: Do NOT add additional validation or sanitization here!
+                    # All required validation has already been performed above (lines 1395-1416):
+                    # - usuarie_id validated at lines 1256-1259, 1406-1408
+                    # - conteudo validated and cleaned at lines 1395-1401, 1411-1416
+                    # The create_post() function will handle internal sanitization to prevent
+                    # D1_TYPE_ERROR by converting JavaScript undefined to null.
+                    # Double sanitization causes FFI boundary issues where values become undefined.
+                    
                     # Log the final values before creating post for debugging
                     console.log(f"[posts_multi] Creating post: usuarie_id={usuarie_id}, conteudo_length={len(conteudo)}, imagem={imagem}")
                     
