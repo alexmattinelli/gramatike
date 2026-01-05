@@ -1,0 +1,27 @@
+{
+  // Wrangler configuration for Cloudflare Workers
+  // Observability settings recommended for development and production.
+  "name": "gramatike",
+  "main": "index.py",
+  "compatibility_date": "2025-12-01",
+  "observability": {
+    // Enable/disable overall observability. Keep true in development for richer logs.
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": {
+      // Keep logs enabled so you can inspect runtime errors from Workers in Cloudflare dashboard
+      "enabled": true,
+      "head_sampling_rate": 1,
+      // Persist logs to storage for a short period when debugging; set false in high-volume production if cost-sensitive
+      "persist": true,
+      // Invocation logs include per-request details; useful for debugging endpoints like /api/posts_multi
+      "invocation_logs": true
+    },
+    "traces": {
+      // Traces can incur cost and volume; enable in staging or when debugging distributed issues
+      "enabled": false,
+      "persist": false,
+      "head_sampling_rate": 0
+    }
+  }
+}
