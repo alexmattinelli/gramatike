@@ -1604,16 +1604,44 @@ async def create_post(db, usuarie_id, conteudo, imagem=None):
     # Now insert the post with the username we just fetched
     # CRITICAL: Call to_d1_null() directly in .bind() to avoid FFI boundary issues
     # Storing to_d1_null() results in variables causes them to become undefined when crossing FFI again
-    result = await db.prepare("""
-        INSERT INTO post (usuarie_id, usuarie, conteudo, imagem, data)
-        VALUES (?, ?, ?, ?, datetime('now'))
-        RETURNING id
-    """).bind(
-        to_d1_null(s_usuarie_id),
-        to_d1_null(s_usuarie),
-        to_d1_null(s_conteudo),
-        to_d1_null(s_imagem)
-    ).first()
+    # Defensive normalization: ensure values are native Python types (not JsProxy/undefined)
+    def _ensure_py(val):
+        try:
+            if hasattr(val, 'to_py'):
+                val = val.to_py()
+        except Exception:
+            pass
+        if val is None:
+            return None
+        if isinstance(val, str) and val.strip().lower() == 'undefined':
+            return None
+        return val
+
+    s_usuarie_id = _ensure_py(s_usuarie_id)
+    s_usuarie = _ensure_py(s_usuarie)
+    s_conteudo = _ensure_py(s_conteudo)
+    s_imagem = _ensure_py(s_imagem)
+
+    try:
+        result = await db.prepare("""
+            INSERT INTO post (usuarie_id, usuarie, conteudo, imagem, data)
+            VALUES (?, ?, ?, ?, datetime('now'))
+            RETURNING id
+        """).bind(
+            to_d1_null(s_usuarie_id),
+            to_d1_null(s_usuarie),
+            to_d1_null(s_conteudo),
+            to_d1_null(s_imagem)
+        ).first()
+    except Exception as e:
+        try:
+            console.error(f"[create_post] BIND ERROR: {type(e).__name__}: {e}")
+            console.error(f"[create_post] BIND VALUES TYPES: usuarie_id={type(s_usuarie_id).__name__}, usuarie={type(s_usuarie).__name__}, conteudo={type(s_conteudo).__name__}, imagem={type(s_imagem).__name__}")
+            console.error(f"[create_post] BIND VALUES STR: usuarie_id={str(s_usuarie_id)}, usuarie={str(s_usuarie)}, conteudo_len={(len(s_conteudo) if isinstance(s_conteudo, str) else 'NA')}, imagem={str(s_imagem)}")
+        except Exception:
+            pass
+        raise
+
     return safe_get(result, 'id')
 
 

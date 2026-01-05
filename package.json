@@ -4,7 +4,8 @@
 	"private": true,
 	"description": "Gramátike - Portuguese grammar education platform",
 	"scripts": {
-		"deploy": "npx wrangler deploy",
+		"deploy": "npx wrangler deploy --compatibility-flags python_workers,python_dedicated_snapshot",
+		"versions-upload": "npx wrangler versions upload --compatibility-flags python_workers,python_dedicated_snapshot",
 		"dev": "npx wrangler dev",
 		"start": "npx wrangler dev"
 	},
