@@ -1,48 +1,19 @@
 name = "gramatike"
 main = "index.py"
 compatibility_date = "2025-12-01"
-compatibility_flags = ["python_workers"]
-# Cloudflare Workers configuration for Gramátike
-# Documentação: https://developers.cloudflare.com/workers/
 
-name = "gramatike"
-main = "index.py"
-compatibility_date = "2025-11-02"
-compatibility_flags = [
-    "python_workers",
-    "python_dedicated_snapshot"
-]
-
-# Assets estáticos (CSS, JS, imagens)
 [assets]
 directory = "gramatike_app/static"
 binding = "ASSETS"
 
-# Variáveis de ambiente (valores reais devem ser configurados via dashboard)
 [vars]
 ENVIRONMENT = "production"
 
-# Bindings para R2 Storage (quando usar Pages Functions)
 [[r2_buckets]]
 binding = "R2_BUCKET"
 bucket_name = "gramatike"
 
-# Configuração do site para Cloudflare Pages
-# Configure via dashboard ou use pages.toml para configurações específicas
-
-# D1 Database (SQLite na edge)
-# IMPORTANTE: Se você criou um novo banco D1, atualize o database_id abaixo.
-# Comando: wrangler d1 create gramatike
-# Para criar as tabelas: wrangler d1 execute gramatike --file=./schema.d1.sql
-# Veja CLOUDFLARE_D1_SETUP.md para instruções completas.
 [[d1_databases]]
 binding = "DB"
 database_name = "gramatike"
 database_id = "c22cbe34-444b-40ec-9987-5e90ecc8cc91"
-
-# Secrets (configure via CLI: wrangler secret put SECRET_KEY)
-# - SECRET_KEY
-# - DATABASE_URL
-# - CLOUDFLARE_R2_ACCESS_KEY_ID
-# - CLOUDFLARE_R2_SECRET_ACCESS_KEY
-# - MAIL_PASSWORD
