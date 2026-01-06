@@ -50,7 +50,8 @@ async def api_create_post(db, request, user):
         body = {}
     
     conteudo = body.get('conteudo', '').strip()
-    imagem = body.get('imagem')
+    # CRITICAL: Pass None for imagem if not provided, NOT undefined
+    imagem = body.get('imagem') if body.get('imagem') else None
     
     if not conteudo:
         return {'error': 'Conteúdo é obrigatório'}, 400

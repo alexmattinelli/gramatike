@@ -1551,70 +1551,96 @@ async def get_post_by_id(db, post_id):
 
 
 async def create_post(db, usuarie_id, conteudo, imagem=None):
-    """Cria um novo post.
-    
-    Args:
-        db: D1 database connection
-        usuarie_id: ID of the user creating the post
-        conteudo: Post content text
-        imagem: Optional image URL/path (can be None)
-    
-    Returns:
-        The ID of the created post, or None if creation failed
     """
-    # Validate required fields before processing
-    # Use sanitize_for_d1 to handle undefined/JsProxy values
-    s_usuarie_id = sanitize_for_d1(usuarie_id)
-    s_conteudo = sanitize_for_d1(conteudo)
-    s_imagem = sanitize_for_d1(imagem)
-    # Reforço: nunca permitir string 'undefined' ou undefined real
-    if s_imagem is None or str(s_imagem).strip().lower() == 'undefined':
-        s_imagem = None
-    if s_usuarie_id is None or str(s_usuarie_id).strip().lower() == 'undefined' or s_usuarie_id == '':
-        console.error(f"[create_post] usuarie_id inválido após sanitização: {usuarie_id} -> {s_usuarie_id}")
-        return None
-    if s_conteudo is None or str(s_conteudo).strip().lower() == 'undefined' or s_conteudo == '':
-        console.error(f"[create_post] conteudo inválido após sanitização: {conteudo} -> {s_conteudo}")
-        return None
-    # Log para debug
-    console.log(f"[create_post] FINAL VALUES: usuarie_id={usuarie_id} -> {s_usuarie_id}, conteudo={conteudo} -> {s_conteudo}, imagem={imagem} -> {s_imagem}")
+    Criar post com sanitização CORRETA para D1.
+    CRITICAL: D1 não aceita undefined do JavaScript - converter para None (Python)
+    """
+    # CRITICAL FIX: Sanitize parameters BEFORE any processing
+    # Convert JavaScript undefined to Python None
+    def safe_sanitize(value):
+        """Convert undefined/null to None, keep other values"""
+        if value is None:
+            return None
+        # Check for JavaScript undefined
+        if hasattr(value, 'typeof') and str(value) == 'undefined':
+            return None
+        # Check for string 'undefined'
+        if isinstance(value, str) and value == 'undefined':
+            return None
+        # Empty string becomes None for optional fields
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
     
-    # First, get the username from the user table
-    # This validates that the user exists before attempting to create the post
-    # Note: The post table has a foreign key to user(id), so if user doesn't exist,
-    # the INSERT would fail anyway. This explicit check provides better error messages.
-    user_result = await db.prepare("""
-        SELECT username FROM user WHERE id = ?
-    """).bind(
-        to_d1_null(s_usuarie_id)
-    ).first()
+    # Sanitize ALL inputs
+    usuarie_id = safe_sanitize(usuarie_id)
+    conteudo = safe_sanitize(conteudo)
+    imagem = safe_sanitize(imagem)
     
-    if not user_result:
-        console.error(f"[create_post] User with id {s_usuarie_id} not found in user table")
-        return None
+    # Validate required fields
+    if usuarie_id is None:
+        console.error("[create_post] usuarie_id is None after sanitization")
+        raise ValueError("usuarie_id cannot be None")
     
-    s_usuarie = safe_get(user_result, 'username')
-    # Check for both None and undefined (as a string)
-    # Note: safe_get() already calls sanitize_for_d1() internally, so no need to sanitize again
-    # Double sanitization can cause FFI boundary issues where values become undefined
-    if s_usuarie is None or str(s_usuarie) == 'undefined':
-        console.error(f"[create_post] Username is None/undefined for usuarie_id {s_usuarie_id}")
-        return None
+    if conteudo is None or (isinstance(conteudo, str) and not conteudo.strip()):
+        console.error("[create_post] conteudo is empty after sanitization")
+        raise ValueError("conteudo cannot be empty")
     
-    # Now insert the post with the username we just fetched
-    # CRITICAL: Call to_d1_null() directly in .bind() to avoid FFI boundary issues
-    # Storing to_d1_null() results in variables causes them to become undefined when crossing FFI again
-    result = await db.prepare("""
-        INSERT INTO post (usuarie_id, usuarie, conteudo, imagem, data)
-        VALUES (?, ?, ?, ?, datetime('now'))
-        RETURNING id
-    """).bind(
-        to_d1_null(s_usuarie_id),
-        to_d1_null(s_usuarie),
-        to_d1_null(s_conteudo),
-        to_d1_null(s_imagem)
-    ).first()
-    return safe_get(result, 'id')
+    # Convert to proper types
+    try:
+        usuarie_id = int(usuarie_id)
+    except (ValueError, TypeError):
+        console.error(f"[create_post] Invalid usuarie_id: {usuarie_id}")
+        raise ValueError(f"Invalid usuarie_id: {usuarie_id}")
+    
+    conteudo = str(conteudo).strip()
+    
+    # imagem can be None - that's OK
+    if imagem is not None:
+        imagem = str(imagem).strip()
+        if not imagem:
+            imagem = None
+    
+    console.log(f"[create_post] SANITIZED: usuarie_id={usuarie_id}, conteudo_len={len(conteudo)}, imagem={'None' if imagem is None else 'set'}")
+    
+    # Fetch username for the usuarie column
+    # Note: The post table has both usuarie (TEXT, username) and usuarie_id (INTEGER)
+    # for backward compatibility with older data
+    try:
+        user_result = await db.prepare("SELECT username FROM user WHERE id = ?").bind(usuarie_id).first()
+        
+        if not user_result or not user_result.get('username'):
+            console.error(f"[create_post] User with id {usuarie_id} not found")
+            raise ValueError(f"User with id {usuarie_id} not found")
+        
+        usuarie = user_result.get('username')
+    except Exception as e:
+        console.error(f"[create_post] Failed to fetch username: {e}")
+        raise
+    
+    try:
+        # CRITICAL: Use Python None, NOT JavaScript undefined
+        # D1 will convert Python None to SQL NULL automatically
+        stmt = await db.prepare(
+            "INSERT INTO post (usuarie_id, usuarie, conteudo, imagem) VALUES (?, ?, ?, ?) RETURNING id"
+        )
+        
+        # Bind with Python None (not undefined!)
+        result = await stmt.bind(usuarie_id, usuarie, conteudo, imagem).first()
+        
+        if result and 'id' in result:
+            post_id = result['id']
+            console.log(f"[create_post] SUCCESS: Created post {post_id}")
+            return post_id
+        else:
+            console.error("[create_post] No ID returned from database")
+            return None
+            
+    except Exception as e:
+        console.error(f"[create_post] DATABASE ERROR: {type(e).__name__}: {e}")
+        import traceback
+        console.error(f"[create_post] Traceback: {traceback.format_exc()}")
+        raise
 
 
 async def delete_post(db, post_id, deleted_by=None):
