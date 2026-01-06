@@ -4,6 +4,8 @@
 
 Este projeto usa **Cloudflare Pages** (não Workers) com Functions (TypeScript).
 
+**⚠️ Nota:** "Workers & Pages" é o nome da plataforma/dashboard da Cloudflare onde você gerencia tanto Workers quanto Pages. Este projeto é um **Pages** (com Functions), que aparece na seção "Workers & Pages" do dashboard.
+
 ## ✅ Configuração Correta
 
 ### 1. wrangler.toml
@@ -91,7 +93,7 @@ No projeto Pages:
 
 **Advanced settings** (geralmente não precisa mexer):
 - **Root directory**: Deixe **VAZIO** ou `/` (raiz do repositório)
-- **Deploy command**: Deixe **VAZIO** (Pages faz deploy automaticamente)
+- **Deploy command**: Se o campo for obrigatório, use: `npx wrangler pages deploy public` ou `echo "Deployed"` como placeholder
 - **Version command**: Deixe **VAZIO** (não necessário)
 
 **⚠️ ATENÇÃO:**
