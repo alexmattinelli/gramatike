@@ -48,9 +48,16 @@ export async function createUser(
     passwordHash
   );
   
-  if (!sanitizedUsername || !sanitizedEmail || !sanitizedPasswordHash) {
+  // Validate required fields - use explicit null checks
+  if (sanitizedUsername == null || sanitizedEmail == null || sanitizedPasswordHash == null) {
     console.error('[createUser] Missing required fields');
-    throw new Error('username, email, and passwordHash are required');
+    return null;
+  }
+  
+  // Validate non-empty strings
+  if (!sanitizedUsername.trim() || !sanitizedEmail.trim() || !sanitizedPasswordHash.trim()) {
+    console.error('[createUser] Required fields cannot be empty');
+    return null;
   }
   
   try {
@@ -203,10 +210,16 @@ export async function createPost(
     image
   );
   
-  // Validate required fields after sanitization
-  if (!sanitizedUserId || !sanitizedUsername || !sanitizedContent) {
+  // Validate required fields - use explicit null checks to allow 0 as valid userId
+  if (sanitizedUserId == null || sanitizedUsername == null || sanitizedContent == null) {
     console.error('[createPost] Missing required fields after sanitization');
-    throw new Error('userId, username, and content are required');
+    return null;
+  }
+  
+  // Validate non-empty strings for username and content
+  if (!sanitizedUsername.trim() || !sanitizedContent.trim()) {
+    console.error('[createPost] Username and content cannot be empty');
+    return null;
   }
   
   try {
@@ -227,7 +240,7 @@ export async function createPost(
     return result?.id || null;
   } catch (error) {
     console.error('[createPost] Error:', error);
-    throw error;
+    return null;
   }
 }
 
@@ -335,9 +348,16 @@ export async function createComment(
     parentId
   );
   
-  if (!sanitizedPostId || !sanitizedUserId || !sanitizedContent) {
+  // Validate required fields - use explicit null checks to allow 0 as valid ID
+  if (sanitizedPostId == null || sanitizedUserId == null || sanitizedContent == null) {
     console.error('[createComment] Missing required fields');
-    throw new Error('postId, userId, and content are required');
+    return null;
+  }
+  
+  // Validate non-empty content
+  if (!sanitizedContent.trim()) {
+    console.error('[createComment] Content cannot be empty');
+    return null;
   }
   
   try {
@@ -430,9 +450,16 @@ export async function createEduContent(
     sanitizedTemaId
   ] = sanitizeParams(tipo, titulo, conteudo, resumo, imagem, arquivo_url, link, autor_id, tema_id);
   
-  if (!sanitizedTipo || !sanitizedTitulo) {
+  // Validate required fields
+  if (sanitizedTipo == null || sanitizedTitulo == null) {
     console.error('[createEduContent] Missing required fields');
-    throw new Error('tipo and titulo are required');
+    return null;
+  }
+  
+  // Validate non-empty strings
+  if (!sanitizedTipo.trim() || !sanitizedTitulo.trim()) {
+    console.error('[createEduContent] Required fields cannot be empty');
+    return null;
   }
   
   try {

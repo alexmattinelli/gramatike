@@ -33,10 +33,8 @@ export function sanitizeParams(...params: any[]): any[] {
  */
 export function sanitizeObject<T extends Record<string, any>>(obj: T): Record<string, any> {
   const result: Record<string, any> = {};
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      result[key] = sanitizeForD1(obj[key]);
-    }
+  for (const [key, value] of Object.entries(obj)) {
+    result[key] = sanitizeForD1(value);
   }
   return result;
 }
