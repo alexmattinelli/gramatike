@@ -1,5 +1,6 @@
 // Database helper functions for Cloudflare D1
 import type { Env, User, Post, PostWithUser, Comment, EduContent } from '../types';
+import { sanitizeForD1, sanitizeParams } from './sanitize';
 
 /**
  * Get user by email
@@ -40,16 +41,31 @@ export async function createUser(
   email: string,
   passwordHash: string
 ): Promise<number | null> {
+  // Sanitize parameters (username, email, passwordHash should not be undefined for new users)
+  const [sanitizedUsername, sanitizedEmail, sanitizedPasswordHash] = sanitizeParams(
+    username,
+    email,
+    passwordHash
+  );
+  
+  if (!sanitizedUsername || !sanitizedEmail || !sanitizedPasswordHash) {
+    console.error('[createUser] Missing required fields');
+    throw new Error('username, email, and passwordHash are required');
+  }
+  
   try {
+    console.log('[createUser] Creating user:', { username: sanitizedUsername, email: sanitizedEmail });
+    
     const result = await db.prepare(
       'INSERT INTO user (username, email, password, created_at) VALUES (?, ?, ?, datetime("now")) RETURNING id'
     )
-      .bind(username, email, passwordHash)
+      .bind(sanitizedUsername, sanitizedEmail, sanitizedPasswordHash)
       .first<{ id: number }>();
     
+    console.log('[createUser] User created successfully, id:', result?.id);
     return result?.id || null;
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error('[createUser] Error:', error);
     return null;
   }
 }
@@ -66,30 +82,33 @@ export async function updateUser(
     const fields: string[] = [];
     const values: any[] = [];
     
+    // Sanitize each field before adding to query
     if (updates.nome !== undefined) {
       fields.push('nome = ?');
-      values.push(updates.nome);
+      values.push(sanitizeForD1(updates.nome));
     }
     if (updates.bio !== undefined) {
       fields.push('bio = ?');
-      values.push(updates.bio);
+      values.push(sanitizeForD1(updates.bio));
     }
     if (updates.foto_perfil !== undefined) {
       fields.push('foto_perfil = ?');
-      values.push(updates.foto_perfil);
+      values.push(sanitizeForD1(updates.foto_perfil));
     }
     if (updates.genero !== undefined) {
       fields.push('genero = ?');
-      values.push(updates.genero);
+      values.push(sanitizeForD1(updates.genero));
     }
     if (updates.pronome !== undefined) {
       fields.push('pronome = ?');
-      values.push(updates.pronome);
+      values.push(sanitizeForD1(updates.pronome));
     }
     
     if (fields.length === 0) return false;
     
     values.push(userId);
+    
+    console.log('[updateUser] Updating user:', { userId, fields, valueCount: values.length });
     
     await db.prepare(
       `UPDATE user SET ${fields.join(', ')} WHERE id = ?`
@@ -97,7 +116,7 @@ export async function updateUser(
     
     return true;
   } catch (error) {
-    console.error('Error updating user:', error);
+    console.error('[updateUser] Error:', error);
     return false;
   }
 }
@@ -176,17 +195,39 @@ export async function createPost(
   content: string,
   image?: string
 ): Promise<number | null> {
+  // CRITICAL: Sanitize ALL parameters before passing to D1
+  const [sanitizedUserId, sanitizedUsername, sanitizedContent, sanitizedImage] = sanitizeParams(
+    userId,
+    username,
+    content,
+    image
+  );
+  
+  // Validate required fields after sanitization
+  if (!sanitizedUserId || !sanitizedUsername || !sanitizedContent) {
+    console.error('[createPost] Missing required fields after sanitization');
+    throw new Error('userId, username, and content are required');
+  }
+  
   try {
+    console.log('[createPost] Creating post with sanitized values:', {
+      userId: sanitizedUserId,
+      username: sanitizedUsername,
+      contentLength: sanitizedContent.length,
+      hasImage: !!sanitizedImage
+    });
+    
     const result = await db.prepare(
       'INSERT INTO post (usuarie_id, usuarie, conteudo, imagem, data) VALUES (?, ?, ?, ?, datetime("now")) RETURNING id'
     )
-      .bind(userId, username, content, image || null)
+      .bind(sanitizedUserId, sanitizedUsername, sanitizedContent, sanitizedImage)
       .first<{ id: number }>();
     
+    console.log('[createPost] Post created successfully, id:', result?.id);
     return result?.id || null;
   } catch (error) {
-    console.error('Error creating post:', error);
-    return null;
+    console.error('[createPost] Error:', error);
+    throw error;
   }
 }
 
@@ -286,16 +327,36 @@ export async function createComment(
   content: string,
   parentId?: number
 ): Promise<number | null> {
+  // Sanitize parameters
+  const [sanitizedPostId, sanitizedUserId, sanitizedContent, sanitizedParentId] = sanitizeParams(
+    postId,
+    userId,
+    content,
+    parentId
+  );
+  
+  if (!sanitizedPostId || !sanitizedUserId || !sanitizedContent) {
+    console.error('[createComment] Missing required fields');
+    throw new Error('postId, userId, and content are required');
+  }
+  
   try {
+    console.log('[createComment] Creating comment:', {
+      postId: sanitizedPostId,
+      userId: sanitizedUserId,
+      hasParent: !!sanitizedParentId
+    });
+    
     const result = await db.prepare(
       'INSERT INTO comentario (post_id, usuarie_id, conteudo, data, parent_id) VALUES (?, ?, ?, datetime("now"), ?) RETURNING id'
     )
-      .bind(postId, userId, content, parentId || null)
+      .bind(sanitizedPostId, sanitizedUserId, sanitizedContent, sanitizedParentId)
       .first<{ id: number }>();
     
+    console.log('[createComment] Comment created successfully, id:', result?.id);
     return result?.id || null;
   } catch (error) {
-    console.error('Error creating comment:', error);
+    console.error('[createComment] Error:', error);
     return null;
   }
 }
@@ -356,18 +417,51 @@ export async function createEduContent(
   autor_id?: number,
   tema_id?: number
 ): Promise<number | null> {
+  // Sanitize all parameters
+  const [
+    sanitizedTipo,
+    sanitizedTitulo,
+    sanitizedConteudo,
+    sanitizedResumo,
+    sanitizedImagem,
+    sanitizedArquivoUrl,
+    sanitizedLink,
+    sanitizedAutorId,
+    sanitizedTemaId
+  ] = sanitizeParams(tipo, titulo, conteudo, resumo, imagem, arquivo_url, link, autor_id, tema_id);
+  
+  if (!sanitizedTipo || !sanitizedTitulo) {
+    console.error('[createEduContent] Missing required fields');
+    throw new Error('tipo and titulo are required');
+  }
+  
   try {
+    console.log('[createEduContent] Creating educational content:', {
+      tipo: sanitizedTipo,
+      titulo: sanitizedTitulo
+    });
+    
     const result = await db.prepare(
       `INSERT INTO edu_content (tipo, titulo, conteudo, resumo, imagem, arquivo_url, link, autor_id, tema_id, data)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime("now")) RETURNING id`
     )
-      .bind(tipo, titulo, conteudo || null, resumo || null, imagem || null, 
-            arquivo_url || null, link || null, autor_id || null, tema_id || null)
+      .bind(
+        sanitizedTipo,
+        sanitizedTitulo,
+        sanitizedConteudo,
+        sanitizedResumo,
+        sanitizedImagem,
+        sanitizedArquivoUrl,
+        sanitizedLink,
+        sanitizedAutorId,
+        sanitizedTemaId
+      )
       .first<{ id: number }>();
     
+    console.log('[createEduContent] Content created successfully, id:', result?.id);
     return result?.id || null;
   } catch (error) {
-    console.error('Error creating edu content:', error);
+    console.error('[createEduContent] Error:', error);
     return null;
   }
 }

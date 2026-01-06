@@ -40,7 +40,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env, data }) 
     return errorResponse('Dados inválidos', 400);
   }
   
-  const { conteudo, imagem } = body;
+  let { conteudo, imagem } = body;
   
   // Validate content
   const validation = validateContent(conteudo);
@@ -48,7 +48,19 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env, data }) 
     return errorResponse(validation.error || 'Conteúdo inválido', 400);
   }
   
-  // Create post
+  // Ensure empty strings become undefined (will be sanitized to null in createPost)
+  if (imagem && imagem.trim() === '') {
+    imagem = undefined;
+  }
+  
+  console.log('[POST /api/posts] Creating post:', {
+    userId: user.id,
+    username: user.username,
+    contentLength: conteudo.length,
+    hasImage: !!imagem
+  });
+  
+  // Create post - createPost will sanitize parameters
   const postId = await createPost(env.DB, user.id, user.username, conteudo, imagem);
   
   if (!postId) {
