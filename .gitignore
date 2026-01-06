@@ -40,7 +40,7 @@ worker-configuration.d.ts
 tmp/
 temp/
 
-# Python (legacy - kept for migration scripts)
+# Python (legacy - migration complete, no longer needed)
 __pycache__/
 *.py[cod]
 *.pyo
@@ -55,6 +55,9 @@ ENV/
 .coverage
 coverage.xml
 htmlcov/
+*.egg-info/
+dist/
+build/
 
 # Databases and local instance data
 app.db
@@ -63,12 +66,9 @@ app.db
 instance/*.db
 instance/app.db
 
-# Static uploads (keep folder only)
-gramatike_app/static/uploads/*
-!gramatike_app/static/uploads/.gitkeep
+# Backup files
+*.backup
 
-# Ignore accidental nested repo dir
-gramatike/
 
 # Vercel
 .vercel
