@@ -1,202 +1,202 @@
 # Gramatike
 
-## Cloudflare Workers Python
+## Cloudflare Pages (TypeScript)
 
-Esta aplicacao usa Cloudflare Workers Python (Pyodide) com o padrao nativo WorkerEntrypoint. O deploy deve ser feito usando `pywrangler`.
+Esta aplicação usa **Cloudflare Pages** com **Functions** (TypeScript) para uma arquitetura serverless moderna.
 
-**NOTA:** FastAPI nao pode ser implantado no Cloudflare Workers Python. Veja: https://github.com/cloudflare/workers-sdk/issues/5608
+**Stack:**
+- Frontend: HTML estático com templates Jinja2 (pré-renderizados)
+- Backend: Cloudflare Functions (TypeScript) no diretório `/functions`
+- Banco de dados: Cloudflare D1 (SQLite na edge)
+- Storage: Cloudflare R2 (arquivos de usuário)
 
-### Deploy via CLI (Recomendado)
+### 🚀 Deploy (Recomendado)
 
-1. Instale [uv](https://docs.astral.sh/uv/getting-started/installation/) (gerenciador de pacotes Python)
-2. Instale as dependencias: `uv sync`
-3. Deploy: `npm run deploy` (ou `uv run pywrangler deploy`)
+**O deploy é automático via integração nativa do Cloudflare Pages com GitHub.**
 
-### Deploy via GitHub Actions
+1. No [Cloudflare Dashboard](https://dash.cloudflare.com/):
+   - Vá em **Workers & Pages** → **Create Application** → **Pages**
+   - Conecte seu repositório GitHub `alexmattinelli/gramatike`
+   - Configure o projeto:
+     - **Project name**: `gramatike`
+     - **Production branch**: `main`
+     - **Build command**: `npm run build` (ou deixe vazio)
+     - **Build output directory**: `public`
 
-Configure um workflow do GitHub Actions com:
-```yaml
-- name: Deploy to Cloudflare Workers
-  run: |
-    npm install
-    uv sync
-    npm run deploy
-  env:
-    CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-    CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-```
+2. O Cloudflare Pages irá automaticamente fazer deploy a cada push na branch `main`
 
-### Notas Importantes
+**⚠️ IMPORTANTE:**
+- ❌ **NÃO use GitHub Actions** para deploy (pode causar conflitos com Workers)
+- ✅ Use a integração nativa do Cloudflare Pages
+- O build acontece no Cloudflare, não no GitHub Actions
 
-- O Cloudflare Workers Python usa o padrao nativo WorkerEntrypoint (sem FastAPI)
-- O arquivo `uv.lock` garante que as dependencias sejam resolvidas corretamente
-- Variaveis de ambiente (Settings > Environment Variables):
-   - `SECRET_KEY`: uma string segura
-   - `DATABASE_URL`: Postgres gerenciado (recomendado para producao)
-   - Variaveis do Cloudflare R2 (veja abaixo)
+### 🛠️ Deploy Manual via CLI (Opcional)
 
-## Banco de Dados
-
-### ⚠️ Erro "Sistema temporariamente indisponível"?
-
-Se você está vendo este erro, as tabelas do banco de dados não foram criadas. 
-
-**🔧 Solução Rápida:**
+Se precisar fazer deploy manual:
 
 ```bash
-# Para desenvolvimento local (SQLite):
-python scripts/init_database.py
+# Instalar dependências
+npm install
 
-# Para produção (Cloudflare D1):
+# Deploy para produção
+npm run deploy
+
+# Ou usando wrangler diretamente
+wrangler pages deploy public
+```
+
+### 💻 Desenvolvimento Local
+
+```bash
+# Instalar dependências
+npm install
+
+# Rodar servidor de desenvolvimento
+npm run dev
+
+# Verificar tipos TypeScript
+npm run typecheck
+```
+
+O servidor local estará disponível em `http://localhost:8788`
+
+## 🗄️ Banco de Dados (Cloudflare D1)
+
+O Gramátike usa **Cloudflare D1** (SQLite na edge) para armazenamento de dados.
+
+### Configuração Inicial do D1
+
+```bash
 # 1. Autenticar (se necessário)
 wrangler login
 
-# 2. Criar tabelas no banco D1
-wrangler d1 execute gramatike --file=./schema.d1.sql
-
-# 3. Re-deploy
-npm run deploy
-```
-
-📖 **Guia completo de troubleshooting:** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-
-### 🔄 Recuperação de Banco de Dados
-
-Se as tabelas foram excluídas acidentalmente:
-
-1. **Desenvolvimento Local:**
-   ```bash
-   python scripts/init_database.py
-   python create_superadmin.py  # Recriar admin
-   ```
-
-2. **Cloudflare D1:**
-   ```bash
-   wrangler d1 execute gramatike --file=./schema.d1.sql
-   npm run deploy
-   ```
-
-Veja mais detalhes em [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-
-### Cloudflare D1 (Recomendado para Workers)
-
-O Gramátike usa **Cloudflare D1** (SQLite na edge) para o deploy em Cloudflare Workers. Se você está vendo o erro **"Sistema temporariamente indisponível"**, provavelmente o D1 não está configurado.
-
-**📖 Guia Completo:** Veja [CLOUDFLARE_D1_SETUP.md](CLOUDFLARE_D1_SETUP.md) para instruções detalhadas de como:
-- Criar o banco de dados D1
-- Aplicar o schema (`schema.d1.sql`)
-- Configurar o `wrangler.toml`
-- Fazer troubleshooting
-
-**Comandos rápidos:**
-```bash
-# Criar banco D1
+# 2. Criar o banco de dados D1 (se ainda não existe)
 wrangler d1 create gramatike
 
-# Criar tabelas
+# 3. Aplicar o schema (criar tabelas)
 wrangler d1 execute gramatike --file=./schema.d1.sql
 
-# Deploy
-npm run deploy
+# 4. Verificar
+wrangler d1 execute gramatike --command="SELECT name FROM sqlite_master WHERE type='table'"
 ```
 
-### PostgreSQL (Flask tradicional)
+### Configuração no wrangler.toml
 
-Para deploy Flask tradicional (Heroku, Railway, etc.), use PostgreSQL via `DATABASE_URL`.
+O `wrangler.toml` já está configurado com o D1 binding:
 
-## Variáveis de ambiente necessárias
+```toml
+[[d1_databases]]
+binding = "DB"
+database_name = "gramatike"
+database_id = "c22cbe34-444b-40ec-9987-5e90ecc8cc91"
+```
 
-Mínimo para rodar:
+**Nota:** O `database_id` deve corresponder ao ID do seu banco D1. Para verificar: `wrangler d1 list`
 
-- SECRET_KEY: string segura (32+ chars)
-- Para Cloudflare Workers: D1 configurado no `wrangler.toml`
-- Para Flask tradicional: DATABASE_URL (Postgres recomendado)
+### 🔄 Migração de Schema
 
-### Database Migrations (PostgreSQL)
-
-Para aplicar migrações pendentes ao banco de dados:
+Se você precisar atualizar o schema do banco de dados:
 
 ```bash
-# Aplicar todas as migrações pendentes
-flask db upgrade
-
-# Verificar versão atual da migração
-flask db current
+# Edite o arquivo schema.d1.sql, depois execute:
+wrangler d1 execute gramatike --file=./schema.d1.sql
 ```
 
-**Nota importante:** Se você encontrar o erro `StringDataRightTruncation` relacionado ao campo `resumo`, consulte [DEPLOY_QUICK_REFERENCE.md](DEPLOY_QUICK_REFERENCE.md) para aplicar a correção que converte o campo de VARCHAR(400) para TEXT (ilimitado).
+## ⚙️ Variáveis de Ambiente
 
-E-mail (opcional, mas necessário para verificação de e-mail, reset de senha, etc.):
+### Configuração no Cloudflare Pages
 
-- MAIL_SERVER: host SMTP (ex: smtp.office365.com ou smtp-relay.brevo.com)
-- MAIL_PORT: porta (geralmente 587)
-- MAIL_USE_TLS: true/false (geralmente true)
-- MAIL_USERNAME: usuário SMTP (e/ou API Key)
-- MAIL_PASSWORD: senha SMTP (ou API Key)
-- MAIL_DEFAULT_SENDER: e-mail remetente padrão (ex: no-reply@gramatike.com.br)
-- MAIL_SENDER_NAME: nome amigável do remetente (ex: Gramátike)
+Configure as variáveis de ambiente em: **Workers & Pages** → **gramatike** → **Settings** → **Environment Variables**
 
-**Para Brevo (recomendado)**: Veja o guia completo em [BREVO_EMAIL_SETUP.md](BREVO_EMAIL_SETUP.md) com:
-- Instruções passo-a-passo de configuração
-- Como obter a SMTP Key
-- Configuração de SPF/DKIM
-- Scripts de diagnóstico e teste
-- Solução de problemas comuns
+**Mínimo necessário:**
+- `SECRET_KEY`: string segura (32+ chars) para sessões
+- D1 Database: já configurado via `wrangler.toml`
+- R2 Bucket: já configurado via `wrangler.toml`
 
-### Testar Envio de E-mails
+**Variáveis de E-mail (opcional, mas recomendado):**
 
-Para testar se o envio de e-mails está funcionando corretamente, use o script `send_test_email.py`:
+Configure estas variáveis para habilitar funcionalidades de e-mail (verificação, reset de senha, etc.):
+
+- `MAIL_SERVER`: host SMTP (ex: smtp.office365.com ou smtp-relay.brevo.com)
+- `MAIL_PORT`: porta (geralmente 587)
+- `MAIL_USE_TLS`: true/false (geralmente true)
+- `MAIL_USERNAME`: usuário SMTP (e/ou API Key)
+- `MAIL_PASSWORD`: senha SMTP (ou API Key)
+- `MAIL_DEFAULT_SENDER`: e-mail remetente padrão (ex: no-reply@gramatike.com.br)
+- `MAIL_SENDER_NAME`: nome amigável do remetente (ex: Gramátike)
+
+**Para Brevo (recomendado)**: Veja o guia completo em [BREVO_EMAIL_SETUP.md](BREVO_EMAIL_SETUP.md)
+
+**Cloudflare R2 Storage:**
+
+O R2 já está configurado no `wrangler.toml`:
+
+```toml
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "gramatike"
+```
+
+Para configurar o R2:
+
+1. Criar um bucket R2 chamado `gramatike` no [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. Configurar domínio público do R2 (Settings → Public Access)
+3. O binding `R2_BUCKET` permite que as Functions acessem o bucket automaticamente
+
+**📖 Guia Completo:** Veja [CLOUDFLARE_R2_SETUP.md](CLOUDFLARE_R2_SETUP.md) para instruções detalhadas.
+
+**Variáveis RAG/IA (opcional):**
+
+- `RAG_MODEL`: modelo de embeddings (padrão: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2)
+
+## 📁 Estrutura do Projeto
+
+```
+gramatike/
+├── functions/           # Cloudflare Functions (TypeScript)
+│   ├── _middleware.ts   # Middleware global
+│   ├── api/            # API endpoints
+│   └── pages/          # Server-side rendered pages
+├── public/             # Arquivos estáticos (HTML, CSS, JS)
+│   ├── static/         # CSS, JS, imagens
+│   └── templates/      # Templates HTML
+├── src/                # Código TypeScript compartilhado
+├── schema.d1.sql       # Schema do banco D1
+├── wrangler.toml       # Configuração Cloudflare
+├── package.json        # Dependências Node.js
+└── tsconfig.json       # Configuração TypeScript
+```
+
+## 🔧 Troubleshooting
+
+### Erro "Sistema temporariamente indisponível"
+
+As tabelas do banco de dados não foram criadas. Execute:
 
 ```bash
-# E-mail de teste básico (usa configuração do .env ou variáveis de ambiente)
-python3 scripts/send_test_email.py seu_email@exemplo.com
-
-# E-mail personalizado com título e conteúdo
-python3 scripts/send_test_email.py seu_email@exemplo.com \
-  --title "Meu Teste" \
-  --html "<p>Conteúdo personalizado do e-mail</p>"
-
-# Especificar servidor SMTP manualmente (útil para testes)
-python3 scripts/send_test_email.py seu_email@exemplo.com \
-  --server smtp.gmail.com \
-  --port 587 \
-  --tls \
-  --user seu_email@gmail.com \
-  --password sua_senha
+wrangler d1 execute gramatike --file=./schema.d1.sql
 ```
 
-**Nota:** Os e-mails de teste agora incluem o template completo do Gramátike com logo e botões roxos. Veja [EMAIL_TEST_TEMPLATE_FIX.md](EMAIL_TEST_TEMPLATE_FIX.md) para mais detalhes.
+### Deploy falha com erro de Worker
 
-Cloudflare R2 Storage (necessário para upload de arquivos em ambientes serverless):
+Se você ver erros relacionados a "Workers Build failed":
 
-- CLOUDFLARE_ACCOUNT_ID: ID da sua conta Cloudflare (encontrado em Overview > Account ID)
-- CLOUDFLARE_R2_ACCESS_KEY_ID: Access Key ID do R2 (criado em R2 > Manage R2 API Tokens)
-- CLOUDFLARE_R2_SECRET_ACCESS_KEY: Secret Access Key do R2
-- CLOUDFLARE_R2_BUCKET: nome do bucket (padrão: 'gramatike')
-- CLOUDFLARE_R2_PUBLIC_URL: URL pública do bucket (domínio personalizado ou r2.dev)
+1. ✅ Verifique que `wrangler.toml` tem `pages_build_output_dir = "public"`
+2. ✅ Verifique que NÃO há campos `main` ou `compatibility_flags` no `wrangler.toml`
+3. ❌ Remova qualquer GitHub Actions workflow de deploy
+4. ✅ Use a integração nativa do Cloudflare Pages
 
-**🚨 IMPORTANTE - Configuração Necessária para Imagens Funcionarem:**
+### Imagens não aparecem
 
-Se as imagens não estiverem aparecendo no site, você precisa:
+Configure o R2 bucket com acesso público. Veja [CLOUDFLARE_R2_SETUP.md](CLOUDFLARE_R2_SETUP.md).
 
-1. Criar um bucket R2 (ex: 'gramatike') em R2 > Create bucket
-2. **Habilitar acesso público** via R2.dev subdomain ou domínio personalizado
-3. Criar um API Token com permissões de leitura/escrita para o bucket
-4. Configurar as variáveis de ambiente
+## 📚 Documentação Adicional
 
-**📖 Guia Completo:** Veja [CLOUDFLARE_R2_SETUP.md](CLOUDFLARE_R2_SETUP.md) para instruções detalhadas passo-a-passo.
+- [CLOUDFLARE_D1_SETUP.md](CLOUDFLARE_D1_SETUP.md) - Configuração detalhada do D1
+- [CLOUDFLARE_R2_SETUP.md](CLOUDFLARE_R2_SETUP.md) - Configuração detalhada do R2
+- [BREVO_EMAIL_SETUP.md](BREVO_EMAIL_SETUP.md) - Configuração de e-mail
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Guia de solução de problemas
 
-**🔧 Diagnóstico:** Se as imagens não funcionarem, execute o script de diagnóstico:
-```bash
-python diagnose_images.py
-```
-Este script verifica automaticamente sua configuração e identifica problemas.
+## 📄 Licença
 
-RAG/IA (opcional):
-
-- RAG_MODEL: modelo de embeddings (padrão: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2)
-
-Veja `.env.example` para um modelo de configuração local. No Cloudflare Pages, cadastre as mesmas chaves em Settings → Environment Variables.
-
-### Executar local
-Ver seção "Development".
+Este projeto está sob licença MIT.
