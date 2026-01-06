@@ -3,12 +3,12 @@
 	"version": "2.0.0",
 	"type": "module",
 	"private": true,
-	"description": "Gramátike - Portuguese grammar education platform (TypeScript)",
+	"description": "Rede social educativa de português - TypeScript Edition",
 	"scripts": {
-		"build": "echo 'No build needed - static site with Functions'",
-		"dev": "wrangler pages dev public",
+		"build": "echo 'Build complete - static site with Cloudflare Functions'",
+		"dev": "wrangler pages dev public --compatibility-date=2026-01-06",
 		"deploy": "wrangler pages deploy public",
-		"db:init": "wrangler d1 execute gramatike --file=./schema.d1.sql",
+		"db:migrate": "wrangler d1 execute gramatike --file=./schema.d1.sql",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -18,5 +18,8 @@
 		"@types/node": "^20.0.0",
 		"typescript": "^5.3.0",
 		"wrangler": "^4.54.0"
+	},
+	"engines": {
+		"node": ">=20.0.0"
 	}
 }
