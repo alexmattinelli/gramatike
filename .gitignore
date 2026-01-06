@@ -42,8 +42,18 @@ instance/app.db
 *.log
 logs/
 
-# Node (if present)
+# Node modules
 node_modules/
+package-lock.json
+
+# TypeScript build output
+dist/
+*.tsbuildinfo
+
+# Wrangler
+.wrangler/
+.wrangler/state/
+.dev.vars
 
 # Static uploads (keep folder only)
 gramatike_app/static/uploads/*
@@ -51,11 +61,7 @@ gramatike_app/static/uploads/*
 
 # Ignore accidental nested repo dir
 gramatike/
-# Ignorar banco de dados local
-instance/app.db
-node_modules/
-package-lock.json
-test_profile_url_fix.py
+
+# Vercel
 .vercel
-.env*.local
-/.wrangler/state/
+
