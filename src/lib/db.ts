@@ -54,7 +54,12 @@ export async function createUser(
     return null;
   }
   
-  // Validate non-empty strings
+  // Validate non-empty strings (check for string type first)
+  if (typeof sanitizedUsername !== 'string' || typeof sanitizedEmail !== 'string' || typeof sanitizedPasswordHash !== 'string') {
+    console.error('[createUser] Invalid field types');
+    return null;
+  }
+  
   if (!sanitizedUsername.trim() || !sanitizedEmail.trim() || !sanitizedPasswordHash.trim()) {
     console.error('[createUser] Required fields cannot be empty');
     return null;
@@ -216,7 +221,12 @@ export async function createPost(
     return null;
   }
   
-  // Validate non-empty strings for username and content
+  // Validate non-empty strings for username and content (check type first)
+  if (typeof sanitizedUsername !== 'string' || typeof sanitizedContent !== 'string') {
+    console.error('[createPost] Invalid field types');
+    return null;
+  }
+  
   if (!sanitizedUsername.trim() || !sanitizedContent.trim()) {
     console.error('[createPost] Username and content cannot be empty');
     return null;
@@ -354,7 +364,12 @@ export async function createComment(
     return null;
   }
   
-  // Validate non-empty content
+  // Validate non-empty content (check type first)
+  if (typeof sanitizedContent !== 'string') {
+    console.error('[createComment] Invalid content type');
+    return null;
+  }
+  
   if (!sanitizedContent.trim()) {
     console.error('[createComment] Content cannot be empty');
     return null;
@@ -456,7 +471,12 @@ export async function createEduContent(
     return null;
   }
   
-  // Validate non-empty strings
+  // Validate non-empty strings (check type first)
+  if (typeof sanitizedTipo !== 'string' || typeof sanitizedTitulo !== 'string') {
+    console.error('[createEduContent] Invalid field types');
+    return null;
+  }
+  
   if (!sanitizedTipo.trim() || !sanitizedTitulo.trim()) {
     console.error('[createEduContent] Required fields cannot be empty');
     return null;

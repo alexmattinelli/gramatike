@@ -7,13 +7,7 @@
  * @returns The sanitized value (null if undefined)
  */
 export function sanitizeForD1<T>(value: T | undefined | null): T | null {
-  if (value === undefined) {
-    return null;
-  }
-  if (value === null) {
-    return null;
-  }
-  return value;
+  return value === undefined ? null : value;
 }
 
 /**

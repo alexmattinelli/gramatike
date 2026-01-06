@@ -15,7 +15,11 @@ export function logError(context: string, error: unknown, additionalData?: Recor
   }
   
   if (additionalData) {
-    console.error(`[${context}] Additional data:`, JSON.stringify(additionalData, null, 2));
+    try {
+      console.error(`[${context}] Additional data:`, JSON.stringify(additionalData, null, 2));
+    } catch (e) {
+      console.error(`[${context}] Additional data (not serializable):`, additionalData);
+    }
   }
 }
 
@@ -69,7 +73,11 @@ export function logRequest(
     timestamp: new Date().toISOString(),
     ...additionalData
   };
-  console.log('[API Request]', JSON.stringify(data));
+  try {
+    console.log('[API Request]', JSON.stringify(data));
+  } catch (e) {
+    console.log('[API Request]', data);
+  }
 }
 
 /**
