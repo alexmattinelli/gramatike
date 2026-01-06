@@ -1,5 +1,5 @@
 // Database helper functions for Cloudflare D1
-import type { Env, User, Post, PostWithUser, Comment, EduContent } from '../types';
+import type { Env, User, Post, PostWithUser, Comment, EduContent, Divulgacao } from '../types';
 import { sanitizeForD1, sanitizeParams } from './sanitize';
 
 /**
@@ -543,4 +543,21 @@ export async function createEduContent(
     console.error('[createEduContent] Error:', error);
     return null;
   }
+}
+
+/**
+ * Get divulgacoes (announcements/news)
+ */
+export async function getDivulgacoes(
+  db: D1Database,
+  limit = 5
+): Promise<Divulgacao[]> {
+  const { results } = await db.prepare(`
+    SELECT * FROM divulgacao
+    WHERE ativo = 1
+    ORDER BY created_at DESC
+    LIMIT ?
+  `).bind(limit).all<Divulgacao>();
+  
+  return results || [];
 }

@@ -11,6 +11,12 @@ const PUBLIC_ROUTES = [
   '/api/posts', // Allow viewing posts without auth (GET only)
 ];
 
+// Define which page routes are public (allow viewing without auth)
+const PUBLIC_PAGE_ROUTES = [
+  '/pages',
+  '/', // Root/feed page
+];
+
 // Define which routes require admin access
 const ADMIN_ROUTES = [
   '/api/admin/',
@@ -24,10 +30,18 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const url = new URL(request.url);
   const path = url.pathname;
   
-  // Allow public routes
+  // Allow public API routes
   const isPublic = PUBLIC_ROUTES.some(route => path.startsWith(route));
   
-  if (isPublic && request.method === 'GET') {
+  // Allow public page routes for GET requests
+  const isPublicPage = PUBLIC_PAGE_ROUTES.some(route => 
+    route === '/' ? path === '/' : path.startsWith(route)
+  );
+  
+  if ((isPublic || isPublicPage) && request.method === 'GET') {
+    // Still try to get user for personalized content, but don't require it
+    const user = await getCurrentUser(request, env.DB);
+    data.user = user;
     return next();
   }
   

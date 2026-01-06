@@ -90,6 +90,23 @@ export interface AuthResult {
   error?: string;
 }
 
+export interface Divulgacao {
+  id: number;
+  titulo: string;
+  texto?: string;
+  imagem?: string;
+  link?: string;
+  ativo: number;
+  created_at: string;
+}
+
+export interface AuthResult {
+  success: boolean;
+  user?: User;
+  token?: string;
+  error?: string;
+}
+
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
