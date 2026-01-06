@@ -9,7 +9,6 @@
 		"dev": "wrangler pages dev public --compatibility-date=2026-01-06",
 		"deploy": "wrangler pages deploy public",
 		"db:migrate": "wrangler d1 execute gramatike --file=./schema.d1.sql",
-		"db:query": "wrangler d1 execute gramatike --command",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
