@@ -1555,9 +1555,6 @@ async def create_post(db, usuarie_id, conteudo, imagem=None):
     Criar post com sanitização CORRETA para D1.
     CRITICAL: D1 não aceita undefined do JavaScript - converter para None (Python)
     """
-    import sys
-    from js import console
-    
     # CRITICAL FIX: Sanitize parameters BEFORE any processing
     # Convert JavaScript undefined to Python None
     def safe_sanitize(value):
@@ -1606,15 +1603,30 @@ async def create_post(db, usuarie_id, conteudo, imagem=None):
     
     console.log(f"[create_post] SANITIZED: usuarie_id={usuarie_id}, conteudo_len={len(conteudo)}, imagem={'None' if imagem is None else 'set'}")
     
+    # Fetch username for the usuarie column
+    # Note: The post table has both usuarie (TEXT, username) and usuarie_id (INTEGER)
+    # for backward compatibility with older data
+    try:
+        user_result = await db.prepare("SELECT username FROM user WHERE id = ?").bind(usuarie_id).first()
+        
+        if not user_result or not user_result.get('username'):
+            console.error(f"[create_post] User with id {usuarie_id} not found")
+            raise ValueError(f"User with id {usuarie_id} not found")
+        
+        usuarie = user_result.get('username')
+    except Exception as e:
+        console.error(f"[create_post] Failed to fetch username: {e}")
+        raise
+    
     try:
         # CRITICAL: Use Python None, NOT JavaScript undefined
         # D1 will convert Python None to SQL NULL automatically
         stmt = await db.prepare(
-            "INSERT INTO post (usuarie_id, conteudo, imagem) VALUES (?, ?, ?) RETURNING id"
+            "INSERT INTO post (usuarie_id, usuarie, conteudo, imagem) VALUES (?, ?, ?, ?) RETURNING id"
         )
         
         # Bind with Python None (not undefined!)
-        result = await stmt.bind(usuarie_id, conteudo, imagem).first()
+        result = await stmt.bind(usuarie_id, usuarie, conteudo, imagem).first()
         
         if result and 'id' in result:
             post_id = result['id']
