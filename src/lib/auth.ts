@@ -2,6 +2,7 @@
 import type { Env, User, Session, AuthResult } from '../types';
 import { getUserByEmail, getUserByUsername, getUserById, createUser } from './db';
 import { hashPassword, verifyPassword, generateToken } from './crypto';
+import { sanitizeParams } from './sanitize';
 
 const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
 
@@ -118,10 +119,15 @@ export async function createSession(
   const token = await generateToken(32);
   const expiresAt = new Date(Date.now() + SESSION_DURATION).toISOString();
   
+  // Sanitize optional parameters
+  const [sanitizedUserAgent, sanitizedIpAddress] = sanitizeParams(userAgent, ipAddress);
+  
+  console.log('[createSession] Creating session for user:', userId);
+  
   await db.prepare(
     'INSERT INTO user_session (user_id, token, expires_at, user_agent, ip_address) VALUES (?, ?, ?, ?, ?)'
   )
-    .bind(userId, token, expiresAt, userAgent || null, ipAddress || null)
+    .bind(userId, token, expiresAt, sanitizedUserAgent, sanitizedIpAddress)
     .run();
   
   return token;

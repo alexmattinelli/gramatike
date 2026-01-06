@@ -1,5 +1,6 @@
 // Database helper functions for Cloudflare D1
 import type { Env, User, Post, PostWithUser, Comment, EduContent } from '../types';
+import { sanitizeForD1, sanitizeParams } from './sanitize';
 
 /**
  * Get user by email
@@ -40,16 +41,43 @@ export async function createUser(
   email: string,
   passwordHash: string
 ): Promise<number | null> {
+  // Sanitize parameters (username, email, passwordHash should not be undefined for new users)
+  const [sanitizedUsername, sanitizedEmail, sanitizedPasswordHash] = sanitizeParams(
+    username,
+    email,
+    passwordHash
+  );
+  
+  // Validate required fields - use explicit null checks
+  if (sanitizedUsername == null || sanitizedEmail == null || sanitizedPasswordHash == null) {
+    console.error('[createUser] Missing required fields');
+    return null;
+  }
+  
+  // Validate non-empty strings (check for string type first)
+  if (typeof sanitizedUsername !== 'string' || typeof sanitizedEmail !== 'string' || typeof sanitizedPasswordHash !== 'string') {
+    console.error('[createUser] Invalid field types');
+    return null;
+  }
+  
+  if (!sanitizedUsername.trim() || !sanitizedEmail.trim() || !sanitizedPasswordHash.trim()) {
+    console.error('[createUser] Required fields cannot be empty');
+    return null;
+  }
+  
   try {
+    console.log('[createUser] Creating user:', { username: sanitizedUsername, email: sanitizedEmail });
+    
     const result = await db.prepare(
       'INSERT INTO user (username, email, password, created_at) VALUES (?, ?, ?, datetime("now")) RETURNING id'
     )
-      .bind(username, email, passwordHash)
+      .bind(sanitizedUsername, sanitizedEmail, sanitizedPasswordHash)
       .first<{ id: number }>();
     
+    console.log('[createUser] User created successfully, id:', result?.id);
     return result?.id || null;
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error('[createUser] Error:', error);
     return null;
   }
 }
@@ -66,30 +94,33 @@ export async function updateUser(
     const fields: string[] = [];
     const values: any[] = [];
     
+    // Sanitize each field before adding to query
     if (updates.nome !== undefined) {
       fields.push('nome = ?');
-      values.push(updates.nome);
+      values.push(sanitizeForD1(updates.nome));
     }
     if (updates.bio !== undefined) {
       fields.push('bio = ?');
-      values.push(updates.bio);
+      values.push(sanitizeForD1(updates.bio));
     }
     if (updates.foto_perfil !== undefined) {
       fields.push('foto_perfil = ?');
-      values.push(updates.foto_perfil);
+      values.push(sanitizeForD1(updates.foto_perfil));
     }
     if (updates.genero !== undefined) {
       fields.push('genero = ?');
-      values.push(updates.genero);
+      values.push(sanitizeForD1(updates.genero));
     }
     if (updates.pronome !== undefined) {
       fields.push('pronome = ?');
-      values.push(updates.pronome);
+      values.push(sanitizeForD1(updates.pronome));
     }
     
     if (fields.length === 0) return false;
     
     values.push(userId);
+    
+    console.log('[updateUser] Updating user:', { userId, fields, valueCount: values.length });
     
     await db.prepare(
       `UPDATE user SET ${fields.join(', ')} WHERE id = ?`
@@ -97,7 +128,7 @@ export async function updateUser(
     
     return true;
   } catch (error) {
-    console.error('Error updating user:', error);
+    console.error('[updateUser] Error:', error);
     return false;
   }
 }
@@ -176,16 +207,49 @@ export async function createPost(
   content: string,
   image?: string
 ): Promise<number | null> {
+  // CRITICAL: Sanitize ALL parameters before passing to D1
+  const [sanitizedUserId, sanitizedUsername, sanitizedContent, sanitizedImage] = sanitizeParams(
+    userId,
+    username,
+    content,
+    image
+  );
+  
+  // Validate required fields - use explicit null checks to allow 0 as valid userId
+  if (sanitizedUserId == null || sanitizedUsername == null || sanitizedContent == null) {
+    console.error('[createPost] Missing required fields after sanitization');
+    return null;
+  }
+  
+  // Validate non-empty strings for username and content (check type first)
+  if (typeof sanitizedUsername !== 'string' || typeof sanitizedContent !== 'string') {
+    console.error('[createPost] Invalid field types');
+    return null;
+  }
+  
+  if (!sanitizedUsername.trim() || !sanitizedContent.trim()) {
+    console.error('[createPost] Username and content cannot be empty');
+    return null;
+  }
+  
   try {
+    console.log('[createPost] Creating post with sanitized values:', {
+      userId: sanitizedUserId,
+      username: sanitizedUsername,
+      contentLength: sanitizedContent.length,
+      hasImage: !!sanitizedImage
+    });
+    
     const result = await db.prepare(
       'INSERT INTO post (usuarie_id, usuarie, conteudo, imagem, data) VALUES (?, ?, ?, ?, datetime("now")) RETURNING id'
     )
-      .bind(userId, username, content, image || null)
+      .bind(sanitizedUserId, sanitizedUsername, sanitizedContent, sanitizedImage)
       .first<{ id: number }>();
     
+    console.log('[createPost] Post created successfully, id:', result?.id);
     return result?.id || null;
   } catch (error) {
-    console.error('Error creating post:', error);
+    console.error('[createPost] Error:', error);
     return null;
   }
 }
@@ -198,16 +262,24 @@ export async function deletePost(
   postId: number,
   deletedBy: number
 ): Promise<boolean> {
+  // Sanitize parameters for consistency
+  const [sanitizedPostId, sanitizedDeletedBy] = sanitizeParams(postId, deletedBy);
+  
+  if (sanitizedPostId == null || sanitizedDeletedBy == null) {
+    console.error('[deletePost] Missing required parameters');
+    return false;
+  }
+  
   try {
     await db.prepare(
       'UPDATE post SET is_deleted = 1, deleted_at = datetime("now"), deleted_by = ? WHERE id = ?'
     )
-      .bind(deletedBy, postId)
+      .bind(sanitizedDeletedBy, sanitizedPostId)
       .run();
     
     return true;
   } catch (error) {
-    console.error('Error deleting post:', error);
+    console.error('[deletePost] Error:', error);
     return false;
   }
 }
@@ -220,16 +292,24 @@ export async function likePost(
   postId: number,
   userId: number
 ): Promise<boolean> {
+  // Sanitize parameters for consistency
+  const [sanitizedPostId, sanitizedUserId] = sanitizeParams(postId, userId);
+  
+  if (sanitizedPostId == null || sanitizedUserId == null) {
+    console.error('[likePost] Missing required parameters');
+    return false;
+  }
+  
   try {
     await db.prepare(
       'INSERT OR IGNORE INTO post_likes (post_id, usuarie_id, created_at) VALUES (?, ?, datetime("now"))'
     )
-      .bind(postId, userId)
+      .bind(sanitizedPostId, sanitizedUserId)
       .run();
     
     return true;
   } catch (error) {
-    console.error('Error liking post:', error);
+    console.error('[likePost] Error:', error);
     return false;
   }
 }
@@ -242,16 +322,24 @@ export async function unlikePost(
   postId: number,
   userId: number
 ): Promise<boolean> {
+  // Sanitize parameters for consistency
+  const [sanitizedPostId, sanitizedUserId] = sanitizeParams(postId, userId);
+  
+  if (sanitizedPostId == null || sanitizedUserId == null) {
+    console.error('[unlikePost] Missing required parameters');
+    return false;
+  }
+  
   try {
     await db.prepare(
       'DELETE FROM post_likes WHERE post_id = ? AND usuarie_id = ?'
     )
-      .bind(postId, userId)
+      .bind(sanitizedPostId, sanitizedUserId)
       .run();
     
     return true;
   } catch (error) {
-    console.error('Error unliking post:', error);
+    console.error('[unlikePost] Error:', error);
     return false;
   }
 }
@@ -263,6 +351,14 @@ export async function getPostComments(
   db: D1Database,
   postId: number
 ): Promise<Comment[]> {
+  // Sanitize parameter for consistency
+  const [sanitizedPostId] = sanitizeParams(postId);
+  
+  if (sanitizedPostId == null) {
+    console.error('[getPostComments] Missing postId');
+    return [];
+  }
+  
   const { results } = await db.prepare(`
     SELECT c.*, u.username, u.foto_perfil
     FROM comentario c
@@ -270,7 +366,7 @@ export async function getPostComments(
     WHERE c.post_id = ?
     ORDER BY c.data ASC
   `)
-    .bind(postId)
+    .bind(sanitizedPostId)
     .all<Comment>();
   
   return results || [];
@@ -286,16 +382,48 @@ export async function createComment(
   content: string,
   parentId?: number
 ): Promise<number | null> {
+  // Sanitize parameters
+  const [sanitizedPostId, sanitizedUserId, sanitizedContent, sanitizedParentId] = sanitizeParams(
+    postId,
+    userId,
+    content,
+    parentId
+  );
+  
+  // Validate required fields - use explicit null checks to allow 0 as valid ID
+  if (sanitizedPostId == null || sanitizedUserId == null || sanitizedContent == null) {
+    console.error('[createComment] Missing required fields');
+    return null;
+  }
+  
+  // Validate non-empty content (check type first)
+  if (typeof sanitizedContent !== 'string') {
+    console.error('[createComment] Invalid content type');
+    return null;
+  }
+  
+  if (!sanitizedContent.trim()) {
+    console.error('[createComment] Content cannot be empty');
+    return null;
+  }
+  
   try {
+    console.log('[createComment] Creating comment:', {
+      postId: sanitizedPostId,
+      userId: sanitizedUserId,
+      hasParent: !!sanitizedParentId
+    });
+    
     const result = await db.prepare(
       'INSERT INTO comentario (post_id, usuarie_id, conteudo, data, parent_id) VALUES (?, ?, ?, datetime("now"), ?) RETURNING id'
     )
-      .bind(postId, userId, content, parentId || null)
+      .bind(sanitizedPostId, sanitizedUserId, sanitizedContent, sanitizedParentId)
       .first<{ id: number }>();
     
+    console.log('[createComment] Comment created successfully, id:', result?.id);
     return result?.id || null;
   } catch (error) {
-    console.error('Error creating comment:', error);
+    console.error('[createComment] Error:', error);
     return null;
   }
 }
@@ -356,18 +484,63 @@ export async function createEduContent(
   autor_id?: number,
   tema_id?: number
 ): Promise<number | null> {
+  // Sanitize all parameters
+  const [
+    sanitizedTipo,
+    sanitizedTitulo,
+    sanitizedConteudo,
+    sanitizedResumo,
+    sanitizedImagem,
+    sanitizedArquivoUrl,
+    sanitizedLink,
+    sanitizedAutorId,
+    sanitizedTemaId
+  ] = sanitizeParams(tipo, titulo, conteudo, resumo, imagem, arquivo_url, link, autor_id, tema_id);
+  
+  // Validate required fields
+  if (sanitizedTipo == null || sanitizedTitulo == null) {
+    console.error('[createEduContent] Missing required fields');
+    return null;
+  }
+  
+  // Validate non-empty strings (check type first)
+  if (typeof sanitizedTipo !== 'string' || typeof sanitizedTitulo !== 'string') {
+    console.error('[createEduContent] Invalid field types');
+    return null;
+  }
+  
+  if (!sanitizedTipo.trim() || !sanitizedTitulo.trim()) {
+    console.error('[createEduContent] Required fields cannot be empty');
+    return null;
+  }
+  
   try {
+    console.log('[createEduContent] Creating educational content:', {
+      tipo: sanitizedTipo,
+      titulo: sanitizedTitulo
+    });
+    
     const result = await db.prepare(
       `INSERT INTO edu_content (tipo, titulo, conteudo, resumo, imagem, arquivo_url, link, autor_id, tema_id, data)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime("now")) RETURNING id`
     )
-      .bind(tipo, titulo, conteudo || null, resumo || null, imagem || null, 
-            arquivo_url || null, link || null, autor_id || null, tema_id || null)
+      .bind(
+        sanitizedTipo,
+        sanitizedTitulo,
+        sanitizedConteudo,
+        sanitizedResumo,
+        sanitizedImagem,
+        sanitizedArquivoUrl,
+        sanitizedLink,
+        sanitizedAutorId,
+        sanitizedTemaId
+      )
       .first<{ id: number }>();
     
+    console.log('[createEduContent] Content created successfully, id:', result?.id);
     return result?.id || null;
   } catch (error) {
-    console.error('Error creating edu content:', error);
+    console.error('[createEduContent] Error:', error);
     return null;
   }
 }
