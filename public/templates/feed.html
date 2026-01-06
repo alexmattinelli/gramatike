@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gramátike</title>
+<!-- Fonts preload for faster loading -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<!-- Tipografia unificada: altere --font-brand para mudar a fonte do título/logo -->
+<style>
+:root {
+  --font-base: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-brand: 'Mansalva', cursive; /* Fonte do título/logo */
+}
+body, p, label, input, button, a, span, li, td, th, div { font-family: var(--font-base) !important; }
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-base); font-weight:800; line-height:1.15; margin:0 0 .75em; }
+.logo, h1.logo { font-family: var(--font-brand) !important; font-weight:400; letter-spacing:1px; margin:0; }
+button { font-family: var(--font-base); font-weight:600; }
+.nunito-font { font-family: var(--font-base) !important; }
+</style>
+<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+<link rel="icon" type="image/png" href="/static/favicon.png">
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/gramatike_common.css">
+<link rel="manifest" href="/static/manifest.webmanifest">
+<meta name="theme-color" content="#9B5DE5">
+<!-- iOS Home Screen icon -->
+<link rel="apple-touch-icon" href="/static/img/icons/icon-192.png">
+<script src="/static/js/theme.js"></script>
+<script src="/static/js/pwa.js" defer></script>
+<style>
+  :root {
+    --primary: #9B5DE5; /* unificado */
+    --primary-dark: #9B5DE5; /* unificado */
+    --text: #222;
+    --text-secondary: #666;
+    --bg: #f7f8ff;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --input: #ffffff;
+    --shadow: rgba(130, 87, 229, 0.12);
+  }
+  body.dark {
+    --text: #e5e7eb;
+  }
+  html, body { height:100%; overflow-x:hidden; }
+  body { font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); margin:0; display:flex; flex-direction:column; min-height:100vh; }
+  .content-wrapper { background: var(--bg); flex:1; border-top-left-radius:35px; border-top-right-radius:35px; margin-top:-30px; padding-top:30px; position:relative; z-index:1; }
+  h1,h2,h3 { font-family: var(--font-base); }
+  /* HEADER ROXO (sem curvas - apenas a área de conteúdo terá bordas arredondadas) */
+  header.site-head { background: var(--primary); padding:28px clamp(16px,4vw,40px) 46px; border-radius:0; position:relative; display:flex; flex-direction:column; align-items:center; }
+  .logo { font-family: var(--font-brand) !important; font-size:2.5rem; color:#fff; letter-spacing:1px; font-weight:400; }
+  /* Mobile: Header mais compacto */
+  @media (max-width: 980px){
+    header.site-head { padding:18px clamp(12px,3vw,24px) 28px; }
+    .logo { font-size:1.8rem; }
+  }
+  /* Avatar do usuário no cabeçalho (maior e mais visível) */
+  .profile-avatar-link { position:absolute; right:24px; top:50%; transform:translateY(-50%); display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:50%; border:3px solid #ffffff55; box-shadow:0 4px 14px rgba(0,0,0,.25); overflow:hidden; background:#ffffff22; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); cursor:pointer; text-decoration:none; transition: box-shadow .25s, transform .18s; }
+  .profile-avatar-link:hover { box-shadow:0 6px 20px rgba(0,0,0,.32); }
+  .profile-avatar-link:active { transform:translateY(-50%) scale(.95); }
+  .profile-avatar-link img { width:100%; height:100%; object-fit:cover; display:block; }
+  .profile-avatar-link span.initial { font-size:1.9rem; font-weight:800; color:#fff; letter-spacing:.5px; }
+  /* Tooltip simples acessível */
+  .profile-avatar-link[data-tooltip]:hover::after, .profile-avatar-link[data-tooltip]:focus-visible::after { content:attr(data-tooltip); position:absolute; bottom:-6px; left:50%; transform:translate(-50%,100%); background:#222; color:#fff; font-size:.6rem; font-weight:600; padding:4px 7px 5px; border-radius:8px; white-space:nowrap; box-shadow:0 4px 12px rgba(0,0,0,.35); letter-spacing:.5px; }
+  @media (max-width:640px){ .profile-avatar-link { width:52px; height:52px; right:16px; } .profile-avatar-link span.initial { font-size:1.5rem; } }
+  @media (max-width: 980px){ .profile-avatar-link { display:none !important; } }
+  body, p, input, textarea, select, button { font-family:'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
+  /* Removido layout 3 colunas – voltando ao estilo anterior */
+  /* Form nova postagem */
+  #post-form { display:flex; flex-direction:column; gap:10px; margin-top:4px; }
+  #post-form textarea { width:100%; min-height:110px; border:1px solid #d9dbe3; border-radius:20px; padding:1rem 1.1rem 1.2rem; resize:vertical; font-family:'Nunito'; font-size:.95rem; background:#fafafa; line-height:1.45; }
+  #post-form textarea:focus { outline:2px solid #9B5DE5; outline-offset:2px; background:#fff; }
+  #post-form button { align-self:flex-end; background:#9B5DE5; color:#fff; padding:.7rem 1.9rem; border-radius:50px; border:none; font-size:.8rem; font-weight:700; letter-spacing:.65px; cursor:pointer; box-shadow:0 6px 16px rgba(155,93,229,.4); }
+  #post-form button:hover { filter:brightness(1.08); }
+  /* Feed controls (selects clássicos) */
+  /* (Removidos selects antigos) */
+  .search-wrap { position:relative; flex:1; }
+  .autocomplete { z-index:40; }
+  /* Post cards */
+  section#feed article.post { background:#ffffff; border:1px solid #e5e7eb; padding:1.7rem 2rem 1.4rem; border-radius:28px; margin-bottom:2.2rem; box-shadow:0 12px 26px rgba(0,0,0,.08); transition: box-shadow .25s; }
+  section#feed article.post:hover { box-shadow:0 18px 38px rgba(0,0,0,.14); }
+  /* Novo: aplicar mesmo estilo aos cards renderizados em #feed-list */
+  #feed-list article.post { background:#fff; border:1px solid #e5e7eb; padding:1.6rem 1.9rem 1.3rem; border-radius:26px; margin:0 0 2rem; box-shadow:0 10px 24px -6px rgba(0,0,0,.10); position:relative; overflow:hidden; }
+  /* Gradiente removido dos posts do feed */
+  #feed-list article.post::before { content:""; display:none; }
+  #feed-list article.post:hover { box-shadow:0 16px 40px -6px rgba(0,0,0,.18); }
+  body.dark #feed-list article.post { background:#1e293b; border:1px solid #334155; box-shadow:0 8px 22px -4px rgba(0,0,0,.55); }
+  /* Gradiente removido do dark mode */
+  body.dark #feed-list article.post::before { display:none; }
+  /* Todos os posts com fundo branco uniforme */
+  #feed-list article.post:nth-child(even) { background:#fff; }
+  body.dark #feed-list article.post:nth-child(even) { background:#1e293b; }
+  .post-header img.post-avatar { width:52px; height:52px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,.18); }
+  .post-username strong { font-weight:800; }
+  /* Quick menu */
+  .quick-menu { position:absolute; top:70px; right:10px; background:#fff; border:1px solid #e5e7eb; border-radius:20px; padding:.55rem .6rem; display:flex; flex-direction:column; gap:.3rem; min-width:170px; box-shadow:0 18px 40px -10px rgba(0,0,0,.28); animation:fadeIn .18s ease; z-index:300; }
+  .quick-menu a, .quick-menu button { all:unset; font-family:'Nunito'; font-size:.75rem; font-weight:700; letter-spacing:.5px; padding:.6rem .9rem; border-radius:14px; cursor:pointer; color:#333; display:block; }
+  .quick-menu a:hover, .quick-menu button:hover { background:#f3f4f6; }
+  .quick-menu .sair-btn { color:#9B5DE5; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(-4px);} to { opacity:1; transform:translateY(0);} }
+  .head-btn { font-family:'Nunito'; font-weight:700; font-size:.75rem; letter-spacing:.5px; cursor:pointer; }
+  /* Footer removido conforme solicitado */
+  @media (max-width:640px){ .card-block{padding:1.8rem 1.4rem 2.2rem;} header.site-head{padding:24px 18px 38px;} .logo{font-size:2.4rem;} }
+  nav a { color:#fff; text-decoration:none; margin-left:1.5rem; font-weight:600; position:relative; transition:opacity .2s; }
+  nav a:hover { opacity:.85; }
+  main { max-width:920px; margin:2rem auto 4rem; padding:0 1.2rem; flex:1 0 auto; }
+  .feed-controls { display:flex; gap:1.2rem; align-items:flex-end; justify-content:space-between; margin:1.2rem 0 2rem; flex-wrap:wrap; }
+  .filters label { font-size:.75rem; text-transform:uppercase; letter-spacing:.5px; font-weight:700; color: var(--primary-dark); margin-right:.3rem; }
+  .filters select, .filters button { height:42px; border:1px solid var(--border); background:var(--input); border-radius:14px; padding:0 .8rem; font-family:inherit; font-weight:600; font-size:.8rem; letter-spacing:.5px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.05); }
+  .filters button { background:#ede7ff; color:var(--primary-dark); }
+  .filters button:hover { background: var(--primary); color:#fff; }
+  .search-wrap { flex:1; min-width:240px; position:relative; display:flex; gap:.6rem; }
+  .search-wrap input { flex:1; height:48px; border:1px solid var(--border); border-radius:16px; padding:0 1rem; background: var(--card); font-size:.95rem; font-weight:500; }
+  .search-btn { height:48px; border:none; background: var(--primary); color:#fff; padding:0 1.2rem; border-radius:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:.4rem; box-shadow:0 4px 12px rgba(130,87,229,.45); text-decoration:none; }
+  .search-btn.icon-btn { width:48px; justify-content:center; padding:0; }
+  .search-btn:hover { background: var(--primary-dark); }
+  .new-post-btn { display:flex;align-items:center;justify-content:center; width:48px; height:48px; background:#9B5DE5; color:#fff; border-radius:16px; font-size:1.55rem; font-weight:600; text-decoration:none; box-shadow:0 4px 14px rgba(155,93,229,.4); line-height:0; }
+  .new-post-btn:hover { filter:brightness(1.08); }
+  @media (max-width: 980px){ .new-post-btn { display:none !important; } }
+  .new-post-btn svg, .search-btn svg { display:block; }
+  .autocomplete { position:absolute; left:0; right:0; top:100%; margin-top:4px; background:var(--card); border:1px solid var(--border); border-radius:14px; max-height:240px; overflow-y:auto; box-shadow:0 10px 30px rgba(0,0,0,.12); padding:.4rem; display:none; }
+  .autocomplete .item { padding:.55rem .7rem .5rem; border-radius:10px; display:flex; align-items:center; gap:.6rem; font-size:.8rem; font-weight:600; cursor:pointer; color:var(--text); }
+  .autocomplete .item .tag { color: var(--primary-dark); }
+  .autocomplete .item .type { margin-left:auto; font-size:.65rem; text-transform:uppercase; letter-spacing:.5px; opacity:.55; }
+  .autocomplete .item.active, .autocomplete .item:hover { background:#9B5DE5; color:#fff; }
+  .autocomplete .item.active .tag, .autocomplete .item:hover .tag { color:#fff; }
+  .mention-suggest { z-index:30; }
+  article.post { position:relative; }
+  .post-menu-btn { border:none; background:#f1edff; color:var(--primary-dark); width:34px; height:34px; border-radius:10px; cursor:pointer; font-weight:700; box-shadow:0 4px 10px rgba(130,87,229,.25); }
+  .post-menu-btn:hover { background: var(--primary); color:#fff; }
+  .seguir-btn { background:#fff; border:1px solid var(--primary-dark); color:var(--primary-dark); padding:.38rem .9rem; font-size:.7rem; font-weight:700; border-radius:40px; letter-spacing:.5px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.08); }
+  .seguir-btn.seguindo { background: var(--primary); color:#fff; }
+  .seguir-btn:hover { filter:brightness(1.05); }
+  .likes-line strong { font-weight:800; }
+  .comment .mention, .post-content .mention { font-weight:700; }
+  body.dark .autocomplete { background:#1e293b; border-color:#334155; }
+  body.dark .autocomplete .item { color:#e2e8f0; }
+  body.dark .autocomplete .item.active, body.dark .autocomplete .item:hover { background: var(--primary); }
+  section#new-post h2 { text-align:center; color:#9B5DE5; font-family:'Nunito'; font-size:2.1rem; font-weight:800; letter-spacing:.6px; margin:.3rem 0 1.2rem; text-shadow:0 2px 4px rgba(0,0,0,0.18); }
+  section#new-post label { display:block; margin-bottom:.6rem; font-weight:600; font-size:1rem; color: var(--primary-dark); }
+  section#new-post textarea { width:100%; min-height:90px; padding:1rem; font-size:1rem; border-radius:16px; border:1px solid var(--border); resize:vertical; box-shadow: inset 0 1px 3px rgba(0,0,0,0.06); transition: border-color .2s; background: var(--input); color: var(--text); }
+  section#new-post textarea:focus { border-color: var(--primary); outline:none; }
+  section#new-post button { margin-top:1rem; padding:.6rem 1.6rem; background: var(--primary); color:#fff; border:none; border-radius:50px; font-weight:600; font-size:.95rem; cursor:pointer; box-shadow: 0 5px 15px rgba(130,87,229,0.35); transition: background-color .2s, box-shadow .2s; }
+  section#new-post button:hover, section#new-post button:focus { background: var(--primary-dark); box-shadow: 0 8px 25px rgba(111,72,201,0.7); outline:none; }
+  .ta-wrap { position: relative; }
+  /* Reuso do estilo .autocomplete para menções no editor */
+  .mention-suggest { position:absolute; left: 10px; bottom: -4px; transform: translateY(100%); right: 10px; }
+
+  section#feed h2 { font-weight:800; font-size:2.2rem; margin:0 0 1.2rem; color:#9B5DE5; font-family:'Nunito'; letter-spacing:.6px; text-align:center; text-shadow:0 2px 4px rgba(0,0,0,0.18); line-height:1.15; }
+  .card-block form label, .card-block form textarea, .card-block form button { font-family:'Nunito'; }
+  body, p, input, textarea, select, button, .post-content, .comment, .likes-line { font-family:'Nunito'; }
+  section#feed article.post { background: var(--card); border:1px solid var(--border); padding:1.5rem 2rem; border-radius:20px; margin-bottom:2rem; box-shadow: 0 10px 20px rgba(155,93,229,0.10); transition: box-shadow .2s; }
+  section#feed article.post:hover { box-shadow: 0 14px 26px rgba(155,93,229,0.25); }
+
+  .post-header { display:flex; align-items:center; gap:1rem; margin-bottom:1rem; }
+  .post-user { font-weight:600; font-size:1.05rem; color: var(--primary); }
+  .post-date { font-size:.9rem; color: var(--text-secondary); margin-left:auto; font-weight:600; font-style: italic; }
+  /* Reduzir data/hora no mobile */
+  @media (max-width: 980px){
+    .post-username span { font-size:.7rem !important; }
+  }
+
+  .post-content { font-size:1.05rem; margin-bottom:1rem; line-height:1.5; color: var(--text); }
+  /* Rich text formatting in posts */
+  .post-content h1, .post-content h2, .post-content h3 { font-weight:800; color:#9B5DE5; margin:.8rem 0 .5rem; }
+  .post-content h1 { font-size:1.5rem; }
+  .post-content h2 { font-size:1.3rem; }
+  .post-content h3 { font-size:1.15rem; }
+  .post-content strong { font-weight:800; color:#9B5DE5; }
+  .post-content em { font-style:italic; }
+  .post-content u { text-decoration:underline; }
+  .post-content ul, .post-content ol { margin:.5rem 0 .5rem 1.5rem; padding:0; }
+  .post-content li { margin:.3rem 0; }
+  .post-content a:not(.mention):not(.hashtag) { color:#9B5DE5; text-decoration:underline; }
+  .post-content p { margin:.5rem 0; }
+  .post-media img { width:100%; display:block; border-radius:24px; margin:.6rem 0 1.1rem; object-fit:contain; background:#f3f4f6; max-height:380px; cursor:pointer; }
+  .post-media { position:relative; overflow:hidden; }
+  .post-media.multi { display:grid; gap:8px; margin:.6rem 0 1.1rem; }
+  .post-media.multi.grid-2 { grid-template-columns:repeat(2,1fr); }
+  .post-media.multi.grid-3 { grid-template-columns:repeat(3,1fr); }
+  .post-media.multi.grid-4 { grid-template-columns:repeat(2,1fr); }
+  .post-media.multi .pm-item img { margin:0; height:180px; border-radius:16px; object-fit:contain; background:#f3f4f6; cursor:pointer; }
+
+  .post-actions { display:flex; gap:1.2rem; }
+  .post-actions button { cursor:pointer; border:none; border-radius:28px; padding:.45rem .9rem; font-weight:600; font-size:.8rem; display:flex; align-items:center; gap:.35rem; transition: background-color .2s, transform .15s; }
+  .post-actions button:active { transform: translateY(1px); }
+  .likes-list { margin-bottom:.9rem; font-size:.9rem; color: var(--text-secondary); font-weight:500; }
+  .like-btn { background:#ede7ff; color: var(--primary-dark); box-shadow: 0 4px 10px rgba(130,87,229,0.25); border:1px solid #d3c5ff; }
+  .like-btn:hover, .like-btn.liked { background: var(--primary); color:#fff; box-shadow: 0 6px 16px rgba(130,87,229,0.45); border-color: var(--primary-dark); }
+  body.dark .like-btn { background:#1e293b; color:#93c5fd; border:1px solid #334155; box-shadow:none; }
+  body.dark .like-btn:hover, body.dark .like-btn.liked { background: var(--primary); color:#fff; border-color:#60a5fa; }
+
+  .comments-list { margin-top:1rem; }
+  .comment-btn { background: var(--primary); color:#fff; box-shadow: 0 5px 15px rgba(130,87,229,0.6); }
+  .comment-btn:hover { background: var(--primary-dark); box-shadow: 0 8px 25px rgba(111,72,201,0.9); }
+
+  .comment-box { background: var(--card); border:1px solid var(--border); border-radius:16px; box-shadow: 0 2px 8px rgba(130,87,229,0.08); padding:1rem; margin:1rem 0; display:flex; flex-direction:column; gap:.7rem; }
+  .comment-box { position:relative; }
+  .comment-box .comment-input { border-radius:12px; border:1px solid var(--border); padding:.7rem 1rem; font-size:.95rem; outline:none; transition: border-color .2s; background: var(--input); color: var(--text); }
+  .comment-box .comment-input:focus { border-color: var(--primary); }
+  .comment-box button { border-radius:50px; background: var(--primary); color:#fff; border:none; padding:.5rem 1.2rem; font-weight:600; cursor:pointer; align-self:flex-end; transition: background .2s; font-size:.85rem; letter-spacing:.3px; }
+  .comment-box button:hover { background: var(--primary-dark); }
+  /* Comentários recolhíveis e estilo */
+  .comments-toggle-line { margin-top:1rem; }
+  .toggle-comments-btn { background:#f1edff; color:var(--primary-dark); border:1px solid #d8ccff; padding:.45rem 1rem; font-size:.7rem; font-weight:700; border-radius:40px; cursor:pointer; letter-spacing:.5px; box-shadow:0 2px 6px rgba(0,0,0,.06); }
+  .toggle-comments-btn:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
+  body.dark .toggle-comments-btn { background:#1e293b; border-color:#334155; color:#cbd5e1; }
+  body.dark .toggle-comments-btn:hover { background:var(--primary); color:#fff; }
+  .comments-list { margin-top:.8rem; display:none; }
+  .comment { background:rgba(0,0,0,0.03); padding:.55rem .75rem .6rem; border-radius:14px; font-size:.78rem; line-height:1.35; font-weight:500; color:var(--text); margin-bottom:.5rem; position:relative; }
+  body.dark .comment { background:#243044; color:#e2e8f0; }
+  .comment .c-meta { display:flex; align-items:center; gap:.4rem; margin-bottom:.2rem; font-size:.65rem; letter-spacing:.5px; text-transform:uppercase; font-weight:700; color:var(--primary-dark); }
+  body.dark .comment .c-meta { color:#c7b7f5; }
+  .comment .c-time { font-weight:600; color:#64748b; font-size:.6rem; letter-spacing:.5px; }
+  body.dark .comment .c-time { color:#94a3b8; }
+  .comment .c-body { font-size:.78rem; font-weight:500; }
+
+  /* Footer removido conforme solicitado */
+
+  /* Skeleton Loader */
+  .feed-skeleton { background: var(--card); border:1px solid var(--border); padding:1.5rem 2rem; border-radius:20px; margin-bottom:2rem; position:relative; overflow:hidden; }
+  .skeleton-line, .skeleton-avatar, .skeleton-img { position:relative; background:#e7e9f2; border-radius:8px; overflow:hidden; }
+  body.dark .skeleton-line, body.dark .skeleton-avatar, body.dark .skeleton-img { background:#334155; }
+  .skeleton-avatar { width:40px; height:40px; border-radius:50%; }
+  .skeleton-line { height:12px; margin:6px 0; }
+  .skeleton-img { height:180px; border-radius:24px; margin:14px 0 8px; }
+  .shimmer { position:absolute; inset:0; background:linear-gradient(110deg, transparent 0%, rgba(255,255,255,.55) 45%, transparent 90%); animation:shimmer 1.4s linear infinite; mix-blend-mode:overlay; }
+  @keyframes shimmer { from { transform:translateX(-100%);} to { transform:translateX(100%);} }
+
+  /* Flash Messages */
+  .flash-messages { margin:0 0 1.2rem; list-style:none; padding:0; display:flex; flex-direction:column; gap:.6rem; }
+  .flash-messages li { font-size:.85rem; font-weight:600; padding:.85rem 1rem; border-radius:16px; line-height:1.4; animation:fadeIn .4s ease; }
+  .flash-success { background:#e8f9f0; color:#1e8052; box-shadow:0 0 0 1px #b2e7cd inset; }
+  .flash-error { background:#ffecec; color:#c0392b; box-shadow:0 0 0 1px #f5b7b1 inset; }
+  .flash-warning { background:#fff3cd; color:#856404; box-shadow:0 0 0 1px #ffeaa7 inset; }
+  .flash-info { background:#d1ecf1; color:#0c5460; box-shadow:0 0 0 1px #bee5eb inset; }
+
+  @media (max-width:600px) {
+    header, main { padding:1rem; }
+    nav a { margin-left:1rem; font-size:.95rem; }
+    .feed-controls { flex-direction: column; align-items: stretch; padding: 0 1rem; }
+    .filters { order: 2; flex-wrap: wrap; justify-content:center; }
+  }
+</style>
+<!-- EXTRA_CSS_PLACEHOLDER -->
+</head>
+<body class="nunito-font">
+
+<header class="site-head">
+  <h1 class="logo" title="Gramátike">Gramátike</h1>
+  {% if current_user.is_authenticated %}
+    <a href="{{ url_for('main.meu_perfil') }}" class="profile-avatar-link" aria-label="Meu Perfil" data-tooltip="Meu Perfil">
+      {% if current_user.foto_perfil %}
+        {% set is_abs = current_user.foto_perfil.startswith('http://') or current_user.foto_perfil.startswith('https://') %}
+        <img src="{{ current_user.foto_perfil if is_abs else url_for('static', filename=current_user.foto_perfil) }}" alt="Avatar de {{ current_user.username }}" loading="lazy">
+      {% else %}
+        <span class="initial">{{ (current_user.username or '?')[:1].upper() }}</span>
+      {% endif %}
+    </a>
+  {% endif %}
+</header>
+
+<!-- Wrapper clarinho com borda curvada no topo -->
+<div class="content-wrapper">
+<main class="site-main" style="width:100%; max-width:1400px; margin:0 auto 4rem; padding:0 32px; display:flex; gap:48px; align-items:flex-start; justify-content:flex-start; box-sizing:border-box;">
+  <div class="feed-col" style="flex:1 1 960px; max-width:960px; min-width:0;">
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flash-messages">
+        {% for category, message in messages %}
+          <li class="flash-{{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Triângulo toggle para mostrar/esconder card de ações (mobile only) -->
+  <div id="mobile-toggle-triangle" onclick="toggleMobileActionsCard()" style="display:none; width:100%; text-align:center; margin-bottom:.5rem; cursor:pointer;">
+    <div id="triangle-icon" style="display:inline-flex; align-items:center; justify-content:center; background:var(--primary); width:40px; height:24px; border-radius:0 0 12px 12px; box-shadow:0 4px 12px rgba(155,93,229,.3); transition:transform .2s;">
+      <svg id="triangle-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Card de Ações Rápidas (mobile only - similar ao card de Amigues) -->
+  <div id="mobile-actions-card" style="display:none; background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem;">
+    <div style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0;">
+      <button onclick="window.location.href='/suporte'" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </button>
+      <button onclick="window.location.href='/configuracoes'" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+      <button onclick="toggleMobileTicTacToe()" class="search-btn icon-btn" title="Jogo da Velha" aria-label="Jogo da Velha">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+          <path d="M6 12h4"></path>
+          <path d="M14 12h4"></path>
+          <path d="M8 8v8"></path>
+          <path d="M16 8v8"></path>
+        </svg>
+      </button>
+      {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+      <a href="{{ url_for('admin.dashboard') }}" class="search-btn icon-btn" title="Painel Admin" aria-label="Painel Admin">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+      </a>
+      {% endif %}
+      <button onclick="toggleNotifications()" class="search-btn icon-btn" title="Notificações" aria-label="Notificações" style="position:relative;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span id="mobile-actions-notif-badge" style="display:none; position:absolute; top:-4px; right:-4px; background:#ff9800; color:#fff; font-size:.6rem; padding:2px 5px; border-radius:10px; font-weight:700;">0</span>
+      </button>
+    </div>
+    <!-- Jogo da Velha - mostrado quando clicar no botão -->
+    <div id="mobile-ttt-panel" style="display:none; margin-top:.8rem; border-top:1px solid var(--border); padding-top:.8rem;">
+      <h3 style="margin:0 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary); text-align:center;"># Jogo da Velha</h3>
+      <p style="margin:.2rem 0 .7rem; font-size:.7rem; color:#555; font-weight:600; text-align:center;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
+      <div id="mobile_ttt_status" style="font-size:.72rem; font-weight:800; color:#9B5DE5; letter-spacing:.4px; margin:0 0 .6rem; text-align:center;">Sua vez: você é X</div>
+      <div id="mobile_ttt_board" role="grid" aria-label="Tabuleiro do Jogo da Velha" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:.5rem;">
+<button type="button" data-i="0" role="gridcell" aria-label="casa 1 vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="1" role="gridcell" aria-label="casa 2 vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="2" role="gridcell" aria-label="casa 3 vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="3" role="gridcell" aria-label="casa 4 vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="4" role="gridcell" aria-label="casa 5 vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="5" role="gridcell" aria-label="casa 6 vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="6" role="gridcell" aria-label="casa 7 vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="7" role="gridcell" aria-label="casa 8 vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="8" role="gridcell" aria-label="casa 9 vazia" style="height:56px; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+</div>
+      <button id="mobile_ttt_reset" type="button" style="margin-top:.8rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; padding:.5rem .9rem; font-size:.7rem; font-weight:800; letter-spacing:.4px; cursor:pointer; width:100%;">Reiniciar</button>
+    </div>
+  </div>
+
+  <div class="feed-controls" style="margin-top:0;">
+    <div class="search-wrap">
+      <input type="text" id="search-input" placeholder="Pesquisar" autocomplete="off" onkeydown="if(event.key==='Enter'){executarBusca();}" />
+      <button type="button" class="search-btn icon-btn" onclick="executarBusca()" aria-label="Buscar" title="Buscar">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
+      <a href="/novo_post" class="new-post-btn" aria-label="Criar postagem" title="Criar postagem">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </a>
+      <div id="autocomplete" class="autocomplete" role="listbox" aria-label="Sugestões de busca"></div>
+    </div>
+  </div>
+
+  <div id="feed-list"><!-- FEED_PLACEHOLDER --><div id="feed-list-inner"></div>
+
+  </div>
+  </div><!-- fechando feed-col -->
+  <aside class="right-col" style="width:300px; flex:0 0 300px; position:sticky; top:15px; align-self:flex-start;">
+  <!-- Navegação rápida: Educação e Em breve -->
+  <div id="quick-nav" style="display:flex; gap:.7rem; margin:0 0 1rem;">
+    <a href="/educacao" aria-label="Ir para Educação" style="flex:1; text-decoration:none; background:linear-gradient(135deg, #9B5DE5 0%, #7B4BC4 100%); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.8rem; font-weight:700; color:#fff; letter-spacing:.3px; transition:.18s; box-shadow:0 4px 14px rgba(155,93,229,.35);">
+      <span style="display:inline-flex; width:30px; height:30px; border-radius:12px; background:rgba(255,255,255,.2); align-items:center; justify-content:center; color:#fff;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+      </span>
+      Educação
+    </a>
+    <div style="flex:1; background:linear-gradient(135deg, #b8a4c9 0%, #9d8ab5 100%); padding:.65rem .75rem; border-radius:18px; display:flex; align-items:center; gap:.55rem; font-size:.8rem; font-weight:700; color:#fff; letter-spacing:.3px; box-shadow:0 4px 14px rgba(155,93,229,.25); opacity:.85;">
+      <span style="display:inline-flex; width:30px; height:30px; border-radius:12px; background:rgba(255,255,255,.2); align-items:center; justify-content:center; color:#fff;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </span>
+      Em breve
+    </div>
+  </div>
+
+  <!-- Notifications Button -->
+  <div style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-bottom:1rem; position:relative;">
+    <button id="notifications-btn" onclick="toggleNotifications()" style="width:100%; background:transparent; border:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:.6rem .8rem; border-radius:16px; transition:.2s;" onmouseover="this.style.background='#f5f7fb'" onmouseout="this.style.background='transparent'">
+      <div style="display:flex; align-items:center; gap:.7rem;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span style="font-size:.85rem; font-weight:700; color:var(--text); font-family:'Nunito';">Notificações</span>
+      </div>
+      <span id="notifications-badge" style="display:none; background:#ff9800; color:#fff; font-size:.65rem; padding:.25rem .5rem; border-radius:40px; font-weight:700; letter-spacing:.5px;">0</span>
+    </button>
+    <div id="notifications-panel" style="display:none; margin-top:.8rem; border-top:1px solid var(--border); padding-top:.8rem;">
+      <div id="notifications-list" style="display:flex; flex-direction:column; gap:.6rem; max-height:300px; overflow-y:auto;">
+        <div style="text-align:center; color:#999; font-size:.75rem; padding:1rem;">Nenhuma notificação</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Seção Amigues com botões de ação -->
+  <div id="amigues-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.3rem 1.3rem 1.1rem; box-shadow:0 8px 24px rgba(0,0,0,.08);">
+      <!-- Botões de ação quadradinhos -->
+      <div class="amigues-toolbar" style="display:flex; align-items:center; justify-content:center; gap:.6rem; margin:0 0 .6rem;">
+        <a href="/suporte" class="search-btn icon-btn" title="Suporte" aria-label="Suporte">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </a>
+        <a href="/configuracoes" class="search-btn icon-btn" title="Configurações" aria-label="Configurações">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </a>
+        {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_superadmin) %}
+        <a href="{{ url_for('admin.dashboard') }}" class="search-btn icon-btn" title="Painel Admin" aria-label="Painel Admin">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+        </a>
+        {% endif %}
+      </div>
+      <!-- Linha divisória -->
+      <div class="amigues-divider" style="height:1px; background:var(--border); margin:.6rem 0 .8rem; border-radius:1px;"></div>
+      <!-- Seção Amigues -->
+      <h3 style="margin:0 0 .8rem; font-size:1rem; font-weight:800; letter-spacing:.5px; color:var(--primary); text-align:center;">Amigues</h3>
+      <div id="amigues-list" style="display:flex; flex-direction:column; gap:.65rem; min-height:20px;"></div>
+      <div id="amigues-empty" style="display:none; font-size:.7rem; opacity:.7; line-height:1.3;">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
+    </div>
+    <div id="divulgacao-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.1rem 1.15rem .95rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:1.1rem;">
+    <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:.4rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 13v-2Z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg> Novidades</h3>
+        <div style="font-size:.6rem; font-weight:700; letter-spacing:.5px; color:#999; padding:.65rem .85rem; border:1px dashed #d2c5ef; border-radius:18px; background:#faf7ff;">Nenhuma divulgação ativa.</div>
+    </div>
+    <div id="ttt-card" style="background:var(--card); border:1px solid var(--border); border-radius:24px; padding:1.1rem 1.15rem .95rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:1.1rem;">
+      <h3 style="margin:.15rem 0 .55rem; font-size:.95rem; letter-spacing:.5px; font-weight:800; color:var(--primary);"># Jogo da Velha</h3>
+      <p style="margin:.2rem 0 .7rem; font-size:.7rem; color:#555; font-weight:600;">Jogue contra o <strong>Robo</strong>. Você é o <strong>X</strong>.</p>
+      <div id="ttt_status" style="font-size:.72rem; font-weight:800; color:#9B5DE5; letter-spacing:.4px; margin:0 0 .6rem;">Sua vez: você é X</div>
+      <div id="ttt_board" role="grid" aria-label="Tabuleiro do Jogo da Velha" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:.5rem;">
+<button type="button" data-i="0" role="gridcell" aria-label="casa 1 vazia" style="aspect-ratio:1; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="1" role="gridcell" aria-label="casa 2 vazia" style="aspect-ratio:1; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="2" role="gridcell" aria-label="casa 3 vazia" style="aspect-ratio:1; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="3" role="gridcell" aria-label="casa 4 vazia" style="aspect-ratio:1; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="4" role="gridcell" aria-label="casa 5 vazia" style="aspect-ratio:1; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="5" role="gridcell" aria-label="casa 6 vazia" style="aspect-ratio:1; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="6" role="gridcell" aria-label="casa 7 vazia" style="aspect-ratio:1; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="7" role="gridcell" aria-label="casa 8 vazia" style="aspect-ratio:1; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+<button type="button" data-i="8" role="gridcell" aria-label="casa 9 vazia" style="aspect-ratio:1; border:1px solid var(--border); border-radius:14px; background:#fff; color:#9B5DE5; font-weight:900; font-size:1.1rem; letter-spacing:.6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.06);"></button>
+</div>
+      <button id="ttt_reset" type="button" style="margin-top:.8rem; background:#9B5DE5; color:#fff; border:none; border-radius:14px; padding:.5rem .9rem; font-size:.7rem; font-weight:800; letter-spacing:.4px; cursor:pointer; width:100%;">Reiniciar</button>
+    </div>
+  </aside>
+</main>
+</div><!-- fechando content-wrapper -->
+<style>
+/* Responsivo: evitar barra horizontal e espaço lateral vazio em telas menores */
+@media (max-width: 1200px){
+  main.site-main{ padding:0 24px; gap:40px; }
+}
+@media (max-width: 980px){
+  main.site-main{ padding:0 18px; gap:28px; }
+  /* Ocultar sidebar lateral em mobile - não mover para baixo */
+  .right-col{ display:none !important; }
+  .feed-col{ max-width:100% !important; flex:1 1 auto !important; margin:0 auto; }
+}
+@media (max-width: 860px){
+  main.site-main{ flex-direction:column; align-items:stretch; gap:22px; padding:0 16px; }
+  .feed-col{ max-width:100% !important; flex:1 1 auto !important; }
+}
+@media (max-width: 420px){
+  main.site-main{ padding:0 12px; }
+}
+
+/* Barra de navegação inferior para mobile (tipo app de rede social) */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: #9B5DE5;
+  border-radius: 24px;
+  padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+  box-shadow: 0 4px 20px rgba(155, 93, 229, 0.4);
+  z-index: 1000;
+}
+
+@media (max-width: 980px){
+  .mobile-bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  /* Ocultar o cabeçalho em mobile */
+  header.site-head {
+    display: none !important;
+  }
+
+  /* Quando o header está oculto, ajustar o content-wrapper */
+  .content-wrapper {
+    margin-top: 0 !important; /* Remove margem negativa quando header oculto */
+    padding-top: 1rem !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+  }
+
+  /* Adicionar faixa roxa no topo em mobile para manter a identidade visual */
+  body::before {
+    content: "";
+    display: block;
+    height: 60px;
+    background: var(--primary);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 0;
+  }
+
+  /* Ajustar body para compensar a faixa */
+  body {
+    padding-top: 40px;
+  }
+
+  /* Mostrar triângulo toggle no mobile */
+  #mobile-toggle-triangle {
+    display: block !important;
+  }
+
+  /* Card de ações inicialmente escondido no mobile - mostrar ao clicar no triângulo */
+  #mobile-actions-card {
+    display: none !important;
+    padding: 1rem 1.2rem .9rem !important; /* Card com mais padding */
+    margin: 0 -1rem 1.4rem !important; /* Aumentar largura - mesma margem dos posts */
+  }
+
+  #mobile-actions-card.visible {
+    display: block !important;
+  }
+
+  /* Botões do card de ações - mais quadrados e maiores */
+  #mobile-actions-card .search-btn.icon-btn {
+    width: 52px !important;
+    height: 52px !important;
+  }
+
+  #mobile-actions-card .search-btn.icon-btn svg {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  /* Adicionar padding no main (não no body) para compensar a barra inferior flutuante */
+  main.site-main {
+    margin-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Garantir que o footer não sobreponha a barra inferior */
+  .footer-bar {
+    margin-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+
+  /* Ocultar footer de texto no mobile */
+  #desktop-footer {
+    display: none !important;
+  }
+
+  /* Barra de busca com mesma largura dos cards de post no mobile */
+  .feed-controls {
+    margin: 1.2rem -1rem 2rem !important; /* Mesma largura dos posts */
+    padding: 0 1rem !important; /* Padding interno para compensar */
+  }
+
+  /* Cards de posts mais largos no mobile (igual educação) - ENLARGUECER */
+  #feed-list article.post {
+    padding: 1.5rem 1.2rem 1.3rem !important; /* Reduzir padding interno */
+    margin: 0 -1rem 2.2rem !important; /* Aumentar largura - card quase encostando nas bordas */
+  }
+
+  /* Aumentar conteúdo do card no mobile */
+  .post-content {
+    font-size: 1.15rem !important;
+    line-height: 1.6 !important;
+  }
+
+  /* Botões de ação MAIORES no mobile (não menores) */
+  .post-actions button {
+    padding: .5rem .95rem !important;
+    font-size: .85rem !important;
+    gap: .4rem !important;
+  }
+
+  .post-menu-btn {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 1rem !important;
+  }
+
+  /* Post header - aumentar tamanho do username */
+  .post-user {
+    font-size: 1.1rem !important;
+  }
+}
+
+.mobile-bottom-nav a,
+.mobile-bottom-nav button {
+  all: unset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: opacity 0.2s;
+  text-decoration: none;
+}
+
+.mobile-bottom-nav a:active,
+.mobile-bottom-nav button:active {
+  transform: scale(0.95);
+}
+
+.mobile-bottom-nav a svg,
+.mobile-bottom-nav button svg {
+  color: #ffffff;
+  transition: opacity 0.2s;
+}
+
+.mobile-bottom-nav a:hover,
+.mobile-bottom-nav button:hover {
+  opacity: 0.85;
+}
+
+.mobile-bottom-nav a:hover svg,
+.mobile-bottom-nav button:hover svg {
+  opacity: 0.85;
+}
+
+.mobile-bottom-nav .nav-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #ff9800;
+  color: #fff;
+  font-size: 0.6rem;
+  padding: 2px 5px;
+  border-radius: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  text-align: center;
+}
+</style>
+<!-- Barra de navegação inferior mobile (tipo app/rede social) -->
+<nav class="mobile-bottom-nav" aria-label="Navegação principal mobile">
+  <a href="/" aria-label="Feed" title="Feed">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+      <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </svg>
+    <span>Início</span>
+  </a>
+
+  <a href="/educacao" aria-label="Educação" title="Educação">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+    </svg>
+    <span>Educação</span>
+  </a>
+
+  <a href="/novo_post" aria-label="Criar post" title="Criar post" style="background: var(--primary); color: #ffffff; border-radius: 50%; width: 48px; height: 48px; margin: -10px 0; padding: 0; display: flex; align-items: center; justify-content: center; flex-direction: row; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 3px solid #ffffff;">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+  </a>
+
+  <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px 12px; color: rgba(255,255,255,0.6); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.3px;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <polyline points="12 6 12 12 16 14"></polyline>
+    </svg>
+    <span>Em breve</span>
+  </div>
+  {% if current_user.is_authenticated %}
+  <a href="{{ url_for('main.meu_perfil') }}" aria-label="Perfil" title="Perfil">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+    <span>Perfil</span>
+  </a>
+  {% else %}
+  <a href="{{ url_for('main.login') }}" aria-label="Entrar" title="Entrar">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+      <polyline points="10 17 15 12 10 7"></polyline>
+      <line x1="15" y1="12" x2="3" y2="12"></line>
+    </svg>
+    <span>Entrar</span>
+  </a>
+  {% endif %}
+</nav>
+
+<!-- Footer simples (apenas texto) - oculto no mobile -->
+<div id="desktop-footer" style="text-align:center; padding:1rem; font-size:.8rem; color:var(--text-secondary); font-weight:600; letter-spacing:.4px; margin-top:auto;">
+  © 2025 Gramátike • Língua Viva e de Todes
+</div>
+
+<script src="/static/js/feed.js"></script>
+<script>
+{% if current_user.is_authenticated %}
+window.currentUser = "{{ current_user.username|e }}";
+window.currentUserId = {{ current_user.id|int }};
+{% else %}
+window.currentUser = "";
+window.currentUserId = null;
+{% endif %}
+// Lista local de quem eu já sigo (usernames)
+window.FOLLOWING = window.FOLLOWING || new Set();
+// Carrega lista de seguindo para poder esconder botões "Seguir" automaticamente
+if (window.currentUserId) {
+  fetch(`/api/seguindo/${window.currentUserId}`)
+    .then(r => r.json())
+    .then(list => {
+      try {
+        (list||[]).forEach(u => { if(u && u.username) window.FOLLOWING.add(u.username); });
+        // Remove botões já renderizados para usuários que eu já sigo
+        document.querySelectorAll('.seguir-btn').forEach(btn => {
+          const uname = btn.getAttribute('data-usuario');
+          if (uname && window.FOLLOWING.has(uname)) btn.remove();
+        });
+      } catch {_=>{}}
+    }).catch(()=>{});
+}
+
+// Garante que, se já seguimos a pessoa, o botão desaparece neste artigo
+function atualizarBotaoSeguir(article, username){
+  try{
+    if(window.FOLLOWING && window.FOLLOWING.has(username)){
+      const btn = article.querySelector('.seguir-btn');
+      if(btn) btn.remove();
+    }
+  }catch(e){}
+}
+
+// Função para carregar e exibir os posts
+function loadPosts(params={}) {
+  const usp = new URLSearchParams(params);
+  const url = '/api/posts' + (usp.toString()?`?${usp.toString()}`:'');
+  // Ren der skeletons
+  const feed = document.getElementById('feed-list');
+  if(feed){
+    feed.innerHTML = '';
+    for(let i=0;i<4;i++){
+      const sk = document.createElement('div');
+      sk.className='feed-skeleton';
+      sk.innerHTML = `
+        <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.6rem;">
+          <div class="skeleton-avatar"><div class="shimmer"></div></div>
+          <div style="flex:1;">
+            <div class="skeleton-line" style="width:38%;height:14px;"><div class="shimmer"></div></div>
+            <div class="skeleton-line" style="width:22%;height:10px;margin-top:4px;"><div class="shimmer"></div></div>
+          </div>
+        </div>
+        <div class="skeleton-line" style="width:100%;height:12px;"><div class="shimmer"></div></div>
+        <div class="skeleton-line" style="width:92%;height:12px;"><div class="shimmer"></div></div>
+        <div class="skeleton-line" style="width:84%;height:12px;"><div class="shimmer"></div></div>
+        <div class="skeleton-img"><div class="shimmer"></div></div>
+        <div style="display:flex;gap:1rem;margin-top:.8rem;">
+          <div class="skeleton-line" style="width:80px;height:28px;border-radius:28px;"><div class="shimmer"></div></div>
+          <div class="skeleton-line" style="width:110px;height:28px;border-radius:28px;"><div class="shimmer"></div></div>
+        </div>`;
+      feed.appendChild(sk);
+    }
+  }
+  fetch(url)
+    .then(res => res.json())
+    .then(posts => {
+      const feed = document.getElementById('feed-list');
+      feed.innerHTML = '';
+      if (!posts || posts.length === 0) {
+        let msg = document.createElement('p');
+        msg.style.textAlign = 'center';
+        msg.style.color = '#666';
+        msg.style.padding = '2rem';
+        msg.textContent = 'Nenhum post encontrado. Seja ê primeire a postar!';
+  feed.appendChild(msg);
+        return;
+      }
+      posts.forEach(post => {
+        const article = document.createElement('article');
+  article.className = 'post';
+        article.dataset.postId = post.id;
+        // Botão seguir só aparece se não for o próprio usuário
+        let btnSeguir = '';
+        if (window.currentUser && post.usuario !== window.currentUser && !(window.FOLLOWING && window.FOLLOWING.has(post.usuario))) {
+          btnSeguir = `<button class="seguir-btn" data-usuario="${post.usuario}" onclick="seguirOuDeixarUsuario(this)">Seguir</button>`;
+        }
+        // Adiciona a foto de perfil do autor do post
+  const fotoPerfil = (post.foto_perfil && String(post.foto_perfil).trim()) ? String(post.foto_perfil).trim() : 'img/perfil.png';
+  const avatarSrc = /^https?:\/\//i.test(fotoPerfil) ? fotoPerfil : (`/static/${fotoPerfil}`);
+  const likeLabel = post.liked ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="#9B5DE5" stroke="#9B5DE5" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Curtido' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Curtir';
+    const likeClass = post.liked ? 'like-btn liked' : 'like-btn';
+  article.innerHTML = `
+          <div class="post-header" style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:0.7rem;">
+              <img src="${avatarSrc}" alt="Foto de perfil" class="post-avatar" data-username="${post.usuario}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #eee;cursor:pointer;">
+              <span style="cursor:pointer;" class="post-username" data-username="${post.usuario}"><strong>@${post.usuario}</strong> <span style="color:#888;">${post.data}</span></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              ${btnSeguir}
+              <div class="post-menu-container" style="position:relative;">
+                <button class="post-menu-btn" onclick="togglePostMenu(this)">⋯</button>
+                <div class="post-menu" style="display:none;position:absolute;right:0;top:28px;background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 2px 8px #0002;z-index:10;min-width:160px;">
+                  <button onclick="compartilharPost(${post.id})">Compartilhar</button>
+                  <button onclick="relatarPost(${post.id})" style="color:#e67e22;">Relatar</button>
+                  ${window.currentUser===post.usuario ? `<button style="color:#c0392b;" onclick="deletarPost(${post.id})">Excluir</button>` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="post-content" style="white-space:pre-line;">${parseTextWithLinks(post.conteudo)}</p>
+          ${ (post.images && post.images.length) ? renderPostImages(post.images.join('|')) : (post.imagem ? renderPostImages(post.imagem) : '') }
+          <div class="likes-list"></div>
+          <div class="post-actions">
+            <button class="${likeClass}" onclick="likePost(${post.id}, this)">${likeLabel}</button>
+            <button class="comment-btn" onclick="showCommentBox(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Comentar</button>
+            <button class="toggle-comments-btn" data-post-id="${post.id}" data-loaded="0" onclick="toggleComments(this, ${post.id})" title="Ver comentários" aria-label="Ver comentários">↓</button>
+          </div>
+          <div class="comments-list" data-post-id="${post.id}"></div>
+        `;
+        feed.appendChild(article);
+        // Comentários carregados apenas sob demanda
+    // Carregar lista de likes inicial e refletir estado textual
+    updateLikesDisplay(post.id, article);
+  // Atualiza/hide botão seguir de acordo com FOLLOWING
+  if (btnSeguir) atualizarBotaoSeguir(article, post.usuario);
+      });
+    })
+    .catch(error => {
+      const feed = document.getElementById('feed');
+      Array.from(feed.children).forEach(child => {
+        if (child.tagName !== 'H2') feed.removeChild(child);
+      });
+      let msg = document.createElement('p');
+      msg.style.textAlign = 'center';
+      msg.style.color = '#e74c3c';
+      msg.style.padding = '2rem';
+      msg.textContent = '❌ Erro ao carregar posts. Verifique se o servidor está funcionando.';
+      feed.appendChild(msg);
+      console.error(error);
+    });
+}
+
+// Função para mostrar/esconder o menu ⋯
+function togglePostMenu(btn) {
+  const menu = btn.parentElement.querySelector('.post-menu');
+  if (menu.style.display === 'block') {
+    menu.style.display = 'none';
+  } else {
+    document.querySelectorAll('.post-menu').forEach(m => m.style.display = 'none');
+    menu.style.display = 'block';
+  }
+  event.stopPropagation();
+}
+document.addEventListener('click', function() {
+  document.querySelectorAll('.post-menu').forEach(m => m.style.display = 'none');
+});
+
+// Função de curtir (exemplo)
+function likePost(postId, btn) {
+  fetch(`/api/posts/${postId}/like`, { method: 'POST' })
+    .then(res => res.json())
+    .then(data => {
+      // Atualiza aparência do botão
+      if (data.liked) {
+        btn.classList.add('liked');
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#9B5DE5" stroke="#9B5DE5" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Curtido';
+      } else {
+        btn.classList.remove('liked');
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9B5DE5" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Curtir';
+      }
+      updateLikesDisplay(postId, btn.closest('.post'));
+    });
+}
+
+// Renderiza imagens (uma ou múltiplas) separadas por '|'
+function renderPostImages(raw){
+  if(!raw) return '';
+  const parts = raw.split('|').filter(Boolean);
+  if(!parts.length) return '';
+  // Helper: determinar src correto (URL ou path local)
+  const getSrc = (path) => /^https?:\/\//i.test(path) ? path : `/static/${path}`;
+  // Melhor tratamento de erro: mostra placeholder ao invés de esconder
+  const onError = `this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial,sans-serif%22 font-size=%2214%22 fill=%22%23999%22%3EImagem não disponível%3C/text%3E%3C/svg%3E'; this.style.cursor='default'; this.onclick=null; console.warn('Imagem falhou ao carregar:', this.getAttribute('data-original-src'));`;
+
+  if(parts.length === 1){
+    const src = getSrc(parts[0]);
+    return `<div class="post-media"><img src="${src}" alt="Imagem do post" data-original-src="${src}" onclick="openImageModal('${src}')" onerror="${onError}"/></div>`;
+  }
+  // Grid simples para múltiplas
+  const cls = parts.length===2? 'grid-2' : (parts.length===3? 'grid-3':'grid-4');
+  // Futuro: detectar thumbs (path com _th) e preferir carregá-las primeiro
+  const imgs = parts.map(p=>{
+    const src = getSrc(p);
+    return `<div class="pm-item"><img src="${src}" alt="Imagem do post" data-original-src="${src}" onclick="openImageModal('${src}')" onerror="${onError}"/></div>`;
+  }).join('');
+  return `<div class="post-media multi ${cls}">${imgs}</div>`;
+}
+
+function updateLikesDisplay(postId, postElem) {
+  fetch(`/api/posts/${postId}/likes`)
+    .then(res => res.json())
+    .then(users => {
+      let likesDiv = postElem.querySelector('.likes-list');
+      if (!likesDiv) {
+        likesDiv = document.createElement('div');
+        likesDiv.className = 'likes-list';
+        postElem.insertBefore(likesDiv, postElem.querySelector('.post-actions'));
+      }
+      if (users.length === 0) {
+        likesDiv.innerHTML = '';
+      } else {
+        const curtiu = users.includes(window.currentUser);
+        likesDiv.innerHTML = `<span class="likes-line" data-post="${postId}" style="cursor:pointer;">`+
+          (curtiu ? '<strong style="color:#7c3aed;">Você</strong>' : '') +
+          (curtiu && users.length > 1 ? ' e ' : '') +
+          users.filter(u => u !== window.currentUser).slice(0, 2).map(u => `<span class="like-user">${u}</span>`).join(', ') +
+          (users.length > 3 ? ` e <span class="like-user">mais ${users.length - 3}</span>` : '') +
+          ' curtiram</span>';
+      }
+    });
+}
+
+// Modal de likes
+function ensureLikesModal(){
+  if(document.getElementById('likes-modal')) return;
+  const modal = document.createElement('div');
+  modal.id = 'likes-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);display:none;align-items:center;justify-content:center;z-index:2000;';
+  modal.innerHTML = `<div style="background:#fff; width:320px; max-width:90%; border-radius:14px; padding:1rem 1.1rem 1.2rem; box-shadow:0 8px 30px rgba(0,0,0,.25); font-family:'Nunito';">
+    <div style='display:flex;align-items:center; justify-content:space-between; margin-bottom:.6rem;'>
+      <h3 style="margin:0; font-size:1rem; color:#333;">Curtidas</h3>
+      <button onclick="closeLikesModal()" style="background:none;border:none;cursor:pointer;color:#555;padding:4px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div id='likes-modal-body' style='max-height:300px; overflow:auto; font-size:.85rem; line-height:1.3;'></div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e=>{ if(e.target===modal) closeLikesModal(); });
+}
+function openLikesModal(postId){
+  ensureLikesModal();
+  const modal = document.getElementById('likes-modal');
+  const body = document.getElementById('likes-modal-body');
+  body.innerHTML = '<div style="padding:.6rem 0; text-align:center; color:#666;">Carregando...</div>';
+  modal.style.display='flex';
+  fetch(`/api/posts/${postId}/likes`).then(r=>r.json()).then(users=>{
+    if(!users.length){
+      body.innerHTML = '<div style="padding:.6rem 0; text-align:center; color:#666;">Nenhuma curtida.</div>';
+    } else {
+      body.innerHTML = users.map(u=>`<div class='like-user-row' data-username='${u}' style='padding:.45rem .4rem; display:flex; align-items:center; gap:.65rem; border-bottom:1px solid #eee; cursor:pointer;'>
+        <div class='like-user-avatar' data-username='${u}' style='background:#7c3aed11; color:#7c3aed; width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;'>${u.charAt(0).toUpperCase()}</div>
+        <span class='like-user-name' data-username='${u}' style='font-weight:600;color:#333;'>@${u}</span>
+      </div>`).join('');
+    }
+  }).catch(()=>{ body.innerHTML = '<div style="padding:.6rem 0; text-align:center; color:#c0392b;">Erro ao carregar.</div>'; });
+}
+function closeLikesModal(){
+  const modal = document.getElementById('likes-modal');
+  if(modal) modal.style.display='none';
+}
+
+// Image Modal for full-size view
+function ensureImageModal() {
+  if(document.getElementById('image-modal')) return;
+  const modal = document.createElement('div');
+  modal.id = 'image-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);display:none;align-items:center;justify-content:center;z-index:2000;';
+  modal.innerHTML = `<div style="position:relative;max-width:95vw;max-height:95vh;display:flex;align-items:center;justify-content:center;">
+    <button onclick="closeImageModal()" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.9);border:none;border-radius:50%;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,0.3);z-index:10;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <img id='image-modal-img' src='' alt='Imagem ampliada' style='max-width:100%;max-height:95vh;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.5);'/>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e=>{ if(e.target===modal) closeImageModal(); });
+}
+function openImageModal(imageSrc){
+  ensureImageModal();
+  const modal = document.getElementById('image-modal');
+  const img = document.getElementById('image-modal-img');
+  img.src = imageSrc;
+  modal.style.display='flex';
+}
+function closeImageModal(){
+  const modal = document.getElementById('image-modal');
+  if(modal) modal.style.display='none';
+}
+
+// Função de relatar com categorias
+function relatarPost(postId) {
+  const wrap = document.createElement('div');
+  wrap.style.position='fixed'; wrap.style.inset='0'; wrap.style.background='rgba(0,0,0,.35)'; wrap.style.display='flex'; wrap.style.alignItems='center'; wrap.style.justifyContent='center'; wrap.style.zIndex='100';
+  wrap.innerHTML = `
+    <div style="background:var(--card); color:var(--text); width:min(520px,92vw); border:1px solid var(--border); border-radius:14px; box-shadow:0 10px 28px var(--shadow);">
+      <div style="padding:1rem 1.2rem; border-bottom:1px solid var(--border); font-weight:800;">Relatar Post</div>
+      <div style="padding:1rem 1.2rem; display:flex; flex-direction:column; gap:.8rem;">
+        <label style="font-weight:700;">Categoria</label>
+        <select id="report-cat" style="height:40px; border:1px solid var(--border); border-radius:10px; background:var(--input); color:var(--text); padding:0 .6rem;">
+          <option value="odio">Discurso de ódio</option>
+          <option value="violencia">Violência/ameaça</option>
+          <option value="assedio">Assédio</option>
+          <option value="nudez">Nudez/sexual</option>
+          <option value="spam">Spam</option>
+          <option value="suicidio">Autoagressão/suicídio</option>
+          <option value="outro">Outro</option>
+        </select>
+        <label style="font-weight:700;">Detalhes (opcional)</label>
+        <textarea id="report-msg" rows="3" style="border:1px solid var(--border); border-radius:10px; background:var(--input); color:var(--text); padding:.6rem; resize:vertical;"></textarea>
+      </div>
+      <div style="padding: .8rem 1.2rem; display:flex; gap:.6rem; justify-content:flex-end; border-top:1px solid var(--border);">
+        <button id="report-cancel" style="border:1px solid var(--border); background:transparent; color:var(--text); padding:.5rem 1rem; border-radius:10px; cursor:pointer;">Cancelar</button>
+        <button id="report-send" style="border:1px solid var(--primary-dark); background:var(--primary); color:#fff; padding:.5rem 1rem; border-radius:10px; cursor:pointer;">Enviar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
+  wrap.addEventListener('click', (e)=>{ if(e.target===wrap) wrap.remove(); });
+  wrap.querySelector('#report-cancel').onclick = ()=> wrap.remove();
+  wrap.querySelector('#report-send').onclick = ()=>{
+    const cat = wrap.querySelector('#report-cat').value;
+    const msg = wrap.querySelector('#report-msg').value.trim();
+    fetch(`/api/posts/${postId}/relatar`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({category:cat, motivo:msg||`Relato: ${cat}`}) })
+      .then(r=>r.json()).then(()=>{ wrap.remove(); alert('Relato enviado. Obrigade!'); })
+      .catch(()=>{ alert('Erro ao enviar relato.'); });
+  };
+}
+
+function deletarPost(postId){
+  if(!confirm('Excluir este post?')) return;
+  fetch(`/api/posts/${postId}`, {method:'DELETE'})
+    .then(r=>r.json())
+    .then(()=> loadPosts());
+}
+
+// Função para mostrar caixa de comentário (exemplo)
+function showCommentBox(btn) {
+  const postElem = btn.closest('.post');
+  let box = postElem.querySelector('.comment-box');
+  if (!box) {
+    box = document.createElement('div');
+    box.className = 'comment-box';
+    box.innerHTML = `
+      <textarea class="comment-input" placeholder="Escreva um comentário..."></textarea>
+      <div class="autocomplete mention-suggest" role="listbox" aria-label="Sugestões de menção" style="display:none; position:absolute; left:12px; right:12px; bottom:-4px; transform:translateY(100%);"></div>
+      <button onclick="submitComment(this)">Enviar</button>
+    `;
+    // Insere a caixa após o bloco de ações
+    postElem.insertBefore(box, btn.parentElement.nextSibling);
+    // Ativa autocomplete de menções na textarea deste comentário
+    const ta = box.querySelector('.comment-input');
+    const sugg = box.querySelector('.mention-suggest');
+    if(ta && sugg){ initMentionAutocomplete(ta, sugg, box); }
+  } else {
+    box.remove();
+  }
+}
+
+function submitComment(btn) {
+  const textarea = btn.parentElement.querySelector('.comment-input');
+  if(!textarea) return;
+  const postElem = btn.closest('.post');
+  const postId = postElem.dataset.postId;
+  const val = textarea.value.trim();
+  if(!val) return;
+  fetch(`/api/posts/${postId}/comentarios`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({conteudo: val})
+  }).then(() => {
+    textarea.value = '';
+    const list = postElem.querySelector('.comments-list');
+    const toggleBtn = postElem.querySelector('.toggle-comments-btn');
+    if(list && list.style.display !== 'none') {
+      loadComments(postId, postElem).then(count=>{
+        if(toggleBtn) toggleBtn.textContent = count ? `Esconder comentários (${count})` : 'Esconder comentários (0)';
+      });
+    } else if(toggleBtn) {
+      loadComments(postId, postElem, true).then(count=>{
+        toggleBtn.dataset.loaded='1';
+        toggleBtn.textContent = count ? `Ver comentários (${count})` : 'Ver comentários (0)';
+      });
+    }
+  });
+}
+
+function loadComments(postId, postElem, silent=false) {
+  return fetch(`/api/posts/${postId}/comentarios`)
+    .then(res => res.json())
+    .then(comments => {
+      let commentsDiv = postElem.querySelector('.comments-list');
+      if (!commentsDiv) {
+        commentsDiv = document.createElement('div');
+        commentsDiv.className = 'comments-list';
+        postElem.appendChild(commentsDiv);
+      }
+      if(!Array.isArray(comments)) comments = [];
+      if(comments.length === 0){
+        commentsDiv.innerHTML = '<div style="font-size:.7rem;opacity:.7;padding:.4rem 0 .2rem;">Nenhum comentário ainda.</div>';
+      } else {
+        commentsDiv.innerHTML = comments.map(c =>
+          `<div class="comment">
+            <div class="c-meta"><strong>@${c.usuario}</strong><span class="c-time">${(c.data||'').replace(' ',' · ')}</span></div>
+            <div class="c-body">${parseTextWithLinks(c.conteudo)}</div>
+          </div>`
+        ).join('');
+      }
+      return comments.length;
+    })
+    .catch(()=>{ if(!silent){ const div = postElem.querySelector('.comments-list'); if(div) div.innerHTML = '<div style="font-size:.7rem;color:#c0392b;">Erro ao carregar comentários.</div>'; } return 0; });
+}
+
+function toggleComments(btn, postId){
+  const postElem = btn.closest('.post');
+  const list = postElem.querySelector('.comments-list');
+  if(btn.dataset.loaded === '0'){
+    loadComments(postId, postElem).then(count=>{
+      btn.dataset.loaded='1';
+      list.style.display='block';
+      btn.textContent = '↑';
+      btn.setAttribute('title', count ? `Esconder comentários (${count})` : 'Esconder comentários');
+    });
+    return;
+  }
+  if(list.style.display === 'none'){
+    list.style.display='block';
+    const count = list.querySelectorAll('.comment').length;
+    btn.textContent = '↑';
+    btn.setAttribute('title', count ? `Esconder comentários (${count})` : 'Esconder comentários');
+  } else {
+    list.style.display='none';
+    const count = list.querySelectorAll('.comment').length;
+    btn.textContent = '↓';
+    btn.setAttribute('title', count ? `Ver comentários (${count})` : 'Ver comentários');
+  }
+}
+
+// Hook para abrir comentários ao abrir caixa
+const _origShowCommentBox = showCommentBox;
+showCommentBox = function(btn){
+  const postElem = btn.closest('.post');
+  const toggleBtn = postElem.querySelector('.toggle-comments-btn');
+  if(toggleBtn && toggleBtn.dataset.loaded==='0'){
+    toggleComments(toggleBtn, parseInt(postElem.dataset.postId,10));
+  } else if(toggleBtn){
+    const list = postElem.querySelector('.comments-list');
+    if(list && list.style.display==='none') toggleComments(toggleBtn, parseInt(postElem.dataset.postId,10));
+  }
+  _origShowCommentBox(btn);
+};
+
+// Função para compartilhar post
+function compartilharPost(postId) {
+  const url = `${window.location.origin}/post/${postId}`;
+  navigator.clipboard.writeText(url).then(() => {
+    alert('Link copiado!');
+  });
+}
+
+// Linkifica texto: escapa HTML, transforma @menções e #hashtags
+function parseTextWithLinks(text) {
+  if(!text) return '';
+
+  // Check if content contains HTML tags (from rich text editor)
+  const hasHTML = /<[^>]+>/.test(text);
+
+  if(hasHTML){
+    // Content from rich text editor - preserve HTML but still parse mentions/hashtags
+    let out = text;
+    // Parse mentions and hashtags within text nodes only (not inside HTML tags)
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = out;
+
+    // Process text nodes to add mention and hashtag links
+    const walker = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT, null, false);
+    const textNodes = [];
+    while(walker.nextNode()) textNodes.push(walker.currentNode);
+
+    textNodes.forEach(node => {
+      let text = node.textContent;
+      // Replace mentions and hashtags
+      text = text.replace(/@([\wÁ-Úá-ú0-9_]+)/g, (m, u) => `<a href="#" class="mention" data-username="${u}" style="color:#9B5DE5;text-decoration:none;font-weight:700;">@${u}</a>`);
+      text = text.replace(/#([\wÁ-Úá-ú0-9_]+)/g, (m, t) => `<a href="/hashtag/${t}" class="hashtag" style="color:#7c3aed;text-decoration:none;">#${t}</a>`);
+      if(text !== node.textContent){
+        const span = document.createElement('span');
+        span.innerHTML = text;
+        node.parentNode.replaceChild(span, node);
+      }
+    });
+
+    return tempDiv.innerHTML;
+  } else {
+    // Plain text - escape and parse as before
+    const esc = (s)=> (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    let out = esc(text||'');
+    // menções @usuario (com acentos e _)
+    out = out.replace(/@([\wÁ-Úá-ú0-9_]+)/g, (m, u) => `<a href="#" class="mention" data-username="${u}" style="color:#9B5DE5;text-decoration:none;font-weight:700;">@${u}</a>`);
+    // hashtags #tag
+    out = out.replace(/#([\wÁ-Úá-ú0-9_]+)/g, (m, t) => `<a href="/hashtag/${t}" class="hashtag" style="color:#7c3aed;text-decoration:none;">#${t}</a>`);
+    return out;
+  }
+}
+
+function executarBusca(){
+  const termo = document.getElementById('search-input').value.trim();
+  loadPosts(termo?{q:termo}:{})
+}
+
+// Suporte a clique em links de hashtag (delegação)
+document.addEventListener('click', function(e){
+  const a = e.target.closest('a.hashtag');
+  if(a){
+    e.preventDefault();
+    const tag = a.textContent.trim();
+    document.getElementById('search-input').value = tag;
+    loadPosts({q:tag});
+  }
+  const m = e.target.closest('a.mention');
+  if(m){
+    e.preventDefault();
+    const uname = (m.getAttribute('data-username')||'').trim();
+    if(!uname) return;
+    if(window.currentUser && uname === window.currentUser){ window.location.href = '/perfil'; return; }
+    fetch(`/api/usuarios/username/${uname}`).then(r=>r.json()).then(u=>{ if(u.id){ window.location.href = '/perfil/'+u.id; } });
+  }
+});
+
+// Carrega os posts ao abrir a página
+document.addEventListener('DOMContentLoaded', ()=>{ loadPosts(); });
+// Carregar amigues (seguimento mútuo)
+document.addEventListener('DOMContentLoaded', ()=>{
+  fetch('/api/amigues').then(r=>{
+    if(r.status===401) return []; return r.json();
+  }).then(list=>{
+    const aside = document.querySelector('.right-col');
+    if(!aside) return;
+    const wrap = document.getElementById('amigues-list');
+    const empty = document.getElementById('amigues-empty');
+    if(!Array.isArray(list) || list.length===0){
+      empty.style.display='block';
+      return;
+    }
+    empty.style.display='none';
+    wrap.innerHTML = list.slice(0,12).map(u=>{
+      const fp = (u.foto_perfil||'').trim() || 'img/perfil.png';
+      const src = /^https?:\/\//i.test(fp) ? fp : (`/static/${fp}`);
+      return `
+      <a href="/perfil/${u.id}" style="display:flex;align-items:center;gap:.6rem;text-decoration:none;padding:.35rem .4rem;border-radius:14px;transition:background .18s;">
+        <img src="${src}" alt="${u.username}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.15);background:#eee;">
+        <span style="display:flex;flex-direction:column;">
+          <strong style="font-size:.75rem;letter-spacing:.4px;color:var(--text);">@${u.username}</strong>
+          <span style="font-size:.6rem;opacity:.65;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(u.nome||'').replace(/</g,'&lt;')}</span>
+        </span>
+      </a>`;
+    }).join('');
+    // Se mais que 12, mostrar contador
+    if(list.length>12){
+      const more = document.createElement('div');
+      more.style.cssText='margin-top:.4rem;font-size:.6rem;opacity:.6;font-weight:600;text-align:right;';
+      more.textContent = `+ ${list.length-12} outres`;
+      document.getElementById('amigues-card').appendChild(more);
+    }
+    // Hover effect via delegação
+    wrap.addEventListener('mouseover', e=>{ const a=e.target.closest('a'); if(a) a.style.background='#f5f2ff'; });
+    wrap.addEventListener('mouseout', e=>{ const a=e.target.closest('a'); if(a) a.style.background='transparent'; });
+  }).catch(()=>{});
+});
+// Lazy loading de imagens de posts (IntersectionObserver)
+// (Menu removido conforme solicitado)
+
+// (Removido código de pills e trending do layout novo)
+
+// (Removidos selects de filtros antigos)
+
+// util debounce para evitar requisições excessivas ao digitar
+function debounce(fn, wait){
+  let t; return function(){ clearTimeout(t); const args = arguments; t = setTimeout(()=>fn.apply(this, args), wait||250); };
+}
+
+// Delegação: abrir modal de likes
+document.addEventListener('click', function(e){
+  const line = e.target.closest('.likes-line');
+  if(line){
+    const pid = line.getAttribute('data-post');
+    openLikesModal(pid);
+  }
+  const avatar = e.target.closest('.post-avatar, .post-username');
+  if(avatar){
+    const uname = avatar.getAttribute('data-username');
+    if(uname && window.currentUser && uname === window.currentUser){
+      window.location.href = '/perfil';
+    } else {
+      fetch(`/api/usuarios/username/${uname}`).then(r=>r.json()).then(u=>{
+        if(u.id){ window.location.href = '/perfil/'+u.id; }
+      });
+    }
+  }
+  // Clique em usuário dentro da modal de likes
+  const likeRow = e.target.closest('.like-user-row, .like-user-avatar, .like-user-name');
+  if(likeRow){
+    const uname = likeRow.getAttribute('data-username');
+    if(uname){
+      if(window.currentUser && uname === window.currentUser){
+        window.location.href = '/perfil';
+      } else {
+        fetch(`/api/usuarios/username/${uname}`).then(r=>r.json()).then(u=>{ if(u.id) window.location.href = '/perfil/'+u.id; });
+      }
+    }
+  }
+});
+
+// Autocomplete de busca (usuáries e hashtags)
+(function(){
+  const input = document.getElementById('search-input');
+  const box = document.getElementById('autocomplete');
+  if(!input || !box) return;
+
+  const hide = ()=> { box.style.display='none'; box.innerHTML=''; };
+  const show = items => {
+    if(!items || items.length===0){ hide(); return; }
+    box.innerHTML = items.map((it,i)=>`<div class="item" role="option" data-index="${i}" data-value="${it.value}" data-type="${it.type}">
+      <span class="tag">${it.value}</span>
+      <span class="type">${it.type==='user'?'usuárie':'hashtag'}</span>
+    </div>`).join('');
+    box.style.display='block';
+    activeIndex = -1; // reset seleção ao abrir
+  };
+  const itemsEls = ()=> Array.from(box.querySelectorAll('.item'));
+  let activeIndex = -1;
+  const highlight = (idx)=>{
+    const items = itemsEls();
+    items.forEach((el,i)=>{ if(i===idx) el.classList.add('active'); else el.classList.remove('active'); });
+    activeIndex = idx;
+    if(idx>=0 && items[idx]){
+      // garantir visibilidade
+      const el = items[idx];
+      const br = box.getBoundingClientRect();
+      const er = el.getBoundingClientRect();
+      if(er.bottom > br.bottom) el.scrollIntoView(false);
+      if(er.top < br.top) el.scrollIntoView();
+    }
+  };
+  box.addEventListener('click', e=>{
+    const it = e.target.closest('.item');
+    if(it){ pick(it.getAttribute('data-value'), it.getAttribute('data-type')); }
+  });
+  box.addEventListener('mouseover', e=>{
+    const it = e.target.closest('.item');
+    if(it){ const idx = parseInt(it.getAttribute('data-index'),10); if(!Number.isNaN(idx)) highlight(idx); }
+  });
+  document.addEventListener('click', e=>{
+    if(!e.target.closest('.search-wrap')) hide();
+  });
+  const pick = (val, type) => {
+    input.value = val;
+    hide();
+    // If it's a user (starts with @), navigate to their profile
+    if(type === 'user' && val.startsWith('@')) {
+      const uname = val.substring(1); // Remove @ symbol
+      if(window.currentUser && uname === window.currentUser){
+        window.location.href = '/perfil';
+      } else {
+        fetch(`/api/usuarios/username/${uname}`).then(r=>r.json()).then(u=>{
+          if(u.id){ window.location.href = '/perfil/'+u.id; }
+        });
+      }
+    } else {
+      executarBusca();
+    }
+  };
+  function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+  const fetchSuggest = debounce(()=>{
+    const q = (input.value||'').trim();
+    if(!q){ hide(); return; }
+    fetch(`/api/search/suggest?q=${encodeURIComponent(q)}`)
+      .then(r=>r.json()).then(show).catch(()=>hide());
+  }, 200);
+  input.addEventListener('input', fetchSuggest);
+  input.addEventListener('keydown', (e)=>{
+    const isOpen = box.style.display==='block';
+    if(!isOpen && (e.key==='ArrowDown' || e.key==='ArrowUp')){
+      fetchSuggest();
+      return;
+    }
+    if(!isOpen) return;
+    const items = itemsEls();
+    const pageSize = ()=>{
+      if(!items.length) return 5;
+      const ih = items[0].getBoundingClientRect().height || 32;
+      const bh = box.clientHeight || 200;
+      const n = Math.max(1, Math.floor(bh/ih));
+      return n;
+    };
+    if(e.key==='ArrowDown'){
+      e.preventDefault();
+      const next = items.length? (activeIndex+1) % items.length : -1;
+      highlight(next);
+    } else if(e.key==='ArrowUp'){
+      e.preventDefault();
+      const next = items.length? (activeIndex-1+items.length) % items.length : -1;
+      highlight(next);
+    } else if(e.key==='PageDown'){
+      e.preventDefault();
+      const step = Math.max(1, pageSize()-1);
+      const start = activeIndex<0?0:activeIndex;
+      const next = Math.min(items.length-1, start + step);
+      highlight(next);
+    } else if(e.key==='PageUp'){
+      e.preventDefault();
+      const step = Math.max(1, pageSize()-1);
+      const start = activeIndex<0?0:activeIndex;
+      const next = Math.max(0, start - step);
+      highlight(next);
+    } else if(e.key==='Enter'){
+      if(activeIndex>=0 && items[activeIndex]){
+        e.preventDefault();
+        pick(items[activeIndex].getAttribute('data-value'), items[activeIndex].getAttribute('data-type'));
+      }
+    } else if(e.key==='Escape'){
+      hide();
+    }
+  });
+})();
+
+// Autocomplete no editor de post (@usuáries e #hashtags)
+(function(){
+  const ta = document.getElementById('post-content');
+  const box = document.getElementById('mention-suggest');
+  if(!ta || !box) return;
+  let activeIndex = -1;
+  let items = [];
+  let currentType = 'user'; // 'user' | 'tag'
+  const hide = ()=>{ box.style.display='none'; box.innerHTML=''; items=[]; activeIndex=-1; };
+  const render = (arr)=>{
+    if(!arr || arr.length===0){ hide(); return; }
+    items = arr.filter(it=>it.type===currentType);
+    if(items.length===0){ hide(); return; }
+    box.innerHTML = items.map((it,i)=>`<div class="item" role="option" data-index="${i}" data-value="${it.value}"><span class="tag">${it.value}</span><span class="type">${currentType==='user'?'usuárie':'hashtag'}</span></div>`).join('');
+    box.style.display='block';
+    activeIndex = -1;
+  };
+  const highlight = (idx)=>{
+    const els = Array.from(box.querySelectorAll('.item'));
+    els.forEach((el,i)=>{ el.classList.toggle('active', i===idx); });
+    activeIndex = idx;
+  };
+  const getToken = ()=>{
+    const pos = ta.selectionStart||0;
+    const txt = ta.value;
+    const before = txt.slice(0, pos);
+    const lastSep = Math.max(
+      before.lastIndexOf(' '), before.lastIndexOf('\n'), before.lastIndexOf('\t'),
+      before.lastIndexOf('.'), before.lastIndexOf(','), before.lastIndexOf(';'), before.lastIndexOf('!'), before.lastIndexOf('?'), before.lastIndexOf('('), before.lastIndexOf(')')
+    );
+    const start = lastSep >= 0 ? lastSep+1 : 0;
+    const token = before.slice(start);
+    return { start, end: pos, token };
+  };
+  function debounce(fn, wait){ let t; return function(){ clearTimeout(t); const a=arguments; t=setTimeout(()=>fn.apply(this,a), wait||250); }; }
+  const fetchSuggest = debounce(()=>{
+    const { token } = getToken();
+    if(!token || (!token.startsWith('@') && !token.startsWith('#'))) { hide(); return; }
+    if(token === '@' || token === '#'){ hide(); return; }
+    currentType = token.startsWith('#') ? 'tag' : 'user';
+    fetch(`/api/search/suggest?q=${encodeURIComponent(token)}`).then(r=>r.json()).then(render).catch(()=>hide());
+  }, 180);
+  const applyPick = (val)=>{
+    const { start, end, token } = getToken(); if(!(token.startsWith('@') || token.startsWith('#'))) return;
+    const txt = ta.value; const pre = txt.slice(0,start); const post = txt.slice(end);
+    const inserted = val + ' '; ta.value = pre + inserted + post;
+    const newPos = (pre + inserted).length; ta.setSelectionRange(newPos, newPos);
+    hide(); ta.focus();
+  };
+  ta.addEventListener('input', ()=>{
+    const { token } = getToken();
+    if(token && (token.startsWith('@') || token.startsWith('#'))) fetchSuggest(); else hide();
+  });
+  ta.addEventListener('keydown', (e)=>{
+    if(box.style.display !== 'block') return;
+    if(e.key==='ArrowDown'){ e.preventDefault(); const next = items.length ? (activeIndex+1)%items.length : -1; highlight(next); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); const next = items.length ? (activeIndex-1+items.length)%items.length : -1; highlight(next); }
+    else if(e.key==='Enter'){ if(activeIndex>=0 && items[activeIndex]){ e.preventDefault(); applyPick(items[activeIndex].value); } }
+    else if(e.key==='Escape'){ hide(); }
+  });
+  box.addEventListener('click', (e)=>{ const it = e.target.closest('.item'); if(!it) return; applyPick(it.getAttribute('data-value')); });
+  document.addEventListener('click', (e)=>{ if(!e.target.closest('.ta-wrap')) hide(); });
+})();
+
+// Inicializador reutilizável para autocomplete de menções em qualquer textarea
+function initMentionAutocomplete(ta, box, scope){
+  let activeIndex = -1; let items = [];
+  let currentType = 'user';
+  const hide = ()=>{ box.style.display='none'; box.innerHTML=''; items=[]; activeIndex=-1; };
+  const render = (arr)=>{
+    if(!arr || arr.length===0){ hide(); return; }
+    items = arr.filter(it=>it.type===currentType);
+    if(items.length===0){ hide(); return; }
+    box.innerHTML = items.map((it,i)=>`<div class="item" role="option" data-index="${i}" data-value="${it.value}"><span class="tag">${it.value}</span><span class="type">${currentType==='user'?'usuárie':'hashtag'}</span></div>`).join('');
+    box.style.display='block'; activeIndex=-1;
+  };
+  const getToken = ()=>{
+    const pos = ta.selectionStart||0; const txt = ta.value; const before = txt.slice(0,pos);
+    const lastSep = Math.max(before.lastIndexOf(' '), before.lastIndexOf('\n'), before.lastIndexOf('\t'), before.lastIndexOf('.'), before.lastIndexOf(','), before.lastIndexOf(';'), before.lastIndexOf('!'), before.lastIndexOf('?'), before.lastIndexOf('('), before.lastIndexOf(')'));
+    const start = lastSep>=0? lastSep+1 : 0; const token = before.slice(start);
+    return { start, end: pos, token };
+  };
+  function debounce(fn, wait){ let t; return function(){ clearTimeout(t); const a=arguments; t=setTimeout(()=>fn.apply(this,a), wait||250); }; }
+  const fetchSuggest = debounce(()=>{
+    const { token } = getToken();
+    if(!token || (!token.startsWith('@') && !token.startsWith('#'))) { hide(); return; }
+    if(token==='@' || token==='#'){ hide(); return; }
+    currentType = token.startsWith('#') ? 'tag' : 'user';
+    fetch(`/api/search/suggest?q=${encodeURIComponent(token)}`).then(r=>r.json()).then(render).catch(()=>hide());
+  }, 180);
+  const applyPick = (val)=>{
+    const { start, end, token } = getToken(); if(!(token.startsWith('@') || token.startsWith('#'))) return;
+    const txt = ta.value; const pre = txt.slice(0,start); const post = txt.slice(end);
+    const inserted = val + ' '; ta.value = pre + inserted + post;
+    const newPos = (pre + inserted).length; ta.setSelectionRange(newPos, newPos);
+    hide(); ta.focus();
+  };
+  ta.addEventListener('input', ()=>{ const { token } = getToken(); if(token && (token.startsWith('@') || token.startsWith('#'))) fetchSuggest(); else hide(); });
+  ta.addEventListener('keydown', (e)=>{
+    if(box.style.display!=='block') return;
+    if(e.key==='ArrowDown'){ e.preventDefault(); const next = items.length ? (activeIndex+1)%items.length : -1; highlight(next); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); const next = items.length ? (activeIndex-1+items.length)%items.length : -1; highlight(next); }
+    else if(e.key==='Enter'){ if(activeIndex>=0 && items[activeIndex]){ e.preventDefault(); applyPick(items[activeIndex].value); } }
+    else if(e.key==='Escape'){ hide(); }
+  });
+  const highlight = (idx)=>{
+    const els = Array.from(box.querySelectorAll('.item'));
+    els.forEach((el,i)=>{ el.classList.toggle('active', i===idx); });
+    activeIndex = idx;
+  };
+  box.addEventListener('click', (e)=>{ const it = e.target.closest('.item'); if(!it) return; applyPick(it.getAttribute('data-value')); });
+  document.addEventListener('click', (e)=>{ if(scope && !e.target.closest('.comment-box')) hide(); });
+}
+</script>
+<script>
+// Jogo da Velha (vs Robo)
+(function(){
+  var boardEl = document.getElementById('ttt_board');
+  var statusEl = document.getElementById('ttt_status');
+  var resetEl = document.getElementById('ttt_reset');
+  if(!boardEl || !statusEl || !resetEl) return;
+  var board = new Array(9).fill('');
+  var HUMAN = 'X', AI = 'O';
+  var gameOver = false;
+
+  function setStatus(msg){ if(statusEl) statusEl.textContent = msg; }
+  function render(){
+    var cells = boardEl.querySelectorAll('button[data-i]');
+    cells.forEach(function(btn){
+      var i = +btn.getAttribute('data-i');
+      var v = board[i];
+      btn.textContent = v || '';
+      var label = 'casa ' + (i+1) + (v ? (' com ' + v) : ' vazia');
+      btn.setAttribute('aria-label', label);
+      btn.disabled = !!v || gameOver; // evita sobrescrever
+    });
+  }
+  var wins = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+  function winner(b){
+    for(var k=0;k<wins.length;k++){
+      var a=wins[k][0], c=wins[k][1], d=wins[k][2];
+      if(b[a] && b[a]===b[c] && b[c]===b[d]) return b[a];
+    }
+    return null;
+  }
+  function empties(b){ var r=[]; for(var i=0;i<9;i++){ if(!b[i]) r.push(i);} return r; }
+  function isDraw(b){ return empties(b).length===0 && !winner(b); }
+
+  function tryWinMove(b, p){
+    var e = empties(b);
+    for(var i=0;i<e.length;i++){
+      var idx = e[i];
+      b[idx] = p;
+      var w = winner(b);
+      b[idx] = '';
+      if(w===p) return idx;
+    }
+    return -1;
+  }
+  function aiPick(){
+    // 1) Ganhar se possível
+    var idx = tryWinMove(board, AI); if(idx!==-1) return idx;
+    // 2) Bloquear humano
+    idx = tryWinMove(board, HUMAN); if(idx!==-1) return idx;
+    // 3) Centro
+    if(!board[4]) return 4;
+    // 4) Cantos
+    var corners = [0,2,6,8];
+    for(var i=0;i<corners.length;i++){ if(!board[corners[i]]) return corners[i]; }
+    // 5) Laterais
+    var sides = [1,3,5,7];
+    for(var j=0;j<sides.length;j++){ if(!board[sides[j]]) return sides[j]; }
+    return -1;
+  }
+  function endIfNeeded(){
+    var w = winner(board);
+    if(w){ gameOver=true; setStatus(w===HUMAN ? 'Você venceu!' : 'Robo venceu!'); render(); return true; }
+    if(isDraw(board)){ gameOver=true; setStatus('Empate.'); render(); return true; }
+    return false;
+  }
+  function humanMove(i){
+    if(gameOver || board[i]) return;
+    board[i] = HUMAN;
+    render();
+    if(endIfNeeded()) return;
+    setStatus('Robo pensando...');
+    setTimeout(function(){
+      var m = aiPick();
+      if(m>=0){ board[m] = AI; }
+      render();
+      if(!endIfNeeded()) setStatus('Sua vez: você é X');
+    }, 220);
+  }
+
+  // Eventos
+  boardEl.addEventListener('click', function(ev){
+    var t = ev.target;
+    if(!(t && t.matches('button[data-i]'))) return;
+    var i = +t.getAttribute('data-i');
+    humanMove(i);
+  });
+  resetEl.addEventListener('click', function(){
+    board = new Array(9).fill('');
+    gameOver=false;
+    setStatus('Sua vez: você é X');
+    render();
+  });
+
+  // Inicializar UI
+  setStatus('Sua vez: você é X');
+  render();
+})();
+
+// Notifications System
+function toggleNotifications() {
+  const panel = document.getElementById('notifications-panel');
+  const badge = document.getElementById('notifications-badge');
+  const mobileBadge = document.getElementById('mobile-notifications-badge');
+  const mobileActionsBadge = document.getElementById('mobile-actions-notif-badge');
+
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    loadNotifications();
+    // Clear badge when opening notifications and mark as viewed
+    setTimeout(() => {
+      badge.style.display = 'none';
+      if (mobileBadge) mobileBadge.style.display = 'none';
+      if (mobileActionsBadge) mobileActionsBadge.style.display = 'none';
+      // Mark notifications as viewed in localStorage
+      localStorage.setItem('notificationsViewed', 'true');
+    }, 500);
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+async function loadNotifications() {
+  const list = document.getElementById('notifications-list');
+  const badge = document.getElementById('notifications-badge');
+  const mobileBadge = document.getElementById('mobile-notifications-badge');
+  const mobileActionsBadge = document.getElementById('mobile-actions-notif-badge');
+
+  try {
+    // Fetch user notifications (likes and followers) only - no support tickets
+    const userNotifications = await fetch('/api/notifications').then(r => r.json()).catch(() => []);
+
+    // Build notifications array
+    const notifications = [];
+
+    // Add user notifications (followers and likes) only
+    userNotifications.forEach(n => {
+      notifications.push(n);
+    });
+
+    // Display notifications
+    if (notifications.length === 0) {
+      list.innerHTML = '<div style="text-align:center; color:#999; font-size:.75rem; padding:1rem;">Nenhuma notificação</div>';
+      badge.style.display = 'none';
+      if (mobileBadge) mobileBadge.style.display = 'none';
+      if (mobileActionsBadge) mobileActionsBadge.style.display = 'none';
+    } else {
+      list.innerHTML = notifications.map(n => `
+        <a href="${n.link}" style="text-decoration:none; display:block; padding:.7rem; background:#f9fbfd; border:1px solid #e3e9f0; border-radius:12px; transition:.2s;" onmouseover="this.style.background='#f1edff'" onmouseout="this.style.background='#f9fbfd'">
+          <div style="font-size:.75rem; color:#333; line-height:1.4; font-family:'Nunito';">${n.message}</div>
+          <div style="font-size:.65rem; color:#999; margin-top:.3rem;">${n.time}</div>
+        </a>
+      `).join('');
+
+      // Create a hash of current notifications to detect changes
+      const notifHash = JSON.stringify(notifications.map(n => n.message + n.link).sort());
+      const lastNotifHash = localStorage.getItem('lastNotifHash');
+
+      // If notifications changed, reset the viewed flag
+      if (notifHash !== lastNotifHash) {
+        localStorage.setItem('lastNotifHash', notifHash);
+        localStorage.removeItem('notificationsViewed');
+      }
+
+      // Only show badge if notifications haven't been viewed
+      const notificationsViewed = localStorage.getItem('notificationsViewed');
+      if (notificationsViewed !== 'true') {
+        badge.textContent = notifications.length;
+        badge.style.display = 'inline-block';
+        if (mobileBadge) {
+          mobileBadge.textContent = notifications.length;
+          mobileBadge.style.display = 'inline-block';
+        }
+        if (mobileActionsBadge) {
+          mobileActionsBadge.textContent = notifications.length;
+          mobileActionsBadge.style.display = 'inline-block';
+        }
+      } else {
+        badge.style.display = 'none';
+        if (mobileBadge) mobileBadge.style.display = 'none';
+        if (mobileActionsBadge) mobileActionsBadge.style.display = 'none';
+      }
+    }
+  } catch (e) {
+    console.error('Error loading notifications:', e);
+    list.innerHTML = '<div style="text-align:center; color:#999; font-size:.75rem; padding:1rem;">Sem notificações</div>';
+  }
+}
+
+// Load notifications on page load
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadNotifications();
+  // Refresh notifications every 2 minutes
+  setInterval(loadNotifications, 120000);
+
+  // Initialize mobile tic-tac-toe
+  initMobileTicTacToe();
+});
+
+// Mobile Actions Card Functions
+function toggleMobileTicTacToe() {
+  const panel = document.getElementById('mobile-ttt-panel');
+
+  // Toggle tic-tac-toe
+  if (panel.style.display === 'none' || panel.style.display === '') {
+    panel.style.display = 'block';
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+function toggleMobileActionsCard() {
+  const card = document.getElementById('mobile-actions-card');
+  const triangleSvg = document.getElementById('triangle-svg');
+
+  if (card.classList.contains('visible')) {
+    card.classList.remove('visible');
+    if (triangleSvg) triangleSvg.style.transform = 'rotate(0deg)';
+  } else {
+    card.classList.add('visible');
+    if (triangleSvg) triangleSvg.style.transform = 'rotate(180deg)';
+  }
+}
+
+// Mobile Tic-Tac-Toe Game
+function initMobileTicTacToe() {
+  const board = document.getElementById('mobile_ttt_board');
+  const status = document.getElementById('mobile_ttt_status');
+  const resetBtn = document.getElementById('mobile_ttt_reset');
+  if (!board) return;
+
+  let state = Array(9).fill('');
+  let turn = 'X';
+  let gameOver = false;
+
+  const winPatterns = [
+    [0,1,2], [3,4,5], [6,7,8],
+    [0,3,6], [1,4,7], [2,5,8],
+    [0,4,8], [2,4,6]
+  ];
+
+  function checkWin(player) {
+    return winPatterns.some(p => p.every(i => state[i] === player));
+  }
+
+  function checkDraw() {
+    return state.every(cell => cell !== '');
+  }
+
+  function aiMove() {
+    const empty = state.map((v, i) => v === '' ? i : null).filter(i => i !== null);
+    if (empty.length > 0) {
+      const move = empty[Math.floor(Math.random() * empty.length)];
+      state[move] = 'O';
+      render();
+      if (checkWin('O')) {
+        status.textContent = 'Robo venceu!';
+        gameOver = true;
+      } else if (checkDraw()) {
+        status.textContent = 'Empate!';
+        gameOver = true;
+      } else {
+        turn = 'X';
+        status.textContent = 'Sua vez: você é X';
+      }
+    }
+  }
+
+  function handleClick(i) {
+    if (gameOver || state[i] !== '' || turn !== 'X') return;
+    state[i] = 'X';
+    render();
+    if (checkWin('X')) {
+      status.textContent = 'Você venceu!';
+      gameOver = true;
+      return;
+    }
+    if (checkDraw()) {
+      status.textContent = 'Empate!';
+      gameOver = true;
+      return;
+    }
+    turn = 'O';
+    status.textContent = 'Vez do Robo...';
+    setTimeout(aiMove, 500);
+  }
+
+  function render() {
+    const cells = board.querySelectorAll('button');
+    cells.forEach((btn, i) => {
+      btn.textContent = state[i];
+      btn.setAttribute('aria-label', state[i] ? `casa ${i+1} ${state[i]}` : `casa ${i+1} vazia`);
+    });
+  }
+
+  function reset() {
+    state = Array(9).fill('');
+    turn = 'X';
+    gameOver = false;
+    status.textContent = 'Sua vez: você é X';
+    render();
+  }
+
+  board.querySelectorAll('button').forEach((btn, i) => {
+    btn.addEventListener('click', () => handleClick(i));
+  });
+
+  resetBtn.addEventListener('click', reset);
+  render();
+}
+
+</script>
+</body>
+</html>

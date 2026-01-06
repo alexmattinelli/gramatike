@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ novidade.titulo }} — Portal Gramátike</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='gramatike_common.css') }}">
+    <!-- Quill Rich Text Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <style>
+        :root { --primary:#9B5DE5; --primary-dark:#7d3dc9; --bg:#f7f8ff; --card:#ffffff; --border:#e5e7eb; --text:#222; --text-dim:#666; }
+        * { box-sizing:border-box; }
+        body { margin:0; font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.65; display:flex; flex-direction:column; min-height:100vh; }
+        h1,h2,h3 { font-weight:800; margin:0 0 .9rem; line-height:1.12; }
+        header.site-head { background:#9B5DE5; padding:28px clamp(16px,4vw,40px) 46px; border-bottom-left-radius:40px; border-bottom-right-radius:40px; position:relative; display:flex; flex-direction:column; align-items:center; }
+        .logo { font-family:'Mansalva', cursive; font-size:2.6rem; color:#fff; letter-spacing:1px; font-weight:400; margin:0; }
+        .edu-nav { margin-top:1.1rem; display:flex; flex-wrap:wrap; gap:.65rem; justify-content:center; }
+        .edu-nav a { text-decoration:none; font-weight:700; font-size:.7rem; letter-spacing:.55px; padding:.65rem 1.05rem .62rem; background:#ffffff18; color:#fff; border:1px solid #ffffff30; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); border-radius:22px; display:inline-flex; align-items:center; gap:.35rem; box-shadow:0 4px 12px rgba(0,0,0,.18); transition:.25s; }
+        .edu-nav a:hover, .edu-nav a.active { background:#fff; color:#7d3dc9; }
+        main { width:100%; max-width:900px; margin:2rem auto 4rem; padding:0 clamp(16px,4vw,40px); flex:1; }
+        .back-link:hover { background:#f7f2ff; border-color:#d4c5ef; box-shadow:0 6px 16px rgba(155,93,229,.25); transform:translateY(-1px); }
+        .article-header { background:var(--card); border:1px solid var(--border); border-radius:28px; padding:2rem 2.5rem; box-shadow:0 10px 32px -8px rgba(0,0,0,.12); margin-bottom:2rem; }
+        .article-title { font-size:2.2rem; color:#9B5DE5; margin-bottom:.8rem; line-height:1.2; }
+        .article-meta { font-size:.8rem; color:var(--text-dim); font-weight:600; margin-bottom:1.2rem; }
+        .article-meta time { color:#9B5DE5; }
+        .article-body { background:var(--card); border:1px solid var(--border); border-radius:28px; padding:2rem 2.5rem; box-shadow:0 10px 32px -8px rgba(0,0,0,.12); }
+        .article-body p { margin:0 0 1.2rem; font-size:1rem; line-height:1.75; color:#333; }
+        .article-body .content { font-size:1.05rem; line-height:1.8; color:#2d3748; }
+        .article-body .content h1, .article-body .content h2, .article-body .content h3 { color:#9B5DE5; margin-top:1.5rem; margin-bottom:1rem; }
+        .article-body .content h1 { font-size:1.8rem; }
+        .article-body .content h2 { font-size:1.5rem; }
+        .article-body .content h3 { font-size:1.25rem; }
+        .article-body .content strong { font-weight:700; color:#1a202c; }
+        .article-body .content em { font-style:italic; color:#4a5568; }
+        .article-body .content ul, .article-body .content ol { margin:1rem 0 1rem 1.5rem; }
+        .article-body .content li { margin-bottom:.5rem; }
+        .article-link { display:inline-flex; align-items:center; gap:.5rem; margin-top:1.5rem; padding:.8rem 1.3rem; background:#9B5DE5; color:#fff; text-decoration:none; border-radius:16px; font-weight:700; font-size:.9rem; box-shadow:0 6px 20px rgba(155,93,229,.35); transition:.25s; }
+        .article-link:hover { background:#7d3dc9; transform:translateY(-2px); box-shadow:0 8px 28px rgba(155,93,229,.45); }
+        .admin-actions { margin-top:2rem; padding:1.5rem; background:#f9f7ff; border:1px solid #e5ddf9; border-radius:20px; display:flex; gap:.8rem; }
+        .admin-actions button, .admin-actions a { padding:.7rem 1.2rem; border:none; border-radius:12px; font-weight:700; font-size:.8rem; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:.5rem; transition:.2s; }
+        .btn-edit { background:#9B5DE5; color:#fff; }
+        .btn-edit:hover { background:#7d3dc9; transform:translateY(-1px); }
+        .btn-edit svg { width:16px; height:16px; }
+        .btn-delete { background:#dc2626; color:#fff; }
+        .btn-delete:hover { background:#b91c1c; }
+        footer { margin-top:4rem; background:#9B5DE5; color:#fff; text-align:center; padding:1.4rem 1rem 1.6rem; font-size:.75rem; letter-spacing:.5px; font-weight:700; border-top-left-radius:38px; border-top-right-radius:38px; }
+        /* Quill editor styles */
+        #editor-container { min-height:250px; background:#fff; border:1px solid #cfd7e2; border-radius:10px; }
+        .ql-toolbar { border-top-left-radius:10px; border-top-right-radius:10px; background:#f9fafb; }
+        .ql-container { border-bottom-left-radius:10px; border-bottom-right-radius:10px; font-size:.9rem; }
+        @media (max-width: 980px){ footer { display:none !important; } }
+        @media (max-width:720px){ 
+            header.site-head { padding:12px 18px 18px; } 
+            .logo { font-size:2.2rem; } 
+            .article-header, .article-body { padding:1.5rem 1.2rem; }
+            .article-title { font-size:1.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-head">
+        <h1 class="logo">Portal Gramátike</h1>
+    </header>
+    <main>
+        <a href="{{ url_for('main.educacao') }}" class="back-link" style="font-size:.85rem; font-weight:700; color:#9B5DE5; padding:.6rem 1.2rem; background:#fff; border:1px solid #e5e7eb; border-radius:14px; display:inline-flex; align-items:center; gap:.5rem; transition:.2s; text-decoration:none; box-shadow:0 4px 12px rgba(155,93,229,.15);">
+            ← Voltar ao Início
+        </a>
+        
+        <article>
+            <div class="article-header">
+                <h1 class="article-title">{{ novidade.titulo }}</h1>
+                <div class="article-meta">
+                    <time>{{ novidade.created_at.strftime('%d/%m/%Y às %H:%M') if novidade.created_at else 'Data não disponível' }}</time>
+                    {% if novidade.author %}
+                        <span> • Por {{ novidade.author.nome or novidade.author.username }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="article-body">
+                {% if novidade.descricao %}
+                    <div class="content">{{ novidade.descricao|safe }}</div>
+                {% else %}
+                    <p><em>Sem descrição disponível.</em></p>
+                {% endif %}
+                
+                {% if novidade.link %}
+                    <a href="{{ novidade.link }}" class="article-link" target="_blank" rel="noopener">
+                        🔗 Acessar conteúdo
+                    </a>
+                {% endif %}
+            </div>
+            
+            {% if is_admin %}
+            <div class="admin-actions">
+                <button class="btn-edit" onclick="document.getElementById('editDialog').showModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Editar
+                </button>
+                <form method="POST" action="{{ url_for('admin.novidades_delete', nid=novidade.id) }}" onsubmit="return confirm('Tem certeza que deseja excluir esta novidade?');" style="margin:0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+                    <button type="submit" class="btn-delete">🗑️ Excluir</button>
+                </form>
+            </div>
+            {% endif %}
+        </article>
+    </main>
+    
+    <footer>
+        © 2025 Gramátike • Linguagem Viva e de Todes
+    </footer>
+    
+    {% if is_admin %}
+    <dialog id="editDialog" style="border:none; border-radius:20px; padding:0; max-width:800px; width:90%;">
+        <form method="POST" action="{{ url_for('admin.novidades_edit', nid=novidade.id) }}" style="padding:2rem;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}" />
+            <input type="hidden" name="descricao" id="descricao-input" />
+            <h3 style="margin:0 0 1.5rem; color:#9B5DE5;">Editar Novidade</h3>
+            
+            <label style="display:block; margin-bottom:1rem;">
+                <span style="display:block; font-size:.8rem; font-weight:700; color:#666; margin-bottom:.3rem;">Título</span>
+                <input type="text" name="titulo" value="{{ novidade.titulo }}" required style="width:100%; padding:.7rem; border:1px solid #cfd7e2; border-radius:10px; font-size:.9rem;" />
+            </label>
+            
+            <label style="display:block; margin-bottom:1rem;">
+                <span style="display:block; font-size:.8rem; font-weight:700; color:#666; margin-bottom:.3rem;">Descrição</span>
+                <div id="editor-container"></div>
+            </label>
+            
+            <label style="display:block; margin-bottom:1.5rem;">
+                <span style="display:block; font-size:.8rem; font-weight:700; color:#666; margin-bottom:.3rem;">Link</span>
+                <input type="url" name="link" value="{{ novidade.link or '' }}" style="width:100%; padding:.7rem; border:1px solid #cfd7e2; border-radius:10px; font-size:.9rem;" />
+            </label>
+            
+            <div style="display:flex; gap:.8rem; justify-content:flex-end;">
+                <button type="button" onclick="document.getElementById('editDialog').close()" style="padding:.7rem 1.2rem; border:1px solid #cfd7e2; background:#fff; border-radius:12px; font-weight:700; cursor:pointer;">Cancelar</button>
+                <button type="submit" style="padding:.7rem 1.2rem; border:none; background:#9B5DE5; color:#fff; border-radius:12px; font-weight:700; cursor:pointer;">Salvar</button>
+            </div>
+        </form>
+    </dialog>
+    <script>
+        // Initialize Quill editor
+        var quill = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link'],
+                    ['clean']
+                ]
+            },
+            placeholder: 'Escreva a descrição da novidade...'
+        });
+        
+        // Load existing content
+        quill.root.innerHTML = {{ novidade.descricao|tojson|safe }} || '';
+        
+        // Update hidden input on form submit
+        document.querySelector('#editDialog form').addEventListener('submit', function() {
+            document.getElementById('descricao-input').value = quill.root.innerHTML;
+        });
+    </script>
+    {% endif %}
+</body>
+</html>
