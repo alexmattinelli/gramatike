@@ -60,7 +60,7 @@ Se você ver esse erro, significa que o Cloudflare ainda está usando configura�
 Se aparecer erro sobre `python_workers`:
 
 1. Vá em **Settings** → **Functions** → **Compatibility Flags**
-2. **DELETE** qualquer referência a `python_workers`
+2. **Remova/delete** qualquer referência a `python_workers`
 3. Deixe vazio ou adicione apenas flags modernas do JavaScript
 4. Salve
 
