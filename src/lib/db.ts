@@ -262,16 +262,24 @@ export async function deletePost(
   postId: number,
   deletedBy: number
 ): Promise<boolean> {
+  // Sanitize parameters for consistency
+  const [sanitizedPostId, sanitizedDeletedBy] = sanitizeParams(postId, deletedBy);
+  
+  if (sanitizedPostId == null || sanitizedDeletedBy == null) {
+    console.error('[deletePost] Missing required parameters');
+    return false;
+  }
+  
   try {
     await db.prepare(
       'UPDATE post SET is_deleted = 1, deleted_at = datetime("now"), deleted_by = ? WHERE id = ?'
     )
-      .bind(deletedBy, postId)
+      .bind(sanitizedDeletedBy, sanitizedPostId)
       .run();
     
     return true;
   } catch (error) {
-    console.error('Error deleting post:', error);
+    console.error('[deletePost] Error:', error);
     return false;
   }
 }
@@ -284,16 +292,24 @@ export async function likePost(
   postId: number,
   userId: number
 ): Promise<boolean> {
+  // Sanitize parameters for consistency
+  const [sanitizedPostId, sanitizedUserId] = sanitizeParams(postId, userId);
+  
+  if (sanitizedPostId == null || sanitizedUserId == null) {
+    console.error('[likePost] Missing required parameters');
+    return false;
+  }
+  
   try {
     await db.prepare(
       'INSERT OR IGNORE INTO post_likes (post_id, usuarie_id, created_at) VALUES (?, ?, datetime("now"))'
     )
-      .bind(postId, userId)
+      .bind(sanitizedPostId, sanitizedUserId)
       .run();
     
     return true;
   } catch (error) {
-    console.error('Error liking post:', error);
+    console.error('[likePost] Error:', error);
     return false;
   }
 }
@@ -306,16 +322,24 @@ export async function unlikePost(
   postId: number,
   userId: number
 ): Promise<boolean> {
+  // Sanitize parameters for consistency
+  const [sanitizedPostId, sanitizedUserId] = sanitizeParams(postId, userId);
+  
+  if (sanitizedPostId == null || sanitizedUserId == null) {
+    console.error('[unlikePost] Missing required parameters');
+    return false;
+  }
+  
   try {
     await db.prepare(
       'DELETE FROM post_likes WHERE post_id = ? AND usuarie_id = ?'
     )
-      .bind(postId, userId)
+      .bind(sanitizedPostId, sanitizedUserId)
       .run();
     
     return true;
   } catch (error) {
-    console.error('Error unliking post:', error);
+    console.error('[unlikePost] Error:', error);
     return false;
   }
 }
@@ -327,6 +351,14 @@ export async function getPostComments(
   db: D1Database,
   postId: number
 ): Promise<Comment[]> {
+  // Sanitize parameter for consistency
+  const [sanitizedPostId] = sanitizeParams(postId);
+  
+  if (sanitizedPostId == null) {
+    console.error('[getPostComments] Missing postId');
+    return [];
+  }
+  
   const { results } = await db.prepare(`
     SELECT c.*, u.username, u.foto_perfil
     FROM comentario c
@@ -334,7 +366,7 @@ export async function getPostComments(
     WHERE c.post_id = ?
     ORDER BY c.data ASC
   `)
-    .bind(postId)
+    .bind(sanitizedPostId)
     .all<Comment>();
   
   return results || [];

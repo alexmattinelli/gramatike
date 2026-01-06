@@ -1,6 +1,15 @@
 // Logging utilities for debugging and monitoring
 
 /**
+ * Helper to format data for logging
+ * @param data - Data to format
+ * @returns Formatted data or empty string if undefined
+ */
+function formatData(data: any): any {
+  return data !== undefined ? data : '';
+}
+
+/**
  * Log an error with context and details
  * @param context - The context where the error occurred (e.g., 'createPost', 'login')
  * @param error - The error object or message
@@ -30,7 +39,7 @@ export function logError(context: string, error: unknown, additionalData?: Recor
  * @param data - Optional data to include
  */
 export function logDebug(context: string, message: string, data?: any) {
-  console.log(`[${context}] ${message}`, data !== undefined ? data : '');
+  console.log(`[${context}] ${message}`, formatData(data));
 }
 
 /**
@@ -40,7 +49,7 @@ export function logDebug(context: string, message: string, data?: any) {
  * @param data - Optional data to include
  */
 export function logWarning(context: string, message: string, data?: any) {
-  console.warn(`[${context}] ${message}`, data !== undefined ? data : '');
+  console.warn(`[${context}] ${message}`, formatData(data));
 }
 
 /**
@@ -50,7 +59,7 @@ export function logWarning(context: string, message: string, data?: any) {
  * @param data - Optional data to include
  */
 export function logSuccess(context: string, message: string, data?: any) {
-  console.log(`[${context}] ✓ ${message}`, data !== undefined ? data : '');
+  console.log(`[${context}] ✓ ${message}`, formatData(data));
 }
 
 /**
