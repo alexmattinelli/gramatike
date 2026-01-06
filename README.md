@@ -21,13 +21,16 @@ Esta aplicação usa **Cloudflare Pages** com **Functions** (TypeScript) para um
      - **Project name**: `gramatike`
      - **Production branch**: `main`
      - **Build command**: `npm run build` (ou deixe vazio)
-     - **Build output directory**: `public`
+     - **Build output directory**: `public` ← **IMPORTANTE!**
+     - **Root directory**: Deixe vazio (raiz do repo)
 
 2. O Cloudflare Pages irá automaticamente fazer deploy a cada push na branch `main`
 
 **⚠️ IMPORTANTE:**
 - ❌ **NÃO use GitHub Actions** para deploy (pode causar conflitos com Workers)
 - ✅ Use a integração nativa do Cloudflare Pages
+- ✅ **Build output directory** = `public` (onde estão os arquivos)
+- ✅ **Root directory** = vazio ou `/` (raiz do repositório)
 - O build acontece no Cloudflare, não no GitHub Actions
 
 ### 🛠️ Deploy Manual via CLI (Opcional)

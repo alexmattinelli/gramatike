@@ -82,6 +82,24 @@ No projeto Pages:
    - ✅ Build command: `npm run build` (ou vazio)
    - ✅ Build output directory: `public`
 
+#### 📝 Configuração Detalhada do Dashboard
+
+**Build configuration:**
+- **Framework preset**: None (ou deixe em "None")
+- **Build command**: `npm run build` (ou deixe vazio - o build já está feito)
+- **Build output directory**: `public` ← **IMPORTANTE!**
+
+**Advanced settings** (geralmente não precisa mexer):
+- **Root directory**: Deixe **VAZIO** ou `/` (raiz do repositório)
+- **Deploy command**: Deixe **VAZIO** (Pages faz deploy automaticamente)
+- **Version command**: Deixe **VAZIO** (não necessário)
+
+**⚠️ ATENÇÃO:**
+- ❌ **Root directory ≠ Build output directory**
+- Root directory = raiz do repo (onde está `package.json`)
+- Build output directory = `public` (onde estão os arquivos estáticos)
+- O `wrangler.toml` define isso com `pages_build_output_dir = "public"`
+
 ### Passo 3: Forçar Novo Deploy
 
 Após verificar a configuração:
