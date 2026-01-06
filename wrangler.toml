@@ -5,8 +5,7 @@ name = "gramatike"
 main = "index.py"
 compatibility_date = "2025-11-02"
 compatibility_flags = [
-    "python_workers",
-    "python_dedicated_snapshot"
+    "python_workers"
 ]
 
 # Assets estáticos (CSS, JS, imagens)
