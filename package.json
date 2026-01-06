@@ -5,8 +5,8 @@
 	"private": true,
 	"description": "Gramátike - Portuguese grammar education platform (TypeScript)",
 	"scripts": {
-		"dev": "wrangler pages dev public --compatibility-date=2026-01-06",
-		"build": "tsc",
+		"build": "echo 'No build needed - static site with Functions'",
+		"dev": "wrangler pages dev public",
 		"deploy": "wrangler pages deploy public",
 		"db:init": "wrangler d1 execute gramatike --file=./schema.d1.sql",
 		"typecheck": "tsc --noEmit"
