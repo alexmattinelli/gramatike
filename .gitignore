@@ -59,6 +59,12 @@ htmlcov/
 dist/
 build/
 
+# Python (não usado neste projeto - TypeScript only)
+*.py
+*.pyc
+requirements.txt
+.python-version
+
 # Databases and local instance data
 app.db
 *.sqlite
