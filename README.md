@@ -1,8 +1,22 @@
-# Gramatike
+# Gramátike
 
 > **⚠️ IMPORTANTE: Este projeto usa 100% TypeScript/Node.js**  
-> **NÃO há Python neste projeto. Versão: 2.0.0-typescript-only**  
+> **NÃO há Python neste projeto. Versão: 2.1.0**  
 > Runtime: Cloudflare Pages Functions (JavaScript/TypeScript)
+
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/alexmattinelli/gramatike)
+[![Platform](https://img.shields.io/badge/platform-Cloudflare%20Pages-orange.svg)](https://pages.cloudflare.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue.svg)](https://www.typescriptlang.org/)
+
+## 🚀 Status: Production Ready
+
+Rede social educativa de português, 100% TypeScript rodando em Cloudflare Pages.
+
+## 📍 Acesso Rápido
+
+- **Site:** https://www.gramatike.com.br
+- **Feed:** https://www.gramatike.com.br/feed
+- **Criar Post:** https://www.gramatike.com.br/novo_post
 
 ## Cloudflare Pages (TypeScript)
 

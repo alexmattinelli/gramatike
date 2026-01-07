@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.1.0] - 2026-01-07
+
+### ✅ Fixed
+- Criado `public/index.html` principal com página inicial funcional
+- Adicionado `functions/index.ts` para servir index.html
+- Configurado `_headers` para segurança e cache
+- Configurado `_routes.json` para routing correto
+- Site agora carrega completamente (não mais "Hello world")
+
+### 🎨 Added
+- Página inicial com design moderno
+- Navegação para todas as seções (Feed, Posts, Artigos, Apostilas)
+- Informações sobre a plataforma
+- Versioning visível
+
+### 🚀 Performance
+- Headers de cache otimizados
+- Static assets com cache de 1 ano
+- Templates com cache de 5 minutos
+
 ## [2.0.0-typescript-only] - 2026-01-07
 
 ### 🚀 BREAKING CHANGES
