@@ -55,13 +55,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env, data }) 
   
   console.log('[POST /api/posts] Creating post:', {
     userId: user.id,
-    username: user.username,
     contentLength: conteudo.length,
     hasImage: !!imagem
   });
   
   // Create post - createPost will sanitize parameters
-  const postId = await createPost(env.DB, user.id, user.username, conteudo, imagem);
+  const postId = await createPost(env.DB, user.id, conteudo, imagem);
   
   if (!postId) {
     return errorResponse('Erro ao criar post', 500);

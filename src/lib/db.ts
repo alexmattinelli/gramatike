@@ -203,47 +203,44 @@ export async function getPostById(
 export async function createPost(
   db: D1Database,
   userId: number,
-  username: string,
   content: string,
   image?: string
 ): Promise<number | null> {
   // CRITICAL: Sanitize ALL parameters before passing to D1
-  const [sanitizedUserId, sanitizedUsername, sanitizedContent, sanitizedImage] = sanitizeParams(
+  const [sanitizedUserId, sanitizedContent, sanitizedImage] = sanitizeParams(
     userId,
-    username,
     content,
     image
   );
   
   // Validate required fields - use explicit null checks to allow 0 as valid userId
-  if (sanitizedUserId == null || sanitizedUsername == null || sanitizedContent == null) {
+  if (sanitizedUserId == null || sanitizedContent == null) {
     console.error('[createPost] Missing required fields after sanitization');
     return null;
   }
   
-  // Validate non-empty strings for username and content (check type first)
-  if (typeof sanitizedUsername !== 'string' || typeof sanitizedContent !== 'string') {
+  // Validate non-empty content (check type first)
+  if (typeof sanitizedContent !== 'string') {
     console.error('[createPost] Invalid field types');
     return null;
   }
   
-  if (!sanitizedUsername.trim() || !sanitizedContent.trim()) {
-    console.error('[createPost] Username and content cannot be empty');
+  if (!sanitizedContent.trim()) {
+    console.error('[createPost] Content cannot be empty');
     return null;
   }
   
   try {
     console.log('[createPost] Creating post with sanitized values:', {
       userId: sanitizedUserId,
-      username: sanitizedUsername,
       contentLength: sanitizedContent.length,
       hasImage: !!sanitizedImage
     });
     
     const result = await db.prepare(
-      'INSERT INTO post (usuarie_id, usuarie, conteudo, imagem, data) VALUES (?, ?, ?, ?, datetime("now")) RETURNING id'
+      'INSERT INTO post (usuarie_id, conteudo, imagem, data) VALUES (?, ?, ?, datetime("now")) RETURNING id'
     )
-      .bind(sanitizedUserId, sanitizedUsername, sanitizedContent, sanitizedImage)
+      .bind(sanitizedUserId, sanitizedContent, sanitizedImage)
       .first<{ id: number }>();
     
     console.log('[createPost] Post created successfully, id:', result?.id);
