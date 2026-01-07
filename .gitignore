@@ -1,3 +1,22 @@
+#########################################
+# PYTHON IS NOT USED IN THIS PROJECT
+# This is a TypeScript/Node.js project
+#########################################
+*.py
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+requirements.txt
+requirements/
+.python-version
+.python*
+venv/
+env/
+*.egg-info/
+dist-python/
+build-python/
+
 # Node
 node_modules/
 npm-debug.log*

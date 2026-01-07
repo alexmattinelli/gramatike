@@ -1,5 +1,9 @@
 # Gramatike
 
+> **⚠️ IMPORTANTE: Este projeto usa 100% TypeScript/Node.js**  
+> **NÃO há Python neste projeto. Versão: 2.0.0-typescript-only**  
+> Runtime: Cloudflare Pages Functions (JavaScript/TypeScript)
+
 ## Cloudflare Pages (TypeScript)
 
 Esta aplicação usa **Cloudflare Pages** com **Functions** (TypeScript) para uma arquitetura serverless moderna.

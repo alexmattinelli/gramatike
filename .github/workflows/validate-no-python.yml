@@ -1,0 +1,33 @@
+name: Validate No Python
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-no-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check for Python files
+        run: |
+          if find . -name "*.py" -not -path "./.git/*" | grep -q .; then
+            echo "ERROR: Python files found in repository!"
+            find . -name "*.py" -not -path "./.git/*"
+            exit 1
+          fi
+          
+          if find . -name "requirements.txt" | grep -q .; then
+            echo "ERROR: requirements.txt found in repository!"
+            exit 1
+          fi
+          
+          if find . -name ".python-version" | grep -q .; then
+            echo "ERROR: .python-version found in repository!"
+            exit 1
+          fi
+          
+          echo "✅ No Python files detected - TypeScript only!"
