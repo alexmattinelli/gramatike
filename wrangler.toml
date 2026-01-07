@@ -11,6 +11,13 @@ pages_build_output_dir = "public"
 # Explicitly set to JavaScript/TypeScript runtime
 # NO Python Workers - This is a Cloudflare Pages Functions project
 
+# Cloudflare Pages - NO Python Workers
+# Runtime: JavaScript/TypeScript only
+compatibility_flags = ["nodejs_compat"]
+
+[build]
+command = "npm run build"
+
 # Environment variables
 [vars]
 ENVIRONMENT = "production"

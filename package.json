@@ -7,7 +7,7 @@
 	"scripts": {
 		"clean:python": "find . -name '*.py' -not -path './.git/*' -delete && find . -name 'requirements.txt' -delete && find . -name '.python-version' -delete && find . -type d -name '__pycache__' -exec rm -rf {} + || true",
 		"prebuild": "npm run clean:python",
-		"build": "echo 'Build complete - static site with Cloudflare Functions'",
+		"build": "echo '✅ Build complete - TypeScript Cloudflare Pages Functions ready'",
 		"dev": "wrangler pages dev public --compatibility-date=2026-01-06",
 		"deploy": "wrangler pages deploy public",
 		"db:migrate": "wrangler d1 execute gramatike --file=./schema.d1.sql",
