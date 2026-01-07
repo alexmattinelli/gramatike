@@ -91,7 +91,7 @@ O `wrangler.toml` já está configurado com o D1 binding:
 [[d1_databases]]
 binding = "DB"
 database_name = "gramatike"
-database_id = "c22cbe34-444b-40ec-9987-5e90ecc8cc91"
+database_id = "d0984113-06be-49f5-939a-9d5c5dcba7b6"
 ```
 
 **Nota:** O `database_id` deve corresponder ao ID do seu banco D1. Para verificar: `wrangler d1 list`
@@ -104,6 +104,27 @@ Se você precisar atualizar o schema do banco de dados:
 # Edite o arquivo schema.d1.sql, depois execute:
 wrangler d1 execute gramatike --file=./schema.d1.sql
 ```
+
+### 🔄 Resetar Banco de Dados D1
+
+Para resetar completamente o banco de dados (apagar todos os dados e recriar as tabelas):
+
+```bash
+# Executar o schema (DROP + CREATE)
+wrangler d1 execute gramatike --file=./schema.d1.sql --remote
+
+# Verificar tabelas criadas
+wrangler d1 execute gramatike --command="SELECT name FROM sqlite_master WHERE type='table';" --remote
+
+# Verificar usuário admin criado
+wrangler d1 execute gramatike --command="SELECT * FROM user;" --remote
+```
+
+**Credenciais padrão após reset:**
+- **Email**: `contato@gramatike.com`
+- **Senha**: `admin123`
+
+⚠️ **IMPORTANTE:** Altere a senha após o primeiro login!
 
 ## ⚙️ Variáveis de Ambiente
 
