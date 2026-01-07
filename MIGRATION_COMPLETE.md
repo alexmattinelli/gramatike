@@ -107,7 +107,7 @@ Credenciais do usuário admin:
 
 #### Novidades Renderizando
 1. Verifique que a seção "Novidades" está renderizada como HTML
-2. **NÃO** deve aparecer código como `{{ d.titulo }}` ou `{% for %}`
+2. **NÃO** deve aparecer código como `{{ d.titulo }}` ou `{% raw %}{% for %}{% endraw %}`
 3. Deve aparecer o texto "Bem-vindo! Rede social educativa de português"
 
 ## 📊 Resultado Esperado
