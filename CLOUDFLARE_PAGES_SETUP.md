@@ -44,7 +44,7 @@ Após criar o projeto:
 1. Vá em **Settings** → **Functions**
 2. Em **D1 database bindings**, clique **Add binding**:
    - Variable name: `DB`
-   - D1 database: Selecione `gramatike` (ID: `d0984113-06be-49f5-939a-9d5c5dcba7b6`)
+   - D1 database: Selecione seu banco D1 (ex: `gramatike`)
 3. Clique em **Save**
 
 ### 4. Configurar R2 Storage Binding (se necessário)
@@ -52,7 +52,7 @@ Após criar o projeto:
 1. Vá em **Settings** → **Functions**
 2. Em **R2 bucket bindings**, clique **Add binding**:
    - Variable name: `R2_BUCKET`
-   - R2 bucket: Selecione `gramatike`
+   - R2 bucket: Selecione seu bucket R2
 3. Clique em **Save**
 
 ### 5. Configurar Environment Variables
@@ -66,15 +66,15 @@ Vá em **Settings** → **Environment variables** e adicione:
 | `CLOUDFLARE_ACCOUNT_ID` | `<seu-account-id>` |
 | `CLOUDFLARE_API_TOKEN` | `<seu-api-token>` |
 | `CLOUDFLARE_R2_ACCESS_KEY_ID` | `<seu-r2-access-key-id>` |
-| `CLOUDFLARE_R2_BUCKET` | `gramatike` |
+| `CLOUDFLARE_R2_BUCKET` | `<nome-do-seu-bucket>` |
 | `CLOUDFLARE_R2_PUBLIC_URL` | `<sua-url-publica-r2>` |
 | `CLOUDFLARE_R2_S3_ENDPOINT` | `<seu-s3-endpoint-r2>` |
 | `CLOUDFLARE_R2_SECRET_ACCESS_KEY` | `<seu-r2-secret-access-key>` |
-| `MAIL_DEFAULT_SENDER` | `no-reply@gramatike.com.br` |
+| `MAIL_DEFAULT_SENDER` | `<seu-email-remetente>` |
 | `MAIL_PASSWORD` | `<sua-senha-smtp>` |
 | `MAIL_PORT` | `587` |
-| `MAIL_SENDER_NAME` | `Gramátike` |
-| `MAIL_SERVER` | `smtp-relay.brevo.com` |
+| `MAIL_SENDER_NAME` | `<nome-do-remetente>` |
+| `MAIL_SERVER` | `<seu-servidor-smtp>` |
 | `MAIL_USERNAME` | `<seu-usuario-smtp>` |
 | `MAIL_USE_TLS` | `true` |
 | `SECRET_KEY` | `<sua-chave-secreta-32-chars>` |
@@ -84,7 +84,7 @@ Vá em **Settings** → **Environment variables** e adicione:
 Após configurar tudo:
 
 ```bash
-wrangler d1 execute gramatike --file=./schema.d1.sql --remote
+wrangler d1 execute <nome-do-seu-banco-d1> --file=./schema.d1.sql --remote
 ```
 
 ### 7. Verificar Deploy
