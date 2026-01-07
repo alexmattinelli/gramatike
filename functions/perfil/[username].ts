@@ -1,7 +1,7 @@
 // Serve perfil.html template
 import { Env } from '../../src/types';
 
-export const onRequest: PagesFunction<Env> = async ({ request, env, params }) => {
+export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   try {
     // Serve o template perfil.html
     const response = await env.ASSETS.fetch(new URL('/templates/perfil.html', request.url));

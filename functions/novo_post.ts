@@ -1,7 +1,7 @@
 // Serve criar_post.html template
 import { Env } from '../src/types';
 
-export const onRequest: PagesFunction<Env> = async ({ request, env, next }) => {
+export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   try {
     // Serve o template criar_post.html
     const response = await env.ASSETS.fetch(new URL('/templates/criar_post.html', request.url));

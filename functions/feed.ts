@@ -1,7 +1,7 @@
 // Serve feed.html template
 import { Env } from '../src/types';
 
-export const onRequest: PagesFunction<Env> = async ({ request, env, next }) => {
+export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   try {
     // Serve o template feed.html
     const response = await env.ASSETS.fetch(new URL('/templates/feed.html', request.url));
