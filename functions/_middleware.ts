@@ -15,6 +15,14 @@ const PUBLIC_ROUTES = [
 const PUBLIC_PAGE_ROUTES = [
   '/pages',
   '/', // Root/feed page
+  '/feed', // Feed page
+  '/login', // Login page
+  '/cadastro', // Registration page
+  '/artigos', // Articles page
+  '/apostilas', // Study materials page
+  '/exercicios', // Exercises page
+  '/gramatike_edu', // Education page
+  '/perfil/', // User profiles
 ];
 
 // Define which routes require admin access
