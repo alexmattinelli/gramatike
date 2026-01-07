@@ -10,7 +10,23 @@ Esta aplicação usa **Cloudflare Pages** com **Functions** (TypeScript) para um
 - Banco de dados: Cloudflare D1 (SQLite na edge)
 - Storage: Cloudflare R2 (arquivos de usuário)
 
-### 🚀 Deploy (Recomendado)
+### 🚀 Deploy no Cloudflare Pages
+
+Este projeto usa **TypeScript** e **Cloudflare Pages Functions** (não Python Workers).
+
+### Configuração Inicial
+
+Veja as instruções completas em [CLOUDFLARE_PAGES_SETUP.md](./CLOUDFLARE_PAGES_SETUP.md).
+
+**Resumo rápido:**
+
+1. Conectar repositório ao Cloudflare Pages
+2. Build command: `npm run build`
+3. Build output: `public`
+4. Adicionar D1 binding: `DB` → seu banco D1 (ex: `gramatike`)
+5. Resetar banco: `wrangler d1 execute <seu-banco-d1> --file=./schema.d1.sql --remote`
+
+### Deploy Automático (Recomendado)
 
 **O deploy é automático via integração nativa do Cloudflare Pages com GitHub.**
 
@@ -32,6 +48,12 @@ Esta aplicação usa **Cloudflare Pages** com **Functions** (TypeScript) para um
 - ✅ **Build output directory** = `public` (onde estão os arquivos)
 - ✅ **Root directory** = vazio ou `/` (raiz do repositório)
 - O build acontece no Cloudflare, não no GitHub Actions
+
+### Troubleshooting
+
+Se aparecer erro sobre "Python Workers":
+- O projeto Pages precisa ser recriado do zero
+- Siga as instruções em [CLOUDFLARE_PAGES_SETUP.md](./CLOUDFLARE_PAGES_SETUP.md)
 
 ### 🛠️ Deploy Manual via CLI (Opcional)
 
