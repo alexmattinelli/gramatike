@@ -88,22 +88,6 @@
             backdrop-filter: blur(10px);
         }
 
-        .spinner {
-            display: none;
-            border: 4px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top: 4px solid white;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 2rem auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         .version {
             margin-top: 2rem;
             opacity: 0.7;
@@ -145,16 +129,6 @@
         <div class="version">
             v2.1.0 | TypeScript Edition | 2026-01-07
         </div>
-
-        <div class="spinner" id="spinner"></div>
     </div>
-
-    <script>
-        // Auto-redirect para /feed após 3 segundos (opcional)
-        // setTimeout(() => {
-        //     document.getElementById('spinner').style.display = 'block';
-        //     window.location.href = '/feed';
-        // }, 3000);
-    </script>
 </body>
 </html>
