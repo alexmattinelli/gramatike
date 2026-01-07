@@ -5,6 +5,8 @@
 	"private": true,
 	"description": "Rede social educativa de português - TypeScript Edition",
 	"scripts": {
+		"clean:python": "find . -name '*.py' -not -path './.git/*' -delete && find . -name 'requirements.txt' -delete && find . -name '.python-version' -delete && find . -type d -name '__pycache__' -exec rm -rf {} + || true",
+		"prebuild": "npm run clean:python",
 		"build": "echo 'Build complete - static site with Cloudflare Functions'",
 		"dev": "wrangler pages dev public --compatibility-date=2026-01-06",
 		"deploy": "wrangler pages deploy public",

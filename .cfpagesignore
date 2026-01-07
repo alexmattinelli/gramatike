@@ -1,0 +1,21 @@
+# BLOCK ALL PYTHON - This is a TypeScript/Node.js project ONLY
+*.py
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+requirements.txt
+requirements/*.txt
+.python-version
+.python*
+venv/
+env/
+*.egg-info/
+dist/
+build/
+*.so
+
+# Explicitly ignore any Python directories
+**/python/
+**/py/
+**/*.py
