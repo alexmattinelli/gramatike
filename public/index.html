@@ -4,31 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gramátike - Rede Social Educativa de Português</title>
-    <meta http-equiv="refresh" content="0; url=/feed">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
+
         .container {
             text-align: center;
+            max-width: 600px;
+            padding: 2rem;
         }
-        h1 {
-            font-size: 3rem;
-            margin: 0;
-            font-weight: 800;
+
+        .logo {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: -2px;
         }
-        p {
-            font-size: 1.2rem;
-            margin: 1rem 0;
+
+        .tagline {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            opacity: 0.95;
+            font-weight: 300;
         }
+
+        .nav-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .features {
+            margin-top: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .feature {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
         .spinner {
+            display: none;
             border: 4px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             border-top: 4px solid white;
@@ -37,24 +98,63 @@
             animation: spin 1s linear infinite;
             margin: 2rem auto;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        .version {
+            margin-top: 2rem;
+            opacity: 0.7;
+            font-size: 0.85rem;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Gramátike</h1>
-        <p>Rede Social Educativa de Português</p>
-        <div class="spinner"></div>
-        <p>Redirecionando para o feed...</p>
+        <div class="logo">Gramátike</div>
+        <div class="tagline">Rede Social Educativa de Português</div>
+
+        <div class="nav-buttons">
+            <a href="/feed" class="btn btn-primary">🎯 Acessar Feed</a>
+            <a href="/novo_post" class="btn">✍️ Criar Novo Post</a>
+            <a href="/artigos" class="btn">📚 Artigos</a>
+            <a href="/apostilas" class="btn">📖 Apostilas</a>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <strong>100% TypeScript</strong><br>
+                Moderno e seguro
+            </div>
+            <div class="feature">
+                <strong>Cloudflare Pages</strong><br>
+                Performance global
+            </div>
+            <div class="feature">
+                <strong>D1 Database</strong><br>
+                SQLite distribuído
+            </div>
+            <div class="feature">
+                <strong>Edge Computing</strong><br>
+                Ultra rápido
+            </div>
+        </div>
+
+        <div class="version">
+            v2.1.0 | TypeScript Edition | 2026-01-07
+        </div>
+
+        <div class="spinner" id="spinner"></div>
     </div>
+
     <script>
-        // Fallback se o meta refresh não funcionar
-        setTimeout(() => {
-            window.location.href = '/feed';
-        }, 100);
+        // Auto-redirect para /feed após 3 segundos (opcional)
+        // setTimeout(() => {
+        //     document.getElementById('spinner').style.display = 'block';
+        //     window.location.href = '/feed';
+        // }, 3000);
     </script>
 </body>
 </html>
