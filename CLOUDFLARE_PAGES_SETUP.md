@@ -63,21 +63,21 @@ Vá em **Settings** → **Environment variables** e adicione:
 
 | Variable | Value |
 |----------|-------|
-| `CLOUDFLARE_ACCOUNT_ID` | `0add1ab8e89c1da5cbeacd743c71b254` |
-| `CLOUDFLARE_API_TOKEN` | `5-MjlsFQIDg13qiBxclv2883uLG1eOktw_n5vd_-` |
-| `CLOUDFLARE_R2_ACCESS_KEY_ID` | `61ac0fe5f2319f1bc9e337f14ffaa6a9` |
+| `CLOUDFLARE_ACCOUNT_ID` | `<seu-account-id>` |
+| `CLOUDFLARE_API_TOKEN` | `<seu-api-token>` |
+| `CLOUDFLARE_R2_ACCESS_KEY_ID` | `<seu-r2-access-key-id>` |
 | `CLOUDFLARE_R2_BUCKET` | `gramatike` |
-| `CLOUDFLARE_R2_PUBLIC_URL` | `https://pub-66c93dcfe2824d17a97ed607b0a8e3d1.r2.dev` |
-| `CLOUDFLARE_R2_S3_ENDPOINT` | `https://0add1ab8e89c1da5cbeacd743c71b254.r2.cloudflarestorage.com` |
-| `CLOUDFLARE_R2_SECRET_ACCESS_KEY` | `14404703da060469c45fcca6044e89eef2992729ac169d4c778f9a0ffe45063a` |
-| `MAIL_DEFAULT_SENDER` | `no-replay@gramatike.com.br` |
-| `MAIL_PASSWORD` | `ZjKEdJzXQ7ngky3f` |
+| `CLOUDFLARE_R2_PUBLIC_URL` | `<sua-url-publica-r2>` |
+| `CLOUDFLARE_R2_S3_ENDPOINT` | `<seu-s3-endpoint-r2>` |
+| `CLOUDFLARE_R2_SECRET_ACCESS_KEY` | `<seu-r2-secret-access-key>` |
+| `MAIL_DEFAULT_SENDER` | `no-reply@gramatike.com.br` |
+| `MAIL_PASSWORD` | `<sua-senha-smtp>` |
 | `MAIL_PORT` | `587` |
 | `MAIL_SENDER_NAME` | `Gramátike` |
 | `MAIL_SERVER` | `smtp-relay.brevo.com` |
-| `MAIL_USERNAME` | `96ece6002@smtp-brevo.com` |
+| `MAIL_USERNAME` | `<seu-usuario-smtp>` |
 | `MAIL_USE_TLS` | `true` |
-| `SECRET_KEY` | *(seu valor secreto)* |
+| `SECRET_KEY` | `<sua-chave-secreta-32-chars>` |
 
 ### 6. Resetar Banco D1
 
