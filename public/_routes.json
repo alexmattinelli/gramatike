@@ -6,6 +6,14 @@
   "exclude": [
     "/static/*",
     "/favicon.ico",
-    "/robots.txt"
+    "/robots.txt",
+    "/sitemap.xml",
+    "/manifest.json",
+    "/*.png",
+    "/*.jpg",
+    "/*.jpeg",
+    "/*.svg",
+    "/*.gif",
+    "/*.webp"
   ]
 }
