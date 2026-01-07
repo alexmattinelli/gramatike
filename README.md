@@ -23,8 +23,8 @@ Veja as instruções completas em [CLOUDFLARE_PAGES_SETUP.md](./CLOUDFLARE_PAGES
 1. Conectar repositório ao Cloudflare Pages
 2. Build command: `npm run build`
 3. Build output: `public`
-4. Adicionar D1 binding: `DB` → `gramatike`
-5. Resetar banco: `wrangler d1 execute gramatike --file=./schema.d1.sql --remote`
+4. Adicionar D1 binding: `DB` → seu banco D1 (ex: `gramatike`)
+5. Resetar banco: `wrangler d1 execute <seu-banco-d1> --file=./schema.d1.sql --remote`
 
 ### Deploy Automático (Recomendado)
 
