@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gramátike - Login/Cadastro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mansalva&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #c08adc 0%, #a76bc4 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -17,25 +18,25 @@
         }
         .container { max-width: 400px; width: 100%; }
         .header { text-align: center; margin-bottom: 30px; color: white; }
-        .header h1 { font-size: 36px; margin-bottom: 10px; }
+        .header h1 { font-family: 'Mansalva', cursive; font-size: 36px; margin-bottom: 10px; }
         .header p { opacity: 0.9; }
-        .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .card { background: white; border-radius: 16px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
         .tabs { display: flex; gap: 10px; margin-bottom: 25px; }
-        .tab { flex: 1; padding: 12px; border: none; background: #f3f4f6; cursor: pointer; border-radius: 6px; font-size: 14px; font-weight: 500; transition: all 0.2s; }
-        .tab.active { background: #667eea; color: white; }
+        .tab { flex: 1; padding: 12px; border: none; background: #f3f4f6; cursor: pointer; border-radius: 8px; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .tab.active { background: #c08adc; color: white; }
         .tab:hover:not(.active) { background: #e5e7eb; }
         .form { display: none; }
         .form.active { display: block; }
         .form-group { margin-bottom: 16px; }
         label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; color: #374151; }
-        input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
-        input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-        button[type="submit"] { width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        button[type="submit"]:hover { background: #5568d3; }
+        input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
+        input:focus { outline: none; border-color: #c08adc; box-shadow: 0 0 0 3px rgba(192, 138, 220, 0.1); }
+        button[type="submit"] { width: 100%; padding: 12px; background: #c08adc; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        button[type="submit"]:hover { background: #a76bc4; }
         button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
-        .error { background: #fee; border: 1px solid #fcc; color: #c33; padding: 12px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; display: none; }
+        .error { background: #fee; border: 1px solid #fcc; color: #c33; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; display: none; }
         .error.show { display: block; }
-        .success { background: #efe; border: 1px solid #cfc; color: #3c3; padding: 12px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; display: none; }
+        .success { background: #efe; border: 1px solid #cfc; color: #3c3; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; display: none; }
         .success.show { display: block; }
     </style>
 </head>
