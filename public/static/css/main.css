@@ -1,0 +1,84 @@
+/* Custom styles for Gramátike - Minimal CSS */
+/* Most styling is done via Tailwind CSS CDN */
+
+/* Fonts */
+body {
+    font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+.logo {
+    font-family: 'Mansalva', cursive;
+}
+
+/* Smooth transitions */
+* {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #9B5DE5;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #7B3DC5;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Link hover effects */
+a {
+    text-decoration: none;
+}
+
+/* Focus visible for accessibility */
+*:focus-visible {
+    outline: 2px solid #9B5DE5;
+    outline-offset: 2px;
+}
+
+/* Image loading placeholder */
+img {
+    background-color: #f3f4f6;
+}
+
+/* Prevent text selection on buttons */
+button {
+    user-select: none;
+}

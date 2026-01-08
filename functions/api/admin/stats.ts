@@ -28,11 +28,19 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env, data }) =
     'SELECT p.id, p.conteudo, p.data, u.username FROM post p LEFT JOIN user u ON p.usuarie_id = u.id WHERE p.is_deleted = 0 ORDER BY p.data DESC LIMIT 10'
   ).all();
   
+  // Get activity for today
+  const today = new Date().toISOString().split('T')[0];
+  const todayActivity = await env.DB.prepare(
+    'SELECT COUNT(*) as count FROM post WHERE DATE(data) = ? AND is_deleted = 0'
+  ).bind(today).first<{ count: number }>();
+  
   return successResponse({
-    stats: {
-      users: userCount?.count || 0,
-      posts: postCount?.count || 0,
-      education: eduCount?.count || 0
+    total_users: userCount?.count || 0,
+    total_posts: postCount?.count || 0,
+    activity_today: todayActivity?.count || 0,
+    activity_chart: {
+      labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+      posts: [5, 8, 12, 6, 15, 10, 7] // TODO: Get real data from last 7 days
     },
     recentUsers: recentUsers.results || [],
     recentPosts: recentPosts.results || []

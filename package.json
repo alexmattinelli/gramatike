@@ -1,9 +1,9 @@
 {
 	"name": "gramatike",
-	"version": "2.1.0",
+	"version": "2.2.0",
 	"type": "module",
 	"private": true,
-	"description": "Rede social educativa de português - TypeScript Edition",
+	"description": "Rede social educativa de português - MVP Refatorado",
 	"scripts": {
 		"clean:python": "find . -name '*.py' -not -path './.git/*' -delete && find . -name 'requirements.txt' -delete && find . -name '.python-version' -delete && find . -type d -name '__pycache__' -exec rm -rf {} + || true",
 		"prebuild": "npm run clean:python",

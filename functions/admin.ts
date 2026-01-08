@@ -1,9 +1,10 @@
-// Serve exercicios.html template
+// Admin page handler
 import { Env } from '../src/types';
 
 export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   try {
-    const response = await env.ASSETS.fetch(new URL('/templates/exercicios.html', request.url));
+    // Serve admin.html template
+    const response = await env.ASSETS.fetch(new URL('/templates/admin.html', request.url));
     
     if (!response.ok) {
       return new Response('Página não encontrada', { status: 404 });
@@ -16,7 +17,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       }
     });
   } catch (error) {
-    console.error('[exercicios] Error:', error);
+    console.error('[admin] Error:', error);
     return new Response('Erro ao carregar página', { status: 500 });
   }
 };
