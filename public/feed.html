@@ -1,208 +1,645 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Gramatike</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link href="https://fonts.googleapis.com/css2?family=Mansalva&display=swap" rel="stylesheet">
-
-<style>
-:root{
-  --roxo:#9b6cf3;
-  --roxo-claro:#f2ebff;
-  --fundo:#f6f7fb;
-  --texto:#3a2f5c;
-  --cinza:#9a93b5;
-  --card:#ffffff;
-  --borda:#eee8ff;
-  --raio:22px;
-  --sombra:0 10px 35px rgba(155,108,243,.18);
-}
-
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--fundo);
-  color:var(--texto);
-}
-
-/* HEADER */
-header{
-  background:var(--roxo);
-  padding:18px 0;
-}
-
-.top{
-  max-width:1200px;
-  margin:0 auto;
-  padding:0 24px;
-  display:flex;
-  align-items:center;
-  gap:18px;
-}
-
-.logo{
-  font-family:'Mansalva',cursive;
-  font-size:28px;
-  color:#fff;
-  white-space:nowrap;
-}
-
-.search{
-  flex:1;
-  display:flex;
-  background:#fff;
-  border-radius:999px;
-  padding:6px;
-  box-shadow:0 4px 18px rgba(0,0,0,.12);
-}
-
-.search input{
-  flex:1;
-  border:none;
-  outline:none;
-  padding:0 16px;
-  font-size:15px;
-}
-
-.search button{
-  width:42px;
-  height:42px;
-  border:none;
-  border-radius:50%;
-  background:var(--roxo);
-  color:#fff;
-  cursor:pointer;
-}
-
-.actions{
-  display:flex;
-  gap:12px;
-}
-
-.circle{
-  width:42px;
-  height:42px;
-  border-radius:50%;
-  background:#fff;
-  color:var(--roxo);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
-  box-shadow:0 4px 18px rgba(0,0,0,.15);
-  cursor:pointer;
-}
-
-/* LAYOUT */
-main{
-  max-width:1200px;
-  margin:28px auto;
-  padding:0 24px;
-  display:grid;
-  grid-template-columns:1fr 340px;
-  gap:28px;
-}
-
-/* FEED */
-.feed{
-  background:var(--card);
-  border-radius:var(--raio);
-  box-shadow:var(--sombra);
-  padding:60px 40px;
-  text-align:center;
-  color:var(--cinza);
-  font-style:italic;
-  font-size:16px;
-}
-
-/* SIDEBAR */
-.sidebar{
-  display:flex;
-  flex-direction:column;
-  gap:22px;
-}
-
-.card{
-  background:var(--card);
-  border-radius:var(--raio);
-  box-shadow:var(--sombra);
-  padding:22px;
-  border:1px solid var(--borda);
-}
-
-.card h3{
-  margin:0 0 14px;
-  font-size:18px;
-  font-weight:600;
-}
-
-.inner{
-  background:var(--roxo-claro);
-  border-radius:18px;
-  padding:18px;
-  color:var(--cinza);
-  text-align:center;
-  font-size:14px;
-}
-
-/* RESPONSIVO */
-@media(max-width:900px){
-  main{
-    grid-template-columns:1fr;
-  }
-}
-</style>
+  <meta charset="UTF-8">
+  <title>Gramatike Feed</title>
+  <link href="https://fonts.googleapis.com/css2?family=Mansalva&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --roxo: #9B5DE5;
+      --roxo-claro: #f9f6ff;
+      --roxo-super-claro: #f7f2ff;
+      --lilas-light: #f6f5fa;
+      --card-radius: 22px;
+      --shadow-card: 0 6px 30px 0 #9b5de51a, 0 1px 4px #9B5DE521;
+      --shadow-btn: 0 1.5px 7px #9B5DE529;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: var(--lilas-light);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+    }
+    
+    /* NAVEGAÇÃO SIMPLES - APENAS LOGO NO CENTRO - COM CURVA NA PARTE DE BAIXO */
+    nav {
+      background: var(--roxo);
+      height: 70px; /* Aumentei um pouco para a curva ficar visível */
+      box-shadow: var(--shadow-card);
+      position: sticky; 
+      top: 0; 
+      z-index: 100;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* AQUI ESTÁ A CURVA NA TRANSIÇÃO ROXO ESCURO -> ROXO CLARO */
+      border-bottom-left-radius: 30px;
+      border-bottom-right-radius: 30px;
+    }
+    
+    .logo {
+      font-family: 'Mansalva', cursive;
+      font-size: 28px;
+      color: #fff;
+      letter-spacing: 0.2px;
+      margin-top: 5px; /* Ajuste por causa da curva */
+    }
+    
+    /* CONTEÚDO PRINCIPAL */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      gap: 20px;
+    }
+    
+    .main-content {
+      flex: 1;
+      width: 600px;
+    }
+    
+    .sidebar {
+      width: 300px;
+      flex-shrink: 0;
+      margin-top: 10px;
+    }
+    
+    /* BARRA DE PESQUISA FORA DO HEADER */
+    .search-container {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: var(--shadow-btn);
+      height: 38px;
+      margin: 25px auto 15px; /* Aumentei a margem superior */
+      max-width: 600px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      border: 1px solid #f0e4fd;
+    }
+    
+    .search-container input {
+      border: none;
+      padding: 0 14px;
+      font-size: 16px;
+      outline: none;
+      background: transparent;
+      flex: 1;
+      height: 100%;
+      color: #6741af;
+    }
+    
+    .search-container button {
+      background: var(--roxo);
+      border: none;
+      color: #fff;
+      width: 43px;
+      height: 38px;
+      font-size: 21px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: filter .2s;
+    }
+    
+    /* BOTÃO + FORA DO HEADER */
+    .add-post-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--roxo);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      font-size: 28px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(155, 93, 229, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      z-index: 90;
+    }
+    
+    .add-post-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(155, 93, 229, 0.5);
+    }
+    
+    /* CARDS */
+    .form-card, .sidebar-card {
+      background: #fff;
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-card);
+      border: 1px solid #f0e4fd;
+    }
+    
+    .form-card {
+      margin-bottom: 20px;
+      padding: 20px;
+    }
+    
+    .sidebar-card {
+      margin-bottom: 15px;
+      padding: 15px;
+    }
+    
+    /* CARD ROXO CLARINHO - PEQUENO */
+    .light-purple-card {
+      background: var(--roxo-claro);
+      padding: 15px;
+      border-radius: var(--card-radius);
+      font-size: 14px;
+    }
+    
+    /* FORMULÁRIO DE POST */
+    .post-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .post-textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 12px;
+      font-size: 15px;
+      font-family: inherit;
+      border: none;
+      border-radius: 12px;
+      background: var(--roxo-super-claro);
+      color: #333;
+      resize: vertical;
+      outline: none;
+    }
+    
+    .post-textarea:focus {
+      background: #fff;
+      box-shadow: 0 0 0 2px var(--roxo);
+    }
+    
+    .post-button {
+      align-self: flex-end;
+      background: var(--roxo);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      padding: 8px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-btn);
+    }
+    
+    .post-button:hover {
+      transform: translateY(-2px);
+    }
+    
+    /* MENSAGEM SEM POSTS */
+    .no-posts {
+      background: #fff;
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-card);
+      padding: 40px 20px;
+      text-align: center;
+      color: #a8a8d0;
+      font-size: 16px;
+      font-style: italic;
+      border: 1px solid #f0e4fd;
+    }
+    
+    /* TÍTULOS PEQUENOS */
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #32264c;
+      margin-bottom: 12px;
+      display: block;
+    }
+    
+    /* AMIGUES - PEQUENO */
+    .empty-state {
+      text-align: center;
+      padding: 20px 10px;
+      color: #a8a8d0;
+      font-style: italic;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    
+    /* JOGO DA VELHA - PEQUENO */
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .game-info {
+      text-align: center;
+    }
+    
+    .game-title {
+      font-weight: 600;
+      color: #32264c;
+      font-size: 14px;
+      margin-bottom: 3px;
+    }
+    
+    .game-subtitle {
+      color: #a8a8d0;
+      font-size: 12px;
+    }
+    
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 5px;
+      width: 160px;
+      height: 160px;
+      margin: 0 auto;
+    }
+    
+    .cell {
+      background: var(--roxo-super-claro);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    
+    .cell:hover {
+      background: #ebddfa;
+    }
+    
+    .cell.x {
+      color: var(--roxo);
+    }
+    
+    .cell.o {
+      color: #00BBF9;
+    }
+    
+    .cell.winner {
+      background: #e9d8ff;
+    }
+    
+    /* BOTÃO REINICIAR - PEQUENO */
+    .restart-button {
+      background: var(--roxo);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 8px auto 0;
+      display: block;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-btn);
+    }
+    
+    .restart-button:hover {
+      transform: translateY(-2px);
+    }
+    
+    /* RESPONSIVO */
+    @media (max-width: 900px) {
+      .container {
+        flex-direction: column;
+        padding: 15px;
+      }
+      
+      .sidebar {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      
+      .add-post-btn {
+        bottom: 20px;
+        right: 20px;
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .logo {
+        font-size: 24px;
+      }
+      
+      nav {
+        height: 65px;
+        border-bottom-left-radius: 25px;
+        border-bottom-right-radius: 25px;
+      }
+      
+      .search-container {
+        margin: 20px 15px 15px;
+      }
+      
+      .form-card, .sidebar-card {
+        padding: 15px;
+      }
+      
+      .board {
+        width: 140px;
+        height: 140px;
+      }
+      
+      .cell {
+        font-size: 24px;
+      }
+    }
+  </style>
 </head>
-
 <body>
-
-<header>
-  <div class="top">
-    <div class="logo">gramatike</div>
-
-    <div class="search">
-      <input placeholder="Pesquisar">
-      <button>🔍</button>
+  <!-- NAVEGAÇÃO SIMPLES COM CURVA NA PARTE DE BAIXO -->
+  <nav>
+    <div class="logo">Gramátike</div>
+  </nav>
+  
+  <!-- BARRA DE PESQUISA (FORA DO HEADER) -->
+  <div class="search-container">
+    <input type="text" placeholder="Pesquisar" id="searchInput">
+    <button type="button" id="searchButton">
+      🔍
+    </button>
+  </div>
+  
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="container">
+    <!-- FEED PRINCIPAL -->
+    <div class="main-content">
+      <!-- FORMULÁRIO DE POST -->
+      <div class="form-card">
+        <form class="post-form" id="postForm">
+          <textarea 
+            class="post-textarea" 
+            placeholder="O que você está pensando?"
+            maxlength="500"
+          ></textarea>
+          <button type="submit" class="post-button">
+            Publicar
+          </button>
+        </form>
+      </div>
+      
+      <!-- SEM POSTS -->
+      <div class="no-posts">
+        Sem posts no momento
+      </div>
     </div>
-
-    <div class="actions">
-      <div class="circle">+</div>
-      <div class="circle">👤</div>
+    
+    <!-- SIDEBAR (LADO DIREITO, PEQUENO) -->
+    <div class="sidebar">
+      <!-- AMIGUES -->
+      <div class="sidebar-card">
+        <span class="section-title">Amigues</span>
+        <div class="light-purple-card">
+          <div class="empty-state">
+            Sem amigues ainda. Faça amizades para aparecerem aqui.
+          </div>
+        </div>
+      </div>
+      
+      <!-- JOGO DA VELHA -->
+      <div class="sidebar-card">
+        <span class="section-title">Jogo da Velha</span>
+        <div class="light-purple-card">
+          <div class="game-container">
+            <div class="game-info">
+              <div class="game-title" id="gameTitle">Jogue contra o Rebao</div>
+              <div class="game-subtitle" id="gameSubtitle">Sua vez: X</div>
+            </div>
+            
+            <div class="board" id="board">
+              <div class="cell" data-index="0"></div>
+              <div class="cell" data-index="1"></div>
+              <div class="cell" data-index="2"></div>
+              <div class="cell" data-index="3"></div>
+              <div class="cell" data-index="4"></div>
+              <div class="cell" data-index="5"></div>
+              <div class="cell" data-index="6"></div>
+              <div class="cell" data-index="7"></div>
+              <div class="cell" data-index="8"></div>
+            </div>
+            
+            <button class="restart-button" onclick="resetGame()">
+              Reiniciar
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</header>
+  
+  <!-- BOTÃO + FLUTUANTE -->
+  <button class="add-post-btn" id="addPostBtn">
+    <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  </button>
 
-<main>
-
-  <!-- FEED VAZIO -->
-  <section class="feed">
-    Nenhuma publicação por aqui ainda
-  </section>
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-
-    <div class="card">
-      <h3>Amigues</h3>
-      <div class="inner">
-        Sem amigues ainda. Faça amizades para aparecerem aqui.
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Espaço extra</h3>
-      <div class="inner">
-        Conteúdo futuro pode aparecer aqui.
-      </div>
-    </div>
-
-  </aside>
-
-</main>
-
+  <script>
+    // ========== JOGO DA VELHA ==========
+    let currentPlayer = 'X';
+    let gameBoard = ['', '', '', '', '', '', '', '', ''];
+    let gameActive = true;
+    
+    const cells = document.querySelectorAll('.cell');
+    const gameTitle = document.getElementById('gameTitle');
+    const gameSubtitle = document.getElementById('gameSubtitle');
+    
+    cells.forEach(cell => {
+      cell.addEventListener('click', () => {
+        const index = parseInt(cell.dataset.index);
+        makeMove(index);
+      });
+    });
+    
+    function makeMove(index) {
+      if (!gameActive || gameBoard[index] !== '') return;
+      
+      gameBoard[index] = currentPlayer;
+      cells[index].classList.add(currentPlayer.toLowerCase());
+      
+      const winningPattern = checkWinner();
+      if (winningPattern) {
+        gameActive = false;
+        highlightWinningCells(winningPattern);
+        gameTitle.textContent = 'Você venceu! 🎉';
+        gameSubtitle.textContent = 'Clique em Reiniciar';
+        return;
+      }
+      
+      if (isBoardFull()) {
+        gameActive = false;
+        gameTitle.textContent = 'Empate! 🤝';
+        gameSubtitle.textContent = 'Clique em Reiniciar';
+        return;
+      }
+      
+      currentPlayer = 'O';
+      gameSubtitle.textContent = 'Vez do Rebao: O';
+      
+      setTimeout(computerMove, 500);
+    }
+    
+    function computerMove() {
+      if (!gameActive) return;
+      
+      let move = findWinningMove('O') || findWinningMove('X') || findRandomMove();
+      
+      if (move !== null) {
+        gameBoard[move] = 'O';
+        cells[move].classList.add('o');
+        
+        const winningPattern = checkWinner();
+        if (winningPattern) {
+          gameActive = false;
+          highlightWinningCells(winningPattern);
+          gameTitle.textContent = 'Rebao venceu! 😢';
+          gameSubtitle.textContent = 'Clique em Reiniciar';
+          return;
+        }
+        
+        if (isBoardFull()) {
+          gameActive = false;
+          gameTitle.textContent = 'Empate! 🤝';
+          gameSubtitle.textContent = 'Clique em Reiniciar';
+          return;
+        }
+        
+        currentPlayer = 'X';
+        gameSubtitle.textContent = 'Sua vez: X';
+      }
+    }
+    
+    function findWinningMove(player) {
+      const winPatterns = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
+      ];
+      
+      for (const pattern of winPatterns) {
+        const [a, b, c] = pattern;
+        const values = [gameBoard[a], gameBoard[b], gameBoard[c]];
+        
+        const playerCount = values.filter(v => v === player).length;
+        const emptyCount = values.filter(v => v === '').length;
+        
+        if (playerCount === 2 && emptyCount === 1) {
+          if (gameBoard[a] === '') return a;
+          if (gameBoard[b] === '') return b;
+          if (gameBoard[c] === '') return c;
+        }
+      }
+      return null;
+    }
+    
+    function findRandomMove() {
+      const emptyCells = gameBoard
+        .map((cell, index) => cell === '' ? index : null)
+        .filter(index => index !== null);
+      
+      if (emptyCells.length > 0) {
+        return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      }
+      return null;
+    }
+    
+    function checkWinner() {
+      const winPatterns = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
+      ];
+      
+      for (const pattern of winPatterns) {
+        const [a, b, c] = pattern;
+        if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+          return pattern;
+        }
+      }
+      return null;
+    }
+    
+    function highlightWinningCells(pattern) {
+      pattern.forEach(index => {
+        cells[index].classList.add('winner');
+      });
+    }
+    
+    function isBoardFull() {
+      return gameBoard.every(cell => cell !== '');
+    }
+    
+    function resetGame() {
+      gameBoard = ['', '', '', '', '', '', '', '', ''];
+      currentPlayer = 'X';
+      gameActive = true;
+      
+      cells.forEach(cell => {
+        cell.classList.remove('x', 'o', 'winner');
+      });
+      
+      gameTitle.textContent = 'Jogue contra o Rebao';
+      gameSubtitle.textContent = 'Sua vez: X';
+    }
+    
+    // ========== FORMULÁRIO DE POST ==========
+    document.getElementById('postForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const textarea = this.querySelector('textarea');
+      const content = textarea.value.trim();
+      
+      if (content) {
+        console.log('Novo post:', content);
+        textarea.value = '';
+        alert('Post publicado!');
+      }
+    });
+    
+    // ========== BOTÃO + FLUTUANTE ==========
+    document.getElementById('addPostBtn').addEventListener('click', function() {
+      document.querySelector('.post-textarea').focus();
+    });
+    
+    // ========== BARRA DE PESQUISA ==========
+    document.getElementById('searchButton').addEventListener('click', function() {
+      const query = document.getElementById('searchInput').value.trim();
+      if (query) {
+        alert(`Buscando por: "${query}"`);
+        document.getElementById('searchInput').value = '';
+      }
+    });
+    
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('searchButton').click();
+      }
+    });
+  </script>
 </body>
 </html>
