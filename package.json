@@ -1,25 +1,22 @@
 {
-	"name": "gramatike",
-	"version": "2.2.0",
+	"name": "gramatike-v2",
+	"version": "2.0.0",
 	"type": "module",
 	"private": true,
-	"description": "Rede social educativa de português - MVP Refatorado",
+	"description": "Gramátike v2 - Fresh Start: Rede social educativa de português",
 	"scripts": {
-		"clean:python": "find . -name '*.py' -not -path './.git/*' -delete && find . -name 'requirements.txt' -delete && find . -name '.python-version' -delete && find . -type d -name '__pycache__' -exec rm -rf {} + || true",
-		"prebuild": "npm run clean:python",
-		"build": "echo '✅ Build complete - TypeScript Cloudflare Pages Functions ready'",
-		"dev": "wrangler pages dev public --compatibility-date=2026-01-06",
+		"dev": "wrangler pages dev public --compatibility-date=2026-01-08",
+		"build": "tsc",
 		"deploy": "wrangler pages deploy public",
-		"db:migrate": "wrangler d1 execute gramatike --file=./schema.d1.sql",
+		"db:init": "wrangler d1 execute gramatike-v2 --file=./db/schema.sql",
+		"db:seed": "wrangler d1 execute gramatike-v2 --file=./db/seed.sql",
+		"db:reset": "npm run db:init && npm run db:seed",
 		"typecheck": "tsc --noEmit"
 	},
-	"dependencies": {
-		"@cloudflare/workers-types": "^4.20250106.0"
-	},
 	"devDependencies": {
-		"@types/node": "^20.0.0",
+		"@cloudflare/workers-types": "^4.20260108.0",
 		"typescript": "^5.3.0",
-		"wrangler": "^4.54.0"
+		"wrangler": "^4.58.0"
 	},
 	"engines": {
 		"node": ">=20.0.0"

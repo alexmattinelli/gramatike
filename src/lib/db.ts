@@ -7,7 +7,7 @@ import type { User, Post, Comment, Session } from '../types';
  */
 export async function getUserById(db: D1Database, id: number): Promise<User | null> {
   const { results } = await db.prepare('SELECT * FROM users WHERE id = ?').bind(id).all();
-  return results[0] as User || null;
+  return (results[0] as unknown as User) || null;
 }
 
 /**
@@ -15,7 +15,7 @@ export async function getUserById(db: D1Database, id: number): Promise<User | nu
  */
 export async function getUserByUsername(db: D1Database, username: string): Promise<User | null> {
   const { results } = await db.prepare('SELECT * FROM users WHERE username = ?').bind(username).all();
-  return results[0] as User || null;
+  return (results[0] as unknown as User) || null;
 }
 
 /**
@@ -23,7 +23,7 @@ export async function getUserByUsername(db: D1Database, username: string): Promi
  */
 export async function getUserByEmail(db: D1Database, email: string): Promise<User | null> {
   const { results } = await db.prepare('SELECT * FROM users WHERE email = ?').bind(email).all();
-  return results[0] as User || null;
+  return (results[0] as unknown as User) || null;
 }
 
 /**
@@ -38,7 +38,7 @@ export async function createUser(db: D1Database, data: {
   const { results } = await db.prepare(
     'INSERT INTO users (username, email, password, name) VALUES (?, ?, ?, ?) RETURNING *'
   ).bind(data.username, data.email, data.password, data.name || null).all();
-  return results[0] as User;
+  return results[0] as unknown as User;
 }
 
 /**
@@ -61,7 +61,7 @@ export async function getPosts(db: D1Database, limit = 20, offset = 0, userId?: 
   
   const bindings = userId ? [userId, limit, offset] : [limit, offset];
   const { results } = await db.prepare(query).bind(...bindings).all();
-  return results as Post[];
+  return results as unknown as Post[];
 }
 
 /**
@@ -71,7 +71,7 @@ export async function createPost(db: D1Database, userId: number, content: string
   const { results } = await db.prepare(
     'INSERT INTO posts (user_id, content, image) VALUES (?, ?, ?) RETURNING *'
   ).bind(userId, content, image || null).all();
-  return results[0] as Post;
+  return results[0] as unknown as Post;
 }
 
 /**
@@ -98,7 +98,7 @@ export async function createSession(db: D1Database, userId: number, token: strin
   const { results } = await db.prepare(
     'INSERT INTO sessions (user_id, token, expires_at) VALUES (?, ?, ?) RETURNING *'
   ).bind(userId, token, expiresAt).all();
-  return results[0] as Session;
+  return results[0] as unknown as Session;
 }
 
 /**
@@ -108,7 +108,7 @@ export async function getSessionByToken(db: D1Database, token: string): Promise<
   const { results } = await db.prepare(
     "SELECT * FROM sessions WHERE token = ? AND expires_at > datetime('now')"
   ).bind(token).all();
-  return results[0] as Session || null;
+  return (results[0] as unknown as Session) || null;
 }
 
 /**
