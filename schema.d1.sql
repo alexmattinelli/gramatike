@@ -113,7 +113,12 @@ CREATE INDEX idx_post_likes_post ON post_likes(post_id);
 CREATE INDEX idx_post_likes_user ON post_likes(usuarie_id);
 CREATE INDEX idx_comentario_post ON comentario(post_id);
 
+-- Default admin user
+-- IMPORTANTE: Trocar a senha após primeiro login!
+-- Usuário: gramatike
+-- Senha padrão: GramatikeAdmin2026!
+-- (Hash gerado com PBKDF2, 100000 iterações, SHA-256)
 INSERT INTO user (username, email, password, nome, is_superadmin, is_admin)
-VALUES ('gramatike', 'contato@gramatike.com', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'Admin', 1, 1);
+VALUES ('gramatike', 'contato@gramatike.com', 'xabUz+XzvaA32RyJ85JjuyBZdQGe6+ZO1k7QypqNSHwO4YmxYKgRZE9jvGKqMlpr', 'Admin', 1, 1);
 
 INSERT INTO divulgacao (titulo, texto) VALUES ('Bem-vindo!', 'Rede social educativa de português');

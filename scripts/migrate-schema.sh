@@ -4,7 +4,11 @@
 
 set -e
 
+# Database name (default: gramatike, can be overridden with DB_NAME env var)
+DB_NAME="${DB_NAME:-gramatike}"
+
 echo "🔄 Aplicando schema no D1..."
+echo "📊 Database: $DB_NAME"
 echo ""
 
 # Verificar se wrangler está instalado
@@ -22,7 +26,7 @@ fi
 
 # Aplicar schema localmente
 echo "📍 Aplicando schema no D1 local..."
-wrangler d1 execute gramatike --local --file=./schema.d1.sql
+wrangler d1 execute "$DB_NAME" --local --file=./schema.d1.sql
 
 echo ""
 echo "✅ Schema aplicado com sucesso no ambiente local!"
@@ -41,7 +45,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     if [ "$confirm" = "SIM" ]; then
         echo ""
         echo "📍 Aplicando schema no D1 remoto (produção)..."
-        wrangler d1 execute gramatike --remote --file=./schema.d1.sql
+        wrangler d1 execute "$DB_NAME" --remote --file=./schema.d1.sql
         echo ""
         echo "✅ Schema aplicado com sucesso em produção!"
     else
@@ -52,7 +56,7 @@ else
     echo ""
     echo "ℹ️  Schema aplicado apenas localmente."
     echo "   Para aplicar em produção manualmente, execute:"
-    echo "   wrangler d1 execute gramatike --remote --file=./schema.d1.sql"
+    echo "   wrangler d1 execute $DB_NAME --remote --file=./schema.d1.sql"
 fi
 
 echo ""
