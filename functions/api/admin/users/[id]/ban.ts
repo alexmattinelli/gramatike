@@ -1,42 +1,35 @@
 // Admin Ban User API
-import type { Env, User } from '../../../../../src/types';
+import type { PagesFunction } from '@cloudflare/workers-types';
+import type { Env } from '../../../../../src/types';
 import { isAdmin } from '../../../../../src/lib/auth';
-import { errorResponse, successResponse } from '../../../../../src/lib/utils';
+import { errorResponse, jsonResponse } from '../../../../../src/lib/response';
+import { banUser } from '../../../../../src/lib/db';
 
 /**
- * POST /api/admin/users/[id]/ban - Ban or unban a user
+ * POST /api/admin/users/[id]/ban - Ban a user
  */
-export const onRequestPost: PagesFunction<Env> = async ({ request, env, data, params }) => {
-  const user = data.user as User;
+export const onRequestPost: PagesFunction<Env> = async ({ env, data, params }) => {
+  const user = data.user;
   
   if (!user || !isAdmin(user)) {
     return errorResponse('Acesso negado', 403);
   }
   
-  const userId = params.id as string;
+  const userId = parseInt(params.id as string);
   
-  if (!userId) {
-    return errorResponse('ID do usuário não fornecido', 400);
+  if (isNaN(userId)) {
+    return errorResponse('ID do usuário inválido', 400);
   }
   
   try {
-    const body = await request.json() as { is_banned: boolean };
-    const isBanned = body.is_banned ?? true;
+    await banUser(env.DB, userId);
     
-    // Update user ban status
-    await env.DB.prepare(`
-      UPDATE user 
-      SET is_banned = ? 
-      WHERE id = ?
-    `).bind(isBanned ? 1 : 0, userId).run();
-    
-    return successResponse({
-      message: isBanned ? 'Usuário banido' : 'Usuário desbanido',
-      userId,
-      is_banned: isBanned
+    return jsonResponse({
+      success: true,
+      message: 'Usuário banido'
     });
   } catch (error) {
     console.error('[admin/ban] Error:', error);
-    return errorResponse('Erro ao atualizar status do usuário', 500);
+    return errorResponse('Erro ao banir usuário', 500);
   }
 };

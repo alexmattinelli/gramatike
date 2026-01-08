@@ -1,63 +1,26 @@
-// Admin Users API
-import type { Env, User } from '../../../src/types';
+// Admin Users API - List all users
+import type { PagesFunction } from '@cloudflare/workers-types';
+import type { Env } from '../../../src/types';
 import { isAdmin } from '../../../src/lib/auth';
-import { errorResponse, successResponse } from '../../../src/lib/utils';
+import { errorResponse, jsonResponse } from '../../../src/lib/response';
+import { getAllUsers } from '../../../src/lib/db';
 
 /**
- * GET /api/admin/users - Get users list with pagination
+ * GET /api/admin/users - Get all users
  */
-export const onRequestGet: PagesFunction<Env> = async ({ request, env, data }) => {
-  const user = data.user as User;
+export const onRequestGet: PagesFunction<Env> = async ({ env, data }) => {
+  const user = data.user;
   
   if (!user || !isAdmin(user)) {
     return errorResponse('Acesso negado', 403);
   }
   
-  const url = new URL(request.url);
-  const page = parseInt(url.searchParams.get('page') || '1');
-  const perPage = 20;
-  const offset = (page - 1) * perPage;
-  
   try {
-    // Get users with pagination
-    const users = await env.DB.prepare(`
-      SELECT 
-        id, 
-        username, 
-        email, 
-        nome,
-        foto_perfil,
-        created_at, 
-        is_admin, 
-        is_superadmin,
-        is_banned,
-        verified
-      FROM user 
-      ORDER BY created_at DESC 
-      LIMIT ? OFFSET ?
-    `).bind(perPage, offset).all();
+    const users = await getAllUsers(env.DB);
     
-    return successResponse({
-      users: users.results || [],
-      page,
-      perPage
-    });
+    return jsonResponse({ users });
   } catch (error) {
     console.error('[admin/users] Error:', error);
     return errorResponse('Erro ao buscar usuários', 500);
   }
-};
-
-/**
- * PATCH /api/admin/users/:id - Update user (not used, see ban endpoint below)
- */
-export const onRequestPatch: PagesFunction<Env> = async ({ request, env, data }) => {
-  const user = data.user as User;
-  
-  if (!user || !isAdmin(user)) {
-    return errorResponse('Acesso negado', 403);
-  }
-  
-  // This endpoint can be used for future user updates
-  return errorResponse('Not implemented', 501);
 };

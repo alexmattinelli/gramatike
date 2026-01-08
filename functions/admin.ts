@@ -10,12 +10,12 @@ export const onRequestGet: PagesFunction<Env> = async ({ data, env }) => {
   
   // Require login
   if (!user) {
-    return redirectResponse('/login');
+    return redirectResponse('/');
   }
   
   // Require admin
   if (!isAdmin(user)) {
-    return errorResponse('Sem permissão', 403);
+    return redirectResponse('/feed');
   }
   
   // Serve HTML from public directory

@@ -7,10 +7,9 @@ import { getPosts, createPost } from '../../../src/lib/db';
 import { isValidPostContent } from '../../../src/lib/validation';
 import { jsonResponse, errorResponse } from '../../../src/lib/response';
 
-export const onRequestGet: PagesFunction<Env> = async ({ env, data }) => {
+export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
   try {
-    const userId = data.user?.id;
-    const posts = await getPosts(env.DB, 20, 0, userId);
+    const posts = await getPosts(env.DB, 50, 0);
     
     return jsonResponse({ posts });
   } catch (error) {
@@ -26,22 +25,19 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env, data }) 
       return errorResponse('Não autorizado', 401);
     }
     
-    const { content, image } = await request.json();
+    const { content } = await request.json();
     
     if (!isValidPostContent(content)) {
       return errorResponse('Conteúdo inválido (1-5000 caracteres)', 400);
     }
     
-    const post = await createPost(env.DB, user.id, content, image);
+    const post = await createPost(env.DB, user.id, content);
     
     // Add user info to post
     const postWithUser = {
       ...post,
       username: user.username,
-      name: user.name,
-      avatar: user.avatar,
-      likes_count: 0,
-      comments_count: 0
+      name: user.name
     };
     
     return jsonResponse({ post: postWithUser }, 201);
