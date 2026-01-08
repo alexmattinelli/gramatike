@@ -21,6 +21,8 @@ fi
 # Verificar se o arquivo schema existe
 if [ ! -f "./schema.d1.sql" ]; then
     echo "❌ Erro: schema.d1.sql não encontrado"
+    echo "   O arquivo deve estar na raiz do projeto."
+    echo "   Verifique se você está executando o script do diretório correto."
     exit 1
 fi
 

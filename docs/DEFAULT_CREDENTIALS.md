@@ -1,5 +1,13 @@
 # 🔐 Credenciais Padrão do Admin
 
+## ⚠️ ATENÇÃO - LEIA ISTO PRIMEIRO! ⚠️
+
+> **IMPORTANTE**: As credenciais abaixo são **temporárias** e devem ser alteradas **IMEDIATAMENTE** após o primeiro login!
+> 
+> **NÃO USE ESTAS CREDENCIAIS EM PRODUÇÃO** sem alterá-las primeiro.
+
+---
+
 ## Usuário Admin Padrão
 
 Após aplicar o schema D1, um usuário admin é criado automaticamente:
