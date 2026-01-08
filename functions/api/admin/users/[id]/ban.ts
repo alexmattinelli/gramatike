@@ -1,6 +1,6 @@
 // Admin Ban User API
 import type { PagesFunction } from '@cloudflare/workers-types';
-import type { Env } from '../../../../../src/types';
+import type { Env, User, Session } from '../../../../../src/types';
 import { isAdmin } from '../../../../../src/lib/auth';
 import { errorResponse, jsonResponse } from '../../../../../src/lib/response';
 import { banUser } from '../../../../../src/lib/db';
@@ -9,7 +9,7 @@ import { banUser } from '../../../../../src/lib/db';
  * POST /api/admin/users/[id]/ban - Ban a user
  */
 export const onRequestPost: PagesFunction<Env> = async ({ env, data, params }) => {
-  const user = data.user;
+  const user = data.user as User;
   
   if (!user || !isAdmin(user)) {
     return errorResponse('Acesso negado', 403);

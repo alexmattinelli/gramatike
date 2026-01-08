@@ -5,6 +5,7 @@ export interface Env {
   R2_BUCKET: R2Bucket;
   SECRET_KEY?: string;
   ENVIRONMENT?: string;
+  ASSETS?: any;
 }
 
 export interface User {
@@ -36,6 +37,11 @@ export interface Session {
   token: string;
   created_at: string;
   expires_at: string;
+}
+
+export interface AuthContext {
+  user: User | null;
+  session: Session | null;
 }
 
 export interface ApiResponse<T = any> {

@@ -2,7 +2,7 @@
 // POST /api/posts - Create post
 
 import type { PagesFunction } from '@cloudflare/workers-types';
-import type { Env } from '../../../src/types';
+import type { Env, User } from '../../../src/types';
 import { getPosts, createPost } from '../../../src/lib/db';
 import { isValidPostContent } from '../../../src/lib/validation';
 import { jsonResponse, errorResponse } from '../../../src/lib/response';
@@ -20,12 +20,13 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env, data }) => {
   try {
-    const user = data.user;
+    const user = data.user as User;
     if (!user) {
       return errorResponse('Não autorizado', 401);
     }
     
-    const { content } = await request.json();
+    const body = await request.json() as { content: string };
+    const { content } = body;
     
     if (!isValidPostContent(content)) {
       return errorResponse('Conteúdo inválido (1-5000 caracteres)', 400);

@@ -11,7 +11,8 @@ import { createSessionCookie } from '../../../src/lib/auth';
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
-    const { username, email, password, name } = await request.json();
+    const body = await request.json() as { username: string; email: string; password: string; name?: string };
+    const { username, email, password, name } = body;
     
     // Validate input
     if (!username || !email || !password) {

@@ -2,13 +2,13 @@
 // DELETE /api/posts/:id - Delete post
 
 import type { PagesFunction } from '@cloudflare/workers-types';
-import type { Env } from '../../../src/types';
+import type { Env, User } from '../../../src/types';
 import { errorResponse, jsonResponse } from '../../../src/lib/response';
 import { isAdmin } from '../../../src/lib/auth';
 
 export const onRequestDelete: PagesFunction<Env> = async ({ params, env, data }) => {
   try {
-    const user = data.user;
+    const user = data.user as User;
     if (!user) {
       return errorResponse('Não autorizado', 401);
     }

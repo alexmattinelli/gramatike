@@ -1,6 +1,6 @@
 // Admin Users API - List all users
 import type { PagesFunction } from '@cloudflare/workers-types';
-import type { Env } from '../../../src/types';
+import type { Env, User } from '../../../src/types';
 import { isAdmin } from '../../../src/lib/auth';
 import { errorResponse, jsonResponse } from '../../../src/lib/response';
 import { getAllUsers } from '../../../src/lib/db';
@@ -9,7 +9,7 @@ import { getAllUsers } from '../../../src/lib/db';
  * GET /api/admin/users - Get all users
  */
 export const onRequestGet: PagesFunction<Env> = async ({ env, data }) => {
-  const user = data.user;
+  const user = data.user as User;
   
   if (!user || !isAdmin(user)) {
     return errorResponse('Acesso negado', 403);

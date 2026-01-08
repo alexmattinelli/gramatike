@@ -1,12 +1,12 @@
 // Admin dashboard page
 
 import type { PagesFunction } from '@cloudflare/workers-types';
-import type { Env } from '../src/types';
+import type { Env, User } from '../src/types';
 import { isAdmin } from '../src/lib/auth';
 import { redirectResponse, errorResponse } from '../src/lib/response';
 
 export const onRequestGet: PagesFunction<Env> = async ({ data, env }) => {
-  const user = data.user;
+  const user = data.user as User | null;
   
   // Require login
   if (!user) {
