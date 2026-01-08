@@ -7,191 +7,225 @@
   <style>
     :root {
       --lilas: #c08adc;
-      --roxo: #a76bc4;
-      --lilas-light: #f6f5fa;
-      --shadow: 0 2px 12px 2px #c08adc33;
+      --roxo: #a06bfa;
+      --roxo2: #9a63e3;
+      --roxo-grad1: #c08adc;
+      --roxo-grad2: #a76bc4;
+      --roxo-grad3: #8f6bf4;
+      --lilas-light: #fcfbff;
+      --shadow-card: 0 4px 24px 4px #bca6df1c, 0 1.5px 3px #c08adc21;
+      --shadow-light: 0 2px 9px 1px #dcd0ef57;
+      --input-bg: #fff;
     }
     body {
-      background: var(--lilas-light);
+      background: #f6f5fa;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
     }
     /* NAV */
     nav {
-      background: var(--lilas);
-      border-bottom-left-radius: 30px;
-      border-bottom-right-radius: 30px;
-      min-height: 58px;
-      box-shadow: var(--shadow);
-      padding: 0 0 6px 0;
+      background: linear-gradient(90deg, var(--roxo-grad1) 50%, var(--roxo-grad3) 98%);
+      border-bottom-left-radius: 32px;
+      border-bottom-right-radius: 32px;
+      min-height: 62px;
+      box-shadow: var(--shadow-card);
       position: sticky; top: 0; z-index: 100;
     }
     .nav-bar {
-      max-width: 1200px;
+      max-width: 1140px;
       margin: 0 auto;
       display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 14px 24px 10px 24px;
+      gap: 19px;
+      padding: 18px 28px 14px 28px;
       justify-content: flex-start;
     }
-    .nav-bar .logo {
+    .logo {
       font-family: 'Mansalva', cursive;
-      font-size: 26px;
+      font-size: 28px;
       color: #fff;
-      margin-right: 18px;
+      margin-right: 16px;
+      letter-spacing: 0.2px;
     }
     .search-bar {
       flex: 1;
       display: flex;
       align-items: center;
-      background: #fff;
+      background: var(--input-bg);
       border-radius: 18px;
-      box-shadow: var(--shadow);
-      margin-right: 14px;
-      height: 38px;
+      box-shadow: var(--shadow-light);
+      margin-right: 13px;
+      height: 40px;
     }
     .search-bar input {
       border: none;
       border-radius: 18px 0 0 18px;
-      padding: 0 14px;
+      padding: 0 16px;
       font-size: 16px;
       outline: none;
       background: transparent;
       flex: 1;
       height: 100%;
+      color: #786bb4;
+      font-weight: 500;
     }
     .search-bar button {
-      background: var(--roxo);
+      background: linear-gradient(80deg,var(--roxo-grad3) 25%, var(--roxo-grad1) 98%);
       border: none;
       color: #fff;
       border-radius: 0 18px 18px 0;
       width: 44px;
-      height: 38px;
-      font-size: 20px;
+      height: 40px;
+      font-size: 23px;
       cursor: pointer;
       box-shadow: none;
+      display: flex; align-items: center; justify-content: center;
+      transition: filter .2s;
     }
+    .search-bar button:hover { filter: brightness(1.13); }
+    /* NAV actions */
     .nav-actions {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       align-items: center;
     }
     .nav-btn, .nav-plus {
-      background: var(--roxo);
+      background: linear-gradient(90deg, var(--roxo-grad3) 60%, var(--roxo-grad1) 100%);
       color: #fff;
       border: none;
-      border-radius: 14px;
-      font-size: 22px;
-      width: 40px; height: 40px;
+      border-radius: 15px;
+      font-size: 23px;
+      width: 43px; height: 43px;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-card);
       cursor: pointer;
       transition: filter .2s;
+      font-weight: 600;
     }
-    .nav-btn:hover, .nav-plus:hover { filter: brightness(1.08); }
-    /* avatar @ do usuário logado */
+    .nav-btn:hover { filter: brightness(1.17); }
     .user-mini {
-      display: flex; align-items: center; gap:8px;
-      margin-left: 8px;
+      display: flex;
+      align-items: center; gap:9px;
     }
     .avatar-circulo {
-      width: 36px; height: 36px;
+      width: 38px; height: 38px;
       border-radius: 50%;
       background: #fff;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: var(--shadow);
+      box-shadow: 0 1px 10px 1px #d0bcf877;
+      border: 2.8px solid #f9f7fd;
+      box-sizing: border-box;
+      transition: box-shadow .14s;
     }
     .avatar-circulo img {
       width: 34px; height: 34px;
       border-radius: 50%; object-fit: cover;
+      border: none;
     }
     .user-at {
       font-weight: bold;
-      font-size: 15px;
-      color: #5c3585;
-      margin-top:2px;
+      font-size: 15.5px;
+      color: #563d7b;
       text-decoration: none;
-    }
-    /* cards do form e dos posts */
-    .feed-container {max-width: 700px;margin: 0 auto;}
-    .post-card, .form-card {
-      background: #fff;
-      border-radius: 24px;
-      box-shadow: var(--shadow);
-      margin: 18px 0;
-      padding: 26px 32px 22px 32px;
-      display: flex; flex-direction: column;
-      gap: 8px;
-      position: relative;
-    }
-    /* header do post */
-    .post-header {
-      display: flex; align-items: center; gap: 10px;
-      font-size: 15px;
-    }
-    .post-header .avatar-circulo {width:42px;height:42px;}
-    .post-header .avatar-circulo img {width:40px;height:40px;}
-    .post-header .user-at {font-size: 17px;}
-    .post-date {color: #a8a8d0; font-size: 13px; margin-left: 8px;}
-    .post-content {margin: 8px 0 2px 0; line-height: 1.7;}
-    .post-footer {
-      display: flex; align-items: center; gap: 14px; margin-top: 6px;
-    }
-    .acoes-btn {
-      display: flex; align-items: center; background: #fff;
-      border: 1.5px solid var(--lilas);
-      color: var(--lilas);
+      background: #efeafd;
       border-radius: 18px;
-      padding: 4px 19px;
-      font-size: 15px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background .2s, color .2s;
-      box-shadow: 0 1px 3px #c08adc19;
+      padding: 3px 15px 3px 10px;
+      letter-spacing: .1px;
+      margin-top:2px;
+      box-shadow: 0 2px 7px #efdfff1a;
+      transition: background .2s;
+      display: flex; align-items: center; height: 27px;
     }
-    .acoes-btn.selected, .acoes-btn:active, .acoes-btn:hover {
-      background: linear-gradient(80deg,#c08adc 65%,#a76bc4 102%);
-      color: #fff; border-color: #fff;
+    .user-at:hover {
+      background: linear-gradient(93deg,#a06bfa12 60%, #ece9fe 98%);
     }
-    /* form postar */
+    /* FEED */
+    .feed-container {max-width: 700px;margin: 0 auto;}
+    .form-card, .post-card {
+      background: #fff;
+      border-radius: 26px;
+      box-shadow: var(--shadow-card);
+      margin: 24px 0 0 0;
+      padding: 27px 34px 18px 34px;
+      display: flex; flex-direction: column; gap: 8px; position: relative;
+      border: 1.13px solid #ede2f7;
+    }
+    .form-card {margin-bottom: -4px;}
     .form-card form {display: flex; flex-direction: column; gap: 10px;}
     .form-card textarea {
       resize: vertical;
       min-height: 70px;
       font-size: 15px;
       border-radius: 16px;
-      border: 1.5px solid #ded0ef;
+      border: 2px solid #ece5f9;
       padding: 12px;
       font-family: inherit;
       background: #faf8ff;
       color: #222;
       outline: none;
-      box-shadow: 0 1px 1px #c08adc13;
+      box-shadow: 0 1px 11px #c08adc15;
       transition: border .2s;
+      margin-bottom: 5px;
     }
-    .form-card textarea:focus {border-color: var(--lilas);}
+    .form-card textarea:focus {border-color: var(--roxo-grad2);}
     .form-card button {
       align-self: flex-end;
-      background: linear-gradient(90deg, #c08adc 65%, #a76bc4 102%);
+      background: linear-gradient(90deg, var(--roxo-grad3) 60%, var(--roxo-grad1) 100%);
       color: #fff;
       font-weight: bold;
       font-size: 15px;
       border: none;
       border-radius: 16px;
-      padding: 7px 26px;
+      padding: 7px 27px;
       cursor: pointer;
-      box-shadow: 0 1px 4px var(--lilas-light);
       margin-top: 4px;
+      box-shadow: 0 2px 14px #beacd941;
+      letter-spacing: .2px;
+      transition: filter .2s, box-shadow .16s;
     }
     .form-card button:disabled {opacity:.6;}
-    /* Responsivo */
+    .form-card button:hover {filter: brightness(1.14);}
+    /* POST CARD */
+    .post-header {
+      display: flex; align-items: center; gap: 11px; font-size: 15px;
+    }
+    .post-header .avatar-circulo {width:41px;height:41px;}
+    .post-header .avatar-circulo img {width:37px;height:37px;}
+    .post-header .user-at {font-size: 16.2px;}
+    .post-date {color: #a8a8d0; font-size: 13px; margin-left: 9px;}
+    .post-content {margin: 8px 0 2px 0; line-height: 1.7; color:#362a46}
+    .post-footer {
+      display: flex; align-items: center; gap: 15px; margin-top: 6px;
+    }
+    .acoes-btn {
+      display: flex; align-items: center;
+      background: linear-gradient(92deg, #f7f4ff 40%, #efebfa 98%);
+      border: 1.5px solid var(--roxo-grad2);
+      color: var(--roxo-grad2);
+      border-radius: 19px;
+      padding: 4px 20px;
+      font-size: 15.2px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background .19s, color .19s;
+      box-shadow: 0 2px 10px #c08adc13;
+      letter-spacing: .1px;
+      outline: none;
+      position: relative;
+      margin-right: 2px;
+      border-bottom-width: 2px;
+    }
+    .acoes-btn.selected,.acoes-btn:active,.acoes-btn:hover {
+      background: linear-gradient(85deg,#c08adc 65%,#a76bc4 100%);
+      color: #fff; border-color: #fff;
+      filter: brightness(1.03);
+    }
     @media (max-width: 900px){.feed-container,.nav-bar{max-width:100vw;}}
     @media (max-width: 600px){
-      .post-card, .form-card {padding: 12px 8px;}
+      .post-card, .form-card {padding: 12px 7px;}
       .nav-bar{padding:5px;}
+      .post-footer {gap: 7px;}
     }
-    /* Sombra de foco nos cards */
-    .post-card:focus-within, .form-card:focus-within {box-shadow: 0 2px 28px 6px #a76bc41b;}
   </style>
 </head>
 <body>
@@ -220,16 +254,15 @@
         <button type="submit" id="create-btn">Publicar</button>
       </form>
     </div>
-    <!-- Os posts serão inseridos aqui pelo JS -->
     <div id="posts"></div>
   </div>
   <script>
-    // USUÁRIO LOGADO (simulação)
+    // Usuário logado (exemplo)
     const usuarioLogado = {
       username: "alex.mattinelli",
       avatar_url: "https://i.pravatar.cc/150?img=13"
     }
-    // Exemplo de posts
+    // Exemplo de posts (ficam abaixo do form)
     const posts = [
       {
         username: "gramatike",
@@ -266,7 +299,7 @@
           <div class="post-footer">
             <button class="acoes-btn selected">&#10084; Curtir</button>
             <button class="acoes-btn">&#128172; Comentar</button>
-            <button class="acoes-btn">!</button>
+            <button class="acoes-btn">...</button>
           </div>
         </div>`;
       });
