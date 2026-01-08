@@ -3,72 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gramátike</title>
+    <title>Feed - Gramátike</title>
     <link href="https://fonts.googleapis.com/css2?family=Mansalva&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f3f4f6; }
-        
-        /* Navigation - Estilização do cabeçalho roxo, avatar e arredondamento */
+
+        /* NAV: cabeçalho roxo, sem arredondamento, avatar à direita */
         nav {
-            background: linear-gradient(90deg, #c08adc 0%, #a76bc4 100%);
-            border: none;
-            padding: 16px;
+            background: #c08adc;
+            border-bottom: 1px solid #b28cdf;
+            padding: 0;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.12);
-            border-radius: 0 0 24px 24px;
+            box-shadow: 0 2px 8px rgba(160,63,220,0.05);
         }
-        nav .container {
+        nav .container-nav {
             max-width: 800px;
             margin: 0 auto;
+            height: 64px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
         }
         nav h1 {
             font-family: 'Mansalva', cursive;
             color: white;
             font-size: 26px;
-            letter-spacing: .5px;
-            text-shadow: 0 1px 0 #a76bc4;
+            margin-left: 18px;
         }
-        nav .actions {
+        nav .nav-actions {
             display: flex;
-            gap: 16px;
             align-items: center;
         }
         nav a, nav button {
             text-decoration: none;
             color: #fff;
-            font-size: 14px;
+            font-size: 15px;
             background: none;
             border: none;
             cursor: pointer;
-            padding: 8px 12px;
+            padding: 8px 14px;
             border-radius: 8px;
-            transition: all 0.2s;
+            transition: background 0.2s;
         }
-        nav a:hover, nav button:hover { background: rgba(255,255,255,0.16); }
-        nav .logout { color: #fee !important; border: 1px solid #fff; }
-        nav .logout:hover { background: #fee !important; color: #c33 !important; }
+        nav a:hover, nav button:hover { background: #b48bde; }
+        nav .logout { color: #fee !important;}
+        nav .logout:hover { background: #fee !important; color:#c33 !important; }
 
-        /* Avatar à direita no cabeçalho */
+        /* Avatar círculo fixo à direita no nav */
         .avatar-circulo {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             overflow: hidden;
+            margin-left: 16px;
             border: 2px solid #fff;
-            box-shadow: 0 1px 4px rgba(160, 63, 220, 0.15);
-            margin-left: 18px;
-            cursor: pointer;
             background: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: box-shadow .2s;
+            box-shadow: 0 0 0 2px #c08adc33;
         }
+        .avatar-circulo:hover { box-shadow: 0 4px 12px rgba(160, 63, 220, 0.15);}
         .avatar-circulo img {
             width: 100%;
             height: 100%;
@@ -76,30 +75,41 @@
             border-radius: 50%;
         }
 
-        /* Main container arredondado branco */
+        /* CARD: container branco arredondado para conteúdo */
         .container {
             max-width: 800px;
-            margin: 24px auto;
-            padding: 0 16px;
+            margin: 32px auto 0 auto;
+            padding: 0 12px;
         }
-        .container-bg {
-            background: white;
-            border-radius: 32px;
-            box-shadow: 0 1px 6px rgba(160, 63, 220, 0.05);
-            padding: 36px 24px 24px;
-            margin-bottom: 24px;
+        .feed-card {
+            background: #fff;
+            border-radius: 28px;
+            box-shadow: 0 6px 32px rgba(160,63,220,0.08), 0 1.5px 2.2px rgba(0,0,0,.03);
+            padding: 36px 22px 24px;
+            margin-bottom: 32px;
+            min-height: 400px;
         }
 
-        /* Create post form */
-        .create-post { background: transparent; border-radius: 16px; padding: 0; margin-bottom: 20px; box-shadow: none; }
+        /* Todo o conteúdo do feed vem dentro do .feed-card */
+        .create-post { background: transparent; box-shadow: none; border-radius: 0; padding:0; margin-bottom:20px;}
         .create-post textarea { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 12px; font-size: 14px; resize: vertical; min-height: 80px; font-family: inherit; }
         .create-post textarea:focus { outline: none; border-color: #c08adc; box-shadow: 0 0 0 3px rgba(192, 138, 220, 0.1); }
         .create-post button { margin-top: 12px; padding: 10px 24px; background: #c08adc; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .create-post button:hover:not(:disabled) { background: #a76bc4; }
         .create-post button:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        /* Posts */
-        .post { background: #f8fafc; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .error, .success { padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 14px; display: none; }
+        .error { background: #fee; border: 1px solid #fcc; color: #c33; }
+        .error.show { display: block; }
+        .success { background: #efe; border: 1px solid #cfc; color: #3c3; }
+        .success.show { display: block; }
+        .loading, .empty { text-align: center; padding: 40px; color: #6b7280; }
+        .loading { display: none; }
+        .loading.show { display: block; }
+        .empty { display: none; }
+        .empty.show { display: block; }
+
+        /* Posts estilizados dentro do card */
+        .post { background: #f8f8fa; border-radius: 18px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(160,63,220,0.03);}
         .post-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
         .post-author { font-weight: 600; color: #111827; }
         .post-username { color: #6b7280; font-size: 14px; margin-left: 8px; }
@@ -108,39 +118,31 @@
         .post-actions { margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb; display: flex; gap: 12px; }
         .post-actions button { background: none; border: none; color: #dc2626; cursor: pointer; padding: 6px 12px; border-radius: 8px; font-size: 13px; transition: all 0.2s; }
         .post-actions button:hover { background: #fee; }
-        
-        /* Messages */
-        .error, .success { padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 14px; display: none; }
-        .error { background: #fee; border: 1px solid #fcc; color: #c33; }
-        .error.show { display: block; }
-        .success { background: #efe; border: 1px solid #cfc; color: #3c3; }
-        .success.show { display: block; }
-        
-        /* Loading & Empty states */
-        .loading, .empty { text-align: center; padding: 40px; color: #6b7280; }
-        .loading { display: none; }
-        .loading.show { display: block; }
-        .empty { display: none; }
-        .empty.show { display: block; }
+
+        @media (max-width:600px){
+            nav .container-nav {height:auto;flex-direction:column;align-items:flex-start;padding:8px 0 12px 0;}
+            nav h1 {margin-left:10px;margin-bottom:8px;}
+            .feed-card {padding:12px 7px;}
+        }
     </style>
 </head>
 <body>
     <nav>
-        <div class="container">
+        <div class="container-nav">
             <h1>Gramátike</h1>
-            <div class="actions">
+            <div class="nav-actions">
                 <a href="/feed">Feed</a>
                 <a href="/admin" id="admin-link" style="display:none;">Admin</a>
                 <button class="logout" onclick="handleLogout()">Sair</button>
-                <div id="avatar-container" class="avatar-circulo" style="display:none;">
-                  <!-- Avatar será exibido aqui via JS -->
-                </div>
+                <a href="/perfil" id="avatar-link" class="avatar-circulo" style="display:none;">
+                    <!-- Imagem será inserida pelo JS -->
+                </a>
             </div>
         </div>
     </nav>
 
     <div class="container">
-        <div class="container-bg">
+        <div class="feed-card">
             <div id="error" class="error"></div>
             <div id="success" class="success"></div>
             <!-- Create Post Form -->
@@ -182,7 +184,7 @@
             const minutes = Math.floor(seconds / 60);
             const hours = Math.floor(minutes / 60);
             const days = Math.floor(hours / 24);
-            
+
             if (days > 7) return date.toLocaleDateString('pt-BR');
             if (days > 0) return `${days}d atrás`;
             if (hours > 0) return `${hours}h atrás`;
@@ -194,24 +196,24 @@
             const loading = document.getElementById('loading');
             const empty = document.getElementById('empty');
             const postsContainer = document.getElementById('posts');
-            
+
             loading.classList.add('show');
             empty.classList.remove('show');
-            
+
             try {
                 const res = await fetch('/api/posts');
                 if (!res.ok) throw new Error('Erro ao carregar posts');
-                
+
                 const data = await res.json();
                 const posts = data.posts || [];
-                
+
                 loading.classList.remove('show');
-                
+
                 if (posts.length === 0) {
                     empty.classList.add('show');
                     return;
                 }
-                
+
                 postsContainer.innerHTML = posts.map(post => `
                     <div class="post">
                         <div class="post-header">
@@ -237,26 +239,26 @@
 
         async function handleCreatePost(e) {
             e.preventDefault();
-            
+
             const content = document.getElementById('post-content').value.trim();
             if (!content) return;
-            
+
             const btn = document.getElementById('create-btn');
             btn.disabled = true;
             btn.textContent = 'Publicando...';
-            
+
             try {
                 const res = await fetch('/api/posts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ content })
                 });
-                
+
                 if (!res.ok) {
                     const data = await res.json();
                     throw new Error(data.error || 'Erro ao criar post');
                 }
-                
+
                 document.getElementById('post-content').value = '';
                 showSuccess('Post publicado!');
                 await loadPosts();
@@ -270,17 +272,17 @@
 
         async function deletePost(id) {
             if (!confirm('Tem certeza que deseja deletar este post?')) return;
-            
+
             try {
                 const res = await fetch(`/api/posts/${id}`, {
                     method: 'DELETE'
                 });
-                
+
                 if (!res.ok) {
                     const data = await res.json();
                     throw new Error(data.error || 'Erro ao deletar post');
                 }
-                
+
                 showSuccess('Post deletado!');
                 await loadPosts();
             } catch (err) {
@@ -303,12 +305,13 @@
             return div.innerHTML;
         }
 
-        // Exibir avatar no cabeçalho e link do perfil
+        // Exibir avatar fixo no canto direito do nav, com link pro perfil
         function showAvatar(user){
+            const avatarLink = document.getElementById('avatar-link');
             if(user && user.avatar_url){
-                const avatarEl = document.getElementById('avatar-container');
-                avatarEl.innerHTML = `<a href="/perfil"><img src="${user.avatar_url}" alt="Foto do perfil"></a>`;
-                avatarEl.style.display = 'flex';
+                avatarLink.innerHTML = `<img src="${user.avatar_url}" alt="Foto do perfil">`;
+                avatarLink.href = `/perfil`; // ou `/perfil/${user.username}` se preferir dinâmico
+                avatarLink.style.display = 'flex';
             }
         }
 
@@ -322,8 +325,8 @@
                 }
                 const data = await res.json();
                 currentUser = data.user;
-                
-                // Exibir avatar no cabeçalho
+
+                // Exibir avatar
                 showAvatar(currentUser);
 
                 // Show admin link if user is admin
