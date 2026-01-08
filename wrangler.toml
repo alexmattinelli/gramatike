@@ -5,6 +5,7 @@
 
 name = "gramatike-v2"
 compatibility_date = "2026-01-08"
+compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "public"
 
 # D1 Database (SQLite on the edge)

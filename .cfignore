@@ -1,0 +1,50 @@
+# Cloudflare Pages deployment ignore file
+# Exclude node_modules and dev dependencies to prevent bundling errors
+
+node_modules/
+.git/
+.env
+.env.*
+*.log
+.wrangler/
+.mf/
+dist/
+.cache/
+*.tmp
+tmp/
+temp/
+
+# Python files (not used in this TypeScript project)
+*.py
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+requirements.txt
+venv/
+env/
+
+# IDE and editor files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+build/
+*.tsbuildinfo
+
+# Test and coverage
+.coverage
+coverage/
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Lock files (not needed for deployment)
+package-lock.json
+yarn.lock
+
+# Backup files
+*.backup
+*.bak
