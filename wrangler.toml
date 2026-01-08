@@ -6,7 +6,7 @@ pages_build_output_dir = "public"
 [[d1_databases]]
 binding = "DB"
 database_name = "gramatike"
-database_id = "d0984113-06be-49f5-939a-9d5c5dcba7b6"
+database_id = "02087991-e23d-44cb-af5f-d4815b70eb05"
 
 [[r2_buckets]]
 binding = "R2_BUCKET"
