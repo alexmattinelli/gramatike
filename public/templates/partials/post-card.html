@@ -1,0 +1,205 @@
+<!-- Post Card Component -->
+<!-- This is a template - variables should be replaced server-side -->
+<article class="bg-white rounded-2xl shadow-md p-6 hover:shadow-xl transition-shadow" data-post-id="{{post.id}}">
+    
+    <!-- Post Header -->
+    <div class="flex items-center gap-3 mb-4">
+        <img 
+            src="{{post.foto_perfil}}" 
+            alt="{{post.username}}"
+            class="w-12 h-12 rounded-full object-cover border-2 border-gray-200">
+        <div class="flex-1">
+            <a href="/perfil/{{post.username}}" class="font-bold text-gray-900 hover:text-primary transition">
+                {{post.nome}} <span class="text-gray-600 font-normal">@{{post.username}}</span>
+            </a>
+            <p class="text-sm text-gray-500">{{post.data}}</p>
+        </div>
+        
+        <!-- Post Menu (for own posts or admin) -->
+        <div class="relative">
+            <button 
+                class="text-gray-400 hover:text-gray-600 p-2"
+                onclick="togglePostMenu('{{post.id}}')">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
+                </svg>
+            </button>
+            
+            <!-- Dropdown menu (hidden by default) -->
+            <div id="menu-{{post.id}}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-10">
+                <button 
+                    onclick="deletePost('{{post.id}}')"
+                    class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
+                    Deletar post
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Post Content -->
+    <div class="mb-4">
+        <p class="text-gray-800 whitespace-pre-wrap">{{post.conteudo}}</p>
+    </div>
+    
+    <!-- Post Image (if exists) -->
+    {{#if post.imagem}}
+    <div class="mb-4">
+        <img 
+            src="{{post.imagem}}" 
+            alt="Post image"
+            class="w-full rounded-xl object-contain max-h-96 cursor-pointer"
+            onclick="openImageModal('{{post.imagem}}')">
+    </div>
+    {{/if}}
+    
+    <!-- Post Actions -->
+    <div class="flex items-center gap-6 text-gray-600 border-t border-gray-100 pt-4">
+        
+        <!-- Like Button -->
+        <button 
+            onclick="toggleLike('{{post.id}}')"
+            id="like-btn-{{post.id}}"
+            class="flex items-center gap-2 hover:text-red-500 transition {{#if post.user_liked}}text-red-500{{/if}}">
+            <svg class="w-5 h-5 {{#if post.user_liked}}fill-current{{/if}}" fill="{{#if post.user_liked}}currentColor{{else}}none{{/if}}" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+            </svg>
+            <span id="like-count-{{post.id}}" class="font-semibold">{{post.like_count}}</span>
+        </button>
+        
+        <!-- Comment Button -->
+        <button 
+            onclick="toggleComments('{{post.id}}')"
+            class="flex items-center gap-2 hover:text-primary transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+            <span class="font-semibold">{{post.comment_count}}</span>
+        </button>
+        
+        <!-- Share Button (future feature) -->
+        <button class="flex items-center gap-2 hover:text-blue-500 transition ml-auto">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+            </svg>
+        </button>
+    </div>
+    
+    <!-- Comments Section (hidden by default) -->
+    <div id="comments-{{post.id}}" class="hidden mt-4 border-t border-gray-100 pt-4 space-y-3">
+        <!-- Comments will be loaded here -->
+        <div class="text-center py-2">
+            <span class="text-sm text-gray-500">Carregando comentários...</span>
+        </div>
+        
+        <!-- Add Comment Form -->
+        <form onsubmit="addComment(event, '{{post.id}}')" class="flex gap-2">
+            <input 
+                type="text"
+                placeholder="Adicione um comentário..."
+                class="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                required>
+            <button 
+                type="submit"
+                class="bg-primary text-white px-4 py-2 rounded-full font-semibold text-sm hover:bg-primary-dark transition">
+                Enviar
+            </button>
+        </form>
+    </div>
+    
+</article>
+
+<script>
+    // Toggle post menu
+    function togglePostMenu(postId) {
+        const menu = document.getElementById(`menu-${postId}`);
+        menu?.classList.toggle('hidden');
+    }
+    
+    // Delete post
+    async function deletePost(postId) {
+        if (!confirm('Deseja realmente deletar este post?')) return;
+        
+        try {
+            const response = await fetch(`/api/posts/${postId}`, { method: 'DELETE' });
+            if (response.ok) {
+                document.querySelector(`[data-post-id="${postId}"]`)?.remove();
+            } else {
+                alert('Erro ao deletar post');
+            }
+        } catch (error) {
+            console.error('Error deleting post:', error);
+            alert('Erro ao deletar post');
+        }
+    }
+    
+    // Toggle like
+    async function toggleLike(postId) {
+        try {
+            const response = await fetch('/api/posts/like', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ post_id: postId })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const btn = document.getElementById(`like-btn-${postId}`);
+                const count = document.getElementById(`like-count-${postId}`);
+                
+                if (data.liked) {
+                    btn?.classList.add('text-red-500');
+                } else {
+                    btn?.classList.remove('text-red-500');
+                }
+                
+                if (count) count.textContent = data.like_count;
+            }
+        } catch (error) {
+            console.error('Error toggling like:', error);
+        }
+    }
+    
+    // Toggle comments section
+    async function toggleComments(postId) {
+        const section = document.getElementById(`comments-${postId}`);
+        section?.classList.toggle('hidden');
+        
+        // Load comments if not loaded yet
+        // TODO: Implement comment loading
+    }
+    
+    // Add comment
+    async function addComment(event, postId) {
+        event.preventDefault();
+        const form = event.target;
+        const input = form.querySelector('input');
+        const conteudo = input.value.trim();
+        
+        if (!conteudo) return;
+        
+        try {
+            const response = await fetch('/api/posts/comment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ post_id: postId, conteudo })
+            });
+            
+            if (response.ok) {
+                input.value = '';
+                // TODO: Reload comments
+                alert('Comentário adicionado!');
+            } else {
+                alert('Erro ao adicionar comentário');
+            }
+        } catch (error) {
+            console.error('Error adding comment:', error);
+            alert('Erro ao adicionar comentário');
+        }
+    }
+    
+    // Open image modal
+    function openImageModal(imageUrl) {
+        // TODO: Implement image modal
+        window.open(imageUrl, '_blank');
+    }
+</script>
