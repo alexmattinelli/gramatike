@@ -2,8 +2,12 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Gramatike Feed</title>
+  <title>Gramatike</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link href="https://fonts.googleapis.com/css2?family=Mansalva&display=swap" rel="stylesheet">
+
   <style>
     :root {
       --roxo: #9B5DE5;
@@ -12,101 +16,98 @@
       --shadow-card: 0 6px 30px 0 #9b5de51a, 0 1px 4px #9B5DE521;
       --shadow-btn: 0 1.5px 7px #9B5DE529;
     }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       background: var(--lilas-light);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    /* NAVEGAÇÃO - CANTOS RETOS */
+
+    /* NAV */
     nav {
       background: var(--roxo);
       min-height: 62px;
       box-shadow: var(--shadow-card);
-      position: sticky; 
-      top: 0; 
+      position: sticky;
+      top: 0;
       z-index: 100;
-      border-radius: 0;
     }
+
     .nav-bar {
       max-width: 1140px;
       margin: 0 auto;
       display: flex;
       align-items: center;
       gap: 18px;
-      padding: 14px 28px 13px 28px;
-      justify-content: flex-start;
+      padding: 14px 28px;
     }
+
     .logo {
       font-family: 'Mansalva', cursive;
       font-size: 28px;
       color: #fff;
-      margin-right: 18px;
-      letter-spacing: 0.2px;
+      letter-spacing: .5px;
     }
+
     .search-bar {
       flex: 1;
       display: flex;
-      align-items: center;
       background: #fff;
       border-radius: 18px;
       box-shadow: var(--shadow-btn);
-      margin-right: 12px;
       height: 38px;
     }
+
     .search-bar input {
-      border: none;
-      border-radius: 18px 0 0 18px;
-      padding: 0 14px;
-      font-size: 16px;
-      outline: none;
-      background: transparent;
       flex: 1;
-      height: 100%;
-      color: #6741af;
-      font-weight: 500;
-    }
-    .search-bar button {
-      background: var(--roxo);
       border: none;
+      padding: 0 14px;
+      font-size: 15px;
+      outline: none;
+      color: #6741af;
+      background: transparent;
+    }
+
+    .search-bar button {
+      width: 42px;
+      border: none;
+      background: var(--roxo);
       color: #fff;
       border-radius: 0 18px 18px 0;
-      width: 43px;
-      height: 38px;
-      font-size: 21px;
       cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: filter .2s;
     }
-    .search-bar button:hover { filter: brightness(1.09);}
+
     .nav-actions {
       display: flex;
       gap: 12px;
       align-items: center;
     }
+
     .nav-btn {
+      width: 40px;
+      height: 40px;
       background: var(--roxo);
-      color: #fff;
-      border: none;
       border-radius: 14px;
-      font-size: 23px;
-      width: 40px; height: 40px;
-      display: flex; align-items: center; justify-content: center;
+      border: none;
+      color: #fff;
       box-shadow: var(--shadow-btn);
       cursor: pointer;
-      transition: filter .2s;
-      font-weight: 600;
+      font-size: 22px;
     }
-    .nav-btn:hover { filter: brightness(1.10); }
-    /* Avatar placeholder */
-    .avatar-circulo {
-      width: 36px; height: 36px;
+
+    .avatar {
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      background: #e9e2ef url('data:image/svg+xml;utf8,<svg fill="rgb(155,93,229)" height="36" viewBox="0 0 32 32" width="36" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="12" r="8"/><ellipse cx="16" cy="28" rx="13" ry="8"/></svg>') center/60% no-repeat;
-      box-shadow: 0 1.5px 7px #9b5de519;
+      background: #e9e2ef;
       border: 2px solid #fff;
-      margin-left:8px;
     }
-    /* FEED main */
+
+    /* LAYOUT */
     .feed-container {
       max-width: 1140px;
       margin: 0 auto;
@@ -114,165 +115,104 @@
       display: flex;
       gap: 20px;
     }
+
     .main-content {
       flex: 1;
       max-width: 700px;
     }
+
     .sidebar {
       width: 300px;
     }
-    .form-card, .post-card, .sidebar-card {
+
+    .card {
       background: #fff;
       border-radius: var(--card-radius);
       box-shadow: var(--shadow-card);
-      margin-bottom: 20px;
-      padding: 24px 32px 15px 32px;
+      padding: 22px;
       border: 1px solid #f0e4fd;
+      margin-bottom: 20px;
     }
-    /* CARD ROXO CLARINHO COM PONTAS ARREDONDADAS */
-    .light-purple-card {
+
+    .light-purple {
       background: #f9f6ff;
       border: 2px solid #ebddfa;
-      padding: 20px;
-      border-radius: 22px;
-      margin-bottom: 15px;
+      border-radius: 18px;
+      padding: 18px;
     }
-    .light-purple-card .sidebar-title {
-      color: #9B5DE5;
+
+    .title {
+      font-size: 18px;
       font-weight: 600;
-      font-size: 16px;
-      margin-bottom: 10px;
-      display: block;
+      margin-bottom: 12px;
+      color: #32264c;
     }
-    .form-card form {display: flex; flex-direction: column; gap: 10px;}
-    .form-card textarea {
-      resize: vertical;
-      min-height: 70px;
-      font-size: 15px;
-      border-radius: 15px;
-      border: 2px solid #ebddfa;
-      padding: 12px;
-      font-family: inherit;
-      background: #faf8ff;
-      color: #222;
-      outline: none;
-      box-shadow: 0 1px 7px #9b5de513;
-      transition: border .2s;
-      margin-bottom: 3px;
+
+    .muted {
+      color: #a8a8d0;
+      font-style: italic;
+      font-size: 14px;
+      text-align: center;
     }
-    .form-card textarea:focus {border-color: var(--roxo);}
-    .form-card button {
-      align-self: flex-end;
-      background: var(--roxo);
-      color: #fff;
-      font-weight: bold;
-      font-size: 15px;
-      border: none;
-      border-radius: 16px;
-      padding: 8px 24px;
-      cursor: pointer;
-      margin-top: 4px;
-      box-shadow: 0 2px 14px #9b5de529;
-      display: flex; align-items: center; gap:8px;
-      transition: filter .16s;
-    }
-    .form-card button:hover {filter: brightness(1.12);}
-    
-    /* MENSAGEM SEM POSTS */
-    .no-posts-message {
+
+    /* FEED VAZIO */
+    .empty-feed {
       text-align: center;
       padding: 40px 20px;
       color: #a8a8d0;
       font-style: italic;
-      font-size: 16px;
       background: #fff;
       border-radius: var(--card-radius);
       box-shadow: var(--shadow-card);
-      margin-top: 20px;
     }
-    
-    /* SIDEBAR CONTENT */
-    .sidebar-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #32264c;
-      margin-bottom: 15px;
-      display: block;
-    }
-    .empty-state {
-      text-align: center;
-      padding: 20px;
-      color: #a8a8d0;
-      font-style: italic;
-      font-size: 14px;
-    }
-    
+
     /* JOGO DA VELHA */
-    .tic-tac-toe {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
     .game-status {
-      font-weight: 500;
-      color: #32264c;
       text-align: center;
-      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 6px;
     }
+
     .game-turn {
+      text-align: center;
       font-size: 14px;
       color: #a8a8d0;
-      text-align: center;
+      margin-bottom: 12px;
     }
+
     .game-board {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(3, 1fr);
       gap: 8px;
-      width: 220px;
-      height: 220px;
-      margin: 0 auto 15px auto;
+      width: 210px;
+      margin: 0 auto 12px;
     }
+
     .cell {
+      aspect-ratio: 1;
+      border-radius: 12px;
       background: #f7f2ff;
       border: 2px solid var(--roxo);
-      border-radius: 12px;
+      font-size: 34px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 36px;
-      font-weight: bold;
-      color: var(--roxo);
       cursor: pointer;
-      transition: all 0.2s;
+      color: var(--roxo);
     }
-    .cell:hover {
-      background: #ebddfa;
-    }
-    .cell.x { color: #9B5DE5; }
-    .cell.o { color: #00BBF9; }
-    
-    /* BOTÃO REINICIAR */
-    .restart-btn {
+
+    .restart {
+      display: block;
+      margin: 0 auto;
+      padding: 8px 20px;
+      border-radius: 16px;
+      border: none;
       background: var(--roxo);
       color: #fff;
-      border: none;
-      border-radius: 16px;
-      padding: 10px 20px;
-      font-weight: 600;
-      font-size: 15px;
       cursor: pointer;
-      box-shadow: var(--shadow-btn);
-      display: block;
-      margin: 10px auto 0 auto;
-      transition: filter 0.2s;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    .restart-btn:hover {
-      filter: brightness(1.1);
-    }
-    
-    @media (max-width: 900px){
+
+    @media (max-width: 900px) {
       .feed-container {
         flex-direction: column;
       }
@@ -281,178 +221,136 @@
         max-width: 700px;
         margin: 0 auto;
       }
-      .form-card, .post-card {padding: 11px 5px;}
-    }
-    @media (max-width: 600px){
-      .nav-bar{padding:8px;}
-      .feed-container {padding: 10px;}
     }
   </style>
 </head>
+
 <body>
-  <nav>
-    <div class="nav-bar">
-      <div class="logo">Gramátike</div>
-      <form class="search-bar" onsubmit="return false;">
-        <input type="text" placeholder="Pesquisar">
-        <button type="submit" title="Buscar">
-          <svg fill="#fff" width="21" height="21" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99c.39.39 1.03.39 1.42 0s.39-1.03 0-1.42l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
-        </button>
-      </form>
-      <div class="nav-actions">
-        <button class="nav-btn" title="Nova publicação">
-          <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-        <a href="/perfil" class="avatar-circulo"></a>
-      </div>
-    </div>
-  </nav>
-  
-  <div class="feed-container">
-    <!-- FEED PRINCIPAL -->
-    <div class="main-content">
-      <div class="form-card">
-        <form id="post-form">
-          <textarea id="post-content" maxlength="5000" placeholder="O que você está pensando?"></textarea>
-          <button type="submit" id="create-btn">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            Publicar
-          </button>
-        </form>
-      </div>
-      
-      <div id="posts-container">
-        <!-- SEM POSTS -->
-        <div class="no-posts-message">
-          Sem posts no momento
-        </div>
-      </div>
-    </div>
-    
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-      <!-- AMIGUES -->
-      <div class="sidebar-card">
-        <span class="sidebar-title">Amigues</span>
-        <div class="light-purple-card">
-          <span class="sidebar-title">Amigues</span>
-          <div class="empty-state">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
-        </div>
-      </div>
-      
-      <!-- JOGO DA VELHA -->
-      <div class="sidebar-card">
-        <span class="sidebar-title">Jogo da Velha</span>
-        <div class="light-purple-card">
-          <div class="tic-tac-toe">
-            <div class="game-status">Jogue contra o Rebao. Você é o X.</div>
-            <div class="game-turn">Sua vez: você é X.</div>
-            <div class="game-board" id="game-board">
-              <div class="cell" onclick="makeMove(this, 0)"></div>
-              <div class="cell" onclick="makeMove(this, 1)"></div>
-              <div class="cell" onclick="makeMove(this, 2)"></div>
-              <div class="cell" onclick="makeMove(this, 3)"></div>
-              <div class="cell" onclick="makeMove(this, 4)"></div>
-              <div class="cell" onclick="makeMove(this, 5)"></div>
-              <div class="cell" onclick="makeMove(this, 6)"></div>
-              <div class="cell" onclick="makeMove(this, 7)"></div>
-              <div class="cell" onclick="makeMove(this, 8)"></div>
-            </div>
-            <button class="restart-btn" onclick="resetGame()">Reiniciar</button>
-          </div>
-        </div>
-      </div>
+
+<nav>
+  <div class="nav-bar">
+    <div class="logo">Gramátike</div>
+
+    <form class="search-bar" onsubmit="return false;">
+      <input type="text" placeholder="Pesquisar">
+      <button aria-label="Buscar">🔍</button>
+    </form>
+
+    <div class="nav-actions">
+      <button class="nav-btn" aria-label="Criar">＋</button>
+      <div class="avatar" aria-label="Perfil"></div>
     </div>
   </div>
+</nav>
 
-  <script>
-    // Jogo da Velha
-    let currentPlayer = 'X';
-    let gameBoard = ['', '', '', '', '', '', '', '', ''];
-    let gameActive = true;
-    
-    function makeMove(cell, index) {
-      if (!gameActive || gameBoard[index] !== '') return;
-      
-      gameBoard[index] = currentPlayer;
-      cell.textContent = currentPlayer;
-      cell.classList.add(currentPlayer.toLowerCase());
-      
-      if (checkWinner()) {
-        document.querySelector('.game-status').textContent = `Jogador ${currentPlayer} venceu!`;
-        gameActive = false;
-        return;
-      }
-      
-      if (gameBoard.every(cell => cell !== '')) {
-        document.querySelector('.game-status').textContent = 'Empate!';
-        gameActive = false;
-        return;
-      }
-      
-      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-      document.querySelector('.game-turn').textContent = currentPlayer === 'X' 
-        ? 'Sua vez: você é X.' 
-        : 'Vez do Rebao: O.';
-        
-      // Jogada do computador
-      if (currentPlayer === 'O' && gameActive) {
-        setTimeout(computerMove, 500);
-      }
+<main class="feed-container">
+
+  <section class="main-content">
+    <div class="empty-feed">
+      Nenhuma publicação no momento
+    </div>
+  </section>
+
+  <aside class="sidebar">
+
+    <div class="card">
+      <div class="title">Amigues</div>
+      <div class="light-purple">
+        <div class="muted">
+          Sem amigues ainda. Faça amizades para aparecerem aqui.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="title">Jogo da Velha</div>
+      <div class="light-purple">
+        <div class="game-status">Jogue contra o sistema. Você é X.</div>
+        <div class="game-turn">Sua vez: X</div>
+
+        <div class="game-board" id="board">
+          <div class="cell" data-i="0"></div>
+          <div class="cell" data-i="1"></div>
+          <div class="cell" data-i="2"></div>
+          <div class="cell" data-i="3"></div>
+          <div class="cell" data-i="4"></div>
+          <div class="cell" data-i="5"></div>
+          <div class="cell" data-i="6"></div>
+          <div class="cell" data-i="7"></div>
+          <div class="cell" data-i="8"></div>
+        </div>
+
+        <button class="restart" id="restart">Reiniciar</button>
+      </div>
+    </div>
+
+  </aside>
+
+</main>
+
+<script>
+(() => {
+  const cells = document.querySelectorAll('.cell');
+  const status = document.querySelector('.game-status');
+  const turn = document.querySelector('.game-turn');
+  const restart = document.getElementById('restart');
+
+  let board = Array(9).fill('');
+  let current = 'X';
+  let active = true;
+
+  const wins = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+
+  function checkWin() {
+    return wins.some(p =>
+      board[p[0]] &&
+      board[p[0]] === board[p[1]] &&
+      board[p[0]] === board[p[2]]
+    );
+  }
+
+  function move(index) {
+    if (!active || board[index]) return;
+
+    board[index] = current;
+    cells[index].textContent = current;
+
+    if (checkWin()) {
+      status.textContent = `Vitória de ${current}!`;
+      active = false;
+      return;
     }
-    
-    function computerMove() {
-      if (!gameActive) return;
-      
-      const emptyCells = gameBoard
-        .map((cell, index) => cell === '' ? index : null)
-        .filter(index => index !== null);
-      
-      if (emptyCells.length > 0) {
-        const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-        const cell = document.querySelectorAll('.cell')[randomIndex];
-        makeMove(cell, randomIndex);
-      }
+
+    if (board.every(v => v)) {
+      status.textContent = 'Empate na partida';
+      active = false;
+      return;
     }
-    
-    function checkWinner() {
-      const winPatterns = [
-        [0, 1, 2], [3, 4, 5], [6, 7, 8],
-        [0, 3, 6], [1, 4, 7], [2, 5, 8],
-        [0, 4, 8], [2, 4, 6]
-      ];
-      
-      return winPatterns.some(pattern => {
-        const [a, b, c] = pattern;
-        return gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c];
-      });
-    }
-    
-    function resetGame() {
-      gameBoard = ['', '', '', '', '', '', '', '', ''];
-      currentPlayer = 'X';
-      gameActive = true;
-      
-      document.querySelectorAll('.cell').forEach(cell => {
-        cell.textContent = '';
-        cell.classList.remove('x', 'o');
-      });
-      
-      document.querySelector('.game-status').textContent = 'Jogue contra o Rebao. Você é o X.';
-      document.querySelector('.game-turn').textContent = 'Sua vez: você é X.';
-    }
-    
-    // Formulário de post
-    document.getElementById('post-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const content = document.getElementById('post-content').value.trim();
-      if (content) {
-        document.querySelector('.no-posts-message').style.display = 'none';
-        document.getElementById('post-content').value = '';
-        // Aqui você pode adicionar a lógica para criar o post
-        alert('Post criado! (Funcionalidade de exemplo)');
-      }
-    });
-  </script>
+
+    current = current === 'X' ? 'O' : 'X';
+    turn.textContent = `Vez: ${current}`;
+  }
+
+  cells.forEach(cell => {
+    cell.addEventListener('click', () =>
+      move(cell.dataset.i)
+    );
+  });
+
+  restart.onclick = () => {
+    board.fill('');
+    active = true;
+    current = 'X';
+    status.textContent = 'Jogue contra o sistema. Você é X.';
+    turn.textContent = 'Sua vez: X';
+    cells.forEach(c => c.textContent = '');
+  };
+})();
+</script>
+
 </body>
 </html>
