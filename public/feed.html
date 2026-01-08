@@ -22,26 +22,34 @@
     }
     
     body {
-      background: var(--lilas-light);
+      background: var(--roxo);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
     }
     
-    /* NAVEGAÇÃO SIMPLES - APENAS LOGO NO CENTRO - COM CURVA NA PARTE DE BAIXO */
+    /* CONTEINER PRINCIPAL COM CURVA NO TOPO */
+    .main-wrapper {
+      background: var(--lilas-light);
+      min-height: calc(100vh - 62px);
+      border-top-left-radius: 30px;
+      border-top-right-radius: 30px;
+      padding-top: 30px;
+      margin-top: 62px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* NAVEGAÇÃO SIMPLES - APENAS LOGO NO CENTRO */
     nav {
       background: var(--roxo);
-      height: 70px; /* Aumentei um pouco para a curva ficar visível */
-      box-shadow: var(--shadow-card);
-      position: sticky; 
+      height: 62px;
+      position: fixed; 
       top: 0; 
       z-index: 100;
       width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      /* AQUI ESTÁ A CURVA NA TRANSIÇÃO ROXO ESCURO -> ROXO CLARO */
-      border-bottom-left-radius: 30px;
-      border-bottom-right-radius: 30px;
     }
     
     .logo {
@@ -49,14 +57,13 @@
       font-size: 28px;
       color: #fff;
       letter-spacing: 0.2px;
-      margin-top: 5px; /* Ajuste por causa da curva */
     }
     
     /* CONTEÚDO PRINCIPAL */
     .container {
       max-width: 1000px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 0 20px 20px;
       display: flex;
       gap: 20px;
     }
@@ -78,7 +85,7 @@
       border-radius: 18px;
       box-shadow: var(--shadow-btn);
       height: 38px;
-      margin: 25px auto 15px; /* Aumentei a margem superior */
+      margin: 0 auto 15px;
       max-width: 600px;
       display: flex;
       align-items: center;
@@ -325,7 +332,7 @@
     @media (max-width: 900px) {
       .container {
         flex-direction: column;
-        padding: 15px;
+        padding: 0 15px 15px;
       }
       
       .sidebar {
@@ -338,6 +345,11 @@
         bottom: 20px;
         right: 20px;
       }
+      
+      .main-wrapper {
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
+      }
     }
     
     @media (max-width: 600px) {
@@ -345,14 +357,8 @@
         font-size: 24px;
       }
       
-      nav {
-        height: 65px;
-        border-bottom-left-radius: 25px;
-        border-bottom-right-radius: 25px;
-      }
-      
       .search-container {
-        margin: 20px 15px 15px;
+        margin: 0 15px 15px;
       }
       
       .form-card, .sidebar-card {
@@ -367,84 +373,92 @@
       .cell {
         font-size: 24px;
       }
+      
+      .main-wrapper {
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- NAVEGAÇÃO SIMPLES COM CURVA NA PARTE DE BAIXO -->
+  <!-- NAVEGAÇÃO SIMPLES -->
   <nav>
     <div class="logo">Gramátike</div>
   </nav>
   
-  <!-- BARRA DE PESQUISA (FORA DO HEADER) -->
-  <div class="search-container">
-    <input type="text" placeholder="Pesquisar" id="searchInput">
-    <button type="button" id="searchButton">
-      🔍
-    </button>
-  </div>
-  
-  <!-- CONTEÚDO PRINCIPAL -->
-  <div class="container">
-    <!-- FEED PRINCIPAL -->
-    <div class="main-content">
-      <!-- FORMULÁRIO DE POST -->
-      <div class="form-card">
-        <form class="post-form" id="postForm">
-          <textarea 
-            class="post-textarea" 
-            placeholder="O que você está pensando?"
-            maxlength="500"
-          ></textarea>
-          <button type="submit" class="post-button">
-            Publicar
-          </button>
-        </form>
-      </div>
-      
-      <!-- SEM POSTS -->
-      <div class="no-posts">
-        Sem posts no momento
-      </div>
+  <!-- CONTEINER PRINCIPAL COM CURVA NO TOPO -->
+  <div class="main-wrapper">
+    <!-- BARRA DE PESQUISA (FORA DO HEADER) -->
+    <div class="search-container">
+      <input type="text" placeholder="Pesquisar" id="searchInput">
+      <button type="button" id="searchButton">
+        🔍
+      </button>
     </div>
     
-    <!-- SIDEBAR (LADO DIREITO, PEQUENO) -->
-    <div class="sidebar">
-      <!-- AMIGUES -->
-      <div class="sidebar-card">
-        <span class="section-title">Amigues</span>
-        <div class="light-purple-card">
-          <div class="empty-state">
-            Sem amigues ainda. Faça amizades para aparecerem aqui.
-          </div>
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div class="container">
+      <!-- FEED PRINCIPAL -->
+      <div class="main-content">
+        <!-- FORMULÁRIO DE POST -->
+        <div class="form-card">
+          <form class="post-form" id="postForm">
+            <textarea 
+              class="post-textarea" 
+              placeholder="O que você está pensando?"
+              maxlength="500"
+            ></textarea>
+            <button type="submit" class="post-button">
+              Publicar
+            </button>
+          </form>
+        </div>
+        
+        <!-- SEM POSTS -->
+        <div class="no-posts">
+          Sem posts no momento
         </div>
       </div>
       
-      <!-- JOGO DA VELHA -->
-      <div class="sidebar-card">
-        <span class="section-title">Jogo da Velha</span>
-        <div class="light-purple-card">
-          <div class="game-container">
-            <div class="game-info">
-              <div class="game-title" id="gameTitle">Jogue contra o Rebao</div>
-              <div class="game-subtitle" id="gameSubtitle">Sua vez: X</div>
+      <!-- SIDEBAR (LADO DIREITO, PEQUENO) -->
+      <div class="sidebar">
+        <!-- AMIGUES -->
+        <div class="sidebar-card">
+          <span class="section-title">Amigues</span>
+          <div class="light-purple-card">
+            <div class="empty-state">
+              Sem amigues ainda. Faça amizades para aparecerem aqui.
             </div>
-            
-            <div class="board" id="board">
-              <div class="cell" data-index="0"></div>
-              <div class="cell" data-index="1"></div>
-              <div class="cell" data-index="2"></div>
-              <div class="cell" data-index="3"></div>
-              <div class="cell" data-index="4"></div>
-              <div class="cell" data-index="5"></div>
-              <div class="cell" data-index="6"></div>
-              <div class="cell" data-index="7"></div>
-              <div class="cell" data-index="8"></div>
+          </div>
+        </div>
+        
+        <!-- JOGO DA VELHA -->
+        <div class="sidebar-card">
+          <span class="section-title">Jogo da Velha</span>
+          <div class="light-purple-card">
+            <div class="game-container">
+              <div class="game-info">
+                <div class="game-title" id="gameTitle">Jogue contra o Rebao</div>
+                <div class="game-subtitle" id="gameSubtitle">Sua vez: X</div>
+              </div>
+              
+              <div class="board" id="board">
+                <div class="cell" data-index="0"></div>
+                <div class="cell" data-index="1"></div>
+                <div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div>
+                <div class="cell" data-index="4"></div>
+                <div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div>
+                <div class="cell" data-index="7"></div>
+                <div class="cell" data-index="8"></div>
+              </div>
+              
+              <button class="restart-button" onclick="resetGame()">
+                Reiniciar
+              </button>
             </div>
-            
-            <button class="restart-button" onclick="resetGame()">
-              Reiniciar
-            </button>
           </div>
         </div>
       </div>
