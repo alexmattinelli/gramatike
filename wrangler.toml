@@ -11,9 +11,9 @@ pages_build_output_dir = "public"
 [[d1_databases]]
 binding = "DB"
 database_name = "gramatike-v2"
-database_id = "YOUR_DATABASE_ID"
+database_id = "d0984113-06be-49f5-939a-9d5c5dcba7b6"
 
 # R2 Storage for file uploads
 [[r2_buckets]]
 binding = "R2_BUCKET"
-bucket_name = "gramatike-v2"
+bucket_name = "bucket"
