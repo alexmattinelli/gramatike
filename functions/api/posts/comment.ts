@@ -1,7 +1,6 @@
 // Post Comment API
 import type { Env, User } from '../../../src/types';
 import { errorResponse, successResponse } from '../../../src/lib/utils';
-import { sanitizeInput } from '../../../src/lib/sanitize';
 
 /**
  * POST /api/posts/comment - Add a comment to a post
@@ -20,8 +19,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env, data }) 
       return errorResponse('Dados inválidos', 400);
     }
     
-    // Sanitize content
-    const conteudo = sanitizeInput(body.conteudo.trim());
+    // Clean and validate content
+    const conteudo = body.conteudo.trim();
     
     if (conteudo.length === 0 || conteudo.length > 500) {
       return errorResponse('Comentário deve ter entre 1 e 500 caracteres', 400);
