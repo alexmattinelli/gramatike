@@ -17,11 +17,15 @@
       background: var(--lilas-light);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
+    /* NAVEGAÇÃO - CANTOS RETOS */
     nav {
       background: var(--roxo);
       min-height: 62px;
       box-shadow: var(--shadow-card);
-      position: sticky; top: 0; z-index: 100;
+      position: sticky; 
+      top: 0; 
+      z-index: 100;
+      border-radius: 0;
     }
     .nav-bar {
       max-width: 1140px;
@@ -93,37 +97,52 @@
       font-weight: 600;
     }
     .nav-btn:hover { filter: brightness(1.10); }
-    /* Avatar SOLO no nav, sem username */
+    /* Avatar placeholder */
     .avatar-circulo {
-      width: 36px; height: 36px; min-width:36px; min-height:36px;
+      width: 36px; height: 36px;
       border-radius: 50%;
-      background: #fff;
-      display: flex; align-items: center; justify-content: center;
+      background: #e9e2ef url('data:image/svg+xml;utf8,<svg fill="rgb(155,93,229)" height="36" viewBox="0 0 32 32" width="36" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="12" r="8"/><ellipse cx="16" cy="28" rx="13" ry="8"/></svg>') center/60% no-repeat;
       box-shadow: 0 1.5px 7px #9b5de519;
       border: 2px solid #fff;
-      box-sizing: border-box;
       margin-left:8px;
     }
-    .avatar-circulo img {
-      width: 34px; height: 34px;
-      border-radius: 50%; object-fit: cover;
-      background: #eee;
-      display: block;
-    }
-    .avatar-circulo.avatar-placeholder {
-      background: #e9e2ef url('data:image/svg+xml;utf8,<svg fill="rgb(155,93,229)" height="36" viewBox="0 0 32 32" width="36" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="12" r="8"/><ellipse cx="16" cy="28" rx="13" ry="8"/></svg>') center/60% no-repeat;
-    }
     /* FEED main */
-    .feed-container {max-width: 700px;margin: 0 auto;}
-    .form-card, .post-card {
+    .feed-container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      gap: 20px;
+    }
+    .main-content {
+      flex: 1;
+      max-width: 700px;
+    }
+    .sidebar {
+      width: 300px;
+    }
+    .form-card, .post-card, .sidebar-card {
       background: #fff;
       border-radius: var(--card-radius);
       box-shadow: var(--shadow-card);
-      margin: 21px 0 0 0;
+      margin-bottom: 20px;
       padding: 24px 32px 15px 32px;
-      display: flex; flex-direction: column; gap: 8px;
-      position: relative;
       border: 1px solid #f0e4fd;
+    }
+    /* CARD ROXO CLARINHO COM PONTAS ARREDONDADAS */
+    .light-purple-card {
+      background: #f9f6ff;
+      border: 2px solid #ebddfa;
+      padding: 20px;
+      border-radius: 22px;
+      margin-bottom: 15px;
+    }
+    .light-purple-card .sidebar-title {
+      color: #9B5DE5;
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 10px;
+      display: block;
     }
     .form-card form {display: flex; flex-direction: column; gap: 10px;}
     .form-card textarea {
@@ -150,53 +169,123 @@
       font-size: 15px;
       border: none;
       border-radius: 16px;
-      padding: 8px 24px 8px 24px;
+      padding: 8px 24px;
       cursor: pointer;
       margin-top: 4px;
       box-shadow: 0 2px 14px #9b5de529;
       display: flex; align-items: center; gap:8px;
-      transition: filter .16s, box-shadow .12s;
+      transition: filter .16s;
     }
-    .form-card button:disabled {opacity:.68;}
     .form-card button:hover {filter: brightness(1.12);}
-    /* POST CARD */
-    .post-header {
-      display: flex; align-items: center; gap: 11px; font-size: 15px;
+    
+    /* MENSAGEM SEM POSTS */
+    .no-posts-message {
+      text-align: center;
+      padding: 40px 20px;
+      color: #a8a8d0;
+      font-style: italic;
+      font-size: 16px;
+      background: #fff;
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-card);
+      margin-top: 20px;
     }
-    .post-header .avatar-circulo {width:39px;height:39px;}
-    .post-header .avatar-circulo img {width:35px;height:35px;}
-    .post-header .user-at {font-size: 16px;}
-    .post-date {color: #a8a8d0; font-size: 13px; margin-left: 9px;}
-    .post-content {margin: 8px 0 2px 0; line-height: 1.7; color:#32264c}
-    .post-footer {
-      display: flex; align-items: center; gap: 11px; margin-top: 6px;
+    
+    /* SIDEBAR CONTENT */
+    .sidebar-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #32264c;
+      margin-bottom: 15px;
+      display: block;
     }
-    .acoes-btn {
+    .empty-state {
+      text-align: center;
+      padding: 20px;
+      color: #a8a8d0;
+      font-style: italic;
+      font-size: 14px;
+    }
+    
+    /* JOGO DA VELHA */
+    .tic-tac-toe {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .game-status {
+      font-weight: 500;
+      color: #32264c;
+      text-align: center;
+      font-size: 15px;
+    }
+    .game-turn {
+      font-size: 14px;
+      color: #a8a8d0;
+      text-align: center;
+    }
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 8px;
+      width: 220px;
+      height: 220px;
+      margin: 0 auto 15px auto;
+    }
+    .cell {
       background: #f7f2ff;
-      border: 1.5px solid var(--roxo);
+      border: 2px solid var(--roxo);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: bold;
       color: var(--roxo);
-      border-radius: 17px;
-      padding: 6px 17px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .cell:hover {
+      background: #ebddfa;
+    }
+    .cell.x { color: #9B5DE5; }
+    .cell.o { color: #00BBF9; }
+    
+    /* BOTÃO REINICIAR */
+    .restart-btn {
+      background: var(--roxo);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      padding: 10px 20px;
+      font-weight: 600;
       font-size: 15px;
       cursor: pointer;
-      font-weight: 500;
-      transition: background .17s, color .17s, border .15s;
       box-shadow: var(--shadow-btn);
-      display: flex; align-items: center; gap:6px;
-      outline: none;
+      display: block;
+      margin: 10px auto 0 auto;
+      transition: filter 0.2s;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    .acoes-btn.selected, .acoes-btn:active, .acoes-btn:hover {
-      background: var(--roxo);
-      color: #fff; border-color: #fff;
+    .restart-btn:hover {
+      filter: brightness(1.1);
     }
-    .acoes-btn svg {width:19px;height:19px;vertical-align:middle;}
-    .acoes-btn:active svg, .acoes-btn.selected svg {filter:brightness(1.7);}
-    @media (max-width: 900px){.feed-container,.nav-bar{max-width:100vw;}
+    
+    @media (max-width: 900px){
+      .feed-container {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        max-width: 700px;
+        margin: 0 auto;
+      }
       .form-card, .post-card {padding: 11px 5px;}
     }
     @media (max-width: 600px){
       .nav-bar{padding:8px;}
-      .post-footer {gap: 7px;}
+      .feed-container {padding: 10px;}
     }
   </style>
 </head>
@@ -207,7 +296,6 @@
       <form class="search-bar" onsubmit="return false;">
         <input type="text" placeholder="Pesquisar">
         <button type="submit" title="Buscar">
-          <!-- Ícone lupa (SVG) -->
           <svg fill="#fff" width="21" height="21" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99c.39.39 1.03.39 1.42 0s.39-1.03 0-1.42l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
         </button>
       </form>
@@ -215,113 +303,156 @@
         <button class="nav-btn" title="Nova publicação">
           <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
-        <!-- Apenas o círculo do avatar, sem user/arroba -->
-        <a href="/perfil" class="avatar-circulo" id="avatar-link">
-          <img src="" alt="Seu avatar" id="img-avatar-nav"
-            onerror="this.parentNode.classList.add('avatar-placeholder');this.style.display='none';">
-        </a>
+        <a href="/perfil" class="avatar-circulo"></a>
       </div>
     </div>
   </nav>
+  
   <div class="feed-container">
-    <div class="form-card">
-      <form onsubmit="addPost(event)">
-        <textarea id="post-content" maxlength="5000" placeholder="O que você está pensando?"></textarea>
-        <button type="submit" id="create-btn">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          Publicar
-        </button>
-      </form>
+    <!-- FEED PRINCIPAL -->
+    <div class="main-content">
+      <div class="form-card">
+        <form id="post-form">
+          <textarea id="post-content" maxlength="5000" placeholder="O que você está pensando?"></textarea>
+          <button type="submit" id="create-btn">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Publicar
+          </button>
+        </form>
+      </div>
+      
+      <div id="posts-container">
+        <!-- SEM POSTS -->
+        <div class="no-posts-message">
+          Sem posts no momento
+        </div>
+      </div>
     </div>
-    <div id="posts"></div>
-  </div>
-  <script>
-    // Usuário logado (simulação)
-    const usuarioLogado = {
-      avatar_url: "https://i.pravatar.cc/150?img=13" // Sua foto ou vazio ("")
-    }
-    // Exemplo de posts
-    const posts = [
-      {
-        username: "gramatike",
-        avatar_url: "",
-        data: "05/10/2025 12:17",
-        conteudo: `Sejam bem-vindes!
-Caso presenciarem algum erro, relate no Suporte ou aqui nos comentários.
-
-#gramatike #bemvindes`
-      },
-      {
-        username: "alex.mattinelli",
-        avatar_url: "https://i.pravatar.cc/150?img=13",
-        data: "04/10/2025 22:25",
-        conteudo: "boa noite, não bináries! fazendo um test"
-      }
-    ];
-    // Preenche avatar nav
-    const imgAvatar = document.getElementById('img-avatar-nav');
-    if(usuarioLogado.avatar_url){
-      imgAvatar.src = usuarioLogado.avatar_url;
-      imgAvatar.style.display='';
-      document.getElementById('avatar-link').classList.remove('avatar-placeholder');
-    } else {
-      imgAvatar.src = "";
-      imgAvatar.style.display='none';
-      document.getElementById('avatar-link').classList.add('avatar-placeholder');
-    }
-
-    // Render posts no feed
-    function renderPosts() {
-      let html = "";
-      posts.forEach(post => {
-        html += `
-        <div class="post-card">
-          <div class="post-header">
-            <div class="avatar-circulo${!post.avatar_url ? " avatar-placeholder":""}">
-              ${post.avatar_url
-                ? `<img src="${post.avatar_url}" alt="avatar autor" onerror="this.parentNode.classList.add('avatar-placeholder');this.style.display='none';">`
-                : ""}
+    
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <!-- AMIGUES -->
+      <div class="sidebar-card">
+        <span class="sidebar-title">Amigues</span>
+        <div class="light-purple-card">
+          <span class="sidebar-title">Amigues</span>
+          <div class="empty-state">Sem amigues ainda. Faça amizades para aparecerem aqui.</div>
+        </div>
+      </div>
+      
+      <!-- JOGO DA VELHA -->
+      <div class="sidebar-card">
+        <span class="sidebar-title">Jogo da Velha</span>
+        <div class="light-purple-card">
+          <div class="tic-tac-toe">
+            <div class="game-status">Jogue contra o Rebao. Você é o X.</div>
+            <div class="game-turn">Sua vez: você é X.</div>
+            <div class="game-board" id="game-board">
+              <div class="cell" onclick="makeMove(this, 0)"></div>
+              <div class="cell" onclick="makeMove(this, 1)"></div>
+              <div class="cell" onclick="makeMove(this, 2)"></div>
+              <div class="cell" onclick="makeMove(this, 3)"></div>
+              <div class="cell" onclick="makeMove(this, 4)"></div>
+              <div class="cell" onclick="makeMove(this, 5)"></div>
+              <div class="cell" onclick="makeMove(this, 6)"></div>
+              <div class="cell" onclick="makeMove(this, 7)"></div>
+              <div class="cell" onclick="makeMove(this, 8)"></div>
             </div>
-            <a class="user-at" href="/usuario/${post.username}">@${post.username}</a>
-            <span class="post-date">${post.data}</span>
+            <button class="restart-btn" onclick="resetGame()">Reiniciar</button>
           </div>
-          <div class="post-content">
-            ${post.conteudo.replace(/\n/g, "<br>")}
-          </div>
-          <div class="post-footer">
-            <button class="acoes-btn selected" title="Curtir">
-              <svg fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24"><path d="M12 21C12 21 4 13.481 4 8.75C4 5.272 7.152 3 10.6 3C12.09 3 13.519 3.659 14.5 4.695C15.481 3.659 16.91 3 18.4 3C21.848 3 25 5.272 25 8.75C25 13.481 17 21 17 21H12Z"/></svg>
-              Curtir
-            </button>
-            <button class="acoes-btn" title="Comentar">
-              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-1.9 5.4A8.5 8.5 0 0111.5 21 8.38 8.38 0 016.1 19.1C4.31 17.4 3 14.5 3 11.5a8.5 8.5 0 018.5-8.5h1a8.5 8.5 0 018.5 8.5z"></path></svg>
-              Comentar
-            </button>
-            <button class="acoes-btn" title="Mais opções">
-              <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
-            </button>
-          </div>
-        </div>`;
-      });
-      document.getElementById("posts").innerHTML = html;
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Jogo da Velha
+    let currentPlayer = 'X';
+    let gameBoard = ['', '', '', '', '', '', '', '', ''];
+    let gameActive = true;
+    
+    function makeMove(cell, index) {
+      if (!gameActive || gameBoard[index] !== '') return;
+      
+      gameBoard[index] = currentPlayer;
+      cell.textContent = currentPlayer;
+      cell.classList.add(currentPlayer.toLowerCase());
+      
+      if (checkWinner()) {
+        document.querySelector('.game-status').textContent = `Jogador ${currentPlayer} venceu!`;
+        gameActive = false;
+        return;
+      }
+      
+      if (gameBoard.every(cell => cell !== '')) {
+        document.querySelector('.game-status').textContent = 'Empate!';
+        gameActive = false;
+        return;
+      }
+      
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      document.querySelector('.game-turn').textContent = currentPlayer === 'X' 
+        ? 'Sua vez: você é X.' 
+        : 'Vez do Rebao: O.';
+        
+      // Jogada do computador
+      if (currentPlayer === 'O' && gameActive) {
+        setTimeout(computerMove, 500);
+      }
     }
-    renderPosts();
-    // Publicação do post fake
-    function addPost(e){
+    
+    function computerMove() {
+      if (!gameActive) return;
+      
+      const emptyCells = gameBoard
+        .map((cell, index) => cell === '' ? index : null)
+        .filter(index => index !== null);
+      
+      if (emptyCells.length > 0) {
+        const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        const cell = document.querySelectorAll('.cell')[randomIndex];
+        makeMove(cell, randomIndex);
+      }
+    }
+    
+    function checkWinner() {
+      const winPatterns = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
+      ];
+      
+      return winPatterns.some(pattern => {
+        const [a, b, c] = pattern;
+        return gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c];
+      });
+    }
+    
+    function resetGame() {
+      gameBoard = ['', '', '', '', '', '', '', '', ''];
+      currentPlayer = 'X';
+      gameActive = true;
+      
+      document.querySelectorAll('.cell').forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('x', 'o');
+      });
+      
+      document.querySelector('.game-status').textContent = 'Jogue contra o Rebao. Você é o X.';
+      document.querySelector('.game-turn').textContent = 'Sua vez: você é X.';
+    }
+    
+    // Formulário de post
+    document.getElementById('post-form').addEventListener('submit', function(e) {
       e.preventDefault();
-      var val = document.getElementById("post-content").value.trim();
-      if(!val) return;
-      posts.unshift({
-        username: "voce",
-        avatar_url: usuarioLogado.avatar_url,
-        data: new Date().toLocaleDateString("pt-BR") + " " + (new Date().toLocaleTimeString("pt-BR").slice(0,5)),
-        conteudo: val
-      });
-      document.getElementById("post-content").value="";
-      renderPosts();
-    }
+      const content = document.getElementById('post-content').value.trim();
+      if (content) {
+        document.querySelector('.no-posts-message').style.display = 'none';
+        document.getElementById('post-content').value = '';
+        // Aqui você pode adicionar a lógica para criar o post
+        alert('Post criado! (Funcionalidade de exemplo)');
+      }
+    });
   </script>
-</body>
-</html>
 </body>
 </html>
