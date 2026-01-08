@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Gramátike</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="bg-gray-50" x-data="adminApp()">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-600">Gramátike - Admin</h1>
+            <div class="flex gap-4 items-center">
+                <a href="/feed" class="hover:text-blue-600">Feed</a>
+                <a href="/profile" class="hover:text-blue-600">Perfil</a>
+                <a href="/admin" class="hover:text-blue-600">Admin</a>
+                <button @click="logout" class="text-red-600 hover:text-red-700">Sair</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto py-8 px-4">
+        <h2 class="text-3xl font-bold mb-8">Dashboard Administrativo</h2>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Usuários</p>
+                        <p class="text-3xl font-bold text-blue-600" x-text="stats.users || 0"></p>
+                    </div>
+                    <div class="text-4xl">👥</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Posts</p>
+                        <p class="text-3xl font-bold text-green-600" x-text="stats.posts || 0"></p>
+                    </div>
+                    <div class="text-4xl">📝</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Comentários</p>
+                        <p class="text-3xl font-bold text-purple-600" x-text="stats.comments || 0"></p>
+                    </div>
+                    <div class="text-4xl">💬</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Curtidas</p>
+                        <p class="text-3xl font-bold text-red-600" x-text="stats.likes || 0"></p>
+                    </div>
+                    <div class="text-4xl">❤️</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-xl font-semibold mb-4">Atividade Recente</h3>
+            <p class="text-gray-600">Gerenciamento de usuários e posts disponível em breve.</p>
+        </div>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/admin.js"></script>
+</body>
+</html>

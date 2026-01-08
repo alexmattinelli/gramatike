@@ -15,7 +15,7 @@ CREATE TABLE users (
     password TEXT NOT NULL,
     name TEXT,
     bio TEXT,
-    avatar TEXT DEFAULT '/assets/avatar-default.png',
+    avatar TEXT DEFAULT '/assets/avatar-default.svg',
     is_admin INTEGER DEFAULT 0,
     is_banned INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
