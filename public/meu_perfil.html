@@ -1,1 +1,98 @@
-
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Meu Perfil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0; padding: 0;
+        }
+        .container {
+            background: #fff;
+            max-width: 400px;
+            margin: 40px auto;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: block;
+            margin: 0 auto 20px auto;
+            object-fit: cover;
+            background: #eee;
+        }
+        .edit-profile-btn {
+            position: absolute;
+            right: 24px;
+            top: 24px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .username {
+            text-align: center;
+            color: #888;
+            margin-bottom: 16px;
+        }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+        .stats div {
+            text-align: center;
+        }
+        .info {
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+        .info strong { display: inline-block; width: 75px; }
+        .bio {
+            background: #f1f1f1;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="edit-profile-btn">Editar Perfil</button>
+        <img src="https://avatars.githubusercontent.com/u/0?v=4" alt="Avatar" class="avatar">
+        <h1>Nome de usuárie</h1>
+        <div class="username">@usuario</div>
+        <div class="stats">
+            <div>
+                <strong>0</strong><br>
+                Seguidories
+            </div>
+            <div>
+                <strong>0</strong><br>
+                Seguindo
+            </div>
+        </div>
+        <div class="info">
+            <p><strong>Gênero:</strong> [gênero]</p>
+            <p><strong>Pronome:</strong> [pronome]</p>
+        </div>
+        <div class="bio">
+            Aqui vai a bio de usuárie.
+        </div>
+    </div>
+</body>
+</html>
