@@ -1,4 +1,5 @@
-// TypeScript type definitions for Gramátike v2
+// TypeScript type definitions for Gramátike v3 - Minimalist MVP
+// This file provides type declarations for TypeScript
 
 export interface User {
   id: number;
@@ -6,47 +7,21 @@ export interface User {
   email: string;
   password: string;
   name?: string;
-  bio?: string;
-  avatar?: string;
   is_admin: number;
   is_banned: number;
   created_at: string;
-  updated_at: string;
 }
 
 export interface Post {
   id: number;
   user_id: number;
   content: string;
-  image?: string;
   created_at: string;
-  updated_at: string;
-  // Joined fields
-  username?: string;
-  name?: string;
-  avatar?: string;
-  likes_count?: number;
-  comments_count?: number;
-  user_liked?: boolean;
 }
 
-export interface Comment {
-  id: number;
-  user_id: number;
-  post_id: number;
-  content: string;
-  created_at: string;
-  // Joined fields
-  username?: string;
+export interface PostWithUser extends Post {
+  username: string;
   name?: string;
-  avatar?: string;
-}
-
-export interface Like {
-  id: number;
-  user_id: number;
-  post_id: number;
-  created_at: string;
 }
 
 export interface Session {
@@ -61,10 +36,21 @@ export interface Env {
   DB: D1Database;
   R2_BUCKET: R2Bucket;
   SECRET_KEY?: string;
+  ENVIRONMENT?: string;
   ASSETS?: any;
 }
 
 export interface AuthContext {
   user: User | null;
   session: Session | null;
+}
+
+// Extend EventContext to include our custom data
+declare module '@cloudflare/workers-types' {
+  interface EventContext<Env, P, Data> {
+    data: Data & {
+      user?: User | null;
+      session?: Session | null;
+    };
+  }
 }

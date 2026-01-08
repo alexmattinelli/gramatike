@@ -9,7 +9,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ data, env }) => {
   
   // Require login
   if (!user) {
-    return redirectResponse('/login');
+    return redirectResponse('/');
   }
   
   // Serve HTML from public directory

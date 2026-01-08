@@ -1,14 +1,14 @@
 // POST /api/auth/logout - User logout
 
 import type { PagesFunction } from '@cloudflare/workers-types';
-import type { Env } from '../../../src/types';
+import type { Env, User, Session } from '../../../src/types';
 import { deleteSession } from '../../../src/lib/db';
 import { jsonResponse, errorResponse } from '../../../src/lib/response';
 import { deleteSessionCookie } from '../../../src/lib/auth';
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env, data }) => {
   try {
-    const session = data.session;
+    const session = data.session as Session | null;
     
     if (session) {
       await deleteSession(env.DB, session.token);

@@ -1,6 +1,6 @@
-// Database query utilities for Gramátike v2
+// Database query utilities for Gramátike v3 - Minimalist MVP
 
-import type { User, Post, Comment, Session } from '../types';
+import type { User, Post, PostWithUser, Session } from '../types';
 
 /**
  * Get user by ID
@@ -42,53 +42,61 @@ export async function createUser(db: D1Database, data: {
 }
 
 /**
- * Get posts with user info
+ * Get all users (admin only)
  */
-export async function getPosts(db: D1Database, limit = 20, offset = 0, userId?: number): Promise<Post[]> {
-  let query = `
-    SELECT p.*, u.username, u.name, u.avatar,
-           COUNT(DISTINCT l.id) as likes_count,
-           COUNT(DISTINCT c.id) as comments_count
-           ${userId ? `, EXISTS(SELECT 1 FROM likes WHERE user_id = ? AND post_id = p.id) as user_liked` : ''}
+export async function getAllUsers(db: D1Database): Promise<User[]> {
+  const { results } = await db.prepare(
+    'SELECT id, username, email, name, is_admin, is_banned, created_at FROM users ORDER BY created_at DESC'
+  ).all();
+  return results as unknown as User[];
+}
+
+/**
+ * Ban a user
+ */
+export async function banUser(db: D1Database, userId: number): Promise<void> {
+  await db.prepare('UPDATE users SET is_banned = 1 WHERE id = ?').bind(userId).run();
+}
+
+/**
+ * Get posts with user info (simplified - no likes/comments)
+ */
+export async function getPosts(db: D1Database, limit = 20, offset = 0): Promise<PostWithUser[]> {
+  const query = `
+    SELECT p.*, u.username, u.name
     FROM posts p
     JOIN users u ON p.user_id = u.id
-    LEFT JOIN likes l ON p.id = l.post_id
-    LEFT JOIN comments c ON p.id = c.post_id
-    GROUP BY p.id
     ORDER BY p.created_at DESC
     LIMIT ? OFFSET ?
   `;
   
-  const bindings = userId ? [userId, limit, offset] : [limit, offset];
-  const { results } = await db.prepare(query).bind(...bindings).all();
-  return results as unknown as Post[];
+  const { results } = await db.prepare(query).bind(limit, offset).all();
+  return results as unknown as PostWithUser[];
 }
 
 /**
- * Create a new post
+ * Get post by ID
  */
-export async function createPost(db: D1Database, userId: number, content: string, image?: string): Promise<Post> {
+export async function getPostById(db: D1Database, id: number): Promise<Post | null> {
+  const { results } = await db.prepare('SELECT * FROM posts WHERE id = ?').bind(id).all();
+  return (results[0] as unknown as Post) || null;
+}
+
+/**
+ * Create a new post (text only)
+ */
+export async function createPost(db: D1Database, userId: number, content: string): Promise<Post> {
   const { results } = await db.prepare(
-    'INSERT INTO posts (user_id, content, image) VALUES (?, ?, ?) RETURNING *'
-  ).bind(userId, content, image || null).all();
+    'INSERT INTO posts (user_id, content) VALUES (?, ?) RETURNING *'
+  ).bind(userId, content).all();
   return results[0] as unknown as Post;
 }
 
 /**
- * Toggle like on a post
+ * Delete a post
  */
-export async function toggleLike(db: D1Database, userId: number, postId: number): Promise<boolean> {
-  const { results } = await db.prepare(
-    'SELECT * FROM likes WHERE user_id = ? AND post_id = ?'
-  ).bind(userId, postId).all();
-  
-  if (results.length > 0) {
-    await db.prepare('DELETE FROM likes WHERE user_id = ? AND post_id = ?').bind(userId, postId).run();
-    return false;
-  } else {
-    await db.prepare('INSERT INTO likes (user_id, post_id) VALUES (?, ?)').bind(userId, postId).run();
-    return true;
-  }
+export async function deletePost(db: D1Database, postId: number): Promise<void> {
+  await db.prepare('DELETE FROM posts WHERE id = ?').bind(postId).run();
 }
 
 /**
@@ -116,4 +124,19 @@ export async function getSessionByToken(db: D1Database, token: string): Promise<
  */
 export async function deleteSession(db: D1Database, token: string): Promise<void> {
   await db.prepare('DELETE FROM sessions WHERE token = ?').bind(token).run();
+}
+
+/**
+ * Get database statistics (admin only)
+ */
+export async function getStats(db: D1Database): Promise<{ users: number; posts: number; banned: number }> {
+  const usersResult = await db.prepare('SELECT COUNT(*) as count FROM users').first();
+  const postsResult = await db.prepare('SELECT COUNT(*) as count FROM posts').first();
+  const bannedResult = await db.prepare('SELECT COUNT(*) as count FROM users WHERE is_banned = 1').first();
+  
+  return {
+    users: (usersResult?.count as number) || 0,
+    posts: (postsResult?.count as number) || 0,
+    banned: (bannedResult?.count as number) || 0
+  };
 }

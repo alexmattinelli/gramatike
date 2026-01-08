@@ -1,24 +1,18 @@
 {
-	"name": "gramatike-v2",
-	"version": "2.0.0",
-	"type": "module",
-	"private": true,
-	"description": "Gramátike v2 - Fresh Start: Rede social educativa de português",
-	"scripts": {
-		"dev": "wrangler pages dev public --compatibility-date=2026-01-08",
-		"build": "echo '✅ Build complete - TypeScript Cloudflare Pages Functions ready (types checked at runtime)'",
-		"deploy": "wrangler pages deploy public",
-		"db:init": "wrangler d1 execute gramatike-v2 --file=./db/schema.sql",
-		"db:seed": "wrangler d1 execute gramatike-v2 --file=./db/seed.sql",
-		"db:reset": "npm run db:init && npm run db:seed",
-		"typecheck": "tsc --noEmit || true"
-	},
-	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20260108.0",
-		"typescript": "^5.3.0",
-		"wrangler": "^4.58.0"
-	},
-	"engines": {
-		"node": ">=20.0.0"
-	}
+  "name": "gramatike",
+  "version": "3.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Gramátike - Rede social educativa de português (MVP)",
+  "scripts": {
+    "dev": "wrangler pages dev public --compatibility-date=2026-01-08",
+    "build": "echo '✅ Build complete'",
+    "deploy": "wrangler pages deploy public",
+    "db:init": "wrangler d1 execute gramatike --remote --file=./db/schema.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260108.0",
+    "typescript": "^5.3.0",
+    "wrangler": "^4.58.0"
+  }
 }

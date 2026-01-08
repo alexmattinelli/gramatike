@@ -4,117 +4,258 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feed - Gramátike</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="/css/app.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f3f4f6; }
+        
+        /* Navigation */
+        nav { background: white; border-bottom: 1px solid #e5e7eb; padding: 16px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        nav .container { max-width: 800px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        nav h1 { color: #667eea; font-size: 24px; }
+        nav .actions { display: flex; gap: 16px; align-items: center; }
+        nav a, nav button { text-decoration: none; color: #4b5563; font-size: 14px; background: none; border: none; cursor: pointer; padding: 8px 12px; border-radius: 6px; transition: all 0.2s; }
+        nav a:hover, nav button:hover { background: #f3f4f6; }
+        nav .logout { color: #dc2626; }
+        nav .logout:hover { background: #fee; }
+        
+        /* Main container */
+        .container { max-width: 800px; margin: 20px auto; padding: 0 16px; }
+        
+        /* Create post form */
+        .create-post { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .create-post textarea { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; resize: vertical; min-height: 80px; font-family: inherit; }
+        .create-post textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .create-post button { margin-top: 12px; padding: 10px 24px; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .create-post button:hover:not(:disabled) { background: #5568d3; }
+        .create-post button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Posts */
+        .post { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .post-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
+        .post-author { font-weight: 600; color: #111827; }
+        .post-username { color: #6b7280; font-size: 14px; margin-left: 8px; }
+        .post-date { color: #9ca3af; font-size: 13px; }
+        .post-content { color: #374151; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
+        .post-actions { margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb; display: flex; gap: 12px; }
+        .post-actions button { background: none; border: none; color: #dc2626; cursor: pointer; padding: 6px 12px; border-radius: 6px; font-size: 13px; transition: all 0.2s; }
+        .post-actions button:hover { background: #fee; }
+        
+        /* Messages */
+        .error, .success { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; display: none; }
+        .error { background: #fee; border: 1px solid #fcc; color: #c33; }
+        .error.show { display: block; }
+        .success { background: #efe; border: 1px solid #cfc; color: #3c3; }
+        .success.show { display: block; }
+        
+        /* Loading & Empty states */
+        .loading, .empty { text-align: center; padding: 40px; color: #6b7280; }
+        .loading { display: none; }
+        .loading.show { display: block; }
+        .empty { display: none; }
+        .empty.show { display: block; }
+    </style>
 </head>
-<body class="bg-gray-50" x-data="feedApp()">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-blue-600">Gramátike</h1>
-            <div class="flex gap-4 items-center">
-                <a href="/feed" class="hover:text-blue-600">Feed</a>
-                <a href="/profile" class="hover:text-blue-600">Perfil</a>
-                <template x-if="user?.is_admin">
-                    <a href="/admin" class="hover:text-blue-600">Admin</a>
-                </template>
-                <button @click="logout" class="text-red-600 hover:text-red-700">Sair</button>
+<body>
+    <nav>
+        <div class="container">
+            <h1>Gramátike</h1>
+            <div class="actions">
+                <a href="/feed">Feed</a>
+                <a href="/admin" id="admin-link" style="display:none;">Admin</a>
+                <button class="logout" onclick="handleLogout()">Sair</button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="max-w-2xl mx-auto py-8 px-4">
+    <div class="container">
+        <div id="error" class="error"></div>
+        <div id="success" class="success"></div>
+
         <!-- Create Post Form -->
-        <div class="bg-white rounded-lg shadow p-4 mb-6">
-            <form @submit.prevent="createPost" class="space-y-3">
-                <textarea 
-                    x-model="newPost.content"
-                    placeholder="O que você está pensando?"
-                    class="w-full p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows="3"
-                    required
-                ></textarea>
-                
-                <div class="flex justify-between items-center">
-                    <label class="cursor-pointer text-blue-600 hover:text-blue-700">
-                        📷 Adicionar imagem
-                        <input type="file" @change="handleImageUpload" accept="image/*" class="hidden">
-                    </label>
-                    <button 
-                        type="submit"
-                        :disabled="loading"
-                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                    >
-                        <span x-text="loading ? 'Publicando...' : 'Publicar'"></span>
-                    </button>
-                </div>
-                
-                <!-- Image Preview -->
-                <div x-show="newPost.image" class="relative">
-                    <img :src="newPost.image" class="max-h-48 rounded-lg">
-                    <button 
-                        @click="newPost.image = null" 
-                        type="button"
-                        class="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
-                    >
-                        ✕
-                    </button>
-                </div>
+        <div class="create-post">
+            <form onsubmit="handleCreatePost(event)">
+                <textarea id="post-content" placeholder="O que você está pensando?" required maxlength="5000"></textarea>
+                <button type="submit" id="create-btn">Publicar</button>
             </form>
         </div>
 
         <!-- Posts Feed -->
-        <div class="space-y-4">
-            <template x-for="post in posts" :key="post.id">
-                <article class="bg-white rounded-lg shadow p-4">
-                    <!-- Post Header -->
-                    <div class="flex items-center gap-3 mb-3">
-                        <img :src="post.avatar || '/assets/avatar-default.png'" class="w-10 h-10 rounded-full">
-                        <div>
-                            <a :href="`/u/${post.username}`" class="font-semibold hover:underline" x-text="post.name || post.username"></a>
-                            <p class="text-sm text-gray-500" x-text="formatDate(post.created_at)"></p>
+        <div id="posts"></div>
+        <div id="loading" class="loading">Carregando...</div>
+        <div id="empty" class="empty">Nenhum post ainda. Seja o primeiro a postar!</div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        function showError(msg) {
+            const el = document.getElementById('error');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        function showSuccess(msg) {
+            const el = document.getElementById('success');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            
+            if (days > 7) return date.toLocaleDateString('pt-BR');
+            if (days > 0) return `${days}d atrás`;
+            if (hours > 0) return `${hours}h atrás`;
+            if (minutes > 0) return `${minutes}min atrás`;
+            return 'agora';
+        }
+
+        async function loadPosts() {
+            const loading = document.getElementById('loading');
+            const empty = document.getElementById('empty');
+            const postsContainer = document.getElementById('posts');
+            
+            loading.classList.add('show');
+            empty.classList.remove('show');
+            
+            try {
+                const res = await fetch('/api/posts');
+                if (!res.ok) throw new Error('Erro ao carregar posts');
+                
+                const data = await res.json();
+                const posts = data.posts || [];
+                
+                loading.classList.remove('show');
+                
+                if (posts.length === 0) {
+                    empty.classList.add('show');
+                    return;
+                }
+                
+                postsContainer.innerHTML = posts.map(post => `
+                    <div class="post">
+                        <div class="post-header">
+                            <div>
+                                <span class="post-author">${escapeHtml(post.name || post.username)}</span>
+                                <span class="post-username">@${escapeHtml(post.username)}</span>
+                                <div class="post-date">${formatDate(post.created_at)}</div>
+                            </div>
                         </div>
+                        <div class="post-content">${escapeHtml(post.content)}</div>
+                        ${currentUser && currentUser.is_admin ? `
+                            <div class="post-actions">
+                                <button onclick="deletePost(${post.id})">🗑️ Deletar</button>
+                            </div>
+                        ` : ''}
                     </div>
+                `).join('');
+            } catch (err) {
+                loading.classList.remove('show');
+                showError(err.message);
+            }
+        }
 
-                    <!-- Post Content -->
-                    <p class="mb-3 whitespace-pre-wrap" x-text="post.content"></p>
-                    
-                    <template x-if="post.image">
-                        <img :src="post.image" class="rounded-lg mb-3 max-w-full">
-                    </template>
+        async function handleCreatePost(e) {
+            e.preventDefault();
+            
+            const content = document.getElementById('post-content').value.trim();
+            if (!content) return;
+            
+            const btn = document.getElementById('create-btn');
+            btn.disabled = true;
+            btn.textContent = 'Publicando...';
+            
+            try {
+                const res = await fetch('/api/posts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content })
+                });
+                
+                if (!res.ok) {
+                    const data = await res.json();
+                    throw new Error(data.error || 'Erro ao criar post');
+                }
+                
+                document.getElementById('post-content').value = '';
+                showSuccess('Post publicado!');
+                await loadPosts();
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Publicar';
+            }
+        }
 
-                    <!-- Post Actions -->
-                    <div class="flex gap-6 text-gray-600 border-t pt-3">
-                        <button 
-                            @click="toggleLike(post)"
-                            :class="post.user_liked ? 'text-red-600' : ''"
-                            class="flex items-center gap-1"
-                        >
-                            <span x-text="post.user_liked ? '❤️' : '🤍'"></span>
-                            <span x-text="post.likes_count || 0"></span>
-                        </button>
-                        <button class="flex items-center gap-1">
-                            💬 <span x-text="post.comments_count || 0"></span>
-                        </button>
-                    </div>
-                </article>
-            </template>
-        </div>
+        async function deletePost(id) {
+            if (!confirm('Tem certeza que deseja deletar este post?')) return;
+            
+            try {
+                const res = await fetch(`/api/posts/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!res.ok) {
+                    const data = await res.json();
+                    throw new Error(data.error || 'Erro ao deletar post');
+                }
+                
+                showSuccess('Post deletado!');
+                await loadPosts();
+            } catch (err) {
+                showError(err.message);
+            }
+        }
 
-        <!-- Loading indicator -->
-        <div x-show="loading && posts.length === 0" class="text-center py-8 text-gray-500">
-            Carregando...
-        </div>
+        async function handleLogout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/';
+            } catch (err) {
+                showError('Erro ao fazer logout');
+            }
+        }
 
-        <!-- Empty state -->
-        <div x-show="!loading && posts.length === 0" class="text-center py-8 text-gray-500">
-            Nenhum post ainda. Seja o primeiro a postar!
-        </div>
-    </main>
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
-    <script src="/js/api.js"></script>
-    <script src="/js/feed.js"></script>
+        // Check if user is authenticated
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/users/me');
+                if (!res.ok) {
+                    window.location.href = '/';
+                    return;
+                }
+                const data = await res.json();
+                currentUser = data.user;
+                
+                // Show admin link if user is admin
+                if (currentUser.is_admin) {
+                    document.getElementById('admin-link').style.display = 'block';
+                }
+            } catch (err) {
+                window.location.href = '/';
+            }
+        }
+
+        // Initialize
+        (async () => {
+            await checkAuth();
+            await loadPosts();
+        })();
+    </script>
 </body>
 </html>
