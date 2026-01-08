@@ -1,74 +1,52 @@
-// Posts API - List and Create
-import type { Env, User } from '../../../src/types';
-import { getPosts, createPost } from '../../../src/lib/db';
-import { getCurrentUser } from '../../../src/lib/auth';
-import { errorResponse, successResponse, parseJsonBody, getQueryParam, validateContent } from '../../../src/lib/utils';
+// GET /api/posts - List posts
+// POST /api/posts - Create post
 
-/**
- * GET /api/posts - List posts
- */
-export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
-  const pageParam = getQueryParam(request, 'page');
-  const page = pageParam ? parseInt(pageParam) : 1;
-  const perPage = 20;
-  
-  // Get current user (optional for viewing posts)
-  const user = await getCurrentUser(request, env.DB);
-  const userId = user?.id;
-  
-  const posts = await getPosts(env.DB, page, perPage, userId);
-  
-  return successResponse({ posts, page, perPage });
+import type { PagesFunction } from '@cloudflare/workers-types';
+import type { Env } from '../../../src/types';
+import { getPosts, createPost } from '../../../src/lib/db';
+import { isValidPostContent } from '../../../src/lib/validation';
+import { jsonResponse, errorResponse } from '../../../src/lib/response';
+
+export const onRequestGet: PagesFunction<Env> = async ({ env, data }) => {
+  try {
+    const userId = data.user?.id;
+    const posts = await getPosts(env.DB, 20, 0, userId);
+    
+    return jsonResponse({ posts });
+  } catch (error) {
+    console.error('[posts/index] GET Error:', error);
+    return errorResponse('Erro ao buscar posts', 500);
+  }
 };
 
-/**
- * POST /api/posts - Create a new post
- */
 export const onRequestPost: PagesFunction<Env> = async ({ request, env, data }) => {
-  const user = data.user as User;
-  
-  if (!user) {
-    return errorResponse('Não autenticado', 401);
-  }
-  
-  const body = await parseJsonBody<{
-    conteudo: string;
-    imagem?: string;
-  }>(request);
-  
-  if (!body) {
-    return errorResponse('Dados inválidos', 400);
-  }
-  
-  let { conteudo, imagem } = body;
-  
-  // Validate content
-  const validation = validateContent(conteudo);
-  if (!validation.valid) {
-    return errorResponse(validation.error || 'Conteúdo inválido', 400);
-  }
-  
-  // Ensure empty strings become undefined (will be sanitized to null in createPost)
-  if (imagem && imagem.trim() === '') {
-    imagem = undefined;
-  }
-  
-  console.log('[POST /api/posts] Creating post:', {
-    userId: user.id,
-    contentLength: conteudo.length,
-    hasImage: !!imagem
-  });
-  
-  // Create post - createPost will sanitize parameters
-  const postId = await createPost(env.DB, user.id, conteudo, imagem);
-  
-  if (!postId) {
+  try {
+    const user = data.user;
+    if (!user) {
+      return errorResponse('Não autorizado', 401);
+    }
+    
+    const { content, image } = await request.json();
+    
+    if (!isValidPostContent(content)) {
+      return errorResponse('Conteúdo inválido (1-5000 caracteres)', 400);
+    }
+    
+    const post = await createPost(env.DB, user.id, content, image);
+    
+    // Add user info to post
+    const postWithUser = {
+      ...post,
+      username: user.username,
+      name: user.name,
+      avatar: user.avatar,
+      likes_count: 0,
+      comments_count: 0
+    };
+    
+    return jsonResponse({ post: postWithUser }, 201);
+  } catch (error) {
+    console.error('[posts/index] POST Error:', error);
     return errorResponse('Erro ao criar post', 500);
   }
-  
-  return successResponse(
-    { id: postId },
-    'Post criado com sucesso',
-    201
-  );
 };

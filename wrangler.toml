@@ -1,44 +1,19 @@
-# Cloudflare Pages configuration for Gramátike
-# RUNTIME: Node.js/TypeScript ONLY - NO PYTHON
-# Version: 2.1.0
-# Last updated: 2026-01-07
-# Documentation: https://developers.cloudflare.com/pages/
+# Cloudflare Pages configuration for Gramátike v2
+# Fresh Start - Minimal Configuration
+# Version: 2.0.0
+# Last updated: 2026-01-08
 
-name = "gramatike"
-compatibility_date = "2026-01-07"
+name = "gramatike-v2"
+compatibility_date = "2026-01-08"
 pages_build_output_dir = "public"
-
-# Explicitly set to JavaScript/TypeScript runtime
-# NO Python Workers - This is a Cloudflare Pages Functions project
-
-# Cloudflare Pages - NO Python Workers
-# Runtime: JavaScript/TypeScript only
-compatibility_flags = ["nodejs_compat"]
-
-# Environment variables
-[vars]
-ENVIRONMENT = "production"
 
 # D1 Database (SQLite on the edge)
 [[d1_databases]]
 binding = "DB"
-database_name = "gramatike"
-database_id = "d0984113-06be-49f5-939a-9d5c5dcba7b6"
+database_name = "gramatike-v2"
+database_id = "YOUR_DATABASE_ID"
 
 # R2 Storage for file uploads
 [[r2_buckets]]
 binding = "R2_BUCKET"
-bucket_name = "gramatike"
-
-# Secrets (configure via CLI: wrangler secret put SECRET_KEY)
-# - SECRET_KEY
-# - MAIL_SERVER
-# - MAIL_PORT  
-# - MAIL_USERNAME
-# - MAIL_PASSWORD
-
-[env.production]
-name = "gramatike"
-
-[env.preview]
-name = "gramatike-preview"
+bucket_name = "gramatike-v2"

@@ -1,32 +1,31 @@
-// Logout endpoint
-import type { Env } from '../../../src/types';
-import { deleteSession, clearSessionCookie } from '../../../src/lib/auth';
-import { successResponse, errorResponse } from '../../../src/lib/utils';
+// POST /api/auth/logout - User logout
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
-  // Get token from cookie
-  const cookieHeader = request.headers.get('Cookie');
-  
-  if (!cookieHeader) {
-    return errorResponse('Não autenticado', 401);
+import type { PagesFunction } from '@cloudflare/workers-types';
+import type { Env } from '../../../src/types';
+import { deleteSession } from '../../../src/lib/db';
+import { jsonResponse, errorResponse } from '../../../src/lib/response';
+import { deleteSessionCookie } from '../../../src/lib/auth';
+
+export const onRequestPost: PagesFunction<Env> = async ({ request, env, data }) => {
+  try {
+    const session = data.session;
+    
+    if (session) {
+      await deleteSession(env.DB, session.token);
+    }
+    
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Logout realizado com sucesso'
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Set-Cookie': deleteSessionCookie()
+      }
+    });
+  } catch (error) {
+    console.error('[logout] Error:', error);
+    return errorResponse('Erro ao fazer logout', 500);
   }
-  
-  const token = cookieHeader
-    .split(';')
-    .map(c => c.trim())
-    .find(c => c.startsWith('session='))
-    ?.split('=')[1];
-  
-  if (!token) {
-    return errorResponse('Não autenticado', 401);
-  }
-  
-  // Delete session from database
-  await deleteSession(env.DB, token);
-  
-  // Create response with cleared cookie
-  const response = successResponse({}, 'Logout realizado com sucesso');
-  response.headers.set('Set-Cookie', clearSessionCookie());
-  
-  return response;
 };

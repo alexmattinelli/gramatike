@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed - Gramátike</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="bg-gray-50" x-data="feedApp()">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-600">Gramátike</h1>
+            <div class="flex gap-4 items-center">
+                <a href="/feed" class="hover:text-blue-600">Feed</a>
+                <a href="/profile" class="hover:text-blue-600">Perfil</a>
+                <template x-if="user?.is_admin">
+                    <a href="/admin" class="hover:text-blue-600">Admin</a>
+                </template>
+                <button @click="logout" class="text-red-600 hover:text-red-700">Sair</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-2xl mx-auto py-8 px-4">
+        <!-- Create Post Form -->
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <form @submit.prevent="createPost" class="space-y-3">
+                <textarea 
+                    x-model="newPost.content"
+                    placeholder="O que você está pensando?"
+                    class="w-full p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows="3"
+                    required
+                ></textarea>
+                
+                <div class="flex justify-between items-center">
+                    <label class="cursor-pointer text-blue-600 hover:text-blue-700">
+                        📷 Adicionar imagem
+                        <input type="file" @change="handleImageUpload" accept="image/*" class="hidden">
+                    </label>
+                    <button 
+                        type="submit"
+                        :disabled="loading"
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    >
+                        <span x-text="loading ? 'Publicando...' : 'Publicar'"></span>
+                    </button>
+                </div>
+                
+                <!-- Image Preview -->
+                <div x-show="newPost.image" class="relative">
+                    <img :src="newPost.image" class="max-h-48 rounded-lg">
+                    <button 
+                        @click="newPost.image = null" 
+                        type="button"
+                        class="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
+                    >
+                        ✕
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Posts Feed -->
+        <div class="space-y-4">
+            <template x-for="post in posts" :key="post.id">
+                <article class="bg-white rounded-lg shadow p-4">
+                    <!-- Post Header -->
+                    <div class="flex items-center gap-3 mb-3">
+                        <img :src="post.avatar || '/assets/avatar-default.png'" class="w-10 h-10 rounded-full">
+                        <div>
+                            <a :href="`/u/${post.username}`" class="font-semibold hover:underline" x-text="post.name || post.username"></a>
+                            <p class="text-sm text-gray-500" x-text="formatDate(post.created_at)"></p>
+                        </div>
+                    </div>
+
+                    <!-- Post Content -->
+                    <p class="mb-3 whitespace-pre-wrap" x-text="post.content"></p>
+                    
+                    <template x-if="post.image">
+                        <img :src="post.image" class="rounded-lg mb-3 max-w-full">
+                    </template>
+
+                    <!-- Post Actions -->
+                    <div class="flex gap-6 text-gray-600 border-t pt-3">
+                        <button 
+                            @click="toggleLike(post)"
+                            :class="post.user_liked ? 'text-red-600' : ''"
+                            class="flex items-center gap-1"
+                        >
+                            <span x-text="post.user_liked ? '❤️' : '🤍'"></span>
+                            <span x-text="post.likes_count || 0"></span>
+                        </button>
+                        <button class="flex items-center gap-1">
+                            💬 <span x-text="post.comments_count || 0"></span>
+                        </button>
+                    </div>
+                </article>
+            </template>
+        </div>
+
+        <!-- Loading indicator -->
+        <div x-show="loading && posts.length === 0" class="text-center py-8 text-gray-500">
+            Carregando...
+        </div>
+
+        <!-- Empty state -->
+        <div x-show="!loading && posts.length === 0" class="text-center py-8 text-gray-500">
+            Nenhum post ainda. Seja o primeiro a postar!
+        </div>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/feed.js"></script>
+</body>
+</html>
