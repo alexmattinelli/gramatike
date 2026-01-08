@@ -1,356 +1,208 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Gramatike</title>
+<meta charset="UTF-8">
+<title>Gramatike</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Mansalva&display=swap" rel="stylesheet">
 
-  <link href="https://fonts.googleapis.com/css2?family=Mansalva&display=swap" rel="stylesheet">
+<style>
+:root{
+  --roxo:#9b6cf3;
+  --roxo-claro:#f2ebff;
+  --fundo:#f6f7fb;
+  --texto:#3a2f5c;
+  --cinza:#9a93b5;
+  --card:#ffffff;
+  --borda:#eee8ff;
+  --raio:22px;
+  --sombra:0 10px 35px rgba(155,108,243,.18);
+}
 
-  <style>
-    :root {
-      --roxo: #9B5DE5;
-      --lilas-light: #f6f5fa;
-      --card-radius: 22px;
-      --shadow-card: 0 6px 30px 0 #9b5de51a, 0 1px 4px #9B5DE521;
-      --shadow-btn: 0 1.5px 7px #9B5DE529;
-    }
+*{box-sizing:border-box}
 
-    * {
-      box-sizing: border-box;
-    }
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--fundo);
+  color:var(--texto);
+}
 
-    body {
-      margin: 0;
-      background: var(--lilas-light);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
+/* HEADER */
+header{
+  background:var(--roxo);
+  padding:18px 0;
+}
 
-    /* NAV */
-    nav {
-      background: var(--roxo);
-      min-height: 62px;
-      box-shadow: var(--shadow-card);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
+.top{
+  max-width:1200px;
+  margin:0 auto;
+  padding:0 24px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+}
 
-    .nav-bar {
-      max-width: 1140px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      padding: 14px 28px;
-    }
+.logo{
+  font-family:'Mansalva',cursive;
+  font-size:28px;
+  color:#fff;
+  white-space:nowrap;
+}
 
-    .logo {
-      font-family: 'Mansalva', cursive;
-      font-size: 28px;
-      color: #fff;
-      letter-spacing: .5px;
-    }
+.search{
+  flex:1;
+  display:flex;
+  background:#fff;
+  border-radius:999px;
+  padding:6px;
+  box-shadow:0 4px 18px rgba(0,0,0,.12);
+}
 
-    .search-bar {
-      flex: 1;
-      display: flex;
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: var(--shadow-btn);
-      height: 38px;
-    }
+.search input{
+  flex:1;
+  border:none;
+  outline:none;
+  padding:0 16px;
+  font-size:15px;
+}
 
-    .search-bar input {
-      flex: 1;
-      border: none;
-      padding: 0 14px;
-      font-size: 15px;
-      outline: none;
-      color: #6741af;
-      background: transparent;
-    }
+.search button{
+  width:42px;
+  height:42px;
+  border:none;
+  border-radius:50%;
+  background:var(--roxo);
+  color:#fff;
+  cursor:pointer;
+}
 
-    .search-bar button {
-      width: 42px;
-      border: none;
-      background: var(--roxo);
-      color: #fff;
-      border-radius: 0 18px 18px 0;
-      cursor: pointer;
-    }
+.actions{
+  display:flex;
+  gap:12px;
+}
 
-    .nav-actions {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
+.circle{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:#fff;
+  color:var(--roxo);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  box-shadow:0 4px 18px rgba(0,0,0,.15);
+  cursor:pointer;
+}
 
-    .nav-btn {
-      width: 40px;
-      height: 40px;
-      background: var(--roxo);
-      border-radius: 14px;
-      border: none;
-      color: #fff;
-      box-shadow: var(--shadow-btn);
-      cursor: pointer;
-      font-size: 22px;
-    }
+/* LAYOUT */
+main{
+  max-width:1200px;
+  margin:28px auto;
+  padding:0 24px;
+  display:grid;
+  grid-template-columns:1fr 340px;
+  gap:28px;
+}
 
-    .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #e9e2ef;
-      border: 2px solid #fff;
-    }
+/* FEED */
+.feed{
+  background:var(--card);
+  border-radius:var(--raio);
+  box-shadow:var(--sombra);
+  padding:60px 40px;
+  text-align:center;
+  color:var(--cinza);
+  font-style:italic;
+  font-size:16px;
+}
 
-    /* LAYOUT */
-    .feed-container {
-      max-width: 1140px;
-      margin: 0 auto;
-      padding: 20px;
-      display: flex;
-      gap: 20px;
-    }
+/* SIDEBAR */
+.sidebar{
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+}
 
-    .main-content {
-      flex: 1;
-      max-width: 700px;
-    }
+.card{
+  background:var(--card);
+  border-radius:var(--raio);
+  box-shadow:var(--sombra);
+  padding:22px;
+  border:1px solid var(--borda);
+}
 
-    .sidebar {
-      width: 300px;
-    }
+.card h3{
+  margin:0 0 14px;
+  font-size:18px;
+  font-weight:600;
+}
 
-    .card {
-      background: #fff;
-      border-radius: var(--card-radius);
-      box-shadow: var(--shadow-card);
-      padding: 22px;
-      border: 1px solid #f0e4fd;
-      margin-bottom: 20px;
-    }
+.inner{
+  background:var(--roxo-claro);
+  border-radius:18px;
+  padding:18px;
+  color:var(--cinza);
+  text-align:center;
+  font-size:14px;
+}
 
-    .light-purple {
-      background: #f9f6ff;
-      border: 2px solid #ebddfa;
-      border-radius: 18px;
-      padding: 18px;
-    }
-
-    .title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 12px;
-      color: #32264c;
-    }
-
-    .muted {
-      color: #a8a8d0;
-      font-style: italic;
-      font-size: 14px;
-      text-align: center;
-    }
-
-    /* FEED VAZIO */
-    .empty-feed {
-      text-align: center;
-      padding: 40px 20px;
-      color: #a8a8d0;
-      font-style: italic;
-      background: #fff;
-      border-radius: var(--card-radius);
-      box-shadow: var(--shadow-card);
-    }
-
-    /* JOGO DA VELHA */
-    .game-status {
-      text-align: center;
-      font-weight: 500;
-      margin-bottom: 6px;
-    }
-
-    .game-turn {
-      text-align: center;
-      font-size: 14px;
-      color: #a8a8d0;
-      margin-bottom: 12px;
-    }
-
-    .game-board {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      width: 210px;
-      margin: 0 auto 12px;
-    }
-
-    .cell {
-      aspect-ratio: 1;
-      border-radius: 12px;
-      background: #f7f2ff;
-      border: 2px solid var(--roxo);
-      font-size: 34px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: var(--roxo);
-    }
-
-    .restart {
-      display: block;
-      margin: 0 auto;
-      padding: 8px 20px;
-      border-radius: 16px;
-      border: none;
-      background: var(--roxo);
-      color: #fff;
-      cursor: pointer;
-    }
-
-    @media (max-width: 900px) {
-      .feed-container {
-        flex-direction: column;
-      }
-      .sidebar {
-        width: 100%;
-        max-width: 700px;
-        margin: 0 auto;
-      }
-    }
-  </style>
+/* RESPONSIVO */
+@media(max-width:900px){
+  main{
+    grid-template-columns:1fr;
+  }
+}
+</style>
 </head>
 
 <body>
 
-<nav>
-  <div class="nav-bar">
-    <div class="logo">Gramátike</div>
+<header>
+  <div class="top">
+    <div class="logo">gramatike</div>
 
-    <form class="search-bar" onsubmit="return false;">
-      <input type="text" placeholder="Pesquisar">
-      <button aria-label="Buscar">🔍</button>
-    </form>
+    <div class="search">
+      <input placeholder="Pesquisar">
+      <button>🔍</button>
+    </div>
 
-    <div class="nav-actions">
-      <button class="nav-btn" aria-label="Criar">＋</button>
-      <div class="avatar" aria-label="Perfil"></div>
+    <div class="actions">
+      <div class="circle">+</div>
+      <div class="circle">👤</div>
     </div>
   </div>
-</nav>
+</header>
 
-<main class="feed-container">
+<main>
 
-  <section class="main-content">
-    <div class="empty-feed">
-      Nenhuma publicação no momento
-    </div>
+  <!-- FEED VAZIO -->
+  <section class="feed">
+    Nenhuma publicação por aqui ainda
   </section>
 
+  <!-- SIDEBAR -->
   <aside class="sidebar">
 
     <div class="card">
-      <div class="title">Amigues</div>
-      <div class="light-purple">
-        <div class="muted">
-          Sem amigues ainda. Faça amizades para aparecerem aqui.
-        </div>
+      <h3>Amigues</h3>
+      <div class="inner">
+        Sem amigues ainda. Faça amizades para aparecerem aqui.
       </div>
     </div>
 
     <div class="card">
-      <div class="title">Jogo da Velha</div>
-      <div class="light-purple">
-        <div class="game-status">Jogue contra o sistema. Você é X.</div>
-        <div class="game-turn">Sua vez: X</div>
-
-        <div class="game-board" id="board">
-          <div class="cell" data-i="0"></div>
-          <div class="cell" data-i="1"></div>
-          <div class="cell" data-i="2"></div>
-          <div class="cell" data-i="3"></div>
-          <div class="cell" data-i="4"></div>
-          <div class="cell" data-i="5"></div>
-          <div class="cell" data-i="6"></div>
-          <div class="cell" data-i="7"></div>
-          <div class="cell" data-i="8"></div>
-        </div>
-
-        <button class="restart" id="restart">Reiniciar</button>
+      <h3>Espaço extra</h3>
+      <div class="inner">
+        Conteúdo futuro pode aparecer aqui.
       </div>
     </div>
 
   </aside>
 
 </main>
-
-<script>
-(() => {
-  const cells = document.querySelectorAll('.cell');
-  const status = document.querySelector('.game-status');
-  const turn = document.querySelector('.game-turn');
-  const restart = document.getElementById('restart');
-
-  let board = Array(9).fill('');
-  let current = 'X';
-  let active = true;
-
-  const wins = [
-    [0,1,2],[3,4,5],[6,7,8],
-    [0,3,6],[1,4,7],[2,5,8],
-    [0,4,8],[2,4,6]
-  ];
-
-  function checkWin() {
-    return wins.some(p =>
-      board[p[0]] &&
-      board[p[0]] === board[p[1]] &&
-      board[p[0]] === board[p[2]]
-    );
-  }
-
-  function move(index) {
-    if (!active || board[index]) return;
-
-    board[index] = current;
-    cells[index].textContent = current;
-
-    if (checkWin()) {
-      status.textContent = `Vitória de ${current}!`;
-      active = false;
-      return;
-    }
-
-    if (board.every(v => v)) {
-      status.textContent = 'Empate na partida';
-      active = false;
-      return;
-    }
-
-    current = current === 'X' ? 'O' : 'X';
-    turn.textContent = `Vez: ${current}`;
-  }
-
-  cells.forEach(cell => {
-    cell.addEventListener('click', () =>
-      move(cell.dataset.i)
-    );
-  });
-
-  restart.onclick = () => {
-    board.fill('');
-    active = true;
-    current = 'X';
-    status.textContent = 'Jogue contra o sistema. Você é X.';
-    turn.textContent = 'Sua vez: X';
-    cells.forEach(c => c.textContent = '');
-  };
-})();
-</script>
 
 </body>
 </html>
