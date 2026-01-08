@@ -1,7 +1,7 @@
 // Template Renderer Helper
 // Simple template rendering with variable substitution
 
-import { Env } from '../types';
+import type { Env } from '../types';
 
 /**
  * Render a template with data
@@ -13,7 +13,7 @@ import { Env } from '../types';
 export async function renderTemplate(
   templatePath: string,
   data: Record<string, any>,
-  env: Env
+  env: any // Using any for now since ASSETS is not in Env type
 ): Promise<string> {
   try {
     // Fetch template from assets
@@ -30,26 +30,26 @@ export async function renderTemplate(
     let html = await response.text();
     
     // Simple variable substitution: {{variable}}
-    html = html.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-      return data[key] !== undefined ? String(data[key]) : match;
+    html = html.replace(/\{\{(\w+)\}\}/g, (_match: string, key: string) => {
+      return data[key] !== undefined ? String(data[key]) : _match;
     });
     
     // Conditional rendering: {{#if condition}}...{{/if}}
-    html = html.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, key, content) => {
+    html = html.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (_match: string, key: string, content: string) => {
       return data[key] ? content : '';
     });
     
     // Loop rendering: {{#each items}}...{{/each}}
     // Note: This is a simplified version
-    html = html.replace(/\{\{#each\s+(\w+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (match, key, template) => {
+    html = html.replace(/\{\{#each\s+(\w+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (_match: string, key: string, template: string) => {
       const items = data[key];
       if (!Array.isArray(items)) return '';
       
       return items.map(item => {
         let itemHtml = template;
         // Replace item.property with actual values
-        itemHtml = itemHtml.replace(/\{\{(\w+)\}\}/g, (m, prop) => {
-          return item[prop] !== undefined ? String(item[prop]) : m;
+        itemHtml = itemHtml.replace(/\{\{(\w+)\}\}/g, (_m: string, prop: string) => {
+          return item[prop] !== undefined ? String(item[prop]) : _m;
         });
         return itemHtml;
       }).join('');
@@ -72,7 +72,7 @@ export async function renderTemplate(
 export async function includePartial(
   partialPath: string,
   data: Record<string, any>,
-  env: Env
+  env: any
 ): Promise<string> {
   return renderTemplate(partialPath, data, env);
 }

@@ -1,40 +1,66 @@
-# Gramátike
+# 🎓 Gramátike - Rede Social Educativa de Português
 
-> **⚠️ IMPORTANTE: Este projeto usa 100% TypeScript/Node.js**  
-> **NÃO há Python neste projeto. Versão: 2.1.0**  
-> Runtime: Cloudflare Pages Functions (JavaScript/TypeScript)
+> **Versão: 2.2.0 - MVP Refatorado**  
+> Plataforma moderna para discussão e aprendizado da língua portuguesa.
 
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/alexmattinelli/gramatike)
+[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com/alexmattinelli/gramatike)
 [![Platform](https://img.shields.io/badge/platform-Cloudflare%20Pages-orange.svg)](https://pages.cloudflare.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue.svg)](https://www.typescriptlang.org/)
 
-## 🚀 Status: Production Ready
+## ✨ Features
 
-Rede social educativa de português, 100% TypeScript rodando em Cloudflare Pages.
+- 📝 **Feed de posts** com curtidas e comentários
+- 👤 **Perfis de usuário** personalizáveis
+- 🔐 **Autenticação segura** com sessões baseadas em cookies
+- 👨‍💼 **Painel administrativo** com dashboard e gerenciamento
+- 📱 **Design responsivo** mobile-first
+- ⚡ **Performance otimizada** com Tailwind CSS e HTMX
+
+## 🚀 Tech Stack
+
+- **Runtime:** Cloudflare Pages Functions (TypeScript)
+- **Database:** Cloudflare D1 (SQLite on the edge)
+- **Storage:** Cloudflare R2 (file uploads)
+- **Frontend:** HTML + Tailwind CSS (via CDN) + HTMX
+- **Auth:** Cookie-based sessions with bcrypt
 
 ## 📍 Acesso Rápido
 
 - **Site:** https://www.gramatike.com.br
 - **Feed:** https://www.gramatike.com.br/feed
-- **Criar Post:** https://www.gramatike.com.br/novo_post
+- **Admin:** https://www.gramatike.com.br/admin
 
-## Cloudflare Pages (TypeScript)
+## 🎨 O Que Mudou na v2.2.0
 
-Esta aplicação usa **Cloudflare Pages** com **Functions** (TypeScript) para uma arquitetura serverless moderna.
+Esta versão traz uma **refatoração completa** focando apenas nas funcionalidades essenciais (MVP):
 
-**Stack:**
-- Frontend: HTML estático com templates Jinja2 (pré-renderizados)
-- Backend: Cloudflare Functions (TypeScript) no diretório `/functions`
-- Banco de dados: Cloudflare D1 (SQLite na edge)
-- Storage: Cloudflare R2 (arquivos de usuário)
+### ✅ Mantido (Features Funcionais)
+- ✨ **Autenticação:** Login, registro, sessões e logout
+- 📝 **Feed:** Posts com paginação, curtidas, comentários
+- 👤 **Perfis:** Ver e editar perfil de usuário
+- 👨‍💼 **Admin:** Dashboard, gerenciamento de usuários, moderação
 
-### 🚀 Deploy no Cloudflare Pages
+### 🗑️ Removido (Features Não Implementadas)
+- ❌ Artigos, apostilas, exercícios (apenas HTML estático)
+- ❌ Dinâmicas, redação, novidades
+- ❌ Reset de senha (sem backend)
+- ❌ Documentação obsoleta (14 arquivos .md)
 
-Este projeto usa **TypeScript** e **Cloudflare Pages Functions** (não Python Workers).
+### 🚀 Melhorias
+- **70% menos código** - De 28 templates para 11 essenciais
+- **Feed otimizado** - De 104KB para ~10KB com Tailwind CSS + HTMX
+- **Performance** - Infinite scroll, design responsivo mobile-first
+- **Admin melhorado** - Dashboard com Chart.js e gerenciamento completo
+- **Código modular** - Partials reutilizáveis (navbar, post-card, footer)
+- **Utilitários** - R2 uploads e template rendering simplificados
+
+## 🚀 Cloudflare Pages Setup
+
+Este projeto usa **TypeScript** e **Cloudflare Pages Functions** (edge runtime serverless).
 
 ### Configuração Inicial
 
-Veja as instruções completas em [CLOUDFLARE_PAGES_SETUP.md](./CLOUDFLARE_PAGES_SETUP.md).
+Ver [SETUP.md](./SETUP.md) para instruções detalhadas.
 
 **Resumo rápido:**
 
@@ -217,18 +243,67 @@ Para configurar o R2:
 
 ```
 gramatike/
-├── functions/           # Cloudflare Functions (TypeScript)
-│   ├── _middleware.ts   # Middleware global
-│   ├── api/            # API endpoints
-│   └── pages/          # Server-side rendered pages
-├── public/             # Arquivos estáticos (HTML, CSS, JS)
-│   ├── static/         # CSS, JS, imagens
-│   └── templates/      # Templates HTML
-├── src/                # Código TypeScript compartilhado
-├── schema.d1.sql       # Schema do banco D1
-├── wrangler.toml       # Configuração Cloudflare
-├── package.json        # Dependências Node.js
-└── tsconfig.json       # Configuração TypeScript
+├── functions/              # Cloudflare Pages Functions (TypeScript)
+│   ├── _middleware.ts      # Global middleware (auth)
+│   ├── index.ts            # Landing page
+│   ├── login.ts            # Login page
+│   ├── cadastro.ts         # Register page
+│   ├── feed.ts             # Main feed page
+│   ├── meu_perfil.ts       # User profile page
+│   ├── configuracoes.ts    # Settings page
+│   ├── admin.ts            # Admin dashboard
+│   ├── perfil/
+│   │   └── [username].ts   # Public user profile
+│   └── api/                # API endpoints
+│       ├── auth/           # Authentication (login, register, logout)
+│       ├── posts/          # Posts CRUD and interactions
+│       ├── users/          # User management
+│       └── admin/          # Admin endpoints
+│
+├── public/                 # Static files (served directly)
+│   ├── templates/          # HTML templates
+│   │   ├── feed.html       # Main feed (Tailwind + HTMX)
+│   │   ├── login.html      # Login form
+│   │   ├── cadastro.html   # Registration form
+│   │   ├── meu_perfil.html # Profile page
+│   │   ├── perfil.html     # Public profile
+│   │   ├── configuracoes.html # Settings
+│   │   ├── admin.html      # Admin dashboard
+│   │   ├── partials/       # Reusable components
+│   │   │   ├── navbar.html # Navigation bar
+│   │   │   ├── post-card.html # Post card component
+│   │   │   └── footer.html # Footer component
+│   │   ├── 404.html        # Error page
+│   │   └── acesso_restrito.html # Forbidden page
+│   │
+│   └── static/             # CSS, JS, images
+│       ├── css/
+│       │   └── main.css    # Custom styles (minimal)
+│       ├── js/
+│       │   ├── admin.js    # Admin panel logic
+│       │   └── utils.js    # Shared utilities
+│       └── img/
+│           ├── logo.svg    # Logo
+│           └── perfil.png  # Default avatar
+│
+├── src/                    # TypeScript source code
+│   ├── lib/                # Shared utilities
+│   │   ├── auth.ts         # Authentication helpers
+│   │   ├── db.ts           # Database utilities
+│   │   ├── crypto.ts       # Password hashing
+│   │   ├── sanitize.ts     # Input sanitization
+│   │   ├── utils.ts        # General utilities
+│   │   └── upload.ts       # R2 upload handler
+│   ├── templates/
+│   │   └── renderer.ts     # Template rendering helper
+│   └── types/
+│       └── index.d.ts      # TypeScript types
+│
+├── schema.d1.sql           # Database schema (D1/SQLite)
+├── wrangler.toml           # Cloudflare configuration
+├── package.json            # Node.js dependencies
+├── tsconfig.json           # TypeScript config
+└── README.md               # This file
 ```
 
 ## 🔧 Troubleshooting
