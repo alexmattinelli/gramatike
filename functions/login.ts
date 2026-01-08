@@ -1,22 +1,23 @@
-// Serve login.html template
-import { Env } from '../src/types';
+// Login page
 
-export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
+import type { PagesFunction } from '@cloudflare/workers-types';
+import type { Env } from '../src/types';
+import { htmlResponse, redirectResponse } from '../src/lib/response';
+
+export const onRequestGet: PagesFunction<Env> = async ({ data, env }) => {
+  const user = data.user;
+  
+  // If already logged in, redirect to feed
+  if (user) {
+    return redirectResponse('/feed');
+  }
+  
+  // Read HTML file from public directory
   try {
-    const response = await env.ASSETS.fetch(new URL('/templates/login.html', request.url));
-    
-    if (!response.ok) {
-      return new Response('Página não encontrada', { status: 404 });
-    }
-    
-    return new Response(response.body, {
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, max-age=300'
-      }
-    });
-  } catch (error) {
-    console.error('[login] Error:', error);
-    return new Response('Erro ao carregar página', { status: 500 });
+    const html = await env.ASSETS.fetch(new Request('https://placeholder.local/login.html'));
+    return html;
+  } catch (e) {
+    // Fallback if ASSETS is not available
+    return htmlResponse('<html><body><h1>Login Page</h1><p>ASSETS binding not configured</p></body></html>', 500);
   }
 };

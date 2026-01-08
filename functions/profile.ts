@@ -1,9 +1,8 @@
-// Admin dashboard page
+// My profile page
 
 import type { PagesFunction } from '@cloudflare/workers-types';
 import type { Env } from '../src/types';
-import { isAdmin } from '../src/lib/auth';
-import { redirectResponse, errorResponse } from '../src/lib/response';
+import { redirectResponse } from '../src/lib/response';
 
 export const onRequestGet: PagesFunction<Env> = async ({ data, env }) => {
   const user = data.user;
@@ -13,17 +12,12 @@ export const onRequestGet: PagesFunction<Env> = async ({ data, env }) => {
     return redirectResponse('/login');
   }
   
-  // Require admin
-  if (!isAdmin(user)) {
-    return errorResponse('Sem permissão', 403);
-  }
-  
   // Serve HTML from public directory
   try {
-    const html = await env.ASSETS.fetch(new Request('https://placeholder.local/admin.html'));
+    const html = await env.ASSETS.fetch(new Request('https://placeholder.local/profile.html'));
     return html;
   } catch (e) {
-    return new Response('<html><body><h1>Admin Dashboard</h1></body></html>', {
+    return new Response('<html><body><h1>Profile Page</h1></body></html>', {
       headers: { 'Content-Type': 'text/html' }
     });
   }
