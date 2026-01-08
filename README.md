@@ -143,10 +143,24 @@ wrangler login
 wrangler d1 create gramatike
 
 # 3. Aplicar o schema (criar tabelas)
-wrangler d1 execute gramatike --file=./schema.d1.sql
+wrangler d1 execute gramatike --file=./db/schema.sql --remote
 
-# 4. Verificar
-wrangler d1 execute gramatike --command="SELECT name FROM sqlite_master WHERE type='table'"
+# 4. Verificar se as tabelas foram criadas
+wrangler d1 execute gramatike --command="SELECT name FROM sqlite_master WHERE type='table';" --remote
+```
+
+**Você deve ver as tabelas:** users, posts, sessions, comments, likes
+
+### Troubleshooting - Erro 500 ao cadastrar
+
+Se você receber erro 500 ao tentar criar uma conta, provavelmente o banco de dados não foi inicializado. Execute:
+
+```bash
+# Aplicar schema (criar tabelas) no ambiente remoto
+wrangler d1 execute gramatike --remote --file=./db/schema.sql
+
+# Verificar se funcionou
+wrangler d1 execute gramatike --remote --command="SELECT name FROM sqlite_master WHERE type='table';"
 ```
 
 ### Configuração no wrangler.toml
@@ -167,8 +181,8 @@ database_id = "d0984113-06be-49f5-939a-9d5c5dcba7b6"
 Se você precisar atualizar o schema do banco de dados:
 
 ```bash
-# Edite o arquivo schema.d1.sql, depois execute:
-wrangler d1 execute gramatike --file=./schema.d1.sql
+# Edite o arquivo db/schema.sql, depois execute:
+wrangler d1 execute gramatike --file=./db/schema.sql --remote
 ```
 
 ### 🔄 Resetar Banco de Dados D1
@@ -177,20 +191,16 @@ Para resetar completamente o banco de dados (apagar todos os dados e recriar as 
 
 ```bash
 # Executar o schema (DROP + CREATE)
-wrangler d1 execute gramatike --file=./schema.d1.sql --remote
+wrangler d1 execute gramatike --file=./db/schema.sql --remote
 
 # Verificar tabelas criadas
 wrangler d1 execute gramatike --command="SELECT name FROM sqlite_master WHERE type='table';" --remote
 
-# Verificar usuário admin criado
-wrangler d1 execute gramatike --command="SELECT * FROM user;" --remote
+# Verificar usuário admin criado (se houver seed data)
+wrangler d1 execute gramatike --command="SELECT * FROM users;" --remote
 ```
 
-**Credenciais padrão após reset:**
-- **Email**: `contato@gramatike.com`
-- **Senha**: `admin123`
-
-⚠️ **IMPORTANTE:** Altere a senha após o primeiro login!
+**⚠️ IMPORTANTE:** Altere a senha padrão após o primeiro login!
 
 ## ⚙️ Variáveis de Ambiente
 
@@ -313,7 +323,7 @@ gramatike/
 As tabelas do banco de dados não foram criadas. Execute:
 
 ```bash
-wrangler d1 execute gramatike --file=./schema.d1.sql
+wrangler d1 execute gramatike --file=./db/schema.sql --remote
 ```
 
 ### Deploy falha com erro de Worker

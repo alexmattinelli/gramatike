@@ -73,6 +73,14 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     });
   } catch (error) {
     console.error('[register] Error:', error);
-    return errorResponse('Erro ao criar conta', 500);
+    console.error('[register] Stack:', error instanceof Error ? error.stack : 'N/A');
+    
+    // Erro específico se for banco não inicializado
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage && errorMessage.includes('no such table')) {
+      return errorResponse('Erro: Banco de dados não inicializado. Execute: wrangler d1 execute gramatike --remote --file=./db/schema.sql', 500);
+    }
+    
+    return errorResponse(`Erro ao criar conta: ${errorMessage || 'Erro desconhecido'}`, 500);
   }
 };
