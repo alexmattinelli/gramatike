@@ -622,170 +622,118 @@
   <script>
     // ========== SISTEMA DE POSTS ==========
     let posts = [];
-    let postIdCounter = 1;
-    
-    // Elementos
     const postForm = document.getElementById('postForm');
     const postContent = document.getElementById('postContent');
     const postsContainer = document.getElementById('postsContainer');
     const noPosts = document.getElementById('noPosts');
-    
-    // Função para formatar data
-    function formatDate(date) {
+
+    // Função para formatar data (ISO 8601 ou string)
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
       const now = new Date();
       const diffMs = now - date;
       const diffMins = Math.floor(diffMs / (1000 * 60));
       const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      
       if (diffMins < 1) return 'Agora mesmo';
       if (diffMins < 60) return `${diffMins} min atrás`;
       if (diffHours < 24) return `${diffHours} h atrás`;
       if (diffDays < 7) return `${diffDays} dia${diffDays > 1 ? 's' : ''} atrás`;
-      
-      return date.toLocaleDateString('pt-BR', { 
-        day: '2-digit', 
-        month: '2-digit', 
+      return date.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
       });
     }
-    
-    // Função para criar um novo post
-    function createPost(content) {
-      const newPost = {
-        id: postIdCounter++,
-        content: content,
-        author: 'Você',
-        date: new Date(),
-        likes: 0,
-        comments: 0,
-        liked: false
-      };
-      
-      posts.unshift(newPost); // Adiciona no início do array
-      renderPosts();
-      postContent.value = '';
-      
-      // Rola para o topo para ver o novo post
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    
-    // Função para renderizar todos os posts
+
+    // Renderiza os posts do backend
     function renderPosts() {
-      if (posts.length === 0) {
+      if (!posts || posts.length === 0) {
         noPosts.style.display = 'block';
         postsContainer.innerHTML = '';
         return;
       }
-      
       noPosts.style.display = 'none';
-      
       let postsHTML = '';
-      
       posts.forEach(post => {
+        const nome = post.name || post.username || 'Usuário';
+        const avatar = nome.charAt(0).toUpperCase();
         postsHTML += `
           <div class="post-card" data-post-id="${post.id}">
             <div class="post-header">
-              <div class="post-avatar">${post.author.charAt(0)}</div>
+              <div class="post-avatar">${avatar}</div>
               <div class="post-user-info">
-                <div class="post-username">${post.author}</div>
-                <div class="post-time">${formatDate(post.date)}</div>
+                <div class="post-username">${nome}</div>
+                <div class="post-time">${formatDate(post.created_at)}</div>
               </div>
             </div>
-            <div class="post-content">${post.content.replace(/\n/g, '<br>')}</div>
-            <div class="post-actions">
-              <button class="action-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
-                <svg fill="${post.liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M12 21C12 21 4 13.481 4 8.75C4 5.272 7.152 3 10.6 3C12.09 3 13.519 3.659 14.5 4.695C15.481 3.659 16.91 3 18.4 3C21.848 3 25 5.272 25 8.75C25 13.481 17 21 17 21H12Z"/>
-                </svg>
-                ${post.likes}
-              </button>
-              <button class="action-btn" onclick="addComment(${post.id})">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M21 11.5a8.38 8.38 0 01-1.9 5.4A8.5 8.5 0 0111.5 21 8.38 8.38 0 016.1 19.1C4.31 17.4 3 14.5 3 11.5a8.5 8.5 0 018.5-8.5h1a8.5 8.5 0 018.5 8.5z"/>
-                </svg>
-                ${post.comments}
-              </button>
-              <button class="action-btn" onclick="sharePost(${post.id})">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
-                  <polyline points="16 6 12 2 8 6"/>
-                  <line x1="12" y1="2" x2="12" y2="15"/>
-                </svg>
-                Compartilhar
-              </button>
-            </div>
+            <div class="post-content">${(post.content || '').replace(/\n/g, '<br>')}</div>
           </div>
         `;
       });
-      
       postsContainer.innerHTML = postsHTML;
     }
-    
-    // Função para curtir/descurtir
-    function toggleLike(postId) {
-      const post = posts.find(p => p.id === postId);
-      if (post) {
-        post.liked = !post.liked;
-        post.likes += post.liked ? 1 : -1;
+
+    // Busca os posts do backend
+    async function fetchPosts() {
+      try {
+        const resp = await fetch('/api/posts');
+        const data = await resp.json();
+        posts = data.posts || [];
+        renderPosts();
+      } catch (e) {
+        posts = [];
         renderPosts();
       }
     }
-    
-    // Função para adicionar comentário
-    function addComment(postId) {
-      const comment = prompt('Digite seu comentário:');
-      if (comment && comment.trim()) {
-        const post = posts.find(p => p.id === postId);
-        if (post) {
-          post.comments++;
-          renderPosts();
-          alert('Comentário adicionado!');
-        }
-      }
-    }
-    
-    // Função para compartilhar
-    function sharePost(postId) {
-      const post = posts.find(p => p.id === postId);
-      if (post) {
-        if (navigator.share) {
-          navigator.share({
-            title: 'Post do Gramátike',
-            text: post.content.substring(0, 100) + '...',
-            url: window.location.href
-          });
+
+    // Cria um novo post via API
+    async function createPost(content) {
+      try {
+        const resp = await fetch('/api/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content })
+        });
+        if (resp.ok) {
+          postContent.value = '';
+          await fetchPosts();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
-          alert('Link copiado para a área de transferência!');
-          // Em um sistema real, você copiaria o link
+          const err = await resp.json();
+          alert(err.error || 'Erro ao publicar');
         }
+      } catch (e) {
+        alert('Erro ao publicar');
       }
     }
-    
+
     // Evento do formulário de post
     postForm.addEventListener('submit', function(e) {
       e.preventDefault();
       const content = postContent.value.trim();
-      
       if (content) {
         createPost(content);
       } else {
         alert('Escreva algo para publicar!');
       }
     });
-    
+
     // Botão + foca no textarea
     document.getElementById('addPostBtn').addEventListener('click', function() {
       postContent.focus();
     });
-    
+
     // Botão de perfil
     document.getElementById('profileBtn').addEventListener('click', function() {
       alert('Abrindo perfil...');
     });
-    
+
+    // Inicializa o feed
+    fetchPosts();
+
     // ========== JOGO DA VELHA ==========
     let currentPlayer = 'X';
     let gameBoard = ['', '', '', '', '', '', '', '', ''];
