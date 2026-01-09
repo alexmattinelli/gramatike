@@ -62,14 +62,21 @@
     
     /* CÍRCULO DE PERFIL NO HEADER */
     .profile-circle {
-      width: 36px;
-      height: 36px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      background: #e9e2ef url('data:image/svg+xml;utf8,<svg fill="rgb(155,93,229)" height="36" viewBox="0 0 32 32" width="36" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="12" r="8"/><ellipse cx="16" cy="28" rx="13" ry="8"/></svg>') center/60% no-repeat;
+      background: #e9e2ef;
       box-shadow: 0 1.5px 7px #9b5de519;
       border: 2px solid #fff;
       cursor: pointer;
       transition: transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      color: var(--roxo);
+      font-weight: bold;
+      user-select: none;
     }
     
     .profile-circle:hover {
@@ -727,9 +734,23 @@
     });
 
     // Botão de perfil
-    document.getElementById('profileBtn').addEventListener('click', function() {
-      alert('Abrindo perfil...');
-    });
+    // Mostra inicial do usuário no círculo de perfil
+    (function() {
+      const profileBtn = document.getElementById('profileBtn');
+      let inicial = '';
+      // Tenta pegar nome do usuário do localStorage ou window (ajuste conforme backend)
+      if (window.currentUser && window.currentUser.name) {
+        inicial = window.currentUser.name.charAt(0).toUpperCase();
+      } else if (window.currentUser && window.currentUser.username) {
+        inicial = window.currentUser.username.charAt(0).toUpperCase();
+      } else {
+        inicial = 'U';
+      }
+      profileBtn.textContent = inicial;
+      profileBtn.addEventListener('click', function() {
+        window.location.href = 'meu_perfil.html';
+      });
+    })();
 
     // Inicializa o feed
     fetchPosts();
