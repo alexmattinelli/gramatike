@@ -592,7 +592,7 @@
           <div class="light-purple-card">
             <div class="game-container">
               <div class="game-info">
-                <div class="game-title" id="gameTitle">Jogue contra o Rebao</div>
+                <div class="game-title" id="gameTitle">Jogue contra o Robo</div>
                 <div class="game-subtitle" id="gameSubtitle">Sua vez: X</div>
               </div>
               
@@ -686,7 +686,7 @@
     // Busca os posts do backend
     async function fetchPosts() {
       try {
-        const resp = await fetch('/api/posts');
+        const resp = await fetch('/api/posts', { credentials: 'same-origin' });
         const data = await resp.json();
         posts = data.posts || [];
         renderPosts();
@@ -701,6 +701,7 @@
       try {
         const resp = await fetch('/api/posts', {
           method: 'POST',
+          credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ content })
         });
