@@ -1,7 +1,7 @@
 # 🎓 Gramátike v2 - Fresh Start
 
 > **Versão: 2.0.0 - Projeto Novo do Zero**  
-> Rede social educativa de português reconstruída com stack moderna e minimalista.
+> Língua viva e de todes reconstruída com stack moderna e minimalista.
 
 [![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/alexmattinelli/gramatike)
 [![Platform](https://img.shields.io/badge/platform-Cloudflare%20Pages-orange.svg)](https://pages.cloudflare.com)

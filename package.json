@@ -3,7 +3,7 @@
   "version": "3.0.0",
   "type": "module",
   "private": true,
-  "description": "Gramátike - Rede social educativa de português (MVP)",
+  "description": "Gramátike - Língua viva e de todes (MVP)",
   "scripts": {
     "dev": "wrangler pages dev public --compatibility-date=2026-01-08",
     "build": "echo '✅ Build complete'",
@@ -14,5 +14,8 @@
     "@cloudflare/workers-types": "^4.20260108.0",
     "typescript": "^5.3.0",
     "wrangler": "^4.58.0"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
   }
 }

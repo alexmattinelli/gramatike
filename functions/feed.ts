@@ -12,9 +12,11 @@ export const onRequestGet: PagesFunction<Env> = async ({ data, env }) => {
     return redirectResponse('/');
   }
   
-  // Serve HTML from public directory
+  // Serve HTML from public directory via the Pages assets binding
   try {
-    const html = await env.ASSETS.fetch(new Request('https://placeholder.local/feed.html'));
+    // Request the local asset path so Pages dev serves the current public/feed.html
+    const assetReq = new Request('/feed.html');
+    const html = await env.ASSETS.fetch(assetReq);
     return html;
   } catch (e) {
     return new Response('<html><body><h1>Feed Page</h1></body></html>', {

@@ -1,7 +1,7 @@
-# 🎓 Gramátike - Rede Social Educativa de Português
+# 🎓 Gramátike - Língua viva e de todes
 
 > **Versão: 2.2.0 - MVP Refatorado**  
-> Plataforma moderna para discussão e aprendizado da língua portuguesa.
+> Plataforma moderna para discussão e aprendizado da língua.
 
 [![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com/alexmattinelli/gramatike)
 [![Platform](https://img.shields.io/badge/platform-Cloudflare%20Pages-orange.svg)](https://pages.cloudflare.com)
@@ -349,3 +349,5 @@ Configure o R2 bucket com acesso público. Veja [CLOUDFLARE_R2_SETUP.md](CLOUDFL
 ## 📄 Licença
 
 Este projeto está sob licença MIT.
+
+git add README.md
