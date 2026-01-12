@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Configurações - Gramátike</title>
+  <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Nunito:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--roxo:#9B5DE5;--lilas-light:#f6f5fa;--card-radius:16px}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Nunito',system-ui,Segoe UI,Roboto,sans-serif;background:var(--roxo);min-height:100vh}
+    nav{background:var(--roxo);height:62px;position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:10}
+    .logo{font-family:'Mansalva',cursive;color:#fff;font-size:26px;text-decoration:none}
+    .nav-link{color:#fff;margin-left:12px;text-decoration:none;font-weight:600}
+    .profile-circle{width:40px;height:40px;border-radius:50%;background:#e9e2ef;display:flex;align-items:center;justify-content:center;border:2px solid #fff;color:var(--roxo);font-weight:700;cursor:pointer}
+    .main-wrapper{margin-top:62px;background:var(--lilas-light);min-height:calc(100vh-62px);padding:28px;border-top-left-radius:20px;border-top-right-radius:20px}
+    .container{max-width:900px;margin:0 auto;padding:20px}
+    .card{background:#fff;border-radius:var(--card-radius);padding:20px;border:1px solid #f0e4fd}
+    .form-row{display:flex;gap:12px;margin-bottom:12px}
+    label{font-size:14px;color:#32264c;margin-bottom:6px;display:block}
+    input[type=text], input[type=email], select, textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #e8e0f6;background:#fff}
+    .avatar-preview{width:80px;height:80px;border-radius:50%;background:#f3eefb;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--roxo);border:2px solid #fff}
+    .btn{background:var(--roxo);color:#fff;padding:10px 16px;border-radius:12px;border:none;cursor:pointer}
+    .muted{color:#8f87a6;font-size:13px}
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="logo" href="/feed">Gramátike</a>
+    <div style="display:flex;align-items:center;gap:12px">
+      <a class="nav-link" href="/configuracoes.html">Configurações</a>
+      <div class="profile-circle" id="profileBtn">U</div>
+    </div>
+  </nav>
+
+  <div class="main-wrapper">
+    <div class="container">
+      <h2 style="font-family:'Mansalva',cursive;margin-bottom:14px">Configurações</h2>
+
+      <div class="card">
+        <form id="settingsForm">
+          <div class="form-row">
+            <div style="flex:1">
+              <label for="name">Nome</label>
+              <input id="name" type="text" placeholder="Seu nome">
+            </div>
+            <div style="width:220px">
+              <label for="username">Usuário</label>
+              <input id="username" type="text" placeholder="username">
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px">
+            <label for="email">Email</label>
+            <input id="email" type="email" placeholder="seu@email.com">
+          </div>
+
+          <div class="form-row" style="align-items:center">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label>Avatar</label>
+              <input id="avatarInput" type="file" accept="image/*">
+              <div class="muted">Tamanho máximo: 2MB (mock)</div>
+            </div>
+            <div style="margin-left:auto">
+              <div class="avatar-preview" id="avatarPreview">U</div>
+            </div>
+          </div>
+
+          <div style="margin:14px 0">
+            <label for="notifications">Notificações por email</label>
+            <select id="notifications">
+              <option value="enabled">Habilitadas</option>
+              <option value="disabled">Desabilitadas</option>
+            </select>
+          </div>
+
+          <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:10px">
+            <button type="button" class="btn" id="saveBtn">Salvar</button>
+            <button type="button" class="btn" id="cancelBtn" style="background:#bbb">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Pré-visualização de avatar
+    const avatarInput = document.getElementById('avatarInput');
+    const avatarPreview = document.getElementById('avatarPreview');
+    avatarInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { alert('Arquivo muito grande'); return; }
+      const reader = new FileReader();
+      reader.onload = () => { avatarPreview.innerHTML = `<img src="${reader.result}" alt="avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover"/>`; };
+      reader.readAsDataURL(file);
+    });
+
+    // Mock salvar
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const data = {
+        name: document.getElementById('name').value,
+        username: document.getElementById('username').value,
+        email: document.getElementById('email').value,
+        notifications: document.getElementById('notifications').value
+      };
+      console.log('Salvar (mock):', data);
+      alert('Configurações salvas (mock)');
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', () => { window.location.href = '/feed'; });
+  </script>
+</body>
+</html>
