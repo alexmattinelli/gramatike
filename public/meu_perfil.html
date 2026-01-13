@@ -31,15 +31,15 @@
     }
     
     body {
-      background: var(--roxo);
+      background: var(--lilas-light);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
       color: var(--texto);
     }
     
-    /* NAVEGAÇÃO FIXA COM CURVATURA */
+    /* NAVEGAÇÃO FIXA COM CURVATURA SUPERIOR */
     nav {
-      background: var(--roxo);
+      background: var(--lilas-light);
       height: 70px;
       position: fixed;
       top: 0;
@@ -49,24 +49,25 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 28px;
-      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
     }
     
     .logo {
       font-family: 'Mansalva', cursive;
       font-size: 32px;
-      color: #fff;
+      color: var(--roxo);
       letter-spacing: 0.5px;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
     
     .profile-circle {
       width: 46px;
       height: 46px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #fff 0%, #f0e4fd 100%);
+      background: linear-gradient(135deg, var(--roxo) 0%, var(--roxo-escuro) 100%);
       box-shadow: 0 4px 12px rgba(155, 93, 229, 0.3);
       cursor: pointer;
       transition: var(--transition);
@@ -74,7 +75,7 @@
       align-items: center;
       justify-content: center;
       font-size: 20px;
-      color: var(--roxo);
+      color: white;
       font-weight: 700;
       user-select: none;
       border: 3px solid rgba(255, 255, 255, 0.9);
@@ -85,15 +86,19 @@
       box-shadow: 0 6px 20px rgba(155, 93, 229, 0.4);
     }
     
-    /* LAYOUT PRINCIPAL - 3 COLUNAS */
+    /* CONTAINER PRINCIPAL COM CURVATURA NO TOPO */
     .main-wrapper {
       min-height: calc(100vh - 70px);
-      padding-top: 30px;
       margin-top: 70px;
       position: relative;
       z-index: 1;
+      background: var(--roxo);
+      border-top-left-radius: 30px;
+      border-top-right-radius: 30px;
+      padding-top: 30px;
     }
     
+    /* LAYOUT DE 3 COLUNAS DENTRO DO CONTAINER */
     .layout-container {
       max-width: 1400px;
       margin: 0 auto;
@@ -101,6 +106,8 @@
       display: grid;
       grid-template-columns: 280px 1fr 350px;
       gap: 30px;
+      background: var(--lilas-light);
+      border-radius: 30px 30px 0 0;
     }
     
     /* COLUNA ESQUERDA - MENU */
@@ -151,10 +158,11 @@
       cursor: pointer;
       color: var(--texto-leve);
       font-weight: 500;
+      background: var(--roxo-super-claro);
     }
     
     .menu-item:hover {
-      background: var(--roxo-super-claro);
+      background: var(--roxo-claro);
       color: var(--roxo);
       transform: translateX(5px);
     }
@@ -163,6 +171,10 @@
       width: 24px;
       text-align: center;
       font-size: 18px;
+    }
+    
+    .menu-item span {
+      flex: 1;
     }
     
     /* COLUNA CENTRAL - FEED */
@@ -268,11 +280,11 @@
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--roxo-super-claro) 0%, #e0d0f8 100%);
+      background: linear-gradient(135deg, var(--roxo) 0%, var(--roxo-escuro) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--roxo);
+      color: white;
       font-weight: 700;
       font-size: 18px;
     }
@@ -380,11 +392,11 @@
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--roxo-super-claro) 0%, #e0d0f8 100%);
+      background: linear-gradient(135deg, var(--roxo) 0%, var(--roxo-escuro) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--roxo);
+      color: white;
       font-weight: 700;
       font-size: 20px;
       flex-shrink: 0;
@@ -521,11 +533,11 @@
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--roxo-super-claro) 0%, #e0d0f8 100%);
+      background: linear-gradient(135deg, var(--roxo) 0%, var(--roxo-escuro) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--roxo);
+      color: white;
       font-weight: 600;
       font-size: 16px;
     }
@@ -711,8 +723,6 @@
       nav {
         padding: 0 20px;
         height: 64px;
-        border-bottom-left-radius: 15px;
-        border-bottom-right-radius: 15px;
       }
       
       .logo {
@@ -728,6 +738,8 @@
       .main-wrapper {
         margin-top: 64px;
         min-height: calc(100vh - 64px);
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
       }
       
       .layout-container {
@@ -767,6 +779,11 @@
         padding: 20px;
       }
       
+      .main-wrapper {
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+      }
+      
       .right-sidebar {
         grid-template-columns: 1fr;
       }
@@ -774,13 +791,13 @@
   </style>
 </head>
 <body>
-  <!-- NAVEGAÇÃO COM CURVATURA -->
+  <!-- NAVEGAÇÃO COM FUNDO CLARO -->
   <nav>
     <div class="logo">Gramátike</div>
     <div class="profile-circle" id="profileBtn">U</div>
   </nav>
   
-  <!-- CONTEÚDO PRINCIPAL -->
+  <!-- CONTEÚDO PRINCIPAL COM CURVATURA NO TOPO -->
   <div class="main-wrapper">
     <!-- LAYOUT DE 3 COLUNAS -->
     <div class="layout-container">
@@ -1002,7 +1019,7 @@
       }
     }
 
-    // Buscar amigues do SEU banco de dados
+    // Buscar amigos do SEU banco de dados
     async function fetchRealFriends() {
       const friendsList = document.getElementById('friendsList');
       if (!friendsList) return;
@@ -1013,19 +1030,20 @@
           const data = await response.json();
           renderFriends(data);
         } else {
-          console.error('Erro na API de amigues:', response.status);
+          console.error('Erro na API de amigos:', response.status);
           friendsList.innerHTML = `
             <div class="empty-state">
               <div class="empty-icon">⚠️</div>
-              <div class="empty-text">Erro ao carregar amigues</div>
+              <div class="empty-text">Erro ao carregar amigos</div>
             </div>
           `;
         }
       } catch (error) {
-        console.error('Erro ao buscar amigues:', error);
+        console.error('Erro ao buscar amigos:', error);
         friendsList.innerHTML = `
           <div class="empty-state">
-            <div class="empty-text">Sem amigues, faça amizades</div>
+            <div class="empty-icon">⚠️</div>
+            <div class="empty-text">Erro ao carregar amigos</div>
           </div>
         `;
       }
@@ -1091,7 +1109,7 @@
       });
     }
 
-    // Renderizar amigues
+    // Renderizar amigos
     function renderFriends(friends) {
       const friendsList = document.getElementById('friendsList');
       if (!friendsList) return;
@@ -1259,7 +1277,7 @@
       if (winningPattern) {
         gameActive = false;
         highlightWinningCells(winningPattern);
-        gameTitle.textContent = currentPlayer === 'X' ? 'Você venceu! 🎉' : 'Lune venceu! 😢';
+        gameTitle.textContent = currentPlayer === 'X' ? 'Você venceu! 🎉' : 'Rebao venceu! 😢';
         gameSubtitle.textContent = 'Clique em Reiniciar';
         return;
       }
