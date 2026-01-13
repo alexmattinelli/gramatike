@@ -1,4 +1,4 @@
-// functions/api/auth/register.ts (VERSÃO SEM password_hash)
+// functions/api/auth/register.ts (VERSÃO FINAL)
 import type { PagesFunction } from '@cloudflare/workers-types';
 
 interface RegisterRequest {
@@ -10,31 +10,34 @@ interface RegisterRequest {
 
 export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }) => {
   try {
+    // 1. Obter e validar dados
     const body = await request.json() as RegisterRequest;
     let { username, email, password, name } = body;
     
-    // Validações básicas (igual antes)
     if (!username || !email || !password) {
       return new Response(JSON.stringify({
         success: false,
         error: 'Usuário, email e senha são obrigatórios'
-      }), { status: 400 });
+      }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
+    // Limpar dados
     username = username.trim();
     email = email.toLowerCase().trim();
     name = name?.trim();
     
-    // Validação de username
+    // Validações
     const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
     if (!usernameRegex.test(username)) {
       return new Response(JSON.stringify({
         success: false,
-        error: 'Usuário inválido. Use 3-20 caracteres (letras, números e _)'
+        error: 'Usuário inválido (3-20 letras, números ou _)'
       }), { status: 400 });
     }
     
-    // Validação de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return new Response(JSON.stringify({
@@ -50,9 +53,9 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
       }), { status: 400 });
     }
     
-    // Verificar duplicatas
+    // 2. Verificar duplicatas
     const existingEmail = await env.DB.prepare(
-      'SELECT id FROM users WHERE email = ? LIMIT 1'
+      'SELECT id FROM users WHERE email = ?'
     ).bind(email).first();
     
     if (existingEmail) {
@@ -63,7 +66,7 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
     }
     
     const existingUsername = await env.DB.prepare(
-      'SELECT id FROM users WHERE username = ? LIMIT 1'
+      'SELECT id FROM users WHERE username = ?'
     ).bind(username).first();
     
     if (existingUsername) {
@@ -73,130 +76,87 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
       }), { status: 400 });
     }
     
-    // *** MUDANÇA AQUI: Não usar password_hash ainda ***
-    // Para desenvolvimento, podemos salvar em outra coluna ou ignorar
+    // 3. Criar usuário (COM password_hash)
     const avatar_initials = username.charAt(0).toUpperCase();
     
-    // TENTAR inserir SEM password_hash primeiro
-    try {
-      const { success, meta } = await env.DB.prepare(`
-        INSERT INTO users (username, email, name, avatar_initials, verified, online_status, role)
-        VALUES (?, ?, ?, ?, false, true, 'user')
-      `).bind(username, email, name || username, avatar_initials).run();
-      
-      if (!success) {
-        throw new Error('Falha ao criar usuário');
-      }
-      
-      // Buscar usuário criado
-      const { results } = await env.DB.prepare(
-        'SELECT * FROM users WHERE id = ?'
-      ).bind(meta.last_row_id).all();
-      
-      const newUser = results[0];
-      
-      // Criar sessão
-      const sessionId = crypto.randomUUID();
-      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      
-      await env.DB.prepare(
-        'INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)'
-      ).bind(sessionId, newUser.id, expiresAt.toISOString()).run();
-      
-      // Cookie
-      const sessionCookie = `session=${sessionId}; HttpOnly; Path=/; SameSite=Lax; Expires=${expiresAt.toUTCString()}`;
-      
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'Conta criada com sucesso!',
-        user: {
-          id: newUser.id,
-          username: newUser.username,
-          email: newUser.email,
-          name: newUser.name,
-          avatar_initials: newUser.avatar_initials,
-          verified: newUser.verified,
-          online_status: true,
-          role: newUser.role,
-          created_at: newUser.created_at
-        }
-      }), {
-        status: 201,
-        headers: {
-          'Content-Type': 'application/json',
-          'Set-Cookie': sessionCookie
-        }
-      });
-      
-    } catch (dbError: any) {
-      // Se falhar porque não tem coluna password_hash, tente sem
-      if (dbError.message && dbError.message.includes('password_hash')) {
-        // Adicionar a coluna e tentar novamente
-        await env.DB.prepare(`
-          ALTER TABLE users 
-          ADD COLUMN password_hash TEXT
-        `).run();
-        
-        // Agora tentar com password_hash (simplificado)
-        const { success, meta } = await env.DB.prepare(`
-          INSERT INTO users (username, email, name, avatar_initials, password_hash, verified, online_status, role)
-          VALUES (?, ?, ?, ?, ?, false, true, 'user')
-        `).bind(username, email, name || username, avatar_initials, password).run();
-        
-        if (!success) throw new Error('Falha após adicionar coluna');
-        
-        // ... resto do código igual acima
-        const { results } = await env.DB.prepare(
-          'SELECT * FROM users WHERE id = ?'
-        ).bind(meta.last_row_id).all();
-        
-        const newUser = results[0];
-        
-        // Criar sessão
-        const sessionId = crypto.randomUUID();
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        
-        await env.DB.prepare(
-          'INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)'
-        ).bind(sessionId, newUser.id, expiresAt.toISOString()).run();
-        
-        const sessionCookie = `session=${sessionId}; HttpOnly; Path=/; SameSite=Lax; Expires=${expiresAt.toUTCString()}`;
-        
-        return new Response(JSON.stringify({
-          success: true,
-          message: 'Conta criada com sucesso! (coluna password_hash adicionada)',
-          user: {
-            id: newUser.id,
-            username: newUser.username,
-            email: newUser.email,
-            name: newUser.name,
-            avatar_initials: newUser.avatar_initials,
-            verified: newUser.verified,
-            online_status: true,
-            role: newUser.role,
-            created_at: newUser.created_at
-          }
-        }), {
-          status: 201,
-          headers: {
-            'Content-Type': 'application/json',
-            'Set-Cookie': sessionCookie
-          }
-        });
-      }
-      
-      throw dbError;
+    // IMPORTANTE: Em produção use bcrypt! Aqui salva em texto simples para dev
+    const password_hash = password; // ⚠️ NÃO FAÇA ISSO EM PRODUÇÃO!
+    
+    const { success, meta } = await env.DB.prepare(`
+      INSERT INTO users (
+        username, email, name, avatar_initials, 
+        password_hash, verified, online_status, role
+      ) VALUES (?, ?, ?, ?, ?, false, true, 'user')
+    `).bind(
+      username, 
+      email, 
+      name || username, 
+      avatar_initials,
+      password_hash
+    ).run();
+    
+    if (!success) {
+      throw new Error('Falha ao inserir usuário no banco');
     }
     
-  } catch (error: any) {
-    console.error('[register] Error:', error);
+    // 4. Buscar usuário criado
+    const { results } = await env.DB.prepare(
+      `SELECT id, username, email, name, avatar_initials, 
+              verified, online_status, role, created_at 
+       FROM users WHERE id = ?`
+    ).bind(meta.last_row_id).all();
     
+    const newUser = results[0];
+    
+    // 5. Criar sessão automática
+    const sessionId = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 dias
+    
+    await env.DB.prepare(
+      'INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)'
+    ).bind(sessionId, newUser.id, expiresAt.toISOString()).run();
+    
+    // 6. Cookie de sessão
+    const sessionCookie = `session=${sessionId}; HttpOnly; Path=/; SameSite=Lax; Expires=${expiresAt.toUTCString()}`;
+    
+    // 7. Retornar resposta
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Conta criada com sucesso!',
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        name: newUser.name,
+        avatar_initials: newUser.avatar_initials,
+        verified: newUser.verified,
+        online_status: true,
+        role: newUser.role,
+        created_at: newUser.created_at
+      }
+    }), {
+      status: 201,
+      headers: {
+        'Content-Type': 'application/json',
+        'Set-Cookie': sessionCookie
+      }
+    });
+    
+  } catch (error: any) {
+    console.error('[register] ERRO DETALHADO:', error);
+    
+    // Verificar erro específico
     let errorMessage = 'Erro ao criar conta';
+    
     if (error.message) {
-      if (error.message.includes('no such table')) {
-        errorMessage = 'Tabela users não existe. Execute /setup primeiro.';
-      } else if (error.message.includes('password_hash')) {
-        errorMessage = 'Problema na estrutura do banco. Execute /setup para corrigir.';
+      if (error.message.includes('password_hash')) {
+        errorMessage = 'Erro na coluna password_hash. Execute /setup novamente.';
+      } else if (error.message.includes('UNIQUE constraint failed')) {
+        if (error.message.includes('username')) {
+          errorMessage = 'Nome de usuário já existe';
+        } else if (error.message.includes('email')) {
+          errorMessage = 'Email já cadastrado';
+        }
       } else {
         errorMessage = error.message;
       }
