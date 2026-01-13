@@ -84,15 +84,24 @@
     
     /* CONTEINER PRINCIPAL COM CURVA NO TOPO (MANTIDA) */
     .main-wrapper {
-      background: var(--lilas-light);
       min-height: calc(100vh - 70px);
-      border-top-left-radius: 30px;
-      border-top-right-radius: 30px;
       padding-top: 30px;
       margin-top: 70px;
       position: relative;
       z-index: 1;
     }
+    
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 30px;
+  /* ADICIONE ESTAS DUAS LINHAS: */
+  background: var(--lilas-light);
+  border-radius: 30px 30px 0 0;
+}
     
     /* BARRA DE PESQUISA */
     .search-container {
@@ -735,46 +744,12 @@
         
         <!-- POSTS -->
         <div id="postsContainer">
-          <!-- Post exemplo -->
-          <div class="card post-card">
-            <div class="post-header">
-              <div class="post-avatar">G</div>
-              <div class="post-user-info">
-                <div class="post-username">
-                  Gramátike
-                  <span class="verified-badge">✓</span>
-                </div>
-                <div class="post-time">Há 2 minutos</div>
-              </div>
-            </div>
-            <div class="post-content">
-              Bem-vindo ao Gramátike! ✨<br><br>
-              Aqui é onde você compartilha seus momentos, ideias e conexões. 
-              Faça novos amigos, jogue uma partida de jogo da velha e divirta-se!
-            </div>
-            <div class="post-stats">
-              <span>❤️ 42 curtidas</span>
-              <span>💬 8 comentários</span>
-              <span>↗️ 3 compartilhamentos</span>
-            </div>
-            <div class="post-interactions">
-              <button class="interaction-btn active">
-                <span>❤️</span> Curtir
-              </button>
-              <button class="interaction-btn">
-                <span>💬</span> Comentar
-              </button>
-              <button class="interaction-btn">
-                <span>↗️</span> Compartilhar
-              </button>
-            </div>
-          </div>
         </div>
         
         <!-- MENSAGEM SEM POSTS -->
         <div class="card empty-state" id="noPosts" style="display: none;">
           <div class="empty-icon">📭</div>
-          <div class="empty-text">Nenhum post para mostrar<br>Seja o primeiro a publicar!</div>
+          <div class="empty-text">Nenhum post para mostrar<br>Seja ê primeire a publicar!</div>
         </div>
       </main>
       
@@ -783,30 +758,14 @@
         <!-- AMIGUES -->
         <div class="card sidebar-card">
           <div class="section-title">Amigues Online</div>
-          <div class="friends-list">
-            <div class="friend-item">
-              <div class="friend-avatar">M</div>
-              <div class="friend-info">
-                <div class="friend-name">Maria Silva</div>
-                <div class="friend-status">Online agora</div>
-              </div>
+          <div class="friends-list" id="friendsList">
+            <!-- Isso será preenchido pelo JavaScript com dados reais -->
+            <div class="empty-state">
+              <div class="empty-icon">👥</div>
+              <div class="empty-text">Carregando amigues...</div>
             </div>
-            <div class="friend-item">
-              <div class="friend-avatar">P</div>
-              <div class="friend-info">
-                <div class="friend-name">Pedro Santos</div>
-                <div class="friend-status">Há 5 minutos</div>
-              </div>
-            </div>
-            <div class="friend-item">
-              <div class="friend-avatar">A</div>
-              <div class="friend-info">
-                <div class="friend-name">Ana Costa</div>
-                <div class="friend-status">Há 15 minutos</div>
-              </div>
-            </div>
-          </div>
         </div>
+    </div>
         
         <!-- JOGO DA VELHA -->
         <div class="card sidebar-card">
@@ -838,19 +797,85 @@
   <button class="fab" id="addPostBtn">+</button>
 
   <script>
-    // ========== SISTEMA DE POSTS ==========
-    let posts = [
-      {
-        id: 1,
-        name: "Gramátike",
-        username: "gramatike",
-        content: "Bem-vindo ao Gramátike! ✨\n\nAqui é onde você compartilha seus momentos, ideias e conexões. Faça novos amigos, jogue uma partida de jogo da velha e divirta-se!",
-        created_at: new Date().toISOString(),
-        likes: 42,
-        comments: 8,
-        shares: 3
-      }
-    ];
+// Buscar posts reais da sua API
+async function fetchRealPosts() {
+  try {
+    const response = await fetch('/api/posts');  // SUA API AQUI
+    if (response.ok) {
+      const data = await response.json();
+      posts = data.posts || data || [];  // Ajuste conforme sua API
+      renderPosts();
+    } else {
+      console.error('Erro na API:', response.status);
+      posts = [];
+      renderPosts();
+    }
+  } catch (error) {
+    console.error('Erro ao buscar posts:', error);
+    posts = [];
+    renderPosts();
+  }
+}
+
+// Buscar amigos reais da sua API
+async function fetchRealFriends() {
+  const friendsList = document.getElementById('friendsList');
+  if (!friendsList) return;
+  
+  try {
+    const response = await fetch('/api/friends');  // SUA API AQUI
+    if (response.ok) {
+      const data = await response.json();
+      const friends = data.friends || data || [];
+      renderFriends(friends);
+    }
+  } catch (error) {
+    console.error('Erro ao buscar amigos:', error);
+    friendsList.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-text">Erro ao carregar amigos</div>
+      </div>
+    `;
+  }
+}
+
+// Renderizar amigos
+function renderFriends(friends) {
+  const friendsList = document.getElementById('friendsList');
+  if (!friendsList) return;
+  
+  if (!friends || friends.length === 0) {
+    friendsList.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <div class="empty-text">Ainda não seguiu ninguém</div>
+      </div>
+    `;
+    return;
+  }
+  
+  let friendsHTML = '';
+  friends.slice(0, 5).forEach(friend => {  // Mostra apenas 5 amigos
+    const initial = friend.name ? friend.name.charAt(0).toUpperCase() : '?';
+    friendsHTML += `
+      <div class="friend-item">
+        <div class="friend-avatar">${initial}</div>
+        <div class="friend-info">
+          <div class="friend-name">${friend.name || 'Usuário'}</div>
+          <div class="friend-status">${friend.online ? 'Online agora' : 'Offline'}</div>
+        </div>
+      </div>
+    `;
+  });
+  
+  friendsList.innerHTML = friendsHTML;
+}
+
+// NO FINAL DO SCRIPT, ANTES DO "// Inicializar"
+// Substitua a chamada atual renderPosts() por:
+fetchRealPosts();
+fetchRealFriends();
     
     const postForm = document.getElementById('postForm');
     const postContent = document.getElementById('postContent');
@@ -981,6 +1006,35 @@
     profileBtn.addEventListener('click', function() {
       alert('Perfil do usuário');
     });
+    // Criar novo post (ENVIA para sua API real)
+async function createPost(content) {
+  try {
+    const response = await fetch('/api/posts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content })
+    });
+    
+    if (response.ok) {
+      const newPost = await response.json();
+      posts.unshift(newPost);  // Adiciona novo post no início
+      renderPosts();
+      postContent.value = '';
+      
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    } else {
+      alert('Erro ao publicar post');
+    }
+  } catch (error) {
+    console.error('Erro:', error);
+    alert('Erro ao conectar com o servidor');
+  }
+}
     
     // ========== JOGO DA VELHA ==========
     let currentPlayer = 'X';
