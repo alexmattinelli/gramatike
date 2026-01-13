@@ -48,7 +48,12 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10 28px;
+      padding: 0 28px;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
     }
     
     .logo {
@@ -90,19 +95,26 @@
       background: var(--roxo);
       border-top-left-radius: 30px;
       border-top-right-radius: 30px;
-      padding-top: 30px;
+      /* padding-top REMOVIDO daqui */
     }
     
     /* LAYOUT DE 3 COLUNAS DENTRO DO CONTAINER */
     .layout-container {
       max-width: 1400px;
-      margin: 30px auto 0 auto;
+      margin: 30px auto 0 auto; /* Margem unificada - 30px no topo */
       padding: 0 20px 40px;
       display: grid;
       grid-template-columns: 280px 1fr 350px;
       gap: 30px;
       background: var(--lilas-light);
       border-radius: 30px 30px 0 0;
+    }
+    
+    /* Adiciona espaço entre o topo do container e os cards */
+    .left-sidebar,
+    .main-content,
+    .right-sidebar {
+      padding-top: 20px;
     }
     
     /* COLUNA ESQUERDA - MENU */
@@ -118,6 +130,7 @@
       box-shadow: var(--shadow-card);
       border: 1px solid #f0e4fd;
       padding: 24px;
+      margin-top: 15px;
     }
     
     .menu-title {
@@ -185,7 +198,8 @@
       border-radius: var(--card-radius);
       box-shadow: var(--shadow-card);
       border: 1px solid #f0e4fd;
-      padding: 24px;
+      padding: 20px;
+      margin-top: 15px;
     }
     
     .search-box {
@@ -246,6 +260,7 @@
       border: 1px solid #f0e4fd;
       transition: var(--transition);
       overflow: hidden;
+      margin-top: 15px;
     }
     
     .card:hover {
@@ -483,6 +498,7 @@
     
     .sidebar-card {
       padding: 24px;
+      margin-top: 15px;
     }
     
     .section-title {
@@ -696,6 +712,13 @@
       100% { transform: rotate(360deg); }
     }
     
+    /* Para o primeiro card de cada coluna não ter margem extra */
+    .left-sidebar .menu-card:first-child,
+    .main-content .card:first-child,
+    .right-sidebar .sidebar-card:first-child {
+      margin-top: 0;
+    }
+    
     /* RESPONSIVIDADE */
     @media (max-width: 1200px) {
       .layout-container {
@@ -740,6 +763,7 @@
       .layout-container {
         grid-template-columns: 1fr;
         padding: 0 16px 30px;
+        margin: 20px auto 0 auto;
       }
       
       .right-sidebar {
@@ -786,6 +810,7 @@
   </style>
 </head>
 <body>
+
   <!-- NAVEGAÇÃO COM FUNDO CLARO -->
   <nav>
     <div class="logo">Gramátike</div>
