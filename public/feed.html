@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gramátike Feed</title>
   <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
       --roxo: #9B5DE5;
@@ -30,15 +31,15 @@
     }
     
     body {
-      background: var(--roxo);
+      background: var(--lilas-light);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
       color: var(--texto);
     }
     
-    /* NAVEGAÇÃO FIXA - CURVATURA MANTIDA */
+    /* NAVEGAÇÃO FIXA COM CURVATURA SUPERIOR */
     nav {
-      background: var(--roxo);
+      background: var(--lilas-light);
       height: 70px;
       position: fixed;
       top: 0;
@@ -48,22 +49,25 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 28px;
-      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
     }
     
     .logo {
       font-family: 'Mansalva', cursive;
       font-size: 32px;
-      color: #fff;
+      color: var(--roxo);
       letter-spacing: 0.5px;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
     
     .profile-circle {
       width: 46px;
       height: 46px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #fff 0%, #f0e4fd 100%);
+      background: linear-gradient(135deg, var(--roxo) 0%, var(--roxo-escuro) 100%);
       box-shadow: 0 4px 12px rgba(155, 93, 229, 0.3);
       cursor: pointer;
       transition: var(--transition);
@@ -71,7 +75,7 @@
       align-items: center;
       justify-content: center;
       font-size: 20px;
-      color: var(--roxo);
+      color: white;
       font-weight: 700;
       user-select: none;
       border: 3px solid rgba(255, 255, 255, 0.9);
@@ -82,38 +86,116 @@
       box-shadow: 0 6px 20px rgba(155, 93, 229, 0.4);
     }
     
-    /* CONTEINER PRINCIPAL COM CURVA NO TOPO (MANTIDA) */
+    /* CONTAINER PRINCIPAL COM CURVATURA NO TOPO */
     .main-wrapper {
       min-height: calc(100vh - 70px);
-      padding-top: 30px;
       margin-top: 70px;
       position: relative;
       z-index: 1;
+      background: var(--roxo);
+      border-top-left-radius: 30px;
+      border-top-right-radius: 30px;
+      padding-top: 30px;
     }
     
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px 40px;
-  display: grid;
-  grid-template-columns: 1fr 350px;
-  gap: 30px;
-  /* ADICIONE ESTAS DUAS LINHAS: */
-  background: var(--lilas-light);
-  border-radius: 30px 30px 0 0;
-}
+    /* LAYOUT DE 3 COLUNAS DENTRO DO CONTAINER */
+    .layout-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+      display: grid;
+      grid-template-columns: 280px 1fr 350px;
+      gap: 30px;
+      background: var(--lilas-light);
+      border-radius: 30px 30px 0 0;
+    }
     
-    /* BARRA DE PESQUISA */
-    .search-container {
-      max-width: 700px;
-      margin: 0 auto 30px;
-      padding: 0 20px;
+    /* COLUNA ESQUERDA - MENU */
+    .left-sidebar {
+      position: sticky;
+      top: 100px;
+      align-self: flex-start;
+    }
+    
+    .menu-card {
+      background: #fff;
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-card);
+      border: 1px solid #f0e4fd;
+      padding: 24px;
+    }
+    
+    .menu-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--texto);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--roxo-super-claro);
+    }
+    
+    .menu-title i {
+      color: var(--roxo);
+    }
+    
+    .menu-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 12px;
+      transition: var(--transition);
+      cursor: pointer;
+      color: var(--texto-leve);
+      font-weight: 500;
+      background: var(--roxo-super-claro);
+    }
+    
+    .menu-item:hover {
+      background: var(--roxo-claro);
+      color: var(--roxo);
+      transform: translateX(5px);
+    }
+    
+    .menu-item i {
+      width: 24px;
+      text-align: center;
+      font-size: 18px;
+    }
+    
+    .menu-item span {
+      flex: 1;
+    }
+    
+    /* COLUNA CENTRAL - FEED */
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    /* BARRA DE PESQUISA NO FEED */
+    .search-card {
+      background: #fff;
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-card);
+      border: 1px solid #f0e4fd;
+      padding: 20px;
     }
     
     .search-box {
-      background: #fff;
+      background: var(--roxo-super-claro);
       border-radius: 16px;
-      box-shadow: var(--shadow-card);
       height: 52px;
       display: flex;
       align-items: center;
@@ -124,7 +206,7 @@
     
     .search-box:focus-within {
       border-color: var(--roxo);
-      box-shadow: var(--shadow-hover);
+      box-shadow: 0 0 0 3px rgba(155, 93, 229, 0.2);
     }
     
     .search-box input {
@@ -149,7 +231,7 @@
       color: #fff;
       width: 52px;
       height: 52px;
-      font-size: 20px;
+      font-size: 18px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -159,23 +241,6 @@
     
     .search-btn:hover {
       background: var(--roxo-escuro);
-    }
-    
-    /* LAYOUT PRINCIPAL */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px 40px;
-      display: grid;
-      grid-template-columns: 1fr 350px;
-      gap: 30px;
-    }
-    
-    /* FEED PRINCIPAL */
-    .main-content {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
     }
     
     /* CARDS */
@@ -215,11 +280,11 @@
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--roxo-super-claro) 0%, #e0d0f8 100%);
+      background: linear-gradient(135deg, var(--roxo) 0%, var(--roxo-escuro) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--roxo);
+      color: white;
       font-weight: 700;
       font-size: 18px;
     }
@@ -327,11 +392,11 @@
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--roxo-super-claro) 0%, #e0d0f8 100%);
+      background: linear-gradient(135deg, var(--roxo) 0%, var(--roxo-escuro) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--roxo);
+      color: white;
       font-weight: 700;
       font-size: 20px;
       flex-shrink: 0;
@@ -411,8 +476,8 @@
       color: var(--roxo);
     }
     
-    /* SIDEBAR */
-    .sidebar {
+    /* COLUNA DIREITA - SIDEBAR */
+    .right-sidebar {
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -468,11 +533,11 @@
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--roxo-super-claro) 0%, #e0d0f8 100%);
+      background: linear-gradient(135deg, var(--roxo) 0%, var(--roxo-escuro) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--roxo);
+      color: white;
       font-weight: 600;
       font-size: 16px;
     }
@@ -615,18 +680,42 @@
       line-height: 1.5;
     }
     
+    /* LOADING SPINNER */
+    .loading-spinner {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--roxo-super-claro);
+      border-top: 3px solid var(--roxo);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
     /* RESPONSIVIDADE */
-    @media (max-width: 1100px) {
-      .container {
-        grid-template-columns: 1fr;
-        max-width: 700px;
+    @media (max-width: 1200px) {
+      .layout-container {
+        grid-template-columns: 250px 1fr 300px;
+        max-width: 1100px;
+      }
+    }
+    
+    @media (max-width: 992px) {
+      .layout-container {
+        grid-template-columns: 1fr 350px;
       }
       
-      .sidebar {
-        position: static;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
+      .left-sidebar {
+        display: none;
       }
     }
     
@@ -647,22 +736,22 @@
       }
       
       .main-wrapper {
-        border-top-left-radius: 25px;
-        border-top-right-radius: 25px;
         margin-top: 64px;
         min-height: calc(100vh - 64px);
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
       }
       
-      .container {
+      .layout-container {
+        grid-template-columns: 1fr;
         padding: 0 16px 30px;
       }
       
-      .search-container {
-        padding: 0 16px;
-      }
-      
-      .sidebar {
-        grid-template-columns: 1fr;
+      .right-sidebar {
+        position: static;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
       }
       
       .fab {
@@ -673,7 +762,7 @@
       }
     }
     
-    @media (max-width: 480px) {
+    @media (max-width: 576px) {
       nav {
         padding: 0 16px;
       }
@@ -684,7 +773,9 @@
       
       .post-form-card,
       .post-card,
-      .sidebar-card {
+      .sidebar-card,
+      .menu-card,
+      .search-card {
         padding: 20px;
       }
       
@@ -692,30 +783,92 @@
         border-top-left-radius: 20px;
         border-top-right-radius: 20px;
       }
+      
+      .right-sidebar {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- NAVEGAÇÃO -->
+  <!-- NAVEGAÇÃO COM FUNDO CLARO -->
   <nav>
     <div class="logo">Gramátike</div>
     <div class="profile-circle" id="profileBtn">U</div>
   </nav>
   
-  <!-- CONTEÚDO PRINCIPAL -->
+  <!-- CONTEÚDO PRINCIPAL COM CURVATURA NO TOPO -->
   <div class="main-wrapper">
-    <!-- BARRA DE PESQUISA -->
-    <div class="search-container">
-      <div class="search-box">
-        <input type="text" placeholder="Pesquisar no Gramátike..." id="searchInput">
-        <button class="search-btn" id="searchButton">🔍</button>
-      </div>
-    </div>
-    
-    <!-- LAYOUT PRINCIPAL -->
-    <div class="container">
-      <!-- FEED PRINCIPAL -->
+    <!-- LAYOUT DE 3 COLUNAS -->
+    <div class="layout-container">
+      
+      <!-- COLUNA ESQUERDA - MENU -->
+      <aside class="left-sidebar">
+        <div class="menu-card">
+          <div class="menu-title">
+            <i class="fas fa-cog"></i>
+            Configurações
+          </div>
+          <ul class="menu-list">
+            <li class="menu-item" onclick="openSettings('profile')">
+              <i class="fas fa-user"></i>
+              <span>Perfil</span>
+            </li>
+            <li class="menu-item" onclick="openSettings('privacy')">
+              <i class="fas fa-lock"></i>
+              <span>Privacidade</span>
+            </li>
+            <li class="menu-item" onclick="openSettings('notifications')">
+              <i class="fas fa-bell"></i>
+              <span>Notificações</span>
+            </li>
+            <li class="menu-item" onclick="openSettings('theme')">
+              <i class="fas fa-palette"></i>
+              <span>Tema</span>
+            </li>
+            <li class="menu-item" onclick="openSettings('language')">
+              <i class="fas fa-language"></i>
+              <span>Idioma</span>
+            </li>
+          </ul>
+          
+          <div class="menu-title" style="margin-top: 30px;">
+            <i class="fas fa-headset"></i>
+            Suporte
+          </div>
+          <ul class="menu-list">
+            <li class="menu-item" onclick="openSupport('help')">
+              <i class="fas fa-question-circle"></i>
+              <span>Ajuda</span>
+            </li>
+            <li class="menu-item" onclick="openSupport('contact')">
+              <i class="fas fa-envelope"></i>
+              <span>Contato</span>
+            </li>
+            <li class="menu-item" onclick="openSupport('feedback')">
+              <i class="fas fa-comment-dots"></i>
+              <span>Feedback</span>
+            </li>
+            <li class="menu-item" onclick="openSupport('about')">
+              <i class="fas fa-info-circle"></i>
+              <span>Sobre</span>
+            </li>
+          </ul>
+        </div>
+      </aside>
+      
+      <!-- COLUNA CENTRAL - FEED -->
       <main class="main-content">
+        <!-- BARRA DE PESQUISA (DENTRO DO FEED) -->
+        <div class="card search-card">
+          <div class="search-box">
+            <input type="text" placeholder="Pesquisar no Gramátike..." id="searchInput">
+            <button class="search-btn" id="searchButton">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
+        
         <!-- FORMULÁRIO DE POST -->
         <div class="card post-form-card">
           <div class="post-header-info">
@@ -731,9 +884,15 @@
             ></textarea>
             <div class="post-actions">
               <div class="post-options">
-                <button type="button" class="option-btn">📷</button>
-                <button type="button" class="option-btn">🎬</button>
-                <button type="button" class="option-btn">😊</button>
+                <button type="button" class="option-btn">
+                  <i class="fas fa-camera"></i>
+                </button>
+                <button type="button" class="option-btn">
+                  <i class="fas fa-video"></i>
+                </button>
+                <button type="button" class="option-btn">
+                  <i class="fas fa-smile"></i>
+                </button>
               </div>
               <button type="submit" class="post-button">
                 Publicar
@@ -742,8 +901,11 @@
           </form>
         </div>
         
-        <!-- POSTS -->
+        <!-- POSTS (SERÃO PREENCHIDOS PELO BANCO DE DADOS) -->
         <div id="postsContainer">
+          <div class="loading-spinner">
+            <div class="spinner"></div>
+          </div>
         </div>
         
         <!-- MENSAGEM SEM POSTS -->
@@ -753,19 +915,17 @@
         </div>
       </main>
       
-      <!-- SIDEBAR -->
-      <aside class="sidebar">
-        <!-- AMIGUES -->
+      <!-- COLUNA DIREITA - SIDEBAR -->
+      <aside class="right-sidebar">
+        <!-- AMIGUES (DO BANCO DE DADOS) -->
         <div class="card sidebar-card">
           <div class="section-title">Amigues Online</div>
           <div class="friends-list" id="friendsList">
-            <!-- Isso será preenchido pelo JavaScript com dados reais -->
-            <div class="empty-state">
-              <div class="empty-icon">👥</div>
-              <div class="empty-text">Carregando amigues...</div>
+            <div class="loading-spinner">
+              <div class="spinner"></div>
             </div>
+          </div>
         </div>
-    </div>
         
         <!-- JOGO DA VELHA -->
         <div class="card sidebar-card">
@@ -794,96 +954,37 @@
   </div>
   
   <!-- BOTÃO FLUTUANTE -->
-  <button class="fab" id="addPostBtn">+</button>
+  <button class="fab" id="addPostBtn">
+    <i class="fas fa-plus"></i>
+  </button>
 
   <script>
-// Buscar posts reais da sua API
-async function fetchRealPosts() {
-  try {
-    const response = await fetch('/api/posts');  // SUA API AQUI
-    if (response.ok) {
-      const data = await response.json();
-      posts = data.posts || data || [];  // Ajuste conforme sua API
-      renderPosts();
-    } else {
-      console.error('Erro na API:', response.status);
-      posts = [];
-      renderPosts();
-    }
-  } catch (error) {
-    console.error('Erro ao buscar posts:', error);
-    posts = [];
-    renderPosts();
-  }
-}
+    // URLs DAS SUAS APIS - SUBSTITUA COM SEUS ENDPOINTS REAIS
+    const API_BASE_URL = 'http://localhost:3000'; // OU a URL do seu backend
+    const API_POSTS_URL = `${API_BASE_URL}/api/posts`;
+    const API_FRIENDS_URL = `${API_BASE_URL}/api/friends`;
+    const API_CREATE_POST_URL = `${API_BASE_URL}/api/posts/create`;
+    const API_LIKE_POST_URL = `${API_BASE_URL}/api/posts/like`;
 
-// Buscar amigos reais da sua API
-async function fetchRealFriends() {
-  const friendsList = document.getElementById('friendsList');
-  if (!friendsList) return;
-  
-  try {
-    const response = await fetch('/api/friends');  // SUA API AQUI
-    if (response.ok) {
-      const data = await response.json();
-      const friends = data.friends || data || [];
-      renderFriends(friends);
-    }
-  } catch (error) {
-    console.error('Erro ao buscar amigos:', error);
-    friendsList.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">⚠️</div>
-        <div class="empty-text">Erro ao carregar amigos</div>
-      </div>
-    `;
-  }
-}
-
-// Renderizar amigos
-function renderFriends(friends) {
-  const friendsList = document.getElementById('friendsList');
-  if (!friendsList) return;
-  
-  if (!friends || friends.length === 0) {
-    friendsList.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">👥</div>
-        <div class="empty-text">Ainda não seguiu ninguém</div>
-      </div>
-    `;
-    return;
-  }
-  
-  let friendsHTML = '';
-  friends.slice(0, 5).forEach(friend => {  // Mostra apenas 5 amigos
-    const initial = friend.name ? friend.name.charAt(0).toUpperCase() : '?';
-    friendsHTML += `
-      <div class="friend-item">
-        <div class="friend-avatar">${initial}</div>
-        <div class="friend-info">
-          <div class="friend-name">${friend.name || 'Usuário'}</div>
-          <div class="friend-status">${friend.online ? 'Online agora' : 'Offline'}</div>
-        </div>
-      </div>
-    `;
-  });
-  
-  friendsList.innerHTML = friendsHTML;
-}
-
-// NO FINAL DO SCRIPT, ANTES DO "// Inicializar"
-// Substitua a chamada atual renderPosts() por:
-fetchRealPosts();
-fetchRealFriends();
-    
+    // Elementos DOM
     const postForm = document.getElementById('postForm');
     const postContent = document.getElementById('postContent');
     const postsContainer = document.getElementById('postsContainer');
     const noPosts = document.getElementById('noPosts');
     const addPostBtn = document.getElementById('addPostBtn');
     const profileBtn = document.getElementById('profileBtn');
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+
+    // Funções do menu
+    function openSettings(section) {
+      alert(`Abrindo configurações: ${section}`);
+    }
     
+    function openSupport(section) {
+      alert(`Abrindo suporte: ${section}`);
+    }
+
     // Formatador de data
     function formatDate(dateStr) {
       const date = new Date(dateStr);
@@ -900,10 +1001,57 @@ fetchRealFriends();
       if (diffDays < 7) return `Há ${diffDays} dias`;
       return date.toLocaleDateString('pt-BR');
     }
-    
+
+    // Buscar posts do SEU banco de dados
+    async function fetchRealPosts() {
+      try {
+        const response = await fetch(API_POSTS_URL);
+        if (response.ok) {
+          const data = await response.json();
+          renderPosts(data);
+        } else {
+          console.error('Erro na API de posts:', response.status);
+          showError('Erro ao carregar posts');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar posts:', error);
+        showError('Erro de conexão com o servidor');
+      }
+    }
+
+    // Buscar amigos do SEU banco de dados
+    async function fetchRealFriends() {
+      const friendsList = document.getElementById('friendsList');
+      if (!friendsList) return;
+      
+      try {
+        const response = await fetch(API_FRIENDS_URL);
+        if (response.ok) {
+          const data = await response.json();
+          renderFriends(data);
+        } else {
+          console.error('Erro na API de amigos:', response.status);
+          friendsList.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">⚠️</div>
+              <div class="empty-text">Erro ao carregar amigos</div>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Erro ao buscar amigos:', error);
+        friendsList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">⚠️</div>
+            <div class="empty-text">Erro ao carregar amigos</div>
+          </div>
+        `;
+      }
+    }
+
     // Renderizar posts
-    function renderPosts() {
-      if (posts.length === 0) {
+    function renderPosts(posts) {
+      if (!posts || posts.length === 0) {
         noPosts.style.display = 'block';
         postsContainer.innerHTML = '';
         return;
@@ -915,25 +1063,36 @@ fetchRealFriends();
       posts.forEach(post => {
         const postElement = document.createElement('div');
         postElement.className = 'card post-card';
+        
+        // Ajuste conforme a estrutura do SEU banco de dados
+        const userName = post.user?.name || post.author_name || 'Usuário';
+        const userInitial = userName.charAt(0).toUpperCase();
+        const content = post.content || post.text || '';
+        const createdAt = post.created_at || post.createdAt || new Date().toISOString();
+        const likes = post.likes || post.likes_count || 0;
+        const comments = post.comments || post.comments_count || 0;
+        const shares = post.shares || post.shares_count || 0;
+        const postId = post.id || post._id;
+        
         postElement.innerHTML = `
           <div class="post-header">
-            <div class="post-avatar">${post.name.charAt(0).toUpperCase()}</div>
+            <div class="post-avatar">${userInitial}</div>
             <div class="post-user-info">
               <div class="post-username">
-                ${post.name}
-                ${post.username === 'gramatike' ? '<span class="verified-badge">✓</span>' : ''}
+                ${userName}
+                ${post.is_verified ? '<span class="verified-badge">✓</span>' : ''}
               </div>
-              <div class="post-time">${formatDate(post.created_at)}</div>
+              <div class="post-time">${formatDate(createdAt)}</div>
             </div>
           </div>
-          <div class="post-content">${post.content.replace(/\n/g, '<br>')}</div>
+          <div class="post-content">${content.replace(/\n/g, '<br>')}</div>
           <div class="post-stats">
-            <span>❤️ ${post.likes} curtidas</span>
-            <span>💬 ${post.comments} comentários</span>
-            <span>↗️ ${post.shares} compartilhamentos</span>
+            <span>❤️ ${likes} curtidas</span>
+            <span>💬 ${comments} comentários</span>
+            <span>↗️ ${shares} compartilhamentos</span>
           </div>
           <div class="post-interactions">
-            <button class="interaction-btn" onclick="likePost(${post.id})">
+            <button class="interaction-btn" onclick="likePost('${postId}')">
               <span>❤️</span> Curtir
             </button>
             <button class="interaction-btn">
@@ -945,45 +1104,114 @@ fetchRealFriends();
           </div>
         `;
         
-        // Adicionar animação
         postElement.style.animation = 'fadeIn 0.4s ease-out';
         postsContainer.appendChild(postElement);
       });
     }
-    
-    // Criar novo post
-    function createPost(content) {
-      const newPost = {
-        id: posts.length + 1,
-        name: "Usuário",
-        username: "usuario",
-        content: content,
-        created_at: new Date().toISOString(),
-        likes: 0,
-        comments: 0,
-        shares: 0
-      };
+
+    // Renderizar amigos
+    function renderFriends(friends) {
+      const friendsList = document.getElementById('friendsList');
+      if (!friendsList) return;
       
-      posts.unshift(newPost); // Adiciona no início
-      renderPosts();
-      postContent.value = '';
+      if (!friends || friends.length === 0) {
+        friendsList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <div class="empty-text">Ainda não seguiu ninguém</div>
+          </div>
+        `;
+        return;
+      }
       
-      // Scroll suave para o topo
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
+      let friendsHTML = '';
+      friends.slice(0, 5).forEach(friend => {
+        // Ajuste conforme a estrutura do SEU banco de dados
+        const friendName = friend.name || friend.username || 'Usuário';
+        const initial = friendName.charAt(0).toUpperCase();
+        const isOnline = friend.online || friend.status === 'online';
+        
+        friendsHTML += `
+          <div class="friend-item">
+            <div class="friend-avatar">${initial}</div>
+            <div class="friend-info">
+              <div class="friend-name">${friendName}</div>
+              <div class="friend-status">${isOnline ? 'Online agora' : 'Offline'}</div>
+            </div>
+          </div>
+        `;
       });
+      
+      friendsList.innerHTML = friendsHTML;
     }
-    
-    // Curtir post
-    function likePost(postId) {
-      const post = posts.find(p => p.id === postId);
-      if (post) {
-        post.likes++;
-        renderPosts();
+
+    // Criar novo post (ENVIA para SEU banco de dados)
+    async function createPost(content) {
+      try {
+        const response = await fetch(API_CREATE_POST_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            // Adicione token de autenticação se necessário
+            // 'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ 
+            content: content,
+            // Adicione outros campos necessários para SEU banco
+          })
+        });
+        
+        if (response.ok) {
+          const newPost = await response.json();
+          // Recarrega os posts após criar
+          await fetchRealPosts();
+          postContent.value = '';
+          
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        } else {
+          alert('Erro ao publicar post');
+        }
+      } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao conectar com o servidor');
       }
     }
-    
+
+    // Curtir post (ENVIA para SEU banco de dados)
+    async function likePost(postId) {
+      try {
+        const response = await fetch(API_LIKE_POST_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ postId: postId })
+        });
+        
+        if (response.ok) {
+          // Recarrega os posts após curtir
+          await fetchRealPosts();
+        } else {
+          console.error('Erro ao curtir post');
+        }
+      } catch (error) {
+        console.error('Erro:', error);
+      }
+    }
+
+    // Mostrar erro
+    function showError(message) {
+      postsContainer.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">⚠️</div>
+          <div class="empty-text">${message}</div>
+        </div>
+      `;
+    }
+
     // Event Listeners
     postForm.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -997,7 +1225,6 @@ fetchRealFriends();
     
     addPostBtn.addEventListener('click', function() {
       postContent.focus();
-      // Scroll suave para o formulário
       document.querySelector('.post-form-card').scrollIntoView({
         behavior: 'smooth'
       });
@@ -1006,36 +1233,23 @@ fetchRealFriends();
     profileBtn.addEventListener('click', function() {
       alert('Perfil do usuário');
     });
-    // Criar novo post (ENVIA para sua API real)
-async function createPost(content) {
-  try {
-    const response = await fetch('/api/posts', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ content })
+    
+    searchButton.addEventListener('click', function() {
+      const query = searchInput.value.trim();
+      if (query) {
+        alert(`Buscando por: "${query}"`);
+        // Implemente a busca na sua API aqui
+        searchInput.value = '';
+      }
     });
     
-    if (response.ok) {
-      const newPost = await response.json();
-      posts.unshift(newPost);  // Adiciona novo post no início
-      renderPosts();
-      postContent.value = '';
-      
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    } else {
-      alert('Erro ao publicar post');
-    }
-  } catch (error) {
-    console.error('Erro:', error);
-    alert('Erro ao conectar com o servidor');
-  }
-}
-    
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        searchButton.click();
+      }
+    });
+
     // ========== JOGO DA VELHA ==========
     let currentPlayer = 'X';
     let gameBoard = ['', '', '', '', '', '', '', '', ''];
@@ -1185,47 +1399,12 @@ async function createPost(content) {
       gameTitle.textContent = 'Sua vez!';
       gameSubtitle.textContent = 'Você: X';
     }
-    
-    // ========== BARRA DE PESQUISA ==========
-    const searchInput = document.getElementById('searchInput');
-    const searchButton = document.getElementById('searchButton');
-    
-    searchButton.addEventListener('click', function() {
-      const query = searchInput.value.trim();
-      if (query) {
-        alert(`Buscando por: "${query}"`);
-        searchInput.value = '';
-      }
+
+    // Inicializar - Carregar dados do SEU banco
+    document.addEventListener('DOMContentLoaded', function() {
+      fetchRealPosts();
+      fetchRealFriends();
     });
-    
-    searchInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        searchButton.click();
-      }
-    });
-    
-    // ========== INTERAÇÕES DOS POSTS ==========
-    document.addEventListener('click', function(e) {
-      if (e.target.closest('.interaction-btn')) {
-        const btn = e.target.closest('.interaction-btn');
-        btn.classList.toggle('active');
-        
-        if (btn.textContent.includes('Curtir')) {
-          const postCard = btn.closest('.post-card');
-          const stats = postCard.querySelector('.post-stats span:first-child');
-          const currentLikes = parseInt(stats.textContent.match(/\d+/)[0]);
-          if (btn.classList.contains('active')) {
-            stats.textContent = `❤️ ${currentLikes + 1} curtidas`;
-          } else {
-            stats.textContent = `❤️ ${currentLikes - 1} curtidas`;
-          }
-        }
-      }
-    });
-    
-    // Inicializar
-    renderPosts();
   </script>
 </body>
 </html>
