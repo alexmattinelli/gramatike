@@ -1277,7 +1277,7 @@
       if (winningPattern) {
         gameActive = false;
         highlightWinningCells(winningPattern);
-        gameTitle.textContent = currentPlayer === 'X' ? 'Você venceu! 🎉' : 'Rebao venceu! 😢';
+        gameTitle.textContent = currentPlayer === 'X' ? 'Você venceu! 🎉' : 'Lune venceu! 😢';
         gameSubtitle.textContent = 'Clique em Reiniciar';
         return;
       }
@@ -1290,7 +1290,7 @@
       }
       
       currentPlayer = 'O';
-      gameSubtitle.textContent = 'Rebao: O';
+      gameSubtitle.textContent = 'Lune: O';
       
       setTimeout(computerMove, 600);
     }
@@ -1309,7 +1309,7 @@
         if (winningPattern) {
           gameActive = false;
           highlightWinningCells(winningPattern);
-          gameTitle.textContent = 'Rebao venceu! 😢';
+          gameTitle.textContent = 'Lune venceu! 😢';
           gameSubtitle.textContent = 'Clique em Reiniciar';
           return;
         }
