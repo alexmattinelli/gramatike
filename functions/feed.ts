@@ -1,3 +1,4 @@
+import type { Env, User } from '../types';
 export const onRequestGet: PagesFunction<Env> = async ({ data, env, request }) => {
   const user = data.user;
   
