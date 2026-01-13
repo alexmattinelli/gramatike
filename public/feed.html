@@ -1,323 +1,26 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Gramatike Feed</title>
-  <link href="https://fonts.googleapis.com/css2?family=Mansalva&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gramátike Feed</title>
+  <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --roxo: #9B5DE5;
+      --roxo-escuro: #7E3FD1;
       --roxo-claro: #f9f6ff;
       --roxo-super-claro: #f7f2ff;
       --lilas-light: #f6f5fa;
       --texto: #32264c;
+      --texto-leve: #5a4d7a;
       --muted: #a8a8d0;
-      --radius: 20px;
-      --shadow: 0 8px 30px rgba(155,93,229,.12);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--roxo);
-      min-height: 100vh;
-    }
-
-    /* HEADER */
-    header {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      height: 64px;
-      background: var(--roxo);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-      z-index: 100;
-    }
-
-    .logo {
-      font-family: 'Mansalva', cursive;
-      font-size: 26px;
-      color: #fff;
-    }
-
-    .avatar-header {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: #fff;
-      color: var(--roxo);
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-
-    /* WRAPPER */
-    .wrapper {
-      margin-top: 64px;
-      background: var(--lilas-light);
-      border-radius: 28px 28px 0 0;
-      padding: 28px 0;
-      min-height: calc(100vh - 64px);
-    }
-
-    /* SEARCH */
-    .search {
-      max-width: 680px;
-      margin: 0 auto 24px;
-      padding: 0 20px;
-    }
-
-    .search-box {
-      background: #fff;
-      border-radius: 18px;
-      display: flex;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    .search-box input {
-      flex: 1;
-      border: none;
-      padding: 12px 16px;
-      font-size: 15px;
-      outline: none;
-      color: var(--texto);
-    }
-
-    .search-box button {
-      background: var(--roxo);
-      border: none;
-      color: #fff;
-      padding: 0 18px;
-      cursor: pointer;
-    }
-
-    /* LAYOUT */
-    .layout {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 20px;
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 28px;
-    }
-
-    /* FEED */
-    .feed-card {
-      background: #fff;
-      border-radius: var(--radius);
-      padding: 20px;
-      box-shadow: var(--shadow);
-      margin-bottom: 20px;
-    }
-
-    .composer textarea {
-      width: 100%;
-      min-height: 90px;
-      border-radius: 14px;
-      border: none;
-      padding: 14px;
-      background: var(--roxo-super-claro);
-      font-size: 15px;
-      resize: none;
-      outline: none;
-    }
-
-    .composer-footer {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 12px;
-    }
-
-    .btn {
-      background: var(--roxo);
-      color: #fff;
-      border: none;
-      border-radius: 16px;
-      padding: 8px 22px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    /* POST */
-    .post-header {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: var(--roxo-super-claro);
-      color: var(--roxo);
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .username {
-      font-weight: 600;
-      color: var(--texto);
-    }
-
-    .time {
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .post-content {
-      font-size: 15px;
-      color: var(--texto);
-      line-height: 1.5;
-    }
-
-    .post-actions {
-      display: flex;
-      gap: 18px;
-      margin-top: 14px;
-      padding-top: 12px;
-      border-top: 1px solid #eee;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    /* SIDEBAR */
-    .side-card {
-      background: #fff;
-      border-radius: var(--radius);
-      padding: 20px;
-      box-shadow: var(--shadow);
-      margin-bottom: 20px;
-    }
-
-    .side-title {
-      font-weight: 600;
-      color: var(--texto);
-      margin-bottom: 12px;
-    }
-
-    .empty {
-      background: var(--roxo-claro);
-      border-radius: 14px;
-      padding: 16px;
-      text-align: center;
-      font-size: 14px;
-      color: var(--muted);
-    }
-
-    /* FLOAT BUTTON */
-    .fab {
-      position: fixed;
-      right: 24px;
-      bottom: 24px;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: var(--roxo);
-      color: #fff;
-      font-size: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 10px 30px rgba(155,93,229,.45);
-    }
-
-    @media (max-width: 900px) {
-      .layout { grid-template-columns: 1fr; }
-    }
-  </style>
-</head>
-<body>
-
-<header>
-  <div class="logo">Gramátike</div>
-  <div class="avatar-header">U</div>
-</header>
-
-<div class="wrapper">
-
-  <div class="search">
-    <div class="search-box">
-      <input placeholder="Pesquisar no feed" />
-      <button>🔍</button>
-    </div>
-  </div>
-
-  <div class="layout">
-
-    <main>
-      <div class="feed-card composer">
-        <textarea placeholder="O que você está pensando?"></textarea>
-        <div class="composer-footer">
-          <button class="btn">Publicar</button>
-        </div>
-      </div>
-
-      <div class="feed-card">
-        <div class="post-header">
-          <div class="avatar">G</div>
-          <div>
-            <div class="username">gramatike</div>
-            <div class="time">agora mesmo</div>
-          </div>
-        </div>
-        <div class="post-content">
-          Este é um post de exemplo com cara real de rede social ✨
-        </div>
-        <div class="post-actions">
-          <div>💜 Curtir</div>
-          <div>💬 Comentar</div>
-          <div>↗️ Compartilhar</div>
-        </div>
-      </div>
-    </main>
-
-    <aside>
-      <div class="side-card">
-        <div class="side-title">Amigues</div>
-        <div class="empty">Sem amigues ainda</div>
-      </div>
-
-      <div class="side-card">
-        <div class="side-title">Atividade</div>
-        <div class="empty">Nada novo por aqui</div>
-      </div>
-    </aside>
-
-  </div>
-</div>
-
-<div class="fab">+</div>
-
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Gramatike Feed</title>
-  <link href="https://fonts.googleapis.com/css2?family=Mansalva&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --roxo: #9B5DE5;
-      --roxo-claro: #f9f6ff;
-      --roxo-super-claro: #f7f2ff;
-      --lilas-light: #f6f5fa;
-      --card-radius: 22px;
-      --shadow-card: 0 6px 30px 0 #9b5de51a, 0 1px 4px #9B5DE521;
-      --shadow-btn: 0 1.5px 7px #9B5DE529;
+      --muted-light: #d0cce9;
+      --card-radius: 18px;
+      --shadow-card: 0 4px 20px rgba(155, 93, 229, 0.15);
+      --shadow-hover: 0 8px 30px rgba(155, 93, 229, 0.25);
+      --shadow-btn: 0 4px 12px rgba(155, 93, 229, 0.3);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     * {
@@ -328,173 +31,275 @@
     
     body {
       background: var(--roxo);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
+      color: var(--texto);
     }
     
-    /* CONTEINER PRINCIPAL COM CURVA NO TOPO */
-    .main-wrapper {
-      background: var(--lilas-light);
-      min-height: calc(100vh - 62px);
-      border-top-left-radius: 30px;
-      border-top-right-radius: 30px;
-      padding-top: 30px;
-      margin-top: 62px;
-      position: relative;
-      z-index: 1;
-    }
-    
-    /* NAVEGAÇÃO COM LOGO E PERFIL */
+    /* NAVEGAÇÃO FIXA - CURVATURA MANTIDA */
     nav {
       background: var(--roxo);
-      height: 62px;
-      position: fixed; 
-      top: 0; 
-      z-index: 100;
+      height: 70px;
+      position: fixed;
+      top: 0;
+      z-index: 1000;
       width: 100%;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 30px;
+      padding: 0 28px;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
     }
     
     .logo {
       font-family: 'Mansalva', cursive;
-      font-size: 28px;
+      font-size: 32px;
       color: #fff;
-      letter-spacing: 0.2px;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
     
-    /* CÍRCULO DE PERFIL NO HEADER */
     .profile-circle {
-      width: 48px;
-      height: 48px;
+      width: 46px;
+      height: 46px;
       border-radius: 50%;
-      background: #e9e2ef;
-      box-shadow: 0 1.5px 7px #9b5de519;
-      border: 2px solid #fff;
+      background: linear-gradient(135deg, #fff 0%, #f0e4fd 100%);
+      box-shadow: 0 4px 12px rgba(155, 93, 229, 0.3);
       cursor: pointer;
-      transition: transform 0.3s ease;
+      transition: var(--transition);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.6rem;
+      font-size: 20px;
       color: var(--roxo);
-      font-weight: bold;
+      font-weight: 700;
       user-select: none;
+      border: 3px solid rgba(255, 255, 255, 0.9);
     }
     
     .profile-circle:hover {
-      transform: scale(1.05);
+      transform: scale(1.08);
+      box-shadow: 0 6px 20px rgba(155, 93, 229, 0.4);
     }
     
-    /* CONTEÚDO PRINCIPAL */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 30px 20px;
-      display: flex;
-      gap: 30px;
+    /* CONTEINER PRINCIPAL COM CURVA NO TOPO (MANTIDA) */
+    .main-wrapper {
+      background: var(--lilas-light);
+      min-height: calc(100vh - 70px);
+      border-top-left-radius: 30px;
+      border-top-right-radius: 30px;
+      padding-top: 30px;
+      margin-top: 70px;
       position: relative;
+      z-index: 1;
     }
     
-    .main-content {
-      flex: 1;
-      width: 700px;
-      max-width: 700px;
-    }
-    
-    .sidebar {
-      width: 320px;
-      flex-shrink: 0;
-      margin-top: 10px;
-      position: sticky;
-      top: 100px;
-      align-self: flex-start;
-    }
-    
-    /* BARRA DE PESQUISA FORA DO HEADER */
+    /* BARRA DE PESQUISA */
     .search-container {
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: var(--shadow-btn);
-      height: 38px;
-      margin: 0 auto 20px;
       max-width: 700px;
+      margin: 0 auto 30px;
+      padding: 0 20px;
+    }
+    
+    .search-box {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: var(--shadow-card);
+      height: 52px;
       display: flex;
       align-items: center;
       overflow: hidden;
-      border: 1px solid #f0e4fd;
+      border: 2px solid transparent;
+      transition: var(--transition);
     }
     
-    .search-container input {
+    .search-box:focus-within {
+      border-color: var(--roxo);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    .search-box input {
       border: none;
-      padding: 0 14px;
-      font-size: 16px;
+      padding: 0 20px;
+      font-size: 15px;
       outline: none;
       background: transparent;
       flex: 1;
       height: 100%;
-      color: #6741af;
+      color: var(--texto);
+      font-family: 'Inter', sans-serif;
     }
     
-    .search-container button {
+    .search-box input::placeholder {
+      color: var(--muted);
+    }
+    
+    .search-btn {
       background: var(--roxo);
       border: none;
       color: #fff;
-      width: 43px;
-      height: 38px;
-      font-size: 21px;
+      width: 52px;
+      height: 52px;
+      font-size: 20px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: filter .2s;
+      transition: var(--transition);
     }
     
-    /* BOTÃO + FORA DO HEADER */
-    .add-post-btn {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background: var(--roxo);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 56px;
-      height: 56px;
-      font-size: 28px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(155, 93, 229, 0.4);
+    .search-btn:hover {
+      background: var(--roxo-escuro);
+    }
+    
+    /* LAYOUT PRINCIPAL */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 30px;
+    }
+    
+    /* FEED PRINCIPAL */
+    .main-content {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-      z-index: 90;
-    }
-    
-    .add-post-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 6px 16px rgba(155, 93, 229, 0.5);
+      flex-direction: column;
+      gap: 20px;
     }
     
     /* CARDS */
-    .form-card, .sidebar-card, .post-card {
+    .card {
       background: #fff;
       border-radius: var(--card-radius);
       box-shadow: var(--shadow-card);
       border: 1px solid #f0e4fd;
+      transition: var(--transition);
+      overflow: hidden;
     }
     
-    .form-card {
-      margin-bottom: 20px;
-      padding: 20px;
+    .card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
     }
     
+    /* FORMULÁRIO DE POST */
+    .post-form-card {
+      padding: 24px;
+    }
+    
+    .post-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .post-header-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .post-form-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--roxo-super-claro) 0%, #e0d0f8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--roxo);
+      font-weight: 700;
+      font-size: 18px;
+    }
+    
+    .post-form-user {
+      font-weight: 600;
+      color: var(--texto);
+      font-size: 16px;
+    }
+    
+    .post-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 16px;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      border: none;
+      border-radius: 14px;
+      background: var(--roxo-super-claro);
+      color: var(--texto);
+      resize: vertical;
+      outline: none;
+      line-height: 1.5;
+      transition: var(--transition);
+    }
+    
+    .post-textarea:focus {
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(155, 93, 229, 0.2);
+    }
+    
+    .post-textarea::placeholder {
+      color: var(--muted);
+    }
+    
+    .post-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .post-options {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .option-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 10px;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+    }
+    
+    .option-btn:hover {
+      background: var(--roxo-super-claro);
+      color: var(--roxo);
+    }
+    
+    .post-button {
+      background: var(--roxo);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 10px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: var(--shadow-btn);
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .post-button:hover {
+      background: var(--roxo-escuro);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(155, 93, 229, 0.4);
+    }
+    
+    /* POST CARD */
     .post-card {
-      margin-bottom: 20px;
-      padding: 20px;
-      animation: fadeIn 0.5s ease;
+      padding: 24px;
+      animation: fadeIn 0.4s ease-out;
     }
     
     @keyframes fadeIn {
@@ -502,86 +307,25 @@
       to { opacity: 1; transform: translateY(0); }
     }
     
-    /* SIDEBAR CARD - ENCOSTADO NA LATERAL DIREITA */
-    .sidebar-card {
-      margin-bottom: 20px;
-      padding: 20px;
-      width: 100%;
-      border: 1px solid #f0e4fd;
-    }
-    
-    /* CARD ROXO CLARINHO - PEQUENO */
-    .light-purple-card {
-      background: var(--roxo-claro);
-      padding: 18px;
-      border-radius: var(--card-radius);
-      font-size: 14px;
-      border: 1px solid #e0d0f8;
-    }
-    
-    /* FORMULÁRIO DE POST */
-    .post-form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    
-    .post-textarea {
-      width: 100%;
-      min-height: 80px;
-      padding: 12px;
-      font-size: 15px;
-      font-family: inherit;
-      border: none;
-      border-radius: 12px;
-      background: var(--roxo-super-claro);
-      color: #333;
-      resize: vertical;
-      outline: none;
-    }
-    
-    .post-textarea:focus {
-      background: #fff;
-      box-shadow: 0 0 0 2px var(--roxo);
-    }
-    
-    .post-button {
-      align-self: flex-end;
-      background: var(--roxo);
-      color: #fff;
-      border: none;
-      border-radius: 16px;
-      padding: 8px 24px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: var(--shadow-btn);
-    }
-    
-    .post-button:hover {
-      transform: translateY(-2px);
-    }
-    
-    /* POST CARD STYLES */
     .post-header {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 15px;
+      gap: 14px;
+      margin-bottom: 16px;
     }
     
     .post-avatar {
-      width: 40px;
-      height: 40px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      background: var(--roxo-super-claro);
+      background: linear-gradient(135deg, var(--roxo-super-claro) 0%, #e0d0f8 100%);
       display: flex;
       align-items: center;
       justify-content: center;
       color: var(--roxo);
-      font-weight: bold;
-      font-size: 18px;
+      font-weight: 700;
+      font-size: 20px;
+      flex-shrink: 0;
     }
     
     .post-user-info {
@@ -589,141 +333,201 @@
     }
     
     .post-username {
-      font-weight: 600;
-      color: #32264c;
-      font-size: 15px;
-    }
-    
-    .post-time {
-      color: #a8a8d0;
-      font-size: 13px;
-    }
-    
-    .post-content {
-      color: #32264c;
-      font-size: 15px;
-      line-height: 1.5;
-      margin-bottom: 15px;
-      white-space: pre-line;
-    }
-    
-    .post-actions {
-      display: flex;
-      gap: 10px;
-      border-top: 1px solid #f0e4fd;
-      padding-top: 15px;
-    }
-    
-    .action-btn {
-      background: none;
-      border: none;
-      color: #a8a8d0;
-      font-size: 14px;
-      cursor: pointer;
+      font-weight: 700;
+      color: var(--texto);
+      font-size: 16px;
       display: flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 12px;
-      border-radius: 12px;
-      transition: all 0.2s ease;
     }
     
-    .action-btn:hover {
+    .verified-badge {
+      color: var(--roxo);
+      font-size: 14px;
+    }
+    
+    .post-time {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 2px;
+    }
+    
+    .post-content {
+      color: var(--texto);
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      white-space: pre-line;
+    }
+    
+    .post-stats {
+      display: flex;
+      gap: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f0e4fd;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    
+    .post-interactions {
+      display: flex;
+      gap: 8px;
+      padding-top: 16px;
+    }
+    
+    .interaction-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: 10px;
+      border-radius: 12px;
+      color: var(--texto-leve);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .interaction-btn:hover {
       background: var(--roxo-super-claro);
       color: var(--roxo);
     }
     
-    .action-btn.liked {
+    .interaction-btn.active {
+      background: var(--roxo-super-claro);
       color: var(--roxo);
     }
     
-    .action-btn svg {
-      width: 18px;
-      height: 18px;
-    }
-    
-    /* MENSAGEM SEM POSTS */
-    .no-posts {
-      background: #fff;
-      border-radius: var(--card-radius);
-      box-shadow: var(--shadow-card);
-      padding: 40px 20px;
-      text-align: center;
-      color: #a8a8d0;
-      font-size: 16px;
-      font-style: italic;
-      border: 1px solid #f0e4fd;
-    }
-    
-    /* TÍTULOS PEQUENOS */
-    .section-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #32264c;
-      margin-bottom: 15px;
-      display: block;
-    }
-    
-    /* AMIGUES - PEQUENO */
-    .empty-state {
-      text-align: center;
-      padding: 25px 15px;
-      color: #a8a8d0;
-      font-style: italic;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-    
-    /* JOGO DA VELHA - PEQUENO */
-    .game-container {
+    /* SIDEBAR */
+    .sidebar {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 20px;
+      position: sticky;
+      top: 100px;
+      align-self: flex-start;
     }
     
+    .sidebar-card {
+      padding: 24px;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--texto);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 18px;
+      background: var(--roxo);
+      border-radius: 2px;
+    }
+    
+    /* AMIGUES */
+    .friends-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    
+    .friend-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    
+    .friend-item:hover {
+      background: var(--roxo-super-claro);
+    }
+    
+    .friend-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--roxo-super-claro) 0%, #e0d0f8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--roxo);
+      font-weight: 600;
+      font-size: 16px;
+    }
+    
+    .friend-info {
+      flex: 1;
+    }
+    
+    .friend-name {
+      font-weight: 600;
+      color: var(--texto);
+      font-size: 15px;
+    }
+    
+    .friend-status {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    
+    /* JOGO DA VELHA */
     .game-info {
       text-align: center;
+      margin-bottom: 20px;
     }
     
     .game-title {
-      font-weight: 600;
-      color: #32264c;
-      font-size: 15px;
+      font-weight: 700;
+      color: var(--texto);
+      font-size: 16px;
       margin-bottom: 4px;
     }
     
-    .game-subtitle {
-      color: #a8a8d0;
-      font-size: 13px;
+    .game-status {
+      color: var(--roxo);
+      font-size: 14px;
+      font-weight: 600;
     }
     
     .board {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(3, 1fr);
-      gap: 6px;
-      width: 180px;
-      height: 180px;
-      margin: 0 auto;
+      gap: 8px;
+      margin-bottom: 20px;
     }
     
     .cell {
+      aspect-ratio: 1;
       background: var(--roxo-super-claro);
-      border-radius: 10px;
-      border: 1px solid #e0d0f8;
+      border-radius: 12px;
+      border: 2px solid #e0d0f8;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 32px;
-      font-weight: bold;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: var(--transition);
       user-select: none;
     }
     
     .cell:hover {
       background: #ebddfa;
-      transform: scale(1.05);
+      border-color: var(--roxo);
     }
     
     .cell.x {
@@ -735,79 +539,144 @@
     }
     
     .cell.winner {
-      background: #e9d8ff;
+      background: rgba(155, 93, 229, 0.2);
       border-color: var(--roxo);
     }
     
-    /* BOTÃO REINICIAR - PEQUENO */
     .restart-button {
+      width: 100%;
       background: var(--roxo);
       color: #fff;
       border: none;
       border-radius: 14px;
-      padding: 9px 18px;
-      font-size: 14px;
+      padding: 12px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      margin: 10px auto 0;
-      display: block;
-      transition: all 0.3s ease;
+      transition: var(--transition);
       box-shadow: var(--shadow-btn);
     }
     
     .restart-button:hover {
+      background: var(--roxo-escuro);
       transform: translateY(-2px);
     }
     
-    /* RESPONSIVO */
+    /* BOTÃO FLUTUANTE */
+    .fab {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--roxo) 0%, var(--roxo-escuro) 100%);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(155, 93, 229, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      transition: var(--transition);
+      z-index: 100;
+    }
+    
+    .fab:hover {
+      transform: scale(1.1) rotate(90deg);
+      box-shadow: 0 12px 35px rgba(155, 93, 229, 0.6);
+    }
+    
+    /* MENSAGEM VAZIA */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    
+    .empty-icon {
+      font-size: 48px;
+      color: var(--muted-light);
+      margin-bottom: 16px;
+    }
+    
+    .empty-text {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    
+    /* RESPONSIVIDADE */
     @media (max-width: 1100px) {
       .container {
-        flex-direction: column;
-        padding: 0 20px 20px;
+        grid-template-columns: 1fr;
+        max-width: 700px;
       }
       
       .sidebar {
-        width: 100%;
-        max-width: 700px;
-        margin: 0 auto;
         position: static;
-      }
-      
-      .add-post-btn {
-        bottom: 20px;
-        right: 20px;
-      }
-      
-      .main-wrapper {
-        border-top-left-radius: 25px;
-        border-top-right-radius: 25px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
       }
     }
     
     @media (max-width: 768px) {
       nav {
         padding: 0 20px;
+        height: 64px;
+      }
+      
+      .logo {
+        font-size: 28px;
+      }
+      
+      .profile-circle {
+        width: 42px;
+        height: 42px;
+        font-size: 18px;
+      }
+      
+      .main-wrapper {
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
+        margin-top: 64px;
+        min-height: calc(100vh - 64px);
+      }
+      
+      .container {
+        padding: 0 16px 30px;
+      }
+      
+      .search-container {
+        padding: 0 16px;
+      }
+      
+      .sidebar {
+        grid-template-columns: 1fr;
+      }
+      
+      .fab {
+        bottom: 20px;
+        right: 20px;
+        width: 56px;
+        height: 56px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      nav {
+        padding: 0 16px;
       }
       
       .logo {
         font-size: 24px;
       }
       
-      .search-container {
-        margin: 0 15px 15px;
-      }
-      
-      .form-card, .sidebar-card, .post-card {
-        padding: 18px;
-      }
-      
-      .board {
-        width: 160px;
-        height: 160px;
-      }
-      
-      .cell {
-        font-size: 28px;
+      .post-form-card,
+      .post-card,
+      .sidebar-card {
+        padding: 20px;
       }
       
       .main-wrapper {
@@ -815,46 +684,35 @@
         border-top-right-radius: 20px;
       }
     }
-    
-    @media (max-width: 480px) {
-      nav {
-        padding: 0 15px;
-      }
-      
-      .profile-circle {
-        width: 32px;
-        height: 32px;
-      }
-      
-      .container {
-        padding: 0 15px 15px;
-      }
-    }
   </style>
 </head>
 <body>
-  <!-- NAVEGAÇÃO COM LOGO E PERFIL -->
+  <!-- NAVEGAÇÃO -->
   <nav>
     <div class="logo">Gramátike</div>
-    <div class="profile-circle" id="profileBtn"></div>
+    <div class="profile-circle" id="profileBtn">U</div>
   </nav>
   
-  <!-- CONTEINER PRINCIPAL COM CURVA NO TOPO -->
+  <!-- CONTEÚDO PRINCIPAL -->
   <div class="main-wrapper">
-    <!-- BARRA DE PESQUISA (FORA DO HEADER) -->
+    <!-- BARRA DE PESQUISA -->
     <div class="search-container">
-      <input type="text" placeholder="Pesquisar" id="searchInput">
-      <button type="button" id="searchButton">
-        🔍
-      </button>
+      <div class="search-box">
+        <input type="text" placeholder="Pesquisar no Gramátike..." id="searchInput">
+        <button class="search-btn" id="searchButton">🔍</button>
+      </div>
     </div>
     
-    <!-- CONTEÚDO PRINCIPAL -->
+    <!-- LAYOUT PRINCIPAL -->
     <div class="container">
       <!-- FEED PRINCIPAL -->
-      <div class="main-content">
+      <main class="main-content">
         <!-- FORMULÁRIO DE POST -->
-        <div class="form-card">
+        <div class="card post-form-card">
+          <div class="post-header-info">
+            <div class="post-form-avatar">U</div>
+            <div class="post-form-user">Usuário</div>
+          </div>
           <form class="post-form" id="postForm">
             <textarea 
               class="post-textarea" 
@@ -862,84 +720,146 @@
               maxlength="500"
               id="postContent"
             ></textarea>
-            <button type="submit" class="post-button">
-              Publicar
-            </button>
+            <div class="post-actions">
+              <div class="post-options">
+                <button type="button" class="option-btn">📷</button>
+                <button type="button" class="option-btn">🎬</button>
+                <button type="button" class="option-btn">😊</button>
+              </div>
+              <button type="submit" class="post-button">
+                Publicar
+              </button>
+            </div>
           </form>
         </div>
         
-        <!-- CONTAINER PARA OS POSTS -->
+        <!-- POSTS -->
         <div id="postsContainer">
-          <!-- Posts serão inseridos aqui -->
+          <!-- Post exemplo -->
+          <div class="card post-card">
+            <div class="post-header">
+              <div class="post-avatar">G</div>
+              <div class="post-user-info">
+                <div class="post-username">
+                  Gramátike
+                  <span class="verified-badge">✓</span>
+                </div>
+                <div class="post-time">Há 2 minutos</div>
+              </div>
+            </div>
+            <div class="post-content">
+              Bem-vindo ao Gramátike! ✨<br><br>
+              Aqui é onde você compartilha seus momentos, ideias e conexões. 
+              Faça novos amigos, jogue uma partida de jogo da velha e divirta-se!
+            </div>
+            <div class="post-stats">
+              <span>❤️ 42 curtidas</span>
+              <span>💬 8 comentários</span>
+              <span>↗️ 3 compartilhamentos</span>
+            </div>
+            <div class="post-interactions">
+              <button class="interaction-btn active">
+                <span>❤️</span> Curtir
+              </button>
+              <button class="interaction-btn">
+                <span>💬</span> Comentar
+              </button>
+              <button class="interaction-btn">
+                <span>↗️</span> Compartilhar
+              </button>
+            </div>
+          </div>
         </div>
         
-        <!-- MENSAGEM SEM POSTS (inicialmente visível) -->
-        <div class="no-posts" id="noPosts">
-          Sem posts no momento
+        <!-- MENSAGEM SEM POSTS -->
+        <div class="card empty-state" id="noPosts" style="display: none;">
+          <div class="empty-icon">📭</div>
+          <div class="empty-text">Nenhum post para mostrar<br>Seja o primeiro a publicar!</div>
         </div>
-      </div>
+      </main>
       
-      <!-- SIDEBAR (LADO DIREITO, SEPARADA) -->
-      <div class="sidebar">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
         <!-- AMIGUES -->
-        <div class="sidebar-card">
-          <span class="section-title">Amigues</span>
-          <div class="light-purple-card">
-            <div class="empty-state">
-              Sem amigues ainda. Faça amizades para aparecerem aqui.
+        <div class="card sidebar-card">
+          <div class="section-title">Amigues Online</div>
+          <div class="friends-list">
+            <div class="friend-item">
+              <div class="friend-avatar">M</div>
+              <div class="friend-info">
+                <div class="friend-name">Maria Silva</div>
+                <div class="friend-status">Online agora</div>
+              </div>
+            </div>
+            <div class="friend-item">
+              <div class="friend-avatar">P</div>
+              <div class="friend-info">
+                <div class="friend-name">Pedro Santos</div>
+                <div class="friend-status">Há 5 minutos</div>
+              </div>
+            </div>
+            <div class="friend-item">
+              <div class="friend-avatar">A</div>
+              <div class="friend-info">
+                <div class="friend-name">Ana Costa</div>
+                <div class="friend-status">Há 15 minutos</div>
+              </div>
             </div>
           </div>
         </div>
         
         <!-- JOGO DA VELHA -->
-        <div class="sidebar-card">
-          <span class="section-title">Jogo da Velha</span>
-          <div class="light-purple-card">
-            <div class="game-container">
-              <div class="game-info">
-                <div class="game-title" id="gameTitle">Jogue contra o Robo</div>
-                <div class="game-subtitle" id="gameSubtitle">Sua vez: X</div>
-              </div>
-              
-              <div class="board" id="board">
-                <div class="cell" data-index="0"></div>
-                <div class="cell" data-index="1"></div>
-                <div class="cell" data-index="2"></div>
-                <div class="cell" data-index="3"></div>
-                <div class="cell" data-index="4"></div>
-                <div class="cell" data-index="5"></div>
-                <div class="cell" data-index="6"></div>
-                <div class="cell" data-index="7"></div>
-                <div class="cell" data-index="8"></div>
-              </div>
-              
-              <button class="restart-button" onclick="resetGame()">
-                Reiniciar
-              </button>
-            </div>
+        <div class="card sidebar-card">
+          <div class="section-title">Jogo da Velha</div>
+          <div class="game-info">
+            <div class="game-title" id="gameTitle">Sua vez!</div>
+            <div class="game-status" id="gameSubtitle">Você: X</div>
           </div>
+          <div class="board" id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+          </div>
+          <button class="restart-button" onclick="resetGame()">
+            Reiniciar Jogo
+          </button>
         </div>
-      </div>
+      </aside>
     </div>
   </div>
   
-  <!-- BOTÃO + FLUTUANTE -->
-  <button class="add-post-btn" id="addPostBtn">
-    <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-      <line x1="12" y1="5" x2="12" y2="19"/>
-      <line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-  </button>
+  <!-- BOTÃO FLUTUANTE -->
+  <button class="fab" id="addPostBtn">+</button>
 
   <script>
     // ========== SISTEMA DE POSTS ==========
-    let posts = [];
+    let posts = [
+      {
+        id: 1,
+        name: "Gramátike",
+        username: "gramatike",
+        content: "Bem-vindo ao Gramátike! ✨\n\nAqui é onde você compartilha seus momentos, ideias e conexões. Faça novos amigos, jogue uma partida de jogo da velha e divirta-se!",
+        created_at: new Date().toISOString(),
+        likes: 42,
+        comments: 8,
+        shares: 3
+      }
+    ];
+    
     const postForm = document.getElementById('postForm');
     const postContent = document.getElementById('postContent');
     const postsContainer = document.getElementById('postsContainer');
     const noPosts = document.getElementById('noPosts');
-
-    // Função para formatar data (ISO 8601 ou string)
+    const addPostBtn = document.getElementById('addPostBtn');
+    const profileBtn = document.getElementById('profileBtn');
+    
+    // Formatador de data
     function formatDate(dateStr) {
       const date = new Date(dateStr);
       const now = new Date();
@@ -947,83 +867,99 @@
       const diffMins = Math.floor(diffMs / (1000 * 60));
       const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      
       if (diffMins < 1) return 'Agora mesmo';
-      if (diffMins < 60) return `${diffMins} min atrás`;
-      if (diffHours < 24) return `${diffHours} h atrás`;
-      if (diffDays < 7) return `${diffDays} dia${diffDays > 1 ? 's' : ''} atrás`;
-      return date.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      if (diffMins < 60) return `Há ${diffMins} min`;
+      if (diffHours < 24) return `Há ${diffHours} h`;
+      if (diffDays === 1) return 'Ontem';
+      if (diffDays < 7) return `Há ${diffDays} dias`;
+      return date.toLocaleDateString('pt-BR');
     }
-
-    // Renderiza os posts do backend
+    
+    // Renderizar posts
     function renderPosts() {
-      if (!posts || posts.length === 0) {
+      if (posts.length === 0) {
         noPosts.style.display = 'block';
         postsContainer.innerHTML = '';
         return;
       }
+      
       noPosts.style.display = 'none';
-      let postsHTML = '';
+      postsContainer.innerHTML = '';
+      
       posts.forEach(post => {
-        const nome = post.name || post.username || 'Usuário';
-        const avatar = nome.charAt(0).toUpperCase();
-        postsHTML += `
-          <div class="post-card" data-post-id="${post.id}">
-            <div class="post-header">
-              <div class="post-avatar">${avatar}</div>
-              <div class="post-user-info">
-                <div class="post-username">${nome}</div>
-                <div class="post-time">${formatDate(post.created_at)}</div>
+        const postElement = document.createElement('div');
+        postElement.className = 'card post-card';
+        postElement.innerHTML = `
+          <div class="post-header">
+            <div class="post-avatar">${post.name.charAt(0).toUpperCase()}</div>
+            <div class="post-user-info">
+              <div class="post-username">
+                ${post.name}
+                ${post.username === 'gramatike' ? '<span class="verified-badge">✓</span>' : ''}
               </div>
+              <div class="post-time">${formatDate(post.created_at)}</div>
             </div>
-            <div class="post-content">${(post.content || '').replace(/\n/g, '<br>')}</div>
+          </div>
+          <div class="post-content">${post.content.replace(/\n/g, '<br>')}</div>
+          <div class="post-stats">
+            <span>❤️ ${post.likes} curtidas</span>
+            <span>💬 ${post.comments} comentários</span>
+            <span>↗️ ${post.shares} compartilhamentos</span>
+          </div>
+          <div class="post-interactions">
+            <button class="interaction-btn" onclick="likePost(${post.id})">
+              <span>❤️</span> Curtir
+            </button>
+            <button class="interaction-btn">
+              <span>💬</span> Comentar
+            </button>
+            <button class="interaction-btn">
+              <span>↗️</span> Compartilhar
+            </button>
           </div>
         `;
+        
+        // Adicionar animação
+        postElement.style.animation = 'fadeIn 0.4s ease-out';
+        postsContainer.appendChild(postElement);
       });
-      postsContainer.innerHTML = postsHTML;
     }
-
-    // Busca os posts do backend
-    async function fetchPosts() {
-      try {
-        const resp = await fetch('/api/posts', { credentials: 'same-origin' });
-        const data = await resp.json();
-        posts = data.posts || [];
-        renderPosts();
-      } catch (e) {
-        posts = [];
+    
+    // Criar novo post
+    function createPost(content) {
+      const newPost = {
+        id: posts.length + 1,
+        name: "Usuário",
+        username: "usuario",
+        content: content,
+        created_at: new Date().toISOString(),
+        likes: 0,
+        comments: 0,
+        shares: 0
+      };
+      
+      posts.unshift(newPost); // Adiciona no início
+      renderPosts();
+      postContent.value = '';
+      
+      // Scroll suave para o topo
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+    
+    // Curtir post
+    function likePost(postId) {
+      const post = posts.find(p => p.id === postId);
+      if (post) {
+        post.likes++;
         renderPosts();
       }
     }
-
-    // Cria um novo post via API
-    async function createPost(content) {
-      try {
-        const resp = await fetch('/api/posts', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content })
-        });
-        if (resp.ok) {
-          postContent.value = '';
-          await fetchPosts();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-          const err = await resp.json();
-          alert(err.error || 'Erro ao publicar');
-        }
-      } catch (e) {
-        alert('Erro ao publicar');
-      }
-    }
-
-    // Evento do formulário de post
+    
+    // Event Listeners
     postForm.addEventListener('submit', function(e) {
       e.preventDefault();
       const content = postContent.value.trim();
@@ -1033,34 +969,19 @@
         alert('Escreva algo para publicar!');
       }
     });
-
-    // Botão + foca no textarea
-    document.getElementById('addPostBtn').addEventListener('click', function() {
+    
+    addPostBtn.addEventListener('click', function() {
       postContent.focus();
-    });
-
-    // Botão de perfil
-    // Mostra inicial do usuário no círculo de perfil
-    (function() {
-      const profileBtn = document.getElementById('profileBtn');
-      let inicial = '';
-      // Tenta pegar nome do usuário do localStorage ou window (ajuste conforme backend)
-      if (window.currentUser && window.currentUser.name) {
-        inicial = window.currentUser.name.charAt(0).toUpperCase();
-      } else if (window.currentUser && window.currentUser.username) {
-        inicial = window.currentUser.username.charAt(0).toUpperCase();
-      } else {
-        inicial = 'U';
-      }
-      profileBtn.textContent = inicial;
-      profileBtn.addEventListener('click', function() {
-        window.location.href = 'meu_perfil.html';
+      // Scroll suave para o formulário
+      document.querySelector('.post-form-card').scrollIntoView({
+        behavior: 'smooth'
       });
-    })();
-
-    // Inicializa o feed
-    fetchPosts();
-
+    });
+    
+    profileBtn.addEventListener('click', function() {
+      alert('Perfil do usuário');
+    });
+    
     // ========== JOGO DA VELHA ==========
     let currentPlayer = 'X';
     let gameBoard = ['', '', '', '', '', '', '', '', ''];
@@ -1081,13 +1002,14 @@
       if (!gameActive || gameBoard[index] !== '') return;
       
       gameBoard[index] = currentPlayer;
+      cells[index].textContent = currentPlayer;
       cells[index].classList.add(currentPlayer.toLowerCase());
       
       const winningPattern = checkWinner();
       if (winningPattern) {
         gameActive = false;
         highlightWinningCells(winningPattern);
-        gameTitle.textContent = 'Você venceu! 🎉';
+        gameTitle.textContent = currentPlayer === 'X' ? 'Você venceu! 🎉' : 'Rebao venceu! 😢';
         gameSubtitle.textContent = 'Clique em Reiniciar';
         return;
       }
@@ -1100,9 +1022,9 @@
       }
       
       currentPlayer = 'O';
-      gameSubtitle.textContent = 'Vez do Rebao: O';
+      gameSubtitle.textContent = 'Rebao: O';
       
-      setTimeout(computerMove, 500);
+      setTimeout(computerMove, 600);
     }
     
     function computerMove() {
@@ -1112,6 +1034,7 @@
       
       if (move !== null) {
         gameBoard[move] = 'O';
+        cells[move].textContent = 'O';
         cells[move].classList.add('o');
         
         const winningPattern = checkWinner();
@@ -1131,7 +1054,7 @@
         }
         
         currentPlayer = 'X';
-        gameSubtitle.textContent = 'Sua vez: X';
+        gameSubtitle.textContent = 'Você: X';
       }
     }
     
@@ -1201,30 +1124,53 @@
       gameActive = true;
       
       cells.forEach(cell => {
+        cell.textContent = '';
         cell.classList.remove('x', 'o', 'winner');
       });
       
-      gameTitle.textContent = 'Jogue contra o Rebao';
-      gameSubtitle.textContent = 'Sua vez: X';
+      gameTitle.textContent = 'Sua vez!';
+      gameSubtitle.textContent = 'Você: X';
     }
     
     // ========== BARRA DE PESQUISA ==========
-    document.getElementById('searchButton').addEventListener('click', function() {
-      const query = document.getElementById('searchInput').value.trim();
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    
+    searchButton.addEventListener('click', function() {
+      const query = searchInput.value.trim();
       if (query) {
         alert(`Buscando por: "${query}"`);
-        document.getElementById('searchInput').value = '';
+        searchInput.value = '';
       }
     });
     
-    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    searchInput.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
-        document.getElementById('searchButton').click();
+        searchButton.click();
       }
     });
     
-    // Renderizar posts iniciais (se houver)
+    // ========== INTERAÇÕES DOS POSTS ==========
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.interaction-btn')) {
+        const btn = e.target.closest('.interaction-btn');
+        btn.classList.toggle('active');
+        
+        if (btn.textContent.includes('Curtir')) {
+          const postCard = btn.closest('.post-card');
+          const stats = postCard.querySelector('.post-stats span:first-child');
+          const currentLikes = parseInt(stats.textContent.match(/\d+/)[0]);
+          if (btn.classList.contains('active')) {
+            stats.textContent = `❤️ ${currentLikes + 1} curtidas`;
+          } else {
+            stats.textContent = `❤️ ${currentLikes - 1} curtidas`;
+          }
+        }
+      }
+    });
+    
+    // Inicializar
     renderPosts();
   </script>
 </body>
