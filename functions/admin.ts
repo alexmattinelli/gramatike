@@ -1,7 +1,7 @@
 // Admin dashboard page
 
 import type { PagesFunction } from '@cloudflare/workers-types';
-import type { Env, User } from '../src/types';
+import type { Env, User } from '../types';
 import { isAdmin } from '../src/lib/auth';
 import { redirectResponse, errorResponse } from '../src/lib/response';
 
