@@ -1,7 +1,7 @@
 // Global authentication middleware for Gramátike v2
 
 import type { PagesFunction, EventContext } from '@cloudflare/workers-types';
-import type { Env } from '../src/types';
+import type { Env, User } from '../types';
 import { getUserFromRequest } from '../src/lib/auth';
 
 export const onRequest: PagesFunction<Env> = async (context) => {
