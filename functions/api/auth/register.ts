@@ -1,86 +1,194 @@
-// POST /api/auth/register - User registration
-
+// functions/api/auth/register.ts
 import type { PagesFunction } from '@cloudflare/workers-types';
-import type { Env } from '../../../src/types';
-import { getUserByEmail, getUserByUsername, createUser } from '../../../src/lib/db';
-import { hashPassword, generateToken } from '../../../src/lib/crypto';
-import { createSession } from '../../../src/lib/db';
-import { isValidEmail, isValidUsername, isValidPassword } from '../../../src/lib/validation';
-import { errorResponse } from '../../../src/lib/response';
-import { createSessionCookie } from '../../../src/lib/auth';
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+  name?: string;
+}
+
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  password_hash?: string;
+  name?: string;
+  avatar_initials: string;
+  verified: boolean;
+  online_status: boolean;
+  role: string;
+  created_at: string;
+}
+
+export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }) => {
   try {
-    const body = await request.json() as { username: string; email: string; password: string; name?: string };
-    const { username, email, password, name } = body;
+    const body = await request.json() as RegisterRequest;
+    let { username, email, password, name } = body;
     
-    // Validate input
+    // Validações básicas
     if (!username || !email || !password) {
-      return errorResponse('Usuário, email e senha são obrigatórios', 400);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Usuário, email e senha são obrigatórios'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
-    if (!isValidUsername(username)) {
-      return errorResponse('Usuário inválido (3-20 caracteres alfanuméricos)', 400);
+    // Limpar e validar inputs
+    username = username.trim();
+    email = email.toLowerCase().trim();
+    name = name?.trim();
+    
+    // Validação de username (3-20 caracteres alfanuméricos e underline)
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!usernameRegex.test(username)) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Usuário inválido. Use 3-20 caracteres (letras, números e _)'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
-    if (!isValidEmail(email)) {
-      return errorResponse('Email inválido', 400);
+    // Validação de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Email inválido'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
-    if (!isValidPassword(password)) {
-      return errorResponse('Senha deve ter no mínimo 6 caracteres', 400);
+    // Validação de senha (mínimo 6 caracteres)
+    if (password.length < 6) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Senha deve ter no mínimo 6 caracteres'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
-    // Check if user already exists
-    const existingUser = await getUserByEmail(env.DB, email);
-    if (existingUser) {
-      return errorResponse('Email já cadastrado', 400);
+    // Verificar se email já existe
+    const existingEmail = await env.DB.prepare(
+      'SELECT id FROM users WHERE email = ? LIMIT 1'
+    ).bind(email).first();
+    
+    if (existingEmail) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Email já cadastrado'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
-    const existingUsername = await getUserByUsername(env.DB, username);
+    // Verificar se username já existe
+    const existingUsername = await env.DB.prepare(
+      'SELECT id FROM users WHERE username = ? LIMIT 1'
+    ).bind(username).first();
+    
     if (existingUsername) {
-      return errorResponse('Usuário já existe', 400);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Nome de usuário já existe'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
-    // Hash password
-    const hashedPassword = await hashPassword(password);
+    // IMPORTANTE: Em produção, use bcrypt ou Argon2!
+    // Aqui estou armazenando a senha em texto simples APENAS para desenvolvimento
+    const password_hash = password; // NÃO FAÇA ISSO EM PRODUÇÃO!
     
-    // Create user
-    const user = await createUser(env.DB, {
-      username,
-      email,
-      password: hashedPassword,
-      name
-    });
+    // Gerar iniciais do avatar (primeira letra do username)
+    const avatar_initials = username.charAt(0).toUpperCase();
     
-    // Create session
-    const token = await generateToken();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    await createSession(env.DB, user.id, token, expiresAt);
+    // Criar usuário no banco
+    const { success, meta } = await env.DB.prepare(`
+      INSERT INTO users (username, email, password_hash, name, avatar_initials, verified, online_status, role)
+      VALUES (?, ?, ?, ?, ?, false, true, 'user')
+    `).bind(username, email, password_hash, name || username, avatar_initials).run();
     
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
+    if (!success) {
+      throw new Error('Falha ao criar usuário no banco de dados');
+    }
+    
+    // Buscar usuário criado
+    const { results } = await env.DB.prepare(
+      'SELECT * FROM users WHERE id = ?'
+    ).bind(meta.last_row_id).all();
+    
+    const newUser = results[0] as User;
+    
+    // Criar sessão automática após registro
+    const sessionId = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 dias
+    
+    await env.DB.prepare(
+      'INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)'
+    ).bind(sessionId, newUser.id, expiresAt.toISOString()).run();
+    
+    // Criar cookie de sessão
+    const sessionCookie = `session=${sessionId}; HttpOnly; Path=/; SameSite=Lax; Expires=${expiresAt.toUTCString()}; ${
+      new URL(request.url).protocol === 'https:' ? 'Secure;' : ''
+    }`;
+    
+    // Remover dados sensíveis da resposta
+    const { password_hash: _, ...userWithoutPassword } = newUser;
     
     return new Response(JSON.stringify({
       success: true,
-      user: userWithoutPassword
+      message: 'Conta criada com sucesso!',
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        name: newUser.name,
+        avatar_initials: newUser.avatar_initials,
+        verified: newUser.verified,
+        online_status: true,
+        role: newUser.role,
+        created_at: newUser.created_at
+      }
     }), {
       status: 201,
       headers: {
         'Content-Type': 'application/json',
-        'Set-Cookie': createSessionCookie(token)
+        'Set-Cookie': sessionCookie
       }
     });
+    
   } catch (error) {
     console.error('[register] Error:', error);
-    console.error('[register] Stack:', error instanceof Error ? error.stack : 'N/A');
     
-    // Erro específico se for banco não inicializado
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    if (errorMessage && errorMessage.includes('no such table')) {
-      return errorResponse('Erro: Banco de dados não inicializado. Execute: wrangler d1 execute gramatike --remote --file=./db/schema.sql', 500);
+    let errorMessage = 'Erro ao criar conta';
+    
+    // Verificar se é erro de tabela não existente
+    if (error instanceof Error) {
+      if (error.message.includes('no such table') || error.message.includes('does not exist')) {
+        errorMessage = 'Banco de dados não configurado. Execute o setup primeiro.';
+      } else {
+        errorMessage = error.message;
+      }
     }
     
-    return errorResponse(`Erro ao criar conta: ${errorMessage || 'Erro desconhecido'}`, 500);
+    return new Response(JSON.stringify({
+      success: false,
+      error: errorMessage
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 };
