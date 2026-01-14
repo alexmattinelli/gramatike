@@ -1,5 +1,8 @@
 // functions/api/posts/[id].ts
 import type { PagesFunction } from '@cloudflare/workers-types';
+import type { Env, User, Post } from '../../types';
+import { jsonResponse, errorResponse } from '../../lib/response';
+import type { PagesFunction } from '@cloudflare/workers-types';
 
 interface User {
   id: number;
