@@ -1,6 +1,7 @@
 // functions/api/auth/register.ts - VERSÃO AUTO-ADAPTATIVA
 import type { PagesFunction } from '@cloudflare/workers-types';
 import type { Env, User } from '../../types';
+import { jsonResponse, errorResponse } from '../../lib/response';
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env, data }) => {
   const user = data.user as User;
