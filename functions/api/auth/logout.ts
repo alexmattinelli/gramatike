@@ -1,5 +1,8 @@
 // functions/api/auth/logout.ts
 import type { PagesFunction } from '@cloudflare/workers-types';
+import type { Env, User } from '../../types';
+import { jsonResponse, errorResponse } from '../../lib/response';
+import type { PagesFunction } from '@cloudflare/workers-types';
 
 interface Session {
   id: string;
