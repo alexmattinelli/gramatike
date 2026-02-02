@@ -29,7 +29,7 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ env, data }) =
     // Atualizar status online do usuário (se tiver user_id)
     if (session?.user_id) {
       try {
-        await env.DB.prepare('UPDATE users SET online_status = false WHERE id = ?')
+        await env.DB.prepare('UPDATE users SET online_status = 0 WHERE id = ?')
           .bind(session.user_id)
           .run();
       } catch (updateError) {
@@ -81,7 +81,7 @@ export const onRequestGet: PagesFunction<{ DB: any }> = async ({ env, data }) =>
     
     if (session?.user_id) {
       try {
-        await env.DB.prepare('UPDATE users SET online_status = false WHERE id = ?')
+        await env.DB.prepare('UPDATE users SET online_status = 0 WHERE id = ?')
           .bind(session.user_id)
           .run();
       } catch (updateError) {

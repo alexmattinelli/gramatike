@@ -50,8 +50,8 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ env, data, par
   try {
     // Banir usuário no banco de dados
     const { success } = await env.DB.prepare(
-      'UPDATE users SET banned = true, banned_at = CURRENT_TIMESTAMP, banned_by = ? WHERE id = ?'
-    ).bind(user.id, userId).run();
+      'UPDATE users SET is_banned = 1 WHERE id = ?'
+    ).bind(userId).run();
     
     if (!success) {
       return new Response(JSON.stringify({ error: 'Erro ao banir usuário' }), {
@@ -101,7 +101,7 @@ export const onRequestDelete: PagesFunction<{ DB: any }> = async ({ env, data, p
   
   try {
     await env.DB.prepare(
-      'UPDATE users SET banned = false, banned_at = NULL, banned_by = NULL WHERE id = ?'
+      'UPDATE users SET is_banned = 0 WHERE id = ?'
     ).bind(userId).run();
     
     return new Response(JSON.stringify({
