@@ -67,6 +67,9 @@
                     <input type="password" id="login-password" required placeholder="••••••••">
                 </div>
                 <button type="submit" id="login-btn">Entrar</button>
+                <div style="text-align: center; margin-top: 12px;">
+                    <a href="#" onclick="showForgotPassword(event)" style="color: #c08adc; text-decoration: none; font-size: 14px;">Esqueci minha senha</a>
+                </div>
             </form>
 
             <!-- Register Form -->
@@ -89,14 +92,49 @@
                 </div>
                 <button type="submit" id="register-btn">Cadastrar</button>
             </form>
+
+            <!-- Forgot Password Form -->
+            <form id="forgot-password-form" class="form" onsubmit="handleForgotPassword(event)">
+                <div class="form-group">
+                    <label for="forgot-email">Email</label>
+                    <input type="email" id="forgot-email" required placeholder="seu@email.com">
+                </div>
+                <button type="submit" id="forgot-btn">Recuperar Senha</button>
+                <div style="text-align: center; margin-top: 12px;">
+                    <a href="#" onclick="switchTab('login')" style="color: #c08adc; text-decoration: none; font-size: 14px;">Voltar ao login</a>
+                </div>
+            </form>
+
+            <!-- Reset Password Form -->
+            <form id="reset-password-form" class="form" onsubmit="handleResetPassword(event)">
+                <div class="form-group">
+                    <label for="reset-email">Email</label>
+                    <input type="email" id="reset-email" required placeholder="seu@email.com" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="reset-token">Código de Verificação</label>
+                    <input type="text" id="reset-token" required placeholder="123456" pattern="[0-9]{6}" maxlength="6">
+                    <small style="color: #6b7280; font-size: 12px;">Digite o código de 6 dígitos que apareceu na tela anterior</small>
+                </div>
+                <div class="form-group">
+                    <label for="reset-new-password">Nova Senha</label>
+                    <input type="password" id="reset-new-password" required placeholder="••••••••" minlength="6">
+                </div>
+                <button type="submit" id="reset-btn">Redefinir Senha</button>
+                <div style="text-align: center; margin-top: 12px;">
+                    <a href="#" onclick="switchTab('login')" style="color: #c08adc; text-decoration: none; font-size: 14px;">Voltar ao login</a>
+                </div>
+            </form>
         </div>
     </div>
 
     <script>
         function switchTab(tab) {
-            // Update tabs
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            // Update tabs only if event is from a tab button
+            if (event && event.target && event.target.classList.contains('tab')) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                event.target.classList.add('active');
+            }
             
             // Update forms
             document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
@@ -194,6 +232,95 @@
                 showError(err.message);
                 btn.disabled = false;
                 btn.textContent = 'Cadastrar';
+            }
+        }
+
+        function showForgotPassword(e) {
+            e.preventDefault();
+            switchTab('forgot-password');
+        }
+
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+            hideError();
+            hideSuccess();
+            
+            const btn = document.getElementById('forgot-btn');
+            const email = document.getElementById('forgot-email').value;
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+            
+            try {
+                const res = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    throw new Error(data.error || 'Erro ao solicitar recuperação');
+                }
+                
+                // Mostrar token para desenvolvimento
+                if (data.dev_token) {
+                    showSuccess(`Código de recuperação: ${data.dev_token} (válido por 30 minutos)`);
+                } else {
+                    showSuccess(data.message);
+                }
+                
+                // Preencher email no formulário de reset e trocar para ele
+                document.getElementById('reset-email').value = email;
+                setTimeout(() => {
+                    switchTab('reset-password');
+                }, 2000);
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Recuperar Senha';
+            }
+        }
+
+        async function handleResetPassword(e) {
+            e.preventDefault();
+            hideError();
+            hideSuccess();
+            
+            const btn = document.getElementById('reset-btn');
+            btn.disabled = true;
+            btn.textContent = 'Redefinindo...';
+            
+            try {
+                const res = await fetch('/api/auth/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('reset-email').value,
+                        token: document.getElementById('reset-token').value,
+                        newPassword: document.getElementById('reset-new-password').value
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    throw new Error(data.error || 'Erro ao redefinir senha');
+                }
+                
+                showSuccess(data.message);
+                setTimeout(() => {
+                    switchTab('login');
+                    // Limpar campos
+                    document.getElementById('reset-token').value = '';
+                    document.getElementById('reset-new-password').value = '';
+                }, 2000);
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Redefinir Senha';
             }
         }
     </script>

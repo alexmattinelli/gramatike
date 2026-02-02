@@ -1,3 +1,7 @@
-INSERT INTO users (username,email,password,name) VALUES ('testuser','test@example.com','jGY6hQ1x7DpIJm4XqWsVGyZ9SPoMPNmYWAJdCTV/H7DpmOF8IpFpsD1zA/a9Ft1Q','Test User');
+-- Test user: testuser / test@example.com / password: 123456
+INSERT INTO users (username, email, password_hash, name, is_admin) 
+VALUES ('testuser', 'test@example.com', '123456', 'Test User', 0);
 
-git add db/insert_test_user.sql
+-- Admin user: gramatike / admin@gramatike.com / password: gramatike2024
+INSERT INTO users (username, email, password_hash, name, is_admin, role) 
+VALUES ('gramatike', 'admin@gramatike.com', 'gramatike2024', 'Gramátike Admin', 1, 'admin');
