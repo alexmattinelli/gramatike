@@ -2,12 +2,6 @@ import type { PagesFunction } from '@cloudflare/workers-types';
 import type { Env, User } from './types';
 
 export const onRequestGet: PagesFunction<Env> = async ({ data, env, request }) => {
-  const user = data.user as User;
-  
-  if (!user) {
-    return Response.redirect(new URL('/', request.url));
-    
-export const onRequestGet = async ({ data, env, request }) => {
   // Verificar se usuário está autenticado
   if (!data.user) {
     // Redirecionar para login se não estiver autenticado

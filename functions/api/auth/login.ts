@@ -1,8 +1,6 @@
 // functions/api/auth/login.ts
 import type { PagesFunction } from '@cloudflare/workers-types';
-import type { Env, User } from '../../types';
-import { jsonResponse, errorResponse } from '../../lib/response';
-import type { PagesFunction } from '@cloudflare/workers-types';
+import type { Env } from '../../types';
 
 interface LoginRequest {
   email: string;
@@ -19,7 +17,7 @@ interface User {
   verified: boolean;
   online_status: boolean;
   role: string;
-  banned: boolean;
+  is_banned: boolean;
   created_at: string;
 }
 
@@ -71,7 +69,7 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
     const user = results[0] as User;
     
     // Verificar se usuário está banido
-    if (user.banned) {
+    if (user.is_banned) {
       return new Response(JSON.stringify({
         success: false,
         error: 'Usuário banido'
@@ -82,8 +80,9 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
     }
     
     // VERIFICAÇÃO DE SENHA (SIMPLIFICADA)
-    // IMPORTANTE: Em produção, use bcrypt ou Argon2!
-    // Aqui estou usando uma verificação simples para demonstração
+    // TODO: SECURITY - Implement proper password hashing with bcrypt or Argon2
+    // ⚠️ CRITICAL: Currently comparing plain text - NEVER use in production!
+    // IMPORTANTE: Em produção, use bcrypt.compare(password, user.password_hash)!
     
     // Se não tiver password_hash no banco, cria uma senha padrão
     if (!user.password_hash) {
@@ -99,11 +98,11 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
         });
       }
     } else {
-      // Em produção, descomente e implemente:
-      // const isValid = await verifyPassword(password, user.password_hash);
-      // if (!isValid) { return error response }
+      // TODO: SECURITY - Use bcrypt.compare(password, user.password_hash)
+      // ⚠️ CRITICAL: Plain text comparison - NEVER use in production!
+      // Exemplo: const isValid = await bcrypt.compare(password, user.password_hash);
       
-      // Por enquanto, compara diretamente (NÃO FAÇA ISSO EM PRODUÇÃO)
+      // Por enquanto, compara diretamente (⚠️ INSEGURO - apenas desenvolvimento)
       if (password !== user.password_hash) {
         return new Response(JSON.stringify({
           success: false,
@@ -117,19 +116,19 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
     
     // Atualizar status online
     await env.DB.prepare(
-      'UPDATE users SET online_status = true, last_active = CURRENT_TIMESTAMP WHERE id = ?'
+      'UPDATE users SET online_status = 1 WHERE id = ?'
     ).bind(user.id).run();
     
     // Criar sessão no banco
-    const sessionId = crypto.randomUUID();
+    const sessionToken = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 dias
     
     await env.DB.prepare(
-      'INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)'
-    ).bind(sessionId, user.id, expiresAt.toISOString()).run();
+      'INSERT INTO sessions (user_id, token, expires_at) VALUES (?, ?, ?)'
+    ).bind(user.id, sessionToken, expiresAt.toISOString()).run();
     
     // Criar cookie de sessão
-    const sessionCookie = `session=${sessionId}; HttpOnly; Path=/; SameSite=Lax; Expires=${expiresAt.toUTCString()}; ${
+    const sessionCookie = `session=${sessionToken}; HttpOnly; Path=/; SameSite=Lax; Expires=${expiresAt.toUTCString()}; ${
       new URL(request.url).protocol === 'https:' ? 'Secure;' : ''
     }`;
     
@@ -150,7 +149,7 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
         created_at: user.created_at
       },
       session: {
-        id: sessionId,
+        token: sessionToken,
         expires_at: expiresAt.toISOString()
       }
     }), {
