@@ -1,16 +1,8 @@
 // functions/api/auth/register.ts - VERSÃO AUTO-ADAPTATIVA
 import type { PagesFunction } from '@cloudflare/workers-types';
 import type { Env, User } from '../../types';
-import { jsonResponse, errorResponse } from '../../lib/response';
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env, data }) => {
-  const user = data.user as User;
-  
-  if (user) {
-    // Se já está logado, redireciona
-    return new Response(null, { status: 302, headers: { Location: '/feed' } });
-
-export const onRequestPost = async ({ request, env }) => {
+export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
     const { username, email, password, name } = await request.json();
     
