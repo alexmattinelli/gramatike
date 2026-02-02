@@ -63,13 +63,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     if (columnNames.includes('verified')) {
       insertColumns.push('verified');
       insertValues.push('?');
-      bindings.push(false);
+      bindings.push(0);
     }
     
     if (columnNames.includes('online_status')) {
       insertColumns.push('online_status');
       insertValues.push('?');
-      bindings.push(true);
+      bindings.push(1);
     }
     
     if (columnNames.includes('role')) {
