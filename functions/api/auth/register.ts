@@ -42,7 +42,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     if (columnNames.includes('password_hash')) {
       insertColumns.push('password_hash');
       insertValues.push('?');
-      bindings.push(password); // ⚠️ Em produção, hash isso!
+      // TODO: SECURITY - Hash password before production! Use bcrypt.hash(password, 10)
+      // ⚠️ CRITICAL: Currently storing plain text passwords - NEVER use in production
+      bindings.push(password); // ⚠️ INSECURE - plain text password
     }
     
     // Campos opcionais

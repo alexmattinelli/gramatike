@@ -80,8 +80,9 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
     }
     
     // VERIFICAÇÃO DE SENHA (SIMPLIFICADA)
-    // IMPORTANTE: Em produção, use bcrypt ou Argon2!
-    // Aqui estou usando uma verificação simples para demonstração
+    // TODO: SECURITY - Implement proper password hashing with bcrypt or Argon2
+    // ⚠️ CRITICAL: Currently comparing plain text - NEVER use in production!
+    // IMPORTANTE: Em produção, use bcrypt.compare(password, user.password_hash)!
     
     // Se não tiver password_hash no banco, cria uma senha padrão
     if (!user.password_hash) {
@@ -97,11 +98,11 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
         });
       }
     } else {
-      // Em produção, descomente e implemente:
-      // const isValid = await verifyPassword(password, user.password_hash);
-      // if (!isValid) { return error response }
+      // TODO: SECURITY - Use bcrypt.compare(password, user.password_hash)
+      // ⚠️ CRITICAL: Plain text comparison - NEVER use in production!
+      // Exemplo: const isValid = await bcrypt.compare(password, user.password_hash);
       
-      // Por enquanto, compara diretamente (NÃO FAÇA ISSO EM PRODUÇÃO)
+      // Por enquanto, compara diretamente (⚠️ INSEGURO - apenas desenvolvimento)
       if (password !== user.password_hash) {
         return new Response(JSON.stringify({
           success: false,
