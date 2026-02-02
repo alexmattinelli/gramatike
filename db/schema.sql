@@ -10,7 +10,7 @@ CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
     name TEXT,
     avatar_initials TEXT,
     verified INTEGER DEFAULT 0,
