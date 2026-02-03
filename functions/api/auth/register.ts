@@ -1,6 +1,7 @@
 // functions/api/auth/register.ts - VERSÃO AUTO-ADAPTATIVA
 import type { PagesFunction } from '@cloudflare/workers-types';
 import type { Env, User } from '../../types';
+import { hashPassword } from '../../../src/lib/crypto';
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
@@ -10,6 +11,32 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       return Response.json({
         success: false,
         error: 'Usuário, email e senha são obrigatórios'
+      }, { status: 400 });
+    }
+    
+    // Validação de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return Response.json({
+        success: false,
+        error: 'Email inválido'
+      }, { status: 400 });
+    }
+    
+    // Validação de username (3-20 caracteres alfanuméricos)
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!usernameRegex.test(username)) {
+      return Response.json({
+        success: false,
+        error: 'Usuário deve ter entre 3 e 20 caracteres (apenas letras, números e _)'
+      }, { status: 400 });
+    }
+    
+    // Validação de senha (mínimo 6 caracteres)
+    if (password.length < 6) {
+      return Response.json({
+        success: false,
+        error: 'Senha deve ter no mínimo 6 caracteres'
       }, { status: 400 });
     }
     
@@ -42,9 +69,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     if (columnNames.includes('password_hash')) {
       insertColumns.push('password_hash');
       insertValues.push('?');
-      // TODO: SECURITY - Hash password before production! Use bcrypt.hash(password, 10)
-      // ⚠️ CRITICAL: Currently storing plain text passwords - NEVER use in production
-      bindings.push(password); // ⚠️ INSECURE - plain text password
+      // Hash password using PBKDF2 (Web Crypto API)
+      const hashedPassword = await hashPassword(password);
+      bindings.push(hashedPassword);
     }
     
     // Campos opcionais
@@ -123,8 +150,21 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       diagnostic.suggestion = 'Tabela users não existe. Crie com: CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, email TEXT, password_hash TEXT)';
     } else if (error.message.includes('has no column')) {
       diagnostic.suggestion = 'Falta coluna na tabela. Execute /inspect para ver estrutura atual.';
+    } else if (error.message.includes('UNIQUE constraint failed: users.email')) {
+      return Response.json({
+        success: false,
+        error: 'Este email já está cadastrado'
+      }, { status: 409 });
+    } else if (error.message.includes('UNIQUE constraint failed: users.username')) {
+      return Response.json({
+        success: false,
+        error: 'Este nome de usuário já está em uso'
+      }, { status: 409 });
     } else if (error.message.includes('UNIQUE constraint failed')) {
-      diagnostic.suggestion = 'Usuário ou email já existe.';
+      return Response.json({
+        success: false,
+        error: 'Usuário ou email já existe'
+      }, { status: 409 });
     }
     
     return Response.json({

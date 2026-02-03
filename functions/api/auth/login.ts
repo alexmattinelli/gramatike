@@ -1,6 +1,7 @@
 // functions/api/auth/login.ts
 import type { PagesFunction } from '@cloudflare/workers-types';
 import type { Env } from '../../types';
+import { verifyPassword } from '../../../src/lib/crypto';
 
 interface LoginRequest {
   email: string;
@@ -79,39 +80,28 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
       });
     }
     
-    // VERIFICAÇÃO DE SENHA (SIMPLIFICADA)
-    // TODO: SECURITY - Implement proper password hashing with bcrypt or Argon2
-    // ⚠️ CRITICAL: Currently comparing plain text - NEVER use in production!
-    // IMPORTANTE: Em produção, use bcrypt.compare(password, user.password_hash)!
-    
-    // Se não tiver password_hash no banco, cria uma senha padrão
+    // Verificar senha usando PBKDF2
+    // Use a função verifyPassword da crypto lib
     if (!user.password_hash) {
-      // Para desenvolvimento: senha padrão "123456"
-      const defaultPassword = '123456';
-      if (password !== defaultPassword) {
-        return new Response(JSON.stringify({
-          success: false,
-          error: 'Email ou senha incorretos'
-        }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-    } else {
-      // TODO: SECURITY - Use bcrypt.compare(password, user.password_hash)
-      // ⚠️ CRITICAL: Plain text comparison - NEVER use in production!
-      // Exemplo: const isValid = await bcrypt.compare(password, user.password_hash);
-      
-      // Por enquanto, compara diretamente (⚠️ INSEGURO - apenas desenvolvimento)
-      if (password !== user.password_hash) {
-        return new Response(JSON.stringify({
-          success: false,
-          error: 'Email ou senha incorretos'
-        }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Email ou senha incorretos'
+      }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const isPasswordValid = await verifyPassword(password, user.password_hash);
+    
+    if (!isPasswordValid) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Email ou senha incorretos'
+      }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
     // Atualizar status online

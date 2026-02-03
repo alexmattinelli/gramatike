@@ -38,6 +38,44 @@
         .error.show { display: block; }
         .success { background: #efe; border: 1px solid #cfc; color: #3c3; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; display: none; }
         .success.show { display: block; }
+        
+        /* Tablet (576px - 768px) */
+        @media (min-width: 576px) and (max-width: 768px) {
+            .container { max-width: 500px; }
+            .card { padding: 24px; border-radius: 16px; }
+        }
+        
+        /* Mobile (< 576px) */
+        @media (max-width: 576px) {
+            body { padding: 12px; }
+            .header { margin-bottom: 20px; }
+            .header h1 { font-size: 30px; }
+            .card { padding: 20px; border-radius: 12px; }
+            .tabs { margin-bottom: 20px; }
+            .form-group label { font-size: 13px; }
+            button[type="submit"] { padding: 14px 12px; font-size: 15px; min-height: 44px; }
+        }
+        
+        /* Extra small mobile (< 400px) */
+        @media (max-width: 400px) {
+            body { padding: 10px; }
+            .container { max-width: 100%; padding: 0 8px; }
+            .header { margin-bottom: 16px; }
+            .header h1 { font-size: 28px; }
+            .card { padding: 16px; border-radius: 12px; }
+            .tabs { margin-bottom: 16px; gap: 8px; }
+            .tab { padding: 10px 8px; font-size: 13px; }
+            .form-group { margin-bottom: 14px; }
+            input { 
+                font-size: 16px; /* Prevents iOS auto-zoom */
+                padding: 10px;
+            }
+            button[type="submit"] { 
+                padding: 12px 10px; 
+                font-size: 15px;
+                min-height: 44px; /* Apple HIG guidelines */
+            }
+        }
     </style>
 </head>
 <body>
