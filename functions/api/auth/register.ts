@@ -5,7 +5,8 @@ import { hashPassword } from '../../../src/lib/crypto';
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
-    const { username, email, password, name } = await request.json();
+    const body = await request.json() as { username: string; email: string; password: string; name?: string };
+    const { username, email, password, name } = body;
     
     // ADICIONAR:
     console.log('[register] Nova tentativa de registro:', { username, email, hasPassword: !!password });
@@ -211,8 +212,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return Response.json({
       success: false,
       error: diagnostic.message,
-      suggestion: diagnostic.suggestion,
-      fullError: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      suggestion: diagnostic.suggestion
     }, { status: 500 });
   }
 };

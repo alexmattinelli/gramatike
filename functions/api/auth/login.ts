@@ -24,7 +24,8 @@ interface User {
 
 export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }) => {
   try {
-    const { email, password } = await request.json();
+    const body = await request.json() as LoginRequest;
+    const { email, password } = body;
     
     // ADICIONAR:
     console.log('[login] Tentativa de login:', { email, hasPassword: !!password });
