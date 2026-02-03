@@ -197,7 +197,7 @@
         }
 
         async function banUser(id) {
-            if (!confirm('Tem certeza que deseja banir este/e usuárie?')) return;
+            if (!confirm('Tem certeza que deseja banir este usuárie?')) return;
             
             try {
                 const res = await fetch(`/api/admin/users/${id}/ban`, {
