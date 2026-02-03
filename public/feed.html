@@ -1458,7 +1458,7 @@
                 <i class="fa-solid fa-ellipsis"></i>
               </button>
               <div class="post-menu-dropdown" id="menu-${postId}">
-                ${userId === (window.currentUserId || 0) ? 
+                ${userId == (window.currentUserId || 0) ? 
                   `<button class="post-menu-item delete" onclick="deletePost('${postId}')">
                     <i class="fa-solid fa-trash"></i>
                     Deletar
@@ -1473,9 +1473,9 @@
           </div>
           <div class="post-content">${content.replace(/\n/g, '<br>')}</div>
           <div class="post-stats">
-            <span><i class="fa-solid fa-heart"></i>${likes} curtidas</span>
-            <span><i class="fa-solid fa-comment"></i>${comments} comentários</span>
-            <span><i class="fa-solid fa-share-nodes"></i>${shares} compartilhamentos</span>
+            <span><i class="fa-solid fa-heart"></i> ${likes} curtidas</span>
+            <span><i class="fa-solid fa-comment"></i> ${comments} comentários</span>
+            <span><i class="fa-solid fa-share-nodes"></i> ${shares} compartilhamentos</span>
           </div>
           <div class="post-interactions">
             <button class="interaction-btn like-btn" onclick="likePost('${postId}', this)">
@@ -1698,11 +1698,11 @@
     // Toggle post menu dropdown
     function togglePostMenu(event, postId) {
       event.stopPropagation();
-      const menu = document.getElementById('menu-' + postId);
+      const menu = document.getElementById(`menu-${postId}`);
       
       // Close all other menus
       document.querySelectorAll('.post-menu-dropdown').forEach(m => {
-        if (m.id !== 'menu-' + postId) {
+        if (m.id !== `menu-${postId}`) {
           m.classList.remove('show');
         }
       });
@@ -1727,7 +1727,7 @@
       }
       
       try {
-        const response = await fetch('/api/posts/' + postId, {
+        const response = await fetch(`/api/posts/${postId}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -1755,7 +1755,7 @@
       }
       
       try {
-        const response = await fetch('/api/posts/' + postId + '/report', {
+        const response = await fetch(`/api/posts/${postId}/report`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
