@@ -60,6 +60,51 @@
         
         .loading { text-align: center; padding: 40px; color: #6b7280; display: none; }
         .loading.show { display: block; }
+        
+        /* Tablet (768px - 992px) */
+        @media (max-width: 992px) {
+            .container { max-width: 700px; padding: 0 12px; }
+            .stats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+        }
+        
+        /* Mobile (< 768px) */
+        @media (max-width: 768px) {
+            nav { height: 64px; padding: 12px; }
+            nav .container { padding: 0; }
+            nav h1 { font-size: 20px; }
+            nav .actions { gap: 8px; }
+            nav a, nav button { font-size: 13px; padding: 6px 8px; }
+            .container { padding: 0 12px; margin: 16px auto; }
+            h2 { font-size: 24px; }
+            .stats { grid-template-columns: 1fr; gap: 12px; }
+            .stat-card { padding: 16px; }
+            .card { padding: 16px; }
+            table { font-size: 14px; }
+            th, td { padding: 8px; }
+            .user-name { font-size: 14px; }
+            .user-email { font-size: 12px; }
+        }
+        
+        /* Mobile Small (< 576px) */
+        @media (max-width: 576px) {
+            nav { height: 60px; padding: 8px; }
+            nav h1 { font-size: 18px; }
+            nav .actions a:not(:last-child) { display: none; }
+            nav a, nav button { font-size: 12px; padding: 6px; }
+            .container { padding: 0 8px; }
+            h2 { font-size: 22px; }
+            .card { padding: 12px; }
+            .card h3 { font-size: 18px; }
+            table { display: block; overflow-x: auto; white-space: nowrap; }
+            button.ban-btn { padding: 4px 8px; font-size: 12px; }
+        }
+        
+        /* Extra Small Mobile (< 400px) */
+        @media (max-width: 400px) {
+            nav h1 { font-size: 16px; }
+            h2 { font-size: 20px; margin-bottom: 16px; }
+            .stat-value { font-size: 28px; }
+        }
     </style>
 </head>
 <body>
