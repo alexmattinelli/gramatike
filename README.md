@@ -20,9 +20,11 @@
 
 - **Runtime:** Cloudflare Pages Functions (TypeScript)
 - **Database:** Cloudflare D1 (SQLite on the edge)
-- **Storage:** Cloudflare R2 (file uploads)
+- **Storage:** Cloudflare R2 (file uploads) ⚠️ [Configuração obrigatória](R2_PUBLIC_ACCESS_SETUP.md)
 - **Frontend:** HTML + Tailwind CSS (via CDN) + HTMX
 - **Auth:** Cookie-based sessions with bcrypt
+
+> **⚠️ IMPORTANTE:** Se você está vendo erro 404 no mobile ao carregar imagens, veja o [guia rápido de configuração do R2](QUICK_FIX_404.md).
 
 ## 📍 Acesso Rápido
 

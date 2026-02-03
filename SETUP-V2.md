@@ -130,7 +130,7 @@ Para permitir acesso público aos uploads:
 
 Você receberá um domínio público como: `https://pub-[hash].r2.dev`
 
-**📖 Guia Detalhado:** Veja [R2_PUBLIC_ACCESS_SETUP.md](../R2_PUBLIC_ACCESS_SETUP.md) se tiver problemas.
+**📖 Guia Detalhado:** Veja [R2_PUBLIC_ACCESS_SETUP.md](R2_PUBLIC_ACCESS_SETUP.md) se tiver problemas.
 
 ## 💻 Desenvolvimento Local
 
