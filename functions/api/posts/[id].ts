@@ -306,31 +306,72 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
       });
     }
     
-    // Verificar se usuário já curtiu (em uma tabela de likes separada, se tiver)
-    // Por enquanto, apenas incrementa o contador
-    const { success } = await env.DB.prepare(
-      'UPDATE posts SET likes = likes + 1 WHERE id = ?'
-    ).bind(postId).run();
+    // Verificar se post existe
+    const { results: postResults } = await env.DB.prepare(
+      'SELECT id FROM posts WHERE id = ?'
+    ).bind(postId).all();
     
-    if (!success) {
+    if (!postResults || postResults.length === 0) {
       return new Response(JSON.stringify({ 
         success: false, 
-        error: 'Erro ao curtir post' 
+        error: 'Post não encontrado' 
       }), {
-        status: 500,
+        status: 404,
         headers: { 'Content-Type': 'application/json' }
       });
     }
     
-    // Buscar novo número de likes
-    const { results } = await env.DB.prepare(
+    // Verificar se usuário já curtiu
+    const { results: likeResults } = await env.DB.prepare(
+      'SELECT id FROM post_likes WHERE post_id = ? AND user_id = ?'
+    ).bind(postId, user.id).all();
+    
+    const alreadyLiked = likeResults && likeResults.length > 0;
+    
+    if (alreadyLiked) {
+      // Unlike - remover curtida
+      await env.DB.prepare(
+        'DELETE FROM post_likes WHERE post_id = ? AND user_id = ?'
+      ).bind(postId, user.id).run();
+      
+      // Decrementar contador
+      await env.DB.prepare(
+        'UPDATE posts SET likes = CASE WHEN likes > 0 THEN likes - 1 ELSE 0 END WHERE id = ?'
+      ).bind(postId).run();
+    } else {
+      // Like - adicionar curtida
+      await env.DB.prepare(
+        'INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)'
+      ).bind(postId, user.id).run();
+      
+      // Incrementar contador
+      await env.DB.prepare(
+        'UPDATE posts SET likes = likes + 1 WHERE id = ?'
+      ).bind(postId).run();
+    }
+    
+    // Buscar novo número de likes e primeiros usuários
+    const { results: countResults } = await env.DB.prepare(
       'SELECT likes FROM posts WHERE id = ?'
+    ).bind(postId).all();
+    
+    const { results: usersResults } = await env.DB.prepare(
+      `SELECT users.id, users.username, users.name, users.avatar_initials
+       FROM post_likes
+       INNER JOIN users ON post_likes.user_id = users.id
+       WHERE post_likes.post_id = ?
+       ORDER BY post_likes.created_at DESC
+       LIMIT 3`
     ).bind(postId).all();
     
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'Post curtido',
-      data: { likes: results[0]?.likes || 0 }
+      message: alreadyLiked ? 'Curtida removida' : 'Post curtido',
+      data: { 
+        likes: countResults[0]?.likes || 0,
+        liked: !alreadyLiked,
+        likedBy: usersResults || []
+      }
     }), {
       headers: { 'Content-Type': 'application/json' }
     });

@@ -530,6 +530,165 @@
       text-align: center;
     }
     
+    /* Instagram-style likes display */
+    .post-likes-text {
+      font-size: 14px;
+      color: var(--texto);
+      padding: 8px 0;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .post-likes-text:hover {
+      opacity: 0.7;
+    }
+    
+    .post-likes-text strong {
+      font-weight: 600;
+    }
+    
+    /* Likes Modal - Instagram style */
+    .likes-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 10000;
+      animation: fadeIn 0.2s ease;
+    }
+    
+    .likes-modal.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .likes-modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 400px;
+      max-height: 500px;
+      display: flex;
+      flex-direction: column;
+      animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+      from {
+        transform: translateY(50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    .likes-modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0e4fd;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .likes-modal-header h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--texto);
+    }
+    
+    .likes-modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+    
+    .likes-modal-close:hover {
+      background: var(--roxo-super-claro);
+      color: var(--roxo);
+    }
+    
+    .likes-modal-body {
+      padding: 12px 0;
+      overflow-y: auto;
+      max-height: 400px;
+    }
+    
+    .like-user-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .like-user-item:hover {
+      background: var(--roxo-super-claro);
+    }
+    
+    .like-user-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--roxo) 0%, var(--roxo-escuro) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    
+    .like-user-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .like-user-name {
+      font-weight: 600;
+      color: var(--texto);
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .like-user-username {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 2px;
+    }
+    
+    .likes-modal-empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+    
+    .likes-modal-empty i {
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+    
     .post-interactions {
       display: flex;
       gap: 8px;
@@ -1442,6 +1601,30 @@
         const comments = post.comments || post.comments_count || 0;
         const shares = post.shares || post.shares_count || 0;
         const postId = post.id || post._id;
+        const likedBy = post.liked_by || [];
+        
+        // Generate Instagram-style likes text
+        let likesText = '';
+        if (likes === 0) {
+          likesText = '';
+        } else if (likes === 1 && likedBy.length > 0) {
+          const firstName = likedBy[0].name || likedBy[0].username;
+          likesText = `<div class="post-likes-text" onclick="showLikes('${postId}')">
+            Curtido por <strong>${firstName}</strong>
+          </div>`;
+        } else if (likes > 1 && likedBy.length > 0) {
+          const firstName = likedBy[0].name || likedBy[0].username;
+          const others = likes - 1;
+          const othersText = others === 1 ? 'outra pessoa' : `outras ${others} pessoas`;
+          likesText = `<div class="post-likes-text" onclick="showLikes('${postId}')">
+            Curtido por <strong>${firstName}</strong> e <strong>${othersText}</strong>
+          </div>`;
+        } else if (likes > 0) {
+          // Fallback if no liked_by data
+          likesText = `<div class="post-likes-text" onclick="showLikes('${postId}')">
+            <strong>${likes}</strong> ${likes === 1 ? 'curtida' : 'curtidas'}
+          </div>`;
+        }
         
         postElement.innerHTML = `
           <div class="post-header">
@@ -1472,11 +1655,7 @@
             </div>
           </div>
           <div class="post-content">${content.replace(/\n/g, '<br>')}</div>
-          <div class="post-stats">
-            <span><i class="fa-solid fa-heart"></i> ${likes} curtidas</span>
-            <span><i class="fa-solid fa-comment"></i> ${comments} comentários</span>
-            <span><i class="fa-solid fa-share-nodes"></i> ${shares} compartilhamentos</span>
-          </div>
+          ${likesText}
           <div class="post-interactions">
             <button class="interaction-btn like-btn" onclick="likePost('${postId}', this)">
               <i class="fa-regular fa-heart"></i> Curtir
@@ -1694,6 +1873,84 @@
         }
       }
     }
+
+    // Show likes modal
+    async function showLikes(postId) {
+      const modal = document.getElementById('likesModal');
+      const modalBody = document.getElementById('likesModalBody');
+      
+      // Show modal with loading state
+      modalBody.innerHTML = `
+        <div class="likes-modal-empty">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <div>Carregando...</div>
+        </div>
+      `;
+      modal.classList.add('show');
+      
+      try {
+        const response = await fetch(`/api/posts/${postId}/likes`);
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          const likes = data.data.likes || [];
+          
+          if (likes.length === 0) {
+            modalBody.innerHTML = `
+              <div class="likes-modal-empty">
+                <i class="fa-regular fa-heart"></i>
+                <div>Nenhuma curtida ainda</div>
+              </div>
+            `;
+          } else {
+            modalBody.innerHTML = likes.map(like => {
+              const initial = (like.name || like.username || 'U').charAt(0).toUpperCase();
+              const displayName = like.name || like.username;
+              return `
+                <div class="like-user-item" onclick="window.location.href='/perfil.html?user=${like.id}'">
+                  <div class="like-user-avatar">${initial}</div>
+                  <div class="like-user-info">
+                    <div class="like-user-name">
+                      ${displayName}
+                      ${like.verified ? '<span class="verified-badge">✓</span>' : ''}
+                    </div>
+                    <div class="like-user-username">@${like.username}</div>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          }
+        } else {
+          modalBody.innerHTML = `
+            <div class="likes-modal-empty">
+              <i class="fa-solid fa-exclamation-circle"></i>
+              <div>Erro ao carregar curtidas</div>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Erro ao buscar curtidas:', error);
+        modalBody.innerHTML = `
+          <div class="likes-modal-empty">
+            <i class="fa-solid fa-exclamation-circle"></i>
+            <div>Erro ao carregar curtidas</div>
+          </div>
+        `;
+      }
+    }
+    
+    // Close likes modal
+    function closeLikesModal() {
+      const modal = document.getElementById('likesModal');
+      modal.classList.remove('show');
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('likesModal')?.addEventListener('click', function(event) {
+      if (event.target === this) {
+        closeLikesModal();
+      }
+    });
 
     // Toggle post menu dropdown
     function togglePostMenu(event, postId) {
@@ -1991,5 +2248,21 @@
       loadServerData();
     });
   </script>
+
+  <!-- Likes Modal -->
+  <div class="likes-modal" id="likesModal">
+    <div class="likes-modal-content">
+      <div class="likes-modal-header">
+        <h3>Curtidas</h3>
+        <button class="likes-modal-close" onclick="closeLikesModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="likes-modal-body" id="likesModalBody">
+        <!-- Users who liked will be inserted here -->
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
