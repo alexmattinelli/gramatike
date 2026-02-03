@@ -7,6 +7,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
     const { username, email, password, name } = await request.json();
     
+    console.log('[register] Tentando registrar usuário:', { username, email });
+    
     if (!username || !email || !password) {
       return Response.json({
         success: false,
@@ -46,7 +48,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     ).all();
     
     const columnNames = columns.results.map(c => c.name);
-    console.log('Colunas disponíveis:', columnNames);
+    console.log('[register] Colunas disponíveis na tabela users:', columnNames);
+    console.log('[register] Verificando coluna password_hash:', columnNames.includes('password_hash'));
     
     // 2. Construir query dinamicamente baseado nas colunas existentes
     let insertColumns = [];
@@ -72,6 +75,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       // Hash password using PBKDF2 (Web Crypto API)
       const hashedPassword = await hashPassword(password);
       bindings.push(hashedPassword);
+      console.log('[register] Senha hasheada com sucesso (PBKDF2)');
+    } else {
+      console.error('[register] ERRO: Coluna password_hash não encontrada no schema!');
     }
     
     // Campos opcionais
@@ -120,14 +126,18 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       VALUES (${insertValues.join(', ')})
     `;
     
-    console.log('Query:', query);
-    console.log('Bindings:', bindings);
+    console.log('[register] Query SQL:', query);
+    console.log('[register] Colunas sendo inseridas:', insertColumns);
+    console.log('[register] Número de bindings:', bindings.length);
     
     const result = await env.DB.prepare(query).bind(...bindings).run();
     
     if (!result.success) {
+      console.error('[register] Insert falhou, result:', result);
       throw new Error('Insert failed');
     }
+    
+    console.log('[register] ✅ Usuário criado com sucesso! ID:', result.meta.last_row_id);
     
     // 5. Retornar sucesso
     return Response.json({
