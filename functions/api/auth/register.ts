@@ -7,6 +7,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
     const { username, email, password, name } = await request.json();
     
+    console.log('[register] Registrando usuário:', username, email);
+    
     if (!username || !email || !password) {
       return Response.json({
         success: false,
@@ -46,7 +48,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     ).all();
     
     const columnNames = columns.results.map(c => c.name);
-    console.log('Colunas disponíveis:', columnNames);
+    console.log('[register] Colunas disponíveis:', columnNames);
     
     // 2. Construir query dinamicamente baseado nas colunas existentes
     let insertColumns = [];
@@ -120,14 +122,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       VALUES (${insertValues.join(', ')})
     `;
     
-    console.log('Query:', query);
-    console.log('Bindings:', bindings);
+    console.log('[register] Query:', query);
+    console.log('[register] Bindings:', bindings);
     
     const result = await env.DB.prepare(query).bind(...bindings).run();
     
     if (!result.success) {
       throw new Error('Insert failed');
     }
+    
+    console.log('[register] ✅ Usuário criado com ID:', result.meta.last_row_id);
     
     // 5. Retornar sucesso
     return Response.json({
@@ -138,7 +142,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     }, { status: 201 });
     
   } catch (error: any) {
-    console.error('Register adaptive error:', error);
+    console.error('[register] Erro:', error);
     
     // Diagnosticar erro
     let diagnostic = {

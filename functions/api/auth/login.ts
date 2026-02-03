@@ -28,6 +28,8 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
     const body = await request.json() as LoginRequest;
     const { email, password } = body;
     
+    console.log('[login] Tentando login para:', email);
+    
     // Validações básicas
     if (!email || !password) {
       return new Response(JSON.stringify({
@@ -57,6 +59,7 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
     ).bind(email.toLowerCase().trim()).all();
     
     if (!results || results.length === 0) {
+      console.log('[login] ❌ Usuário não encontrado:', email);
       // Retornar erro genérico por segurança
       return new Response(JSON.stringify({
         success: false,
@@ -68,6 +71,9 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
     }
     
     const user = results[0] as User;
+    
+    console.log('[login] ✅ Usuário encontrado:', user.username);
+    console.log('[login] Password hash exists:', !!user.password_hash);
     
     // Verificar se usuário está banido
     if (user.is_banned) {
@@ -83,6 +89,7 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
     // Verificar senha usando PBKDF2
     // Use a função verifyPassword da crypto lib
     if (!user.password_hash) {
+      console.log('[login] ⚠️ Sem password_hash no banco de dados');
       return new Response(JSON.stringify({
         success: false,
         error: 'Email ou senha incorretos'
@@ -92,9 +99,11 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
       });
     }
     
+    console.log('[login] 🔐 Comparando senha...');
     const isPasswordValid = await verifyPassword(password, user.password_hash);
     
     if (!isPasswordValid) {
+      console.log('[login] ❌ Senha incorreta');
       return new Response(JSON.stringify({
         success: false,
         error: 'Email ou senha incorretos'
@@ -103,6 +112,8 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
         headers: { 'Content-Type': 'application/json' }
       });
     }
+    
+    console.log('[login] ✅ Senha correta!');
     
     // Atualizar status online
     await env.DB.prepare(
@@ -116,6 +127,8 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
     await env.DB.prepare(
       'INSERT INTO sessions (user_id, token, expires_at) VALUES (?, ?, ?)'
     ).bind(user.id, sessionToken, expiresAt.toISOString()).run();
+    
+    console.log('[login] ✅ Autenticação bem-sucedida');
     
     // Criar cookie de sessão
     const sessionCookie = `session=${sessionToken}; HttpOnly; Path=/; SameSite=Lax; Expires=${expiresAt.toUTCString()}; ${
