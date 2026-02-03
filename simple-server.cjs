@@ -9,6 +9,16 @@ const twoHoursAgo = new Date(now - 2 * 60 * 60 * 1000);
 const yesterday = new Date(now - 25 * 60 * 60 * 1000);
 const threeDaysAgo = new Date(now - 3 * 24 * 60 * 60 * 1000);
 
+// Create mock users for likes
+const mockUsers = [
+  { id: 1, username: 'mariasilva', name: 'Maria Silva', avatar_initials: 'MS' },
+  { id: 2, username: 'joaocarlos', name: 'João Carlos', avatar_initials: 'JC' },
+  { id: 3, username: 'anapaula', name: 'Ana Paula', avatar_initials: 'AP' },
+  { id: 4, username: 'pedroalves', name: 'Pedro Alves', avatar_initials: 'PA' },
+  { id: 5, username: 'carlaferreira', name: 'Carla Ferreira', avatar_initials: 'CF' },
+  { id: 6, username: 'lucassantos', name: 'Lucas Santos', avatar_initials: 'LS' }
+];
+
 let posts = [
   { 
     id: 1, 
@@ -17,7 +27,12 @@ let posts = [
     created_at: fiveMinAgo.toISOString(),
     likes: 12,
     comments: 3,
-    shares: 1
+    shares: 1,
+    liked_by: [
+      { id: 2, username: 'joaocarlos', name: 'João Carlos', avatar_initials: 'JC' },
+      { id: 3, username: 'anapaula', name: 'Ana Paula', avatar_initials: 'AP' },
+      { id: 4, username: 'pedroalves', name: 'Pedro Alves', avatar_initials: 'PA' }
+    ]
   },
   { 
     id: 2, 
@@ -26,7 +41,11 @@ let posts = [
     created_at: twoHoursAgo.toISOString(),
     likes: 5,
     comments: 8,
-    shares: 0
+    shares: 0,
+    liked_by: [
+      { id: 1, username: 'mariasilva', name: 'Maria Silva', avatar_initials: 'MS' },
+      { id: 5, username: 'carlaferreira', name: 'Carla Ferreira', avatar_initials: 'CF' }
+    ]
   },
   { 
     id: 3, 
@@ -35,16 +54,24 @@ let posts = [
     created_at: yesterday.toISOString(),
     likes: 24,
     comments: 6,
-    shares: 5
+    shares: 5,
+    liked_by: [
+      { id: 6, username: 'lucassantos', name: 'Lucas Santos', avatar_initials: 'LS' },
+      { id: 1, username: 'mariasilva', name: 'Maria Silva', avatar_initials: 'MS' },
+      { id: 2, username: 'joaocarlos', name: 'João Carlos', avatar_initials: 'JC' }
+    ]
   },
   { 
     id: 4, 
     user: { id: 4, username: 'pedroalves', name: 'Pedro Alves' },
     content: 'Gramática é vida! Vamos estudar juntos? 💪', 
     created_at: threeDaysAgo.toISOString(),
-    likes: 8,
+    likes: 1,
     comments: 2,
-    shares: 2
+    shares: 2,
+    liked_by: [
+      { id: 3, username: 'anapaula', name: 'Ana Paula', avatar_initials: 'AP' }
+    ]
   }
 ];
 
@@ -71,6 +98,46 @@ const server = http.createServer((req, res) => {
   if (req.url === '/api/posts') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ posts }));
+    return;
+  }
+  
+  // Handle /api/posts/:id/likes
+  const likesMatch = req.url.match(/^\/api\/posts\/(\d+)\/likes$/);
+  if (likesMatch) {
+    const postId = parseInt(likesMatch[1]);
+    const post = posts.find(p => p.id === postId);
+    
+    if (post) {
+      // Generate more mock users for the full list
+      const allLikes = [];
+      const likeCount = post.likes || 0;
+      
+      // Add the liked_by users first
+      if (post.liked_by) {
+        allLikes.push(...post.liked_by);
+      }
+      
+      // Add more mock users to match the like count
+      for (let i = allLikes.length; i < likeCount; i++) {
+        const userIndex = i % mockUsers.length;
+        allLikes.push({
+          ...mockUsers[userIndex],
+          id: 100 + i // Ensure unique IDs
+        });
+      }
+      
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        success: true,
+        data: {
+          likes: allLikes,
+          total: allLikes.length
+        }
+      }));
+    } else {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: 'Post não encontrado' }));
+    }
     return;
   }
   
