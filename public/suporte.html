@@ -176,6 +176,51 @@
       width: 24px;
       margin-right: 10px;
     }
+    
+    /* Tablet (768px - 992px) */
+    @media (max-width: 992px) {
+      .main-container { max-width: 700px; padding: 20px; }
+    }
+    
+    /* Mobile (< 768px) */
+    @media (max-width: 768px) {
+      nav { height: 64px; padding: 0 20px; }
+      .logo { font-size: 28px; }
+      .profile-circle { width: 42px; height: 42px; }
+      .main-container { padding: 16px; margin-top: 64px; }
+      .hero { padding: 28px 20px; }
+      .hero h1 { font-size: 32px; }
+      .hero p { font-size: 16px; }
+      .faq-grid { grid-template-columns: 1fr; gap: 14px; }
+      .faq-card { padding: 18px; }
+    }
+    
+    /* Mobile Small (< 576px) */
+    @media (max-width: 576px) {
+      nav { height: 60px; padding: 0 16px; }
+      .logo { font-size: 26px; }
+      .profile-circle { width: 38px; height: 38px; }
+      .main-container { padding: 12px; margin-top: 60px; }
+      .hero { padding: 24px 16px; }
+      .hero h1 { font-size: 28px; }
+      .hero p { font-size: 15px; }
+      .faq-card { padding: 16px; }
+      .faq-question { font-size: 15px; }
+      .faq-answer { font-size: 13px; }
+      .contact-card { padding: 18px; }
+      .contact-card h3 { font-size: 18px; }
+    }
+    
+    /* Extra Small Mobile (< 400px) */
+    @media (max-width: 400px) {
+      nav { padding: 0 12px; }
+      .logo { font-size: 24px; }
+      .profile-circle { width: 36px; height: 36px; }
+      .hero { padding: 20px 12px; }
+      .hero h1 { font-size: 26px; }
+      .faq-card { padding: 14px; }
+      .contact-card { padding: 16px; }
+    }
   </style>
 </head>
 <body>
