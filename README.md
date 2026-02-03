@@ -20,9 +20,11 @@
 
 - **Runtime:** Cloudflare Pages Functions (TypeScript)
 - **Database:** Cloudflare D1 (SQLite on the edge)
-- **Storage:** Cloudflare R2 (file uploads)
+- **Storage:** Cloudflare R2 (file uploads) ⚠️ [Configuração obrigatória](R2_PUBLIC_ACCESS_SETUP.md)
 - **Frontend:** HTML + Tailwind CSS (via CDN) + HTMX
 - **Auth:** Cookie-based sessions with bcrypt
+
+> **⚠️ IMPORTANTE:** Se você está vendo erro 404 no mobile ao carregar imagens, veja o [guia rápido de configuração do R2](QUICK_FIX_404.md).
 
 ## 📍 Acesso Rápido
 
@@ -237,13 +239,13 @@ binding = "R2_BUCKET"
 bucket_name = "gramatike"
 ```
 
-Para configurar o R2:
+For configurar o R2:
 
 1. Criar um bucket R2 chamado `gramatike` no [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. Configurar domínio público do R2 (Settings → Public Access)
+2. **Configurar acesso público** - IMPORTANTE para o site funcionar! Veja [R2_PUBLIC_ACCESS_SETUP.md](R2_PUBLIC_ACCESS_SETUP.md)
 3. O binding `R2_BUCKET` permite que as Functions acessem o bucket automaticamente
 
-**📖 Guia Completo:** Veja [CLOUDFLARE_R2_SETUP.md](CLOUDFLARE_R2_SETUP.md) para instruções detalhadas.
+**📖 Guia Completo:** Veja [R2_PUBLIC_ACCESS_SETUP.md](R2_PUBLIC_ACCESS_SETUP.md) para instruções detalhadas sobre como habilitar acesso público e evitar erros 404.
 
 **Variáveis RAG/IA (opcional):**
 
@@ -335,14 +337,25 @@ Se você ver erros relacionados a "Workers Build failed":
 3. ❌ Remova qualquer GitHub Actions workflow de deploy
 4. ✅ Use a integração nativa do Cloudflare Pages
 
+### Erro 404 - "Object not found" no mobile
+
+Se você está recebendo erro 404 ao acessar o site pelo celular, especialmente ao carregar imagens:
+
+**Causa:** O bucket R2 não está configurado com acesso público.
+
+**Solução:** Siga o guia completo em [R2_PUBLIC_ACCESS_SETUP.md](R2_PUBLIC_ACCESS_SETUP.md) para:
+1. Habilitar Public Access no bucket R2
+2. Configurar CORS policy
+3. Testar o acesso mobile
+
 ### Imagens não aparecem
 
-Configure o R2 bucket com acesso público. Veja [CLOUDFLARE_R2_SETUP.md](CLOUDFLARE_R2_SETUP.md).
+Configure o R2 bucket com acesso público. Veja [R2_PUBLIC_ACCESS_SETUP.md](R2_PUBLIC_ACCESS_SETUP.md).
 
 ## 📚 Documentação Adicional
 
+- [R2_PUBLIC_ACCESS_SETUP.md](R2_PUBLIC_ACCESS_SETUP.md) - **Fix erro 404 mobile** - Configurar acesso público do R2
 - [CLOUDFLARE_D1_SETUP.md](CLOUDFLARE_D1_SETUP.md) - Configuração detalhada do D1
-- [CLOUDFLARE_R2_SETUP.md](CLOUDFLARE_R2_SETUP.md) - Configuração detalhada do R2
 - [BREVO_EMAIL_SETUP.md](BREVO_EMAIL_SETUP.md) - Configuração de e-mail
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Guia de solução de problemas
 

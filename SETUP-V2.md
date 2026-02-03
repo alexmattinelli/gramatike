@@ -115,14 +115,22 @@ npx wrangler d1 execute gramatike-v2 --command="SELECT username, email, is_admin
 npx wrangler r2 bucket create gramatike-v2
 ```
 
-### 2. Configurar Acesso Público (Opcional)
+### 2. Configurar Acesso Público ⚠️ OBRIGATÓRIO
+
+**IMPORTANTE:** Sem acesso público configurado, o site mostrará erro 404 ao tentar carregar imagens!
 
 Para permitir acesso público aos uploads:
 
 1. Acesse o [Cloudflare Dashboard](https://dash.cloudflare.com/)
 2. Vá em **R2** → **gramatike-v2**
 3. Clique em **Settings**
-4. Em **Public Access**, configure um domínio personalizado ou use o domínio padrão do R2
+4. Em **Public Access**, clique em **Allow Access** ou **Connect Domain**
+5. Escolha **R2.dev subdomain** (ou configure um domínio personalizado)
+6. Salve a configuração
+
+Você receberá um domínio público como: `https://pub-[hash].r2.dev`
+
+**📖 Guia Detalhado:** Veja [R2_PUBLIC_ACCESS_SETUP.md](R2_PUBLIC_ACCESS_SETUP.md) se tiver problemas.
 
 ## 💻 Desenvolvimento Local
 
