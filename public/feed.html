@@ -446,6 +446,90 @@
       color: var(--muted);
     }
     
+    .post-stats i {
+      margin-right: 6px;
+      font-size: 14px;
+    }
+    
+    .post-menu {
+      position: relative;
+      margin-left: auto;
+    }
+    
+    .post-menu-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      color: var(--muted);
+      border-radius: 50%;
+      transition: var(--transition);
+      font-size: 18px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .post-menu-btn:hover {
+      background: var(--roxo-super-claro);
+      color: var(--roxo);
+    }
+    
+    .post-menu-dropdown {
+      position: absolute;
+      right: 0;
+      top: 100%;
+      background: white;
+      border-radius: 12px;
+      box-shadow: var(--shadow-card);
+      border: 1px solid #f0e4fd;
+      min-width: 160px;
+      z-index: 100;
+      display: none;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+    
+    .post-menu-dropdown.show {
+      display: block;
+    }
+    
+    .post-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      color: var(--texto);
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .post-menu-item:hover {
+      background: var(--roxo-super-claro);
+    }
+    
+    .post-menu-item.delete {
+      color: #dc3545;
+    }
+    
+    .post-menu-item.delete:hover {
+      background: #fff5f5;
+    }
+    
+    .post-menu-item i {
+      font-size: 16px;
+      width: 20px;
+      text-align: center;
+    }
+    
     .post-interactions {
       display: flex;
       gap: 8px;
@@ -1278,8 +1362,17 @@
         const response = await fetch('/api/posts');
         if (response.ok) {
           const data = await response.json();
-          // Extract posts array from response
-          const posts = data.posts || data || [];
+          // Handle different API response structures
+          // New API: { success: true, data: { posts: [] } }
+          // Old API: { posts: [] }
+          let posts = [];
+          if (data.success && data.data && data.data.posts) {
+            posts = data.data.posts;
+          } else if (data.posts) {
+            posts = data.posts;
+          } else if (Array.isArray(data)) {
+            posts = data;
+          }
           renderPosts(posts);
         } else {
           console.error('Erro na API de posts:', response.status);
@@ -1360,12 +1453,29 @@
               </div>
               <div class="post-time">@${username} • ${formatDate(createdAt)}</div>
             </div>
+            <div class="post-menu">
+              <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
+                <i class="fa-solid fa-ellipsis"></i>
+              </button>
+              <div class="post-menu-dropdown" id="menu-${postId}">
+                ${userId === (window.currentUserId || 0) ? 
+                  `<button class="post-menu-item delete" onclick="deletePost('${postId}')">
+                    <i class="fa-solid fa-trash"></i>
+                    Deletar
+                  </button>` :
+                  `<button class="post-menu-item" onclick="reportPost('${postId}')">
+                    <i class="fa-solid fa-flag"></i>
+                    Reportar
+                  </button>`
+                }
+              </div>
+            </div>
           </div>
           <div class="post-content">${content.replace(/\n/g, '<br>')}</div>
           <div class="post-stats">
-            <span>❤️ ${likes} curtidas</span>
-            <span>💬 ${comments} comentários</span>
-            <span>↗️ ${shares} compartilhamentos</span>
+            <span><i class="fa-solid fa-heart"></i>${likes} curtidas</span>
+            <span><i class="fa-solid fa-comment"></i>${comments} comentários</span>
+            <span><i class="fa-solid fa-share-nodes"></i>${shares} compartilhamentos</span>
           </div>
           <div class="post-interactions">
             <button class="interaction-btn like-btn" onclick="likePost('${postId}', this)">
@@ -1445,7 +1555,10 @@
             body: JSON.stringify({ content: content })
           });
           
-          if (response.ok) {
+          const data = await response.json();
+          
+          if (response.ok || data.success) {
+            // Post criado com sucesso
             await fetchRealPosts();
             postContent.value = '';
             
@@ -1453,12 +1566,16 @@
               top: 0,
               behavior: 'smooth'
             });
+            
+            console.log('Post publicado com sucesso!');
           } else {
-            alert('Erro ao publicar post');
+            const errorMsg = data.error || 'Erro ao publicar post';
+            alert(errorMsg);
+            console.error('Erro ao criar post:', errorMsg);
           }
         }
       } catch (error) {
-        console.error('Erro:', error);
+        console.error('Erro ao criar post:', error);
         alert('Erro ao conectar com o servidor');
       }
     }
@@ -1575,6 +1692,86 @@
           console.error('Erro ao compartilhar:', error);
           alert('Erro ao compartilhar post: ' + error.message);
         }
+      }
+    }
+
+    // Toggle post menu dropdown
+    function togglePostMenu(event, postId) {
+      event.stopPropagation();
+      const menu = document.getElementById('menu-' + postId);
+      
+      // Close all other menus
+      document.querySelectorAll('.post-menu-dropdown').forEach(m => {
+        if (m.id !== 'menu-' + postId) {
+          m.classList.remove('show');
+        }
+      });
+      
+      // Toggle this menu
+      menu.classList.toggle('show');
+    }
+
+    // Close menus when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!event.target.closest('.post-menu')) {
+        document.querySelectorAll('.post-menu-dropdown').forEach(menu => {
+          menu.classList.remove('show');
+        });
+      }
+    });
+
+    // Delete post
+    async function deletePost(postId) {
+      if (!confirm('Tem certeza que deseja deletar este post?')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/posts/' + postId, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        if (response.ok) {
+          alert('Post deletado com sucesso!');
+          await fetchRealPosts();
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          alert('Erro ao deletar post: ' + (errorData.error || 'Status ' + response.status));
+        }
+      } catch (error) {
+        console.error('Erro ao deletar post:', error);
+        alert('Erro de conexão ao deletar post');
+      }
+    }
+
+    // Report post
+    async function reportPost(postId) {
+      const reason = prompt('Por que você está reportando este post?');
+      if (!reason || !reason.trim()) {
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/posts/' + postId + '/report', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ reason: reason.trim() })
+        });
+        
+        if (response.ok) {
+          alert('Post reportado com sucesso! Nossa equipe irá analisá-lo.');
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          alert('Erro ao reportar post: ' + (errorData.error || 'Status ' + response.status));
+        }
+      } catch (error) {
+        console.error('Erro ao reportar post:', error);
+        alert('Erro de conexão ao reportar post');
       }
     }
 
