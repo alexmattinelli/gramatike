@@ -84,7 +84,7 @@
         <!-- Stats -->
         <div class="stats">
             <div class="stat-card">
-                <div class="stat-label">Usuários</div>
+                <div class="stat-label">Usuáries</div>
                 <div class="stat-value" id="stat-users">0</div>
             </div>
             <div class="stat-card">
@@ -92,14 +92,14 @@
                 <div class="stat-value" id="stat-posts">0</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Banidos</div>
+                <div class="stat-label">Banides</div>
                 <div class="stat-value" id="stat-banned">0</div>
             </div>
         </div>
 
         <!-- Users List -->
         <div class="card">
-            <h3>Usuários</h3>
+            <h3>Usuáries</h3>
             <div id="loading" class="loading">Carregando...</div>
             <div id="users-table"></div>
         </div>
@@ -150,7 +150,7 @@
                 loading.classList.remove('show');
                 
                 if (users.length === 0) {
-                    tableContainer.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 20px;">Nenhum usuário encontrado.</p>';
+                    tableContainer.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 20px;">Nenhume usuárie encontrade.</p>';
                     return;
                 }
                 
@@ -158,7 +158,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Usuário</th>
+                                <th>Usuárie</th>
                                 <th>Username</th>
                                 <th>Criado em</th>
                                 <th>Status</th>
@@ -178,7 +178,7 @@
                                     <td>${new Date(user.created_at).toLocaleDateString('pt-BR')}</td>
                                     <td>
                                         ${user.is_admin ? '<span class="badge admin">Admin</span>' : ''}
-                                        ${user.is_banned ? '<span class="badge banned">Banido</span>' : ''}
+                                        ${user.is_banned ? '<span class="badge banned">Banide</span>' : ''}
                                     </td>
                                     <td>
                                         ${!user.is_admin && !user.is_banned ? `
@@ -197,7 +197,7 @@
         }
 
         async function banUser(id) {
-            if (!confirm('Tem certeza que deseja banir este usuário?')) return;
+            if (!confirm('Tem certeza que deseja banir este/e usuárie?')) return;
             
             try {
                 const res = await fetch(`/api/admin/users/${id}/ban`, {
@@ -209,7 +209,7 @@
                     throw new Error(data.error || 'Erro ao banir usuário');
                 }
                 
-                showSuccess('Usuário banido com sucesso!');
+                showSuccess('Usuárie banide com sucesso!');
                 await loadUsers();
                 await loadStats();
             } catch (err) {

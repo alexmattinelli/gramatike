@@ -873,7 +873,7 @@
         <div class="card post-form-card">
           <div class="post-header-info">
             <div class="post-form-avatar">U</div>
-            <div class="post-form-user">Usuário</div>
+            <div class="post-form-user">Usuárie</div>
           </div>
           <form class="post-form" id="postForm">
             <textarea 
@@ -1019,7 +1019,7 @@
       }
     }
 
-    // Buscar amigos do SEU banco de dados
+    // Buscar amigues do SEU banco de dados
     async function fetchRealFriends() {
       const friendsList = document.getElementById('friendsList');
       if (!friendsList) return;
@@ -1030,20 +1030,20 @@
           const data = await response.json();
           renderFriends(data);
         } else {
-          console.error('Erro na API de amigos:', response.status);
+          console.error('Erro na API de amigues:', response.status);
           friendsList.innerHTML = `
             <div class="empty-state">
               <div class="empty-icon">⚠️</div>
-              <div class="empty-text">Erro ao carregar amigos</div>
+              <div class="empty-text">Erro ao carregar amigues</div>
             </div>
           `;
         }
       } catch (error) {
-        console.error('Erro ao buscar amigos:', error);
+        console.error('Erro ao buscar amigues:', error);
         friendsList.innerHTML = `
           <div class="empty-state">
             <div class="empty-icon">⚠️</div>
-            <div class="empty-text">Erro ao carregar amigos</div>
+            <div class="empty-text">Erro ao carregar amigues</div>
           </div>
         `;
       }
@@ -1065,7 +1065,7 @@
         postElement.className = 'card post-card';
         
         // Ajuste conforme a estrutura do SEU banco de dados
-        const userName = post.user?.name || post.author_name || 'Usuário';
+        const userName = post.user?.name || post.author_name || 'Usuárie';
         const userInitial = userName.charAt(0).toUpperCase();
         const content = post.content || post.text || '';
         const createdAt = post.created_at || post.createdAt || new Date().toISOString();
@@ -1109,7 +1109,7 @@
       });
     }
 
-    // Renderizar amigos
+    // Renderizar amigues
     function renderFriends(friends) {
       const friendsList = document.getElementById('friendsList');
       if (!friendsList) return;
@@ -1127,7 +1127,7 @@
       let friendsHTML = '';
       friends.slice(0, 5).forEach(friend => {
         // Ajuste conforme a estrutura do SEU banco de dados
-        const friendName = friend.name || friend.username || 'Usuário';
+        const friendName = friend.name || friend.username || 'Usuárie';
         const initial = friendName.charAt(0).toUpperCase();
         const isOnline = friend.online || friend.status === 'online';
         
@@ -1231,7 +1231,7 @@
     });
     
     profileBtn.addEventListener('click', function() {
-      alert('Perfil do usuário');
+      alert('Perfil do usuárie');
     });
     
     searchButton.addEventListener('click', function() {

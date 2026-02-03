@@ -39,7 +39,7 @@
     
     /* NAVEGAÇÃO FIXA COM CURVATURA SUPERIOR */
     nav {
-      background: var(--lilas-light);
+      background: var(--roxo);
       height: 70px;
       z-index: 1000;
       width: 100%;
@@ -47,7 +47,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 28px;
-      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 1px 3px rgba(155, 93, 229, 0.1);
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
       border-top-left-radius: 0;
@@ -57,7 +57,7 @@
     .logo {
       font-family: 'Mansalva', cursive;
       font-size: 32px;
-      color: var(--roxo);
+      color: white;
       letter-spacing: 0.5px;
     }
     
@@ -89,10 +89,10 @@
       min-height: calc(100vh - 70px);
       position: relative;
       z-index: 1;
-      background: var(--roxo);
-      border-top-left-radius: 30px;
-      border-top-right-radius: 30px;
-      padding-top: 30px;
+      background: var(--lilas-light);
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      padding-top: 0;
     }
     
     /* LAYOUT DE 3 COLUNAS DENTRO DO CONTAINER */
@@ -101,10 +101,10 @@
       margin: 30px auto 0 auto; /* Margem unificada - 30px no topo */
       padding: 0 20px 40px;
       display: grid;
-      grid-template-columns: 280px 1fr 350px;
+      grid-template-columns: 250px 1fr 300px;
       gap: 30px;
-      background: var(--lilas-light);
-      border-radius: 30px 30px 0 0;
+      background: transparent;
+      border-radius: 0;
     }
     
     /* Adiciona espaço entre o topo do container e os cards */
@@ -187,6 +187,9 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
+      background: #f6f5fa;
+      border-radius: 20px;
+      padding: 0 15px;
     }
     
     /* BARRA DE PESQUISA NO FEED */
@@ -268,6 +271,7 @@
     /* FORMULÁRIO DE POST */
     .post-form-card {
       padding: 24px;
+      display: none;
     }
     
     .post-form {
@@ -670,6 +674,79 @@
       box-shadow: 0 12px 35px rgba(155, 93, 229, 0.6);
     }
     
+    /* Modal de Post */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      position: relative;
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(155, 93, 229, 0.3);
+      animation: modalSlideIn 0.3s ease-out;
+      z-index: 10000;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: var(--muted);
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background: var(--roxo-super-claro);
+      color: var(--roxo);
+    }
+    
     /* MENSAGEM VAZIA */
     .empty-state {
       text-align: center;
@@ -920,11 +997,11 @@
             Configurações
           </div>
           <ul class="menu-list">
-            <li class="menu-item" onclick="openSettings('profile')">
+            <li class="menu-item" onclick="window.location.href='/perfil'">
               <i class="fas fa-user"></i>
               <span>Perfil</span>
             </li>
-            <li class="menu-item" onclick="openSettings('privacy')">
+            <li class="menu-item" onclick="window.location.href='/configuracoes'">
               <i class="fas fa-lock"></i>
               <span>Privacidade</span>
             </li>
@@ -951,7 +1028,7 @@
               <i class="fas fa-question-circle"></i>
               <span>Ajuda</span>
             </li>
-            <li class="menu-item" onclick="openSupport('contact')">
+            <li class="menu-item" onclick="window.location.href='/suporte'">
               <i class="fas fa-envelope"></i>
               <span>Contato</span>
             </li>
@@ -983,7 +1060,7 @@
         <div class="card post-form-card">
           <div class="post-header-info">
             <div class="post-form-avatar">U</div>
-            <div class="post-form-user">Usuário</div>
+            <div class="post-form-user">Usuárie</div>
           </div>
           <form class="post-form" id="postForm">
             <textarea 
@@ -1021,7 +1098,7 @@
         <!-- MENSAGEM SEM POSTS -->
         <div class="card empty-state" id="noPosts" style="display: none;">
           <div class="empty-icon">📭</div>
-          <div class="empty-text">Nenhum post para mostrar<br>Seja ê primeire a publicar!</div>
+          <div class="empty-text">Nenhum post para mostrar<br>Seja e primeire a publicar!</div>
         </div>
       </main>
       
@@ -1068,6 +1145,42 @@
     <i class="fas fa-plus"></i>
   </button>
 
+  <!-- MODAL DE POST -->
+  <div class="modal" id="postModal">
+    <div class="modal-overlay" onclick="closePostModal()"></div>
+    <div class="modal-content">
+      <button class="modal-close" onclick="closePostModal()">&times;</button>
+      <div class="post-header-info">
+        <div class="post-form-avatar">U</div>
+        <div class="post-form-user">Usuárie</div>
+      </div>
+      <form class="post-form" id="postFormModal">
+        <textarea 
+          class="post-textarea" 
+          id="postContentModal"
+          placeholder="No que você está pensando?"
+          maxlength="5000"
+        ></textarea>
+        <div class="post-actions">
+          <div class="post-options">
+            <button type="button" class="option-btn">
+              <i class="fas fa-image"></i>
+            </button>
+            <button type="button" class="option-btn">
+              <i class="fas fa-video"></i>
+            </button>
+            <button type="button" class="option-btn">
+              <i class="fas fa-smile"></i>
+            </button>
+          </div>
+          <button type="submit" class="post-button">
+            Publicar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     // URLs DAS SUAS APIS - SUBSTITUA COM SEUS ENDPOINTS REAIS
     const API_BASE_URL = 'http://localhost:3000'; // OU a URL do seu backend
@@ -1085,6 +1198,23 @@
     const profileBtn = document.getElementById('profileBtn');
     const searchInput = document.getElementById('searchInput');
     const searchButton = document.getElementById('searchButton');
+
+    // Modal functions
+    function openPostModal() {
+      document.getElementById('postModal').classList.add('active');
+      document.getElementById('postContentModal').focus();
+    }
+
+    function closePostModal() {
+      document.getElementById('postModal').classList.remove('active');
+    }
+
+    // ESC key handler
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closePostModal();
+      }
+    });
 
     // Funções do menu
     function openSettings(section) {
@@ -1175,7 +1305,7 @@
         postElement.className = 'card post-card';
         
         // Ajuste conforme a estrutura do SEU banco de dados
-        const userName = post.user?.name || post.author_name || 'Usuário';
+        const userName = post.user?.name || post.author_name || 'Usuárie';
         const userInitial = userName.charAt(0).toUpperCase();
         const content = post.content || post.text || '';
         const createdAt = post.created_at || post.createdAt || new Date().toISOString();
@@ -1237,7 +1367,7 @@
       let friendsHTML = '';
       friends.slice(0, 5).forEach(friend => {
         // Ajuste conforme a estrutura do SEU banco de dados
-        const friendName = friend.name || friend.username || 'Usuário';
+        const friendName = friend.name || friend.username || 'Usuárie';
         const initial = friendName.charAt(0).toUpperCase();
         const isOnline = friend.online || friend.status === 'online';
         
@@ -1333,11 +1463,24 @@
       }
     });
     
+    // Modal form submission
+    const postFormModal = document.getElementById('postFormModal');
+    const postContentModal = document.getElementById('postContentModal');
+    
+    postFormModal.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const content = postContentModal.value.trim();
+      if (content) {
+        createPost(content);
+        postContentModal.value = '';
+        closePostModal();
+      } else {
+        alert('Escreva algo para publicar!');
+      }
+    });
+    
     addPostBtn.addEventListener('click', function() {
-      postContent.focus();
-      document.querySelector('.post-form-card').scrollIntoView({
-        behavior: 'smooth'
-      });
+      openPostModal();
     });
     
     profileBtn.addEventListener('click', function() {
