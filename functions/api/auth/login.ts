@@ -1,7 +1,7 @@
 // functions/api/auth/login.ts
 import type { PagesFunction } from '@cloudflare/workers-types';
 import type { Env } from '../../types';
-import { verifyPassword } from '../../src/lib/crypto';
+import { verifyPassword } from '../../../src/lib/crypto';
 
 interface LoginRequest {
   email: string;

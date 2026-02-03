@@ -1,7 +1,7 @@
 // functions/api/auth/register.ts - VERSÃO AUTO-ADAPTATIVA
 import type { PagesFunction } from '@cloudflare/workers-types';
 import type { Env, User } from '../../types';
-import { hashPassword } from '../../src/lib/crypto';
+import { hashPassword } from '../../../src/lib/crypto';
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
