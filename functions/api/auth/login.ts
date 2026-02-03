@@ -18,13 +18,14 @@ interface User {
   verified: boolean;
   online_status: boolean;
   role: string;
-  is_banned: boolean;
+  is_banned: number;  // SQLite stores as 0 or 1
   created_at: string;
 }
 
 export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }) => {
   try {
-    const { email, password } = await request.json();
+    const body = await request.json() as LoginRequest;
+    const { email, password } = body;
     
     // ADICIONAR:
     console.log('[login] Tentativa de login:', { email, hasPassword: !!password });

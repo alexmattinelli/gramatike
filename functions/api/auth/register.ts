@@ -5,7 +5,8 @@ import { hashPassword } from '../../../src/lib/crypto';
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
-    const { username, email, password, name } = await request.json();
+    const body = await request.json() as { username: string; email: string; password: string; name?: string };
+    const { username, email, password, name } = body;
     
     // ADICIONAR:
     console.log('[register] Nova tentativa de registro:', { username, email, hasPassword: !!password });
@@ -146,12 +147,37 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       email 
     });
     
-    // 5. Retornar sucesso
-    return Response.json({
+    // 5. Criar sessão automaticamente (auto-login após registro)
+    const sessionToken = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 dias
+    
+    await env.DB.prepare(
+      'INSERT INTO sessions (user_id, token, expires_at) VALUES (?, ?, ?)'
+    ).bind(result.meta.last_row_id, sessionToken, expiresAt.toISOString()).run();
+    
+    console.log('[register] ✅ Sessão criada, token:', sessionToken.substring(0, 8) + '...');
+    
+    // Criar cookie de sessão
+    const sessionCookie = `session=${sessionToken}; HttpOnly; Path=/; SameSite=Lax; Expires=${expiresAt.toUTCString()}; ${
+      new URL(request.url).protocol === 'https:' ? 'Secure;' : ''
+    }`;
+    
+    // 6. Retornar sucesso com sessão
+    return new Response(JSON.stringify({
       success: true,
       message: 'Usuário criado com sucesso!',
-      userId: result.meta.last_row_id
-    }, { status: 201 });
+      userId: result.meta.last_row_id,
+      session: {
+        token: sessionToken,
+        expires_at: expiresAt.toISOString()
+      }
+    }), { 
+      status: 201,
+      headers: {
+        'Content-Type': 'application/json',
+        'Set-Cookie': sessionCookie
+      }
+    });
     
   } catch (error: any) {
     console.error('Register adaptive error:', error);
@@ -186,8 +212,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return Response.json({
       success: false,
       error: diagnostic.message,
-      suggestion: diagnostic.suggestion,
-      fullError: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      suggestion: diagnostic.suggestion
     }, { status: 500 });
   }
 };

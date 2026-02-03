@@ -38,8 +38,31 @@ export async function hashPassword(password: string): Promise<string> {
   combined.set(salt);
   combined.set(hashArray, salt.length);
   
-  // Convert to base64
-  return btoa(String.fromCharCode(...combined));
+  // Convert to base64 (for Cloudflare Workers compatibility)
+  // Use native base64 encoding with TextDecoder
+  const base64 = arrayBufferToBase64(combined);
+  return base64;
+}
+
+// Helper function to convert Uint8Array to base64
+function arrayBufferToBase64(buffer: Uint8Array): string {
+  let binary = '';
+  const len = buffer.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(buffer[i]);
+  }
+  return btoa(binary);
+}
+
+// Helper function to convert base64 to Uint8Array
+function base64ToArrayBuffer(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
 }
 
 /**
@@ -50,8 +73,8 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
     const encoder = new TextEncoder();
     const data = encoder.encode(password);
     
-    // Decode the stored hash
-    const combined = Uint8Array.from(atob(hash), c => c.charCodeAt(0));
+    // Decode the stored hash (for Cloudflare Workers compatibility)
+    const combined = base64ToArrayBuffer(hash);
     
     // Extract salt (first 16 bytes)
     const salt = combined.slice(0, 16);
@@ -104,7 +127,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 export async function generateToken(length = 32): Promise<string> {
   const array = new Uint8Array(length);
   crypto.getRandomValues(array);
-  return btoa(String.fromCharCode(...array))
+  return arrayBufferToBase64(array)
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=/g, '');
