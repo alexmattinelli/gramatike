@@ -27,21 +27,6 @@ export async function getUserByEmail(db: D1Database, email: string): Promise<Use
 }
 
 /**
- * Create a new user
- */
-export async function createUser(db: D1Database, data: {
-  username: string;
-  email: string;
-  password: string;
-  name?: string;
-}): Promise<User> {
-  const { results } = await db.prepare(
-    'INSERT INTO users (username, email, password, name) VALUES (?, ?, ?, ?) RETURNING *'
-  ).bind(data.username, data.email, data.password, data.name || null).all();
-  return results[0] as unknown as User;
-}
-
-/**
  * Get all users (admin only)
  */
 export async function getAllUsers(db: D1Database): Promise<User[]> {
