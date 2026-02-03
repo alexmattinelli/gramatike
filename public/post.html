@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post - Gramátike</title>
+  <link href="https://fonts.googleapis.com/css2?family=Mansalva&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --roxo: #9B5DE5;
+      --roxo-escuro: #7E3FD1;
+      --roxo-claro: #f9f6ff;
+      --roxo-super-claro: #f7f2ff;
+      --lilas-light: #f6f5fa;
+      --texto: #32264c;
+      --texto-leve: #5a4d7a;
+      --muted: #a8a8d0;
+      --muted-light: #d0cce9;
+      --card-radius: 18px;
+      --shadow-card: 0 4px 20px rgba(155, 93, 229, 0.15);
+      --shadow-hover: 0 8px 30px rgba(155, 93, 229, 0.25);
+      --shadow-btn: 0 4px 12px rgba(155, 93, 229, 0.3);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: var(--roxo);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      color: var(--texto);
+    }
+    
+    /* NAVEGAÇÃO FIXA */
+    nav {
+      background: var(--roxo);
+      height: 70px;
+      position: fixed;
+      top: 0;
+      z-index: 1000;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      box-shadow: 0 1px 3px rgba(155, 93, 229, 0.1);
+    }
+    
+    .logo {
+      font-family: 'Mansalva', cursive;
+      font-size: 32px;
+      color: white;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+    }
+    
+    .profile-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #e9e2ef url('data:image/svg+xml;utf8,<svg fill="rgb(155,93,229)" height="36" viewBox="0 0 32 32" width="36" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="12" r="8"/><ellipse cx="16" cy="28" rx="13" ry="8"/></svg>') center/60% no-repeat;
+      box-shadow: 0 1.5px 7px #9b5de519;
+      border: 2px solid #fff;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    
+    .profile-circle:hover {
+      transform: scale(1.05);
+    }
+    
+    /* CONTAINER PRINCIPAL COM CURVATURA NO TOPO */
+    .main-wrapper {
+      min-height: calc(100vh - 70px);
+      margin-top: 70px;
+      position: relative;
+      z-index: 1;
+      background: var(--lilas-light);
+      border-top-left-radius: 30px;
+      border-top-right-radius: 30px;
+      padding-top: 30px;
+    }
+    
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 30px 20px 40px;
+    }
+    
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: white;
+      border: 1px solid #f0e4fd;
+      border-radius: 12px;
+      color: var(--roxo);
+      text-decoration: none;
+      font-weight: 500;
+      margin-bottom: 20px;
+      transition: var(--transition);
+    }
+    
+    .back-button:hover {
+      background: var(--roxo-super-claro);
+      transform: translateX(-4px);
+    }
+    
+    /* POST CARD */
+    .post-card {
+      background: #fff;
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-card);
+      border: 1px solid #f0e4fd;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    
+    .post-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--roxo-super-claro);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--roxo);
+      font-weight: bold;
+      font-size: 20px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .post-avatar:hover {
+      transform: scale(1.05);
+    }
+    
+    .post-user-info {
+      flex: 1;
+    }
+    
+    .post-username {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--texto);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .verified-badge {
+      color: var(--roxo);
+      font-size: 14px;
+    }
+    
+    .post-time {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    
+    .post-menu {
+      position: relative;
+    }
+    
+    .post-menu-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+    
+    .post-menu-btn:hover {
+      background: var(--roxo-super-claro);
+      color: var(--roxo);
+    }
+    
+    .post-content {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--texto);
+      margin-bottom: 16px;
+      white-space: pre-line;
+    }
+    
+    .post-likes-text {
+      font-size: 14px;
+      color: var(--texto);
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+    
+    .post-likes-text:hover {
+      text-decoration: underline;
+    }
+    
+    .post-interactions {
+      display: flex;
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 1px solid #f0e4fd;
+    }
+    
+    .interaction-btn {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: var(--texto-leve);
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    .interaction-btn:hover {
+      background: var(--roxo-super-claro);
+      color: var(--roxo);
+    }
+    
+    .interaction-btn.active {
+      color: var(--roxo);
+    }
+    
+    .interaction-btn i {
+      font-size: 16px;
+    }
+    
+    /* COMMENTS SECTION */
+    .comments-section {
+      margin-top: 24px;
+    }
+    
+    .comments-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--texto);
+      margin-bottom: 16px;
+    }
+    
+    .comment-form {
+      background: white;
+      border: 1px solid #f0e4fd;
+      border-radius: var(--card-radius);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .comment-input {
+      width: 100%;
+      min-height: 80px;
+      padding: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      margin-bottom: 12px;
+    }
+    
+    .comment-input:focus {
+      outline: none;
+      border-color: var(--roxo);
+      box-shadow: 0 0 0 3px rgba(155, 93, 229, 0.1);
+    }
+    
+    .comment-submit {
+      background: var(--roxo);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .comment-submit:hover {
+      background: var(--roxo-escuro);
+    }
+    
+    .comment-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .comments-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .comment-card {
+      background: white;
+      border: 1px solid #f0e4fd;
+      border-radius: var(--card-radius);
+      padding: 16px;
+    }
+    
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .comment-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--roxo-super-claro);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--roxo);
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
+    .comment-user-info {
+      flex: 1;
+    }
+    
+    .comment-username {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--texto);
+    }
+    
+    .comment-time {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    
+    .comment-content {
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--texto);
+      white-space: pre-line;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
+    
+    .error-message {
+      background: #fee;
+      border: 1px solid #fcc;
+      color: #c33;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .empty-comments {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
+    
+    @media (max-width: 700px) {
+      .container {
+        padding: 20px 12px;
+      }
+      
+      nav {
+        padding: 0 16px;
+      }
+      
+      .logo {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/feed" class="logo">Gramátike</a>
+    <div class="profile-circle" id="profileBtn"></div>
+  </nav>
+  
+  <div class="main-wrapper">
+    <div class="container">
+      <a href="/feed" class="back-button">
+        <i class="fa-solid fa-arrow-left"></i>
+        Voltar ao Feed
+      </a>
+      
+      <div id="errorMessage" class="error-message" style="display: none;"></div>
+      
+      <div id="postContainer" class="loading">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <div>Carregando post...</div>
+      </div>
+      
+      <div id="commentsSection" class="comments-section" style="display: none;">
+        <h2 class="comments-title">Comentários</h2>
+        
+        <div class="comment-form">
+          <textarea 
+            id="commentInput" 
+            class="comment-input" 
+            placeholder="Escreva seu comentário..."
+          ></textarea>
+          <button id="commentSubmit" class="comment-submit" onclick="submitComment()">
+            Comentar
+          </button>
+        </div>
+        
+        <div id="commentsList" class="comments-list"></div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    let currentPostId = null;
+    
+    // Get post ID from URL
+    function getPostIdFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('id');
+    }
+    
+    // Format date
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      
+      if (diffMins < 1) return 'Agora mesmo';
+      if (diffMins < 60) return `Há ${diffMins} min`;
+      if (diffHours < 24) return `Há ${diffHours} h`;
+      if (diffDays < 7) return `Há ${diffDays} dia${diffDays > 1 ? 's' : ''}`;
+      
+      return date.toLocaleDateString('pt-BR', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    
+    // Show error
+    function showError(message) {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+    }
+    
+    // Hide error
+    function hideError() {
+      document.getElementById('errorMessage').style.display = 'none';
+    }
+    
+    // Load post
+    async function loadPost(postId) {
+      try {
+        const response = await fetch(`/api/posts/${postId}`);
+        if (!response.ok) {
+          throw new Error('Post não encontrado');
+        }
+        
+        const data = await response.json();
+        const post = data.data?.post || data.post;
+        
+        if (!post) {
+          throw new Error('Post não encontrado');
+        }
+        
+        renderPost(post);
+        loadComments(postId);
+      } catch (error) {
+        console.error('Erro ao carregar post:', error);
+        showError(error.message || 'Erro ao carregar post');
+        document.getElementById('postContainer').innerHTML = '';
+      }
+    }
+    
+    // Render post
+    function renderPost(post) {
+      const userName = post.user_name || post.name || 'Usuárie';
+      const username = post.username || 'usuario';
+      const userId = post.user_id || 1;
+      const userInitial = userName.charAt(0).toUpperCase();
+      const content = post.content || '';
+      const createdAt = post.created_at;
+      const likes = post.likes || 0;
+      const verified = post.verified || false;
+      
+      const isCurrentUser = userId == (window.currentUserId || 0);
+      const profileUrl = isCurrentUser ? '/meu_perfil.html' : `/perfil.html?user=${userId}`;
+      
+      const postHTML = `
+        <div class="post-card">
+          <div class="post-header">
+            <div class="post-avatar" onclick="window.location.href='${profileUrl}'">${userInitial}</div>
+            <div class="post-user-info">
+              <div class="post-username">
+                ${userName}
+                ${verified ? '<span class="verified-badge">✓</span>' : ''}
+              </div>
+              <div class="post-time">@${username} • ${formatDate(createdAt)}</div>
+            </div>
+          </div>
+          <div class="post-content">${content.replace(/\n/g, '<br>')}</div>
+          ${likes > 0 ? `<div class="post-likes-text"><strong>${likes}</strong> ${likes === 1 ? 'curtida' : 'curtidas'}</div>` : ''}
+          <div class="post-interactions">
+            <button class="interaction-btn like-btn" onclick="likePost()">
+              <i class="fa-regular fa-heart"></i> Curtir
+            </button>
+            <button class="interaction-btn comment-btn active">
+              <i class="fa-solid fa-comment"></i> Comentar
+            </button>
+            <button class="interaction-btn share-btn" onclick="sharePost()">
+              <i class="fa-solid fa-share"></i> Compartilhar
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('postContainer').innerHTML = postHTML;
+      document.getElementById('commentsSection').style.display = 'block';
+    }
+    
+    // Load comments (placeholder - will need backend implementation)
+    async function loadComments(postId) {
+      const commentsList = document.getElementById('commentsList');
+      commentsList.innerHTML = '<div class="empty-comments">Seja o primeiro a comentar!</div>';
+      
+      // TODO: Implement API call when backend is ready
+      // try {
+      //   const response = await fetch(`/api/posts/${postId}/comments`);
+      //   if (response.ok) {
+      //     const data = await response.json();
+      //     renderComments(data.comments || []);
+      //   }
+      // } catch (error) {
+      //   console.error('Erro ao carregar comentários:', error);
+      // }
+    }
+    
+    // Render comments
+    function renderComments(comments) {
+      const commentsList = document.getElementById('commentsList');
+      
+      if (!comments || comments.length === 0) {
+        commentsList.innerHTML = '<div class="empty-comments">Seja o primeiro a comentar!</div>';
+        return;
+      }
+      
+      commentsList.innerHTML = comments.map(comment => {
+        const userName = comment.user_name || comment.name || 'Usuárie';
+        const userInitial = userName.charAt(0).toUpperCase();
+        const content = comment.content || '';
+        const createdAt = comment.created_at;
+        
+        return `
+          <div class="comment-card">
+            <div class="comment-header">
+              <div class="comment-avatar">${userInitial}</div>
+              <div class="comment-user-info">
+                <div class="comment-username">${userName}</div>
+                <div class="comment-time">${formatDate(createdAt)}</div>
+              </div>
+            </div>
+            <div class="comment-content">${content.replace(/\n/g, '<br>')}</div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // Submit comment (placeholder - will need backend implementation)
+    async function submitComment() {
+      const input = document.getElementById('commentInput');
+      const content = input.value.trim();
+      
+      if (!content) {
+        return;
+      }
+      
+      const submitBtn = document.getElementById('commentSubmit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+      
+      try {
+        // TODO: Implement API call when backend is ready
+        // const response = await fetch(`/api/posts/${currentPostId}/comments`, {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({ content })
+        // });
+        
+        // if (response.ok) {
+        //   input.value = '';
+        //   await loadComments(currentPostId);
+        // }
+        
+        alert('Funcionalidade de comentários será implementada em breve!');
+      } catch (error) {
+        console.error('Erro ao enviar comentário:', error);
+        showError('Erro ao enviar comentário');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Comentar';
+      }
+    }
+    
+    // Like post
+    async function likePost() {
+      if (!currentPostId) return;
+      
+      try {
+        const response = await fetch(`/api/posts/${currentPostId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+          await loadPost(currentPostId);
+        }
+      } catch (error) {
+        console.error('Erro ao curtir:', error);
+      }
+    }
+    
+    // Share post
+    async function sharePost() {
+      try {
+        const url = window.location.href;
+        
+        if (navigator.share) {
+          await navigator.share({
+            title: 'Post - Gramátike',
+            text: 'Confira este post no Gramátike!',
+            url: url
+          });
+        } else {
+          await navigator.clipboard.writeText(url);
+          alert('Link copiado para área de transferência!');
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Erro ao compartilhar:', error);
+        }
+      }
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      currentPostId = getPostIdFromURL();
+      
+      if (!currentPostId) {
+        showError('ID do post não especificado');
+        document.getElementById('postContainer').innerHTML = '';
+        return;
+      }
+      
+      loadPost(currentPostId);
+      
+      // Setup profile button
+      const profileBtn = document.getElementById('profileBtn');
+      if (profileBtn) {
+        profileBtn.addEventListener('click', () => {
+          window.location.href = '/meu_perfil.html';
+        });
+      }
+    });
+  </script>
+</body>
+</html>
