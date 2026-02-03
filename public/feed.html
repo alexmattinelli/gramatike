@@ -90,9 +90,9 @@
       position: relative;
       z-index: 1;
       background: var(--lilas-light);
-      border-top-left-radius: 0;
-      border-top-right-radius: 0;
-      padding-top: 0;
+      border-top-left-radius: 30px;
+      border-top-right-radius: 30px;
+      padding-top: 30px;
     }
     
     /* LAYOUT DE 3 COLUNAS DENTRO DO CONTAINER */
@@ -194,12 +194,12 @@
     
     /* BARRA DE PESQUISA NO FEED */
     .search-card {
-      background: #fff;
-      border-radius: var(--card-radius);
-      box-shadow: var(--shadow-card);
-      border: 1px solid #f0e4fd;
-      padding: 20px;
-      margin-top: 15px;
+      background: transparent;
+      border-radius: 0;
+      box-shadow: none;
+      border: none;
+      padding: 0;
+      margin-bottom: 20px;
     }
     
     .search-box {
@@ -873,8 +873,7 @@
       .post-form-card,
       .post-card,
       .sidebar-card,
-      .menu-card,
-      .search-card {
+      .menu-card {
         padding: 16px;
       }
       
