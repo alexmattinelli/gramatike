@@ -66,13 +66,20 @@ O R2 é um serviço de armazenamento de objetos compatível com S3.
 wrangler r2 bucket create gramatike
 ```
 
-### 2.2 Configurar acesso público (opcional)
+### 2.2 Configurar acesso público ⚠️ OBRIGATÓRIO
+
+**IMPORTANTE:** Sem acesso público configurado, o site mostrará erro 404 ao tentar carregar imagens no mobile!
 
 No dashboard do Cloudflare:
 1. Acesse **R2** → **gramatike**
 2. Vá em **Settings**
-3. Em **Public Access**, clique em **Allow Access**
-4. Copie o URL público (formato: `https://pub-xxxxx.r2.dev`)
+3. Em **Public Access**, clique em **Allow Access** ou **Connect Domain**
+4. Escolha **R2.dev subdomain** para obter um domínio público automático
+5. Copie o URL público (formato: `https://pub-xxxxx.r2.dev`)
+
+**Alternativa:** Configure um domínio personalizado (ex: `files.gramatike.com.br`)
+
+**📖 Guia Completo:** Veja [R2_PUBLIC_ACCESS_SETUP.md](R2_PUBLIC_ACCESS_SETUP.md) para instruções detalhadas e troubleshooting.
 
 ### 2.3 Criar Access Key
 
