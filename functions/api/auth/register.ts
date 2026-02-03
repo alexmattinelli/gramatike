@@ -7,9 +7,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
     const { username, email, password, name } = await request.json();
     
-    console.log('[register] Tentando registrar usuário:', { username, email });
+    // ADICIONAR:
+    console.log('[register] Nova tentativa de registro:', { username, email, hasPassword: !!password });
     
     if (!username || !email || !password) {
+      console.log('[register] ❌ Campos obrigatórios faltando');
       return Response.json({
         success: false,
         error: 'Usuário, email e senha são obrigatórios'
@@ -137,13 +139,17 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       throw new Error('Insert failed');
     }
     
-    console.log('[register] ✅ Usuário criado com sucesso! ID:', result.meta.last_row_id);
+    // ADICIONAR:
+    console.log('[register] ✅ Usuário criado com sucesso!', { 
+      userId: result.meta.last_row_id,
+      username,
+      email 
+    });
     
     // 5. Retornar sucesso
     return Response.json({
       success: true,
       message: 'Usuário criado com sucesso!',
-      columnsUsed: insertColumns,
       userId: result.meta.last_row_id
     }, { status: 201 });
     
