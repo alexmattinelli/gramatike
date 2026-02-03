@@ -1432,6 +1432,12 @@
   </div>
 
   <script>
+    // For development/testing: Set a mock current user ID
+    // In production, this will be set by loadServerData from APP_DATA
+    if (!window.currentUserId) {
+      window.currentUserId = 1; // Mock user ID for testing (Maria Silva)
+    }
+    
     // Elementos DOM
     const postForm = document.getElementById('postForm');
     const postContent = document.getElementById('postContent');
