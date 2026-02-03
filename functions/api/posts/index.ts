@@ -58,6 +58,23 @@ export const onRequestGet: PagesFunction<{ DB: any }> = async ({ request, env })
     // Buscar posts
     const { results } = await env.DB.prepare(query).bind(...params).all();
     
+    // Para cada post, buscar os primeiros 3 usuários que curtiram
+    const postsWithLikes = await Promise.all((results || []).map(async (post: any) => {
+      const { results: likedByResults } = await env.DB.prepare(
+        `SELECT users.id, users.username, users.name, users.avatar_initials
+         FROM post_likes
+         INNER JOIN users ON post_likes.user_id = users.id
+         WHERE post_likes.post_id = ?
+         ORDER BY post_likes.created_at DESC
+         LIMIT 3`
+      ).bind(post.id).all();
+      
+      return {
+        ...post,
+        liked_by: likedByResults || []
+      };
+    }));
+    
     // Contar total de posts (com filtro se aplicável)
     let countQuery = 'SELECT COUNT(*) as total FROM posts';
     let countParams: any[] = [];
@@ -75,7 +92,7 @@ export const onRequestGet: PagesFunction<{ DB: any }> = async ({ request, env })
     return new Response(JSON.stringify({
       success: true,
       data: {
-        posts: results || [],
+        posts: postsWithLikes,
         pagination: {
           limit,
           offset,
