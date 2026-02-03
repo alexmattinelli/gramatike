@@ -5,7 +5,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ data, env, request }) =
   // Verificar se usuário está autenticado
   if (!data.user) {
     // Redirecionar para login se não estiver autenticado
-    return Response.redirect(new URL('/login', request.url));
+    return Response.redirect(new URL('/', request.url));
   }
   
   const user = data.user;
