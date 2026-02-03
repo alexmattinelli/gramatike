@@ -14,6 +14,8 @@ export interface User {
   verified?: boolean;
   online_status?: boolean;
   role?: 'user' | 'admin' | 'moderator';
+  is_admin?: number;
+  is_banned?: number;
   created_at?: string;
 }
 

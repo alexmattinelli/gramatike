@@ -18,7 +18,7 @@ interface User {
   verified: boolean;
   online_status: boolean;
   role: string;
-  is_banned: boolean;
+  is_banned: number;  // SQLite stores as 0 or 1
   created_at: string;
 }
 

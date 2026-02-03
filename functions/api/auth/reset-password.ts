@@ -1,6 +1,7 @@
 // functions/api/auth/reset-password.ts
 import type { PagesFunction } from '@cloudflare/workers-types';
 import type { Env } from '../../types';
+import { hashPassword } from '../../../src/lib/crypto';
 
 interface ResetPasswordRequest {
   email: string;
@@ -68,12 +69,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       }, { status: 400 });
     }
     
-    // Atualizar a senha do usuário
-    // TODO: SECURITY - Hash password before production! Use bcrypt.hash(newPassword, 10)
-    // ⚠️ CRITICAL: Currently storing plain text passwords - NEVER use in production
+    // Atualizar a senha do usuário (hash com PBKDF2)
+    const hashedPassword = await hashPassword(newPassword);
     await env.DB.prepare(
       'UPDATE users SET password_hash = ? WHERE id = ?'
-    ).bind(newPassword, user.id).run();
+    ).bind(hashedPassword, user.id).run();
     
     // Marcar token como usado
     await env.DB.prepare(
