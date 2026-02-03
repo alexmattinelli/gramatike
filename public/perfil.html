@@ -22,7 +22,7 @@
     }
     nav {
       background: var(--roxo);
-      height: 62px;
+      height: 70px;
       position: fixed;
       top: 0;
       z-index: 100;
@@ -30,13 +30,14 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 30px;
+      padding: 0 28px;
+      box-shadow: 0 1px 3px rgba(155, 93, 229, 0.1);
     }
     .logo {
       font-family: 'Mansalva', cursive;
-      font-size: 28px;
-      color: #fff;
-      letter-spacing: 0.2px;
+      font-size: 32px;
+      color: white;
+      letter-spacing: 0.5px;
       text-decoration: none;
     }
     .profile-circle {
@@ -52,11 +53,11 @@
     .profile-circle:hover { transform: scale(1.05); }
     .main-wrapper {
       background: var(--lilas-light);
-      min-height: calc(100vh - 62px);
+      min-height: calc(100vh - 70px);
       border-top-left-radius: 30px;
       border-top-right-radius: 30px;
       padding-top: 30px;
-      margin-top: 62px;
+      margin-top: 70px;
       position: relative;
       z-index: 1;
     }
@@ -186,9 +187,9 @@
     <div class="container">
       <div class="profile-card">
           <div class="profile-avatar" id="profileAvatar">A</div>
-        <div class="profile-name" id="profileName">Nome do Usuário</div>
+        <div class="profile-name" id="profileName">Nome de Usuárie</div>
         <div class="profile-username" id="profileUsername">@username</div>
-        <div class="profile-bio" id="profileBio">Biografia curta do usuário.</div>
+        <div class="profile-bio" id="profileBio">Biografia curta de usuárie.</div>
         <div class="profile-info" id="profileInfo">Entrou em 01/2026</div>
       </div>
       <span class="section-title">Posts recentes</span>
@@ -198,17 +199,17 @@
     </div>
   </div>
   <script>
-    // Exemplo: buscar dados do usuário e posts via API futuramente
+    // Exemplo: buscar dados de usuárie e posts via API futuramente
     // Aqui é só mock para visual
     const user = {
-      name: "Nome do Usuário",
+      name: "Nome de Usuárie",
       username: "username",
-      bio: "Biografia curta do usuário.",
+      bio: "Biografia curta de usuárie.",
       joined: "2026-01-01",
       avatar: "A"
     };
     const posts = [
-      { id: 1, content: "Primeiro post do usuário!", created_at: "2026-01-09T10:00:00Z" },
+      { id: 1, content: "Primeiro post de usuárie!", created_at: "2026-01-09T10:00:00Z" },
       { id: 2, content: "Mais um post para mostrar o card.", created_at: "2026-01-08T15:30:00Z" }
     ];
     document.getElementById('profileAvatar').textContent = user.avatar;
