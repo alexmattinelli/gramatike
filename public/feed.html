@@ -1247,7 +1247,7 @@
             Configurações
           </div>
           <ul class="menu-list">
-            <li class="menu-item" onclick="window.location.href='/perfil'">
+            <li class="menu-item" onclick="window.location.href='/meu_perfil.html'">
               <i class="fas fa-user"></i>
               <span>Perfil</span>
             </li>
@@ -1508,6 +1508,8 @@
           if (profileBtn) {
             profileBtn.textContent = window.APP_DATA.user.initials;
           }
+          // Set current user ID for navigation logic
+          window.currentUserId = window.APP_DATA.user.id;
         }
       } else {
         // Fallback: tentar buscar via API (modo desenvolvimento)
@@ -1626,9 +1628,13 @@
           </div>`;
         }
         
+        // Determine profile URL based on whether it's current user's post
+        const isCurrentUser = userId == (window.currentUserId || 0);
+        const profileUrl = isCurrentUser ? '/meu_perfil.html' : `/perfil.html?user=${userId}`;
+        
         postElement.innerHTML = `
           <div class="post-header">
-            <div class="post-avatar" onclick="window.location.href='/perfil.html?user=${userId}'" style="cursor: pointer;">${userInitial}</div>
+            <div class="post-avatar" onclick="window.location.href='${profileUrl}'" style="cursor: pointer;">${userInitial}</div>
             <div class="post-user-info">
               <div class="post-username">
                 ${userName}
