@@ -24,14 +24,13 @@ interface User {
 
 export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }) => {
   try {
-    // Verificar corpo da requisição
-    const body = await request.json() as LoginRequest;
-    const { email, password } = body;
+    const { email, password } = await request.json();
     
-    console.log('[login] Tentativa de login para email:', email);
+    // ADICIONAR:
+    console.log('[login] Tentativa de login:', { email, hasPassword: !!password });
     
-    // Validações básicas
     if (!email || !password) {
+      console.log('[login] ❌ Email ou senha não fornecidos');
       return new Response(JSON.stringify({
         success: false,
         error: 'Email e senha são obrigatórios'
@@ -58,11 +57,14 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
       'SELECT * FROM users WHERE email = ? LIMIT 1'
     ).bind(email.toLowerCase().trim()).all();
     
-    console.log('[login] Resultado da busca:', results ? `${results.length} usuário(s) encontrado(s)` : 'Nenhum resultado');
+    // ADICIONAR:
+    console.log('[login] Resultado da busca:', { 
+      userFound: !!results && results.length > 0,
+      username: results && results.length > 0 ? results[0].username : undefined
+    });
     
     if (!results || results.length === 0) {
-      console.log('[login] ❌ Usuário não encontrado para email:', email);
-      // Retornar erro genérico por segurança
+      console.log('[login] ❌ Usuário não encontrado');
       return new Response(JSON.stringify({
         success: false,
         error: 'Email ou senha incorretos'
@@ -88,10 +90,12 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
       });
     }
     
-    // Verificar senha usando PBKDF2
-    // Use a função verifyPassword da crypto lib
+    // Verificar senha
+    console.log('[login] Verificando senha...');
+    
+    // Se não tiver password_hash no banco, rejeitar
     if (!user.password_hash) {
-      console.log('[login] ❌ Usuário sem password_hash configurado');
+      console.log('[login] ⚠️ Usuário sem password_hash no banco');
       return new Response(JSON.stringify({
         success: false,
         error: 'Email ou senha incorretos'
@@ -101,12 +105,11 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
       });
     }
     
-    console.log('[login] Verificando senha com PBKDF2...');
+    console.log('[login] Comparando senha com hash armazenado');
     const isPasswordValid = await verifyPassword(password, user.password_hash);
-    console.log('[login] Senha válida?', isPasswordValid);
     
     if (!isPasswordValid) {
-      console.log('[login] ❌ Senha incorreta para:', email);
+      console.log('[login] ❌ Senha incorreta');
       return new Response(JSON.stringify({
         success: false,
         error: 'Email ou senha incorretos'
@@ -115,6 +118,8 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
         headers: { 'Content-Type': 'application/json' }
       });
     }
+    
+    console.log('[login] ✅ Senha correta!');
     
     console.log('[login] ✅ Autenticação bem-sucedida para:', email);
     
@@ -171,7 +176,7 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ request, env }
     });
     
   } catch (error) {
-    console.error('[login] Error:', error);
+    console.error('[login] ❌ Erro fatal:', error);
     return new Response(JSON.stringify({
       success: false,
       error: 'Erro interno ao fazer login'
