@@ -515,6 +515,7 @@
       const content = post.content || '';
       const createdAt = post.created_at;
       const likes = post.likes || 0;
+      const comments = post.comments || 0;
       const verified = post.verified || false;
       
       const isCurrentUser = userId == (window.currentUserId || 0);
@@ -534,6 +535,7 @@
           </div>
           <div class="post-content">${content.replace(/\n/g, '<br>')}</div>
           ${likes > 0 ? `<div class="post-likes-text"><strong>${likes}</strong> ${likes === 1 ? 'curtida' : 'curtidas'}</div>` : ''}
+          ${comments > 0 ? `<div class="post-likes-text"><strong>${comments}</strong> ${comments === 1 ? 'comentário' : 'comentários'}</div>` : ''}
           <div class="post-interactions">
             <button class="interaction-btn like-btn" onclick="likePost()">
               <i class="fa-regular fa-heart"></i> Curtir
@@ -552,21 +554,24 @@
       document.getElementById('commentsSection').style.display = 'block';
     }
     
-    // Load comments (placeholder - will need backend implementation)
+    // Load comments
     async function loadComments(postId) {
       const commentsList = document.getElementById('commentsList');
-      commentsList.innerHTML = '<div class="empty-comments">Seja o primeiro a comentar!</div>';
+      commentsList.innerHTML = '<div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> Carregando comentários...</div>';
       
-      // TODO: Implement API call when backend is ready
-      // try {
-      //   const response = await fetch(`/api/posts/${postId}/comments`);
-      //   if (response.ok) {
-      //     const data = await response.json();
-      //     renderComments(data.comments || []);
-      //   }
-      // } catch (error) {
-      //   console.error('Erro ao carregar comentários:', error);
-      // }
+      try {
+        const response = await fetch(`/api/posts/${postId}/comments`);
+        if (response.ok) {
+          const data = await response.json();
+          const comments = data.data?.comments || data.comments || [];
+          renderComments(comments);
+        } else {
+          commentsList.innerHTML = '<div class="empty-comments">Erro ao carregar comentários</div>';
+        }
+      } catch (error) {
+        console.error('Erro ao carregar comentários:', error);
+        commentsList.innerHTML = '<div class="empty-comments">Erro ao carregar comentários</div>';
+      }
     }
     
     // Render comments
@@ -599,12 +604,13 @@
       }).join('');
     }
     
-    // Submit comment (placeholder - will need backend implementation)
+    // Submit comment
     async function submitComment() {
       const input = document.getElementById('commentInput');
       const content = input.value.trim();
       
       if (!content) {
+        alert('Por favor, escreva um comentário');
         return;
       }
       
@@ -613,22 +619,24 @@
       submitBtn.textContent = 'Enviando...';
       
       try {
-        // TODO: Implement API call when backend is ready
-        // const response = await fetch(`/api/posts/${currentPostId}/comments`, {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ content })
-        // });
+        const response = await fetch(`/api/posts/${currentPostId}/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content })
+        });
         
-        // if (response.ok) {
-        //   input.value = '';
-        //   await loadComments(currentPostId);
-        // }
-        
-        alert('Funcionalidade de comentários será implementada em breve!');
+        if (response.ok) {
+          input.value = '';
+          await loadComments(currentPostId);
+          // Also reload post to update comment count
+          await loadPost(currentPostId);
+        } else {
+          const data = await response.json();
+          throw new Error(data.error || 'Erro ao enviar comentário');
+        }
       } catch (error) {
         console.error('Erro ao enviar comentário:', error);
-        showError('Erro ao enviar comentário');
+        showError(error.message || 'Erro ao enviar comentário');
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Comentar';

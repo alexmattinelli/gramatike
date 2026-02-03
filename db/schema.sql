@@ -65,6 +65,17 @@ CREATE TABLE post_likes (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Tabela de comentários em posts
+CREATE TABLE post_comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Índices
 CREATE INDEX idx_posts_user_id ON posts(user_id);
 CREATE INDEX idx_posts_created_at ON posts(created_at DESC);
@@ -75,3 +86,6 @@ CREATE INDEX idx_password_resets_user_id ON password_resets(user_id);
 CREATE INDEX idx_post_likes_post_id ON post_likes(post_id);
 CREATE INDEX idx_post_likes_user_id ON post_likes(user_id);
 CREATE INDEX idx_post_likes_created_at ON post_likes(created_at DESC);
+CREATE INDEX idx_post_comments_post_id ON post_comments(post_id);
+CREATE INDEX idx_post_comments_user_id ON post_comments(user_id);
+CREATE INDEX idx_post_comments_created_at ON post_comments(created_at DESC);
