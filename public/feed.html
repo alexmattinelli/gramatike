@@ -37,7 +37,7 @@
       color: var(--texto);
     }
     
-    /* NAVEGAÇÃO FIXA COM CURVATURA SUPERIOR */
+    /* NAVEGAÇÃO FIXA */
     nav {
       background: var(--roxo);
       height: 70px;
@@ -48,10 +48,6 @@
       justify-content: space-between;
       padding: 0 28px;
       box-shadow: 0 1px 3px rgba(155, 93, 229, 0.1);
-      border-bottom-left-radius: 30px;
-      border-bottom-right-radius: 30px;
-      border-top-left-radius: 0;
-      border-top-right-radius: 0;
     }
     
     .logo {
@@ -1181,13 +1177,6 @@
   </div>
 
   <script>
-    // URLs DAS SUAS APIS - SUBSTITUA COM SEUS ENDPOINTS REAIS
-    const API_BASE_URL = 'http://localhost:3000'; // OU a URL do seu backend
-    const API_POSTS_URL = `${API_BASE_URL}/api/posts`;
-    const API_FRIENDS_URL = `${API_BASE_URL}/api/friends`;
-    const API_CREATE_POST_URL = `${API_BASE_URL}/api/posts/create`;
-    const API_LIKE_POST_URL = `${API_BASE_URL}/api/posts/like`;
-
     // Elementos DOM
     const postForm = document.getElementById('postForm');
     const postContent = document.getElementById('postContent');
@@ -1242,9 +1231,33 @@
     }
 
     // Buscar posts do SEU banco de dados
+    // Função para usar dados do servidor (injetados via APP_DATA)
+    function loadServerData() {
+      if (window.APP_DATA) {
+        // Usar dados do servidor
+        if (window.APP_DATA.posts) {
+          renderPosts(window.APP_DATA.posts);
+        }
+        if (window.APP_DATA.amigos) {
+          renderFriends(window.APP_DATA.amigos);
+        }
+        // Atualizar informações do usuário
+        if (window.APP_DATA.user) {
+          const profileBtn = document.getElementById('profileBtn');
+          if (profileBtn) {
+            profileBtn.textContent = window.APP_DATA.user.initials;
+          }
+        }
+      } else {
+        // Fallback: tentar buscar via API (modo desenvolvimento)
+        fetchRealPosts();
+        fetchRealFriends();
+      }
+    }
+
     async function fetchRealPosts() {
       try {
-        const response = await fetch(API_POSTS_URL);
+        const response = await fetch('/api/posts');
         if (response.ok) {
           const data = await response.json();
           renderPosts(data);
@@ -1258,13 +1271,13 @@
       }
     }
 
-    // Buscar amigos do SEU banco de dados
+    // Buscar amigos do banco de dados
     async function fetchRealFriends() {
       const friendsList = document.getElementById('friendsList');
       if (!friendsList) return;
       
       try {
-        const response = await fetch(API_FRIENDS_URL);
+        const response = await fetch('/api/friends');
         if (response.ok) {
           const data = await response.json();
           renderFriends(data);
@@ -1273,16 +1286,16 @@
           friendsList.innerHTML = `
             <div class="empty-state">
               <div class="empty-icon">⚠️</div>
-              <div class="empty-text">Erro ao carregar amigos</div>
+              <div class="empty-text">Erro ao carregar amigues</div>
             </div>
           `;
         }
       } catch (error) {
-        console.error('Erro ao buscar amigos:', error);
+        console.error('Erro ao buscar amigues:', error);
         friendsList.innerHTML = `
           <div class="empty-state">
             <div class="empty-icon">⚠️</div>
-            <div class="empty-text">Erro ao carregar amigos</div>
+            <div class="empty-text">Erro ao carregar amigues</div>
           </div>
         `;
       }
@@ -1384,24 +1397,12 @@
       friendsList.innerHTML = friendsHTML;
     }
 
-    // Criar novo post (ENVIA para SEU banco de dados)
+    // Criar novo post (ENVIA para o banco de dados)
     async function createPost(content) {
       try {
-        const response = await fetch(API_CREATE_POST_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            // Adicione token de autenticação se necessário
-            // 'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({ 
-            content: content,
-            // Adicione outros campos necessários para SEU banco
-          })
-        });
-        
-        if (response.ok) {
-          const newPost = await response.json();
+        if (window.GramatikeAPI) {
+          // Usar API helper do servidor
+          const result = await window.GramatikeAPI.post(content);
           // Recarrega os posts após criar
           await fetchRealPosts();
           postContent.value = '';
@@ -1411,7 +1412,26 @@
             behavior: 'smooth'
           });
         } else {
-          alert('Erro ao publicar post');
+          // Fallback para desenvolvimento
+          const response = await fetch('/api/posts', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ content: content })
+          });
+          
+          if (response.ok) {
+            await fetchRealPosts();
+            postContent.value = '';
+            
+            window.scrollTo({
+              top: 0,
+              behavior: 'smooth'
+            });
+          } else {
+            alert('Erro ao publicar post');
+          }
         }
       } catch (error) {
         console.error('Erro:', error);
@@ -1652,10 +1672,9 @@
       gameSubtitle.textContent = 'Você: X';
     }
 
-    // Inicializar - Carregar dados do SEU banco
+    // Inicializar - Usar dados do servidor ou buscar via API
     document.addEventListener('DOMContentLoaded', function() {
-      fetchRealPosts();
-      fetchRealFriends();
+      loadServerData();
     });
   </script>
 </body>
