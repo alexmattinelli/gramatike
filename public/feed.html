@@ -1083,8 +1083,6 @@
       .main-wrapper {
         margin-top: 64px;
         min-height: calc(100vh - 64px);
-        border-top-left-radius: 25px;
-        border-top-right-radius: 25px;
       }
       
       .layout-container {
@@ -1127,11 +1125,6 @@
       .sidebar-card,
       .menu-card {
         padding: 16px;
-      }
-      
-      .main-wrapper {
-        border-top-left-radius: 20px;
-        border-top-right-radius: 20px;
       }
       
       .right-sidebar {
@@ -1486,9 +1479,10 @@
       if (diffMins < 1) return 'Agora mesmo';
       if (diffMins < 60) return `Há ${diffMins} min`;
       if (diffHours < 24) return `Há ${diffHours} h`;
+      if (diffDays < 7) return `Há ${diffDays} dia${diffDays > 1 ? 's' : ''}`;
       
-      // After 24 hours, show the full date and time
-      return date.toLocaleDateString('pt-BR', { 
+      // After 7 days, show the full date and time
+      return date.toLocaleString('pt-BR', { 
         day: '2-digit', 
         month: '2-digit', 
         year: 'numeric',
@@ -1792,17 +1786,18 @@
           updateLikeButtonIcon(btnElement);
         }
         
-        const response = await fetch('/api/posts/' + postId + '/like', {
-          method: 'POST',
+        const response = await fetch('/api/posts/' + postId, {
+          method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ postId: postId })
+          }
         });
         
         if (response.ok) {
-          // Optionally reload posts, but for now just keep the visual state
-          console.log('Post curtido com sucesso!');
+          const data = await response.json();
+          console.log('Post curtido com sucesso!', data);
+          // Reload posts to update like count and list of users who liked
+          await fetchRealPosts();
         } else {
           console.error('Erro ao curtir post:', response.status);
           // Revert the button state if failed
@@ -1822,47 +1817,27 @@
     }
 
     async function commentPost(postId) {
-      // For now, just show an alert. Can be enhanced with a modal later
-      const comment = prompt('Digite seu comentário:');
-      if (comment && comment.trim()) {
-        try {
-          const response = await fetch('/api/posts/' + postId + '/comments', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ content: comment.trim() })
-          });
-          
-          if (response.ok) {
-            alert('Comentário publicado com sucesso!');
-            await fetchRealPosts();
-          } else {
-            const errorData = await response.json().catch(() => ({}));
-            alert('Erro ao publicar comentário: ' + (errorData.error || 'Status ' + response.status));
-          }
-        } catch (error) {
-          console.error('Erro de rede:', error);
-          alert('Erro de conexão ao publicar comentário');
-        }
-      }
+      // Navigate to individual post page
+      window.location.href = `/post.html?id=${postId}`;
     }
 
     async function sharePost(postId) {
       try {
+        // Build the post URL
+        const postUrl = `${window.location.origin}/post.html?id=${postId}`;
+        
         // Try to use Web Share API if available
         if (navigator.share) {
           await navigator.share({
             title: 'Compartilhar post - Gramátike',
             text: 'Confira este post no Gramátike!',
-            url: window.location.href + '?post=' + postId
+            url: postUrl
           });
+          console.log('Post compartilhado com sucesso!');
         } else {
           // Fallback: copy link to clipboard
-          const url = window.location.href + '?post=' + postId;
-          await navigator.clipboard.writeText(url);
-          // Using console.log instead of alert for non-blocking feedback
-          console.log('Link copiado para área de transferência!');
+          await navigator.clipboard.writeText(postUrl);
+          alert('Link copiado para área de transferência!');
         }
         
         // Optionally track the share
