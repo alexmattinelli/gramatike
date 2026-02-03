@@ -1464,19 +1464,24 @@
     }
 
     // Curtir post (ENVIA para SEU banco de dados)
+    function updateLikeButtonIcon(btnElement) {
+      if (!btnElement) return;
+      const icon = btnElement.querySelector('i');
+      if (icon) {
+        if (btnElement.classList.contains('active')) {
+          icon.className = 'fa-solid fa-heart';
+        } else {
+          icon.className = 'fa-regular fa-heart';
+        }
+      }
+    }
+
     async function likePost(postId, btnElement) {
       try {
         // Toggle active state
         if (btnElement) {
           btnElement.classList.toggle('active');
-          const icon = btnElement.querySelector('i');
-          if (icon) {
-            if (btnElement.classList.contains('active')) {
-              icon.className = 'fa-solid fa-heart';
-            } else {
-              icon.className = 'fa-regular fa-heart';
-            }
-          }
+          updateLikeButtonIcon(btnElement);
         }
         
         const response = await fetch('/api/posts/' + postId + '/like', {
@@ -1491,33 +1496,19 @@
           // Optionally reload posts, but for now just keep the visual state
           console.log('Post curtido com sucesso!');
         } else {
-          console.error('Erro ao curtir post');
+          console.error('Erro ao curtir post:', response.status);
           // Revert the button state if failed
           if (btnElement) {
             btnElement.classList.toggle('active');
-            const icon = btnElement.querySelector('i');
-            if (icon) {
-              if (btnElement.classList.contains('active')) {
-                icon.className = 'fa-solid fa-heart';
-              } else {
-                icon.className = 'fa-regular fa-heart';
-              }
-            }
+            updateLikeButtonIcon(btnElement);
           }
         }
       } catch (error) {
-        console.error('Erro:', error);
+        console.error('Erro ao curtir:', error);
         // Revert the button state if failed
         if (btnElement) {
           btnElement.classList.toggle('active');
-          const icon = btnElement.querySelector('i');
-          if (icon) {
-            if (btnElement.classList.contains('active')) {
-              icon.className = 'fa-solid fa-heart';
-            } else {
-              icon.className = 'fa-regular fa-heart';
-            }
-          }
+          updateLikeButtonIcon(btnElement);
         }
       }
     }
@@ -1539,11 +1530,12 @@
             alert('Comentário publicado com sucesso!');
             await fetchRealPosts();
           } else {
-            alert('Erro ao publicar comentário');
+            const errorData = await response.json().catch(() => ({}));
+            alert('Erro ao publicar comentário: ' + (errorData.error || 'Status ' + response.status));
           }
         } catch (error) {
-          console.error('Erro:', error);
-          alert('Erro ao publicar comentário');
+          console.error('Erro de rede:', error);
+          alert('Erro de conexão ao publicar comentário');
         }
       }
     }
@@ -1561,7 +1553,8 @@
           // Fallback: copy link to clipboard
           const url = window.location.href + '?post=' + postId;
           await navigator.clipboard.writeText(url);
-          alert('Link copiado para área de transferência!');
+          // Using console.log instead of alert for non-blocking feedback
+          console.log('Link copiado para área de transferência!');
         }
         
         // Optionally track the share
@@ -1576,8 +1569,12 @@
           console.log('Could not track share:', error);
         }
       } catch (error) {
-        console.error('Erro ao compartilhar:', error);
-        alert('Erro ao compartilhar post');
+        if (error.name === 'AbortError') {
+          console.log('Compartilhamento cancelado pelo usuário');
+        } else {
+          console.error('Erro ao compartilhar:', error);
+          alert('Erro ao compartilhar post: ' + error.message);
+        }
       }
     }
 
