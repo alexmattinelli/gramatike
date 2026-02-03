@@ -384,6 +384,59 @@
       color: var(--muted);
     }
     
+    /* TOAST NOTIFICATIONS */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: white;
+      border: 1px solid #f0e4fd;
+      border-left: 4px solid var(--roxo);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 280px;
+      max-width: 400px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      z-index: 2000;
+    }
+    
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .toast.success {
+      border-left-color: #10b981;
+    }
+    
+    .toast.error {
+      border-left-color: #ef4444;
+    }
+    
+    .toast-icon {
+      font-size: 20px;
+    }
+    
+    .toast.success .toast-icon {
+      color: #10b981;
+    }
+    
+    .toast.error .toast-icon {
+      color: #ef4444;
+    }
+    
+    .toast-message {
+      flex: 1;
+      color: var(--texto);
+      font-size: 14px;
+    }
+    
     @media (max-width: 700px) {
       .container {
         padding: 20px 12px;
@@ -395,6 +448,13 @@
       
       .logo {
         font-size: 28px;
+      }
+      
+      .toast {
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        min-width: auto;
       }
     }
   </style>
@@ -461,7 +521,7 @@
       if (diffHours < 24) return `Há ${diffHours} h`;
       if (diffDays < 7) return `Há ${diffDays} dia${diffDays > 1 ? 's' : ''}`;
       
-      return date.toLocaleDateString('pt-BR', { 
+      return date.toLocaleString('pt-BR', { 
         day: '2-digit', 
         month: '2-digit', 
         year: 'numeric',
@@ -480,6 +540,36 @@
     // Hide error
     function hideError() {
       document.getElementById('errorMessage').style.display = 'none';
+    }
+    
+    // Show toast notification
+    function showToast(message, type = 'success') {
+      // Remove existing toast if any
+      const existingToast = document.querySelector('.toast');
+      if (existingToast) {
+        existingToast.remove();
+      }
+      
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      
+      const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+      
+      toast.innerHTML = `
+        <i class="fa-solid ${icon} toast-icon"></i>
+        <div class="toast-message">${message}</div>
+      `;
+      
+      document.body.appendChild(toast);
+      
+      // Trigger animation
+      setTimeout(() => toast.classList.add('show'), 10);
+      
+      // Auto-hide after 3 seconds
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
     }
     
     // Load post
@@ -610,10 +700,12 @@
       const content = input.value.trim();
       
       if (!content) {
-        alert('Por favor, escreva um comentário');
+        showError('Por favor, escreva um comentário');
+        input.focus();
         return;
       }
       
+      hideError();
       const submitBtn = document.getElementById('commentSubmit');
       submitBtn.disabled = true;
       submitBtn.textContent = 'Enviando...';
@@ -627,6 +719,8 @@
         
         if (response.ok) {
           input.value = '';
+          hideError();
+          showToast('Comentário publicado com sucesso!', 'success');
           await loadComments(currentPostId);
           // Also reload post to update comment count
           await loadPost(currentPostId);
@@ -672,13 +766,15 @@
             text: 'Confira este post no Gramátike!',
             url: url
           });
+          showToast('Post compartilhado com sucesso!', 'success');
         } else {
           await navigator.clipboard.writeText(url);
-          alert('Link copiado para área de transferência!');
+          showToast('Link copiado para área de transferência!', 'success');
         }
       } catch (error) {
         if (error.name !== 'AbortError') {
           console.error('Erro ao compartilhar:', error);
+          showToast('Erro ao compartilhar post', 'error');
         }
       }
     }
