@@ -1278,7 +1278,9 @@
         const response = await fetch('/api/posts');
         if (response.ok) {
           const data = await response.json();
-          renderPosts(data);
+          // Extract posts array from response
+          const posts = data.posts || data || [];
+          renderPosts(posts);
         } else {
           console.error('Erro na API de posts:', response.status);
           showError('Erro ao carregar posts');
@@ -1295,10 +1297,12 @@
       if (!friendsList) return;
       
       try {
-        const response = await fetch('/api/friends');
+        const response = await fetch('/api/amigos');
         if (response.ok) {
           const data = await response.json();
-          renderFriends(data);
+          // Extract amigos array from response
+          const amigos = data.amigos || data || [];
+          renderFriends(amigos);
         } else {
           console.error('Erro na API de amigos:', response.status);
           friendsList.innerHTML = `
@@ -1466,14 +1470,16 @@
         if (btnElement) {
           btnElement.classList.toggle('active');
           const icon = btnElement.querySelector('i');
-          if (btnElement.classList.contains('active')) {
-            icon.className = 'fa-solid fa-heart';
-          } else {
-            icon.className = 'fa-regular fa-heart';
+          if (icon) {
+            if (btnElement.classList.contains('active')) {
+              icon.className = 'fa-solid fa-heart';
+            } else {
+              icon.className = 'fa-regular fa-heart';
+            }
           }
         }
         
-        const response = await fetch(API_LIKE_POST_URL, {
+        const response = await fetch('/api/posts/' + postId + '/like', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1482,18 +1488,20 @@
         });
         
         if (response.ok) {
-          // Recarrega os posts após curtir
-          await fetchRealPosts();
+          // Optionally reload posts, but for now just keep the visual state
+          console.log('Post curtido com sucesso!');
         } else {
           console.error('Erro ao curtir post');
           // Revert the button state if failed
           if (btnElement) {
             btnElement.classList.toggle('active');
             const icon = btnElement.querySelector('i');
-            if (btnElement.classList.contains('active')) {
-              icon.className = 'fa-solid fa-heart';
-            } else {
-              icon.className = 'fa-regular fa-heart';
+            if (icon) {
+              if (btnElement.classList.contains('active')) {
+                icon.className = 'fa-solid fa-heart';
+              } else {
+                icon.className = 'fa-regular fa-heart';
+              }
             }
           }
         }
@@ -1503,10 +1511,12 @@
         if (btnElement) {
           btnElement.classList.toggle('active');
           const icon = btnElement.querySelector('i');
-          if (btnElement.classList.contains('active')) {
-            icon.className = 'fa-solid fa-heart';
-          } else {
-            icon.className = 'fa-regular fa-heart';
+          if (icon) {
+            if (btnElement.classList.contains('active')) {
+              icon.className = 'fa-solid fa-heart';
+            } else {
+              icon.className = 'fa-regular fa-heart';
+            }
           }
         }
       }
