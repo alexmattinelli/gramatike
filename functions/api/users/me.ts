@@ -6,6 +6,9 @@ interface User {
   username: string;
   email?: string;
   name?: string;
+  bio?: string;
+  genero?: string;
+  pronome?: string;
   avatar_initials?: string;
   verified: boolean;
   online_status: boolean;
@@ -42,7 +45,7 @@ export const onRequestGet: PagesFunction<{ DB: any }> = async ({ data, env }) =>
     // Buscar dados atualizados do usuário (opcional, mas bom para garantir dados frescos)
     const { results } = await env.DB.prepare(
       `SELECT 
-        id, username, email, name, avatar_initials, 
+        id, username, email, name, bio, genero, pronome, avatar_initials, 
         verified, online_status, role, created_at, banned
       FROM users WHERE id = ?`
     ).bind(user.id).all();
@@ -55,6 +58,9 @@ export const onRequestGet: PagesFunction<{ DB: any }> = async ({ data, env }) =>
       username: currentUser.username,
       email: currentUser.email ? currentUser.email.replace(/(.{2})(.*)(@.*)/, '$1***$3') : null, // Ocultar email parcialmente
       name: currentUser.name || currentUser.username,
+      bio: currentUser.bio || '',
+      genero: currentUser.genero || 'Prefiro não informar',
+      pronome: currentUser.pronome || 'Prefiro não informar',
       avatar_initials: currentUser.avatar_initials || currentUser.username?.charAt(0).toUpperCase() || 'U',
       verified: Boolean(currentUser.verified),
       online_status: Boolean(currentUser.online_status),
@@ -102,6 +108,9 @@ export const onRequestPut: PagesFunction<{ DB: any }> = async ({ request, env, d
     
     const body = await request.json() as {
       name?: string;
+      bio?: string;
+      genero?: string;
+      pronome?: string;
       avatar_initials?: string;
       email?: string;
     };
@@ -115,6 +124,43 @@ export const onRequestPut: PagesFunction<{ DB: any }> = async ({ request, env, d
       if (name.length > 0 && name.length <= 50) {
         updates.push('name = ?');
         params.push(name);
+      }
+    }
+    
+    if (body.bio !== undefined) {
+      const bio = body.bio.trim();
+      if (bio.length <= 500) {
+        updates.push('bio = ?');
+        params.push(bio);
+      }
+    }
+    
+    if (body.genero !== undefined) {
+      const validGeneros = [
+        'Homem (cis)',
+        'Homem (trans)',
+        'Mulher (cis)',
+        'Mulher (trans)',
+        'Travesti',
+        'Não binárie',
+        'Prefiro não informar'
+      ];
+      if (validGeneros.includes(body.genero)) {
+        updates.push('genero = ?');
+        params.push(body.genero);
+      }
+    }
+    
+    if (body.pronome !== undefined) {
+      const validPronomes = [
+        'ele/dele',
+        'ela/dela',
+        'elu/delu',
+        'Prefiro não informar'
+      ];
+      if (validPronomes.includes(body.pronome)) {
+        updates.push('pronome = ?');
+        params.push(body.pronome);
       }
     }
     
@@ -184,7 +230,7 @@ export const onRequestPut: PagesFunction<{ DB: any }> = async ({ request, env, d
     // Buscar usuário atualizado
     const { results } = await env.DB.prepare(
       `SELECT 
-        id, username, email, name, avatar_initials, 
+        id, username, email, name, bio, genero, pronome, avatar_initials, 
         verified, online_status, role, created_at
       FROM users WHERE id = ?`
     ).bind(user.id).all();

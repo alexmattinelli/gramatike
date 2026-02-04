@@ -1254,12 +1254,6 @@
     <a href="/feed" class="logo">Gramátike</a>
   </nav>
   
-  <!-- CURVA DECORATIVA ENTRE HEADER E CONTEÚDO -->
-  <svg viewBox="0 0 1440 100" style="display: block; margin-top: -1px; position: relative; z-index: 2;">
-    <path fill="#f6f5fa" d="M0,50 Q360,0 720,50 T1440,50 L1440,100 L0,100 Z"></path>
-  </svg>
-  
-  <!-- CONTEÚDO PRINCIPAL COM CURVATURA NO TOPO -->
   <div class="main-wrapper">
     <!-- LAYOUT DE 3 COLUNAS -->
     <div class="layout-container">
@@ -1723,6 +1717,12 @@
       const postId = post.id || post._id;
       const likedBy = post.liked_by || [];
       
+      // Verificar se o usuário atual curtiu este post
+      const currentUserId = window.currentUserId || 0;
+      const userLiked = likedBy.some(user => user.id === currentUserId);
+      const likeButtonClass = userLiked ? 'interaction-btn like-btn active' : 'interaction-btn like-btn';
+      const likeIcon = userLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+      
       let likesText = '';
       if (likes > 0) {
         likesText = `<div class="post-likes-text">
@@ -1764,8 +1764,8 @@
         <div class="post-content">${content.replace(/\n/g, '<br>')}</div>
         ${likesText}
         <div class="post-interactions">
-          <button class="interaction-btn like-btn" onclick="likePost('${postId}', this)">
-            <i class="fa-regular fa-heart"></i> Curtir
+          <button class="${likeButtonClass}" onclick="likePost('${postId}', this)">
+            <i class="${likeIcon}"></i> Curtir
           </button>
           <button class="interaction-btn comment-btn" onclick="commentPost('${postId}')">
             <i class="fa-regular fa-comment"></i> Comentar
