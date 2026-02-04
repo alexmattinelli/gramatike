@@ -59,21 +59,6 @@
       text-decoration: none;
     }
     
-    .profile-circle {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #e9e2ef url('data:image/svg+xml;utf8,<svg fill="rgb(155,93,229)" height="36" viewBox="0 0 32 32" width="36" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="12" r="8"/><ellipse cx="16" cy="28" rx="13" ry="8"/></svg>') center/60% no-repeat;
-      box-shadow: 0 1.5px 7px #9b5de519;
-      border: 2px solid #fff;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-    
-    .profile-circle:hover {
-      transform: scale(1.05);
-    }
-    
     /* CONTAINER PRINCIPAL COM CURVATURA NO TOPO */
     .main-wrapper {
       min-height: 100vh;
@@ -1073,14 +1058,8 @@
         font-size: 28px;
       }
       
-      .profile-circle {
-        width: 42px;
-        height: 42px;
-      }
-      
       .main-wrapper {
-        margin-top: 64px;
-        min-height: calc(100vh - 64px);
+        min-height: 100vh;
       }
       
       .layout-container {
@@ -1111,11 +1090,6 @@
       
       .logo {
         font-size: 24px;
-      }
-      
-      .profile-circle {
-        width: 38px;
-        height: 38px;
       }
       
       .post-form-card,
@@ -1181,14 +1155,8 @@
         font-size: 22px;
       }
       
-      .profile-circle {
-        width: 36px;
-        height: 36px;
-      }
-      
       .main-wrapper {
-        margin-top: 60px;
-        min-height: calc(100vh - 60px);
+        min-height: 100vh;
       }
       
       .layout-container {
@@ -1284,7 +1252,6 @@
   <!-- NAVEGAÇÃO COM FUNDO CLARO -->
   <nav>
     <a href="/feed" class="logo">Gramátike</a>
-    <div class="profile-circle" id="profileBtn"></div>
   </nav>
   
   <!-- CONTEÚDO PRINCIPAL COM CURVATURA NO TOPO -->
@@ -1497,7 +1464,6 @@
     const postsContainer = document.getElementById('postsContainer');
     const noPosts = document.getElementById('noPosts');
     const addPostBtn = document.getElementById('addPostBtn');
-    const profileBtn = document.getElementById('profileBtn');
     const searchInput = document.getElementById('searchInput');
     const searchButton = document.getElementById('searchButton');
 
@@ -1592,10 +1558,6 @@
         }
         // Atualizar informações do usuário
         if (window.APP_DATA.user) {
-          const profileBtn = document.getElementById('profileBtn');
-          if (profileBtn) {
-            profileBtn.textContent = window.APP_DATA.user.initials;
-          }
           // Set current user ID for navigation logic
           window.currentUserId = window.APP_DATA.user.id;
         }
@@ -2157,10 +2119,6 @@
     
     addPostBtn.addEventListener('click', function() {
       openPostModal();
-    });
-    
-    profileBtn.addEventListener('click', function() {
-      window.location.href = '/meu_perfil.html';
     });
     
     searchButton.addEventListener('click', function() {
