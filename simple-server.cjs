@@ -351,7 +351,7 @@ const server = http.createServer((req, res) => {
   }
 
   // Handle GET /api/users/:id/posts - Get user's posts
-  const userPostsMatch = req.url.match(/^\/api\/users\/(\d+)\/posts$/);
+  const userPostsMatch = req.url.match(/^\/api\/users\/(\d+)\/posts/);
   if (userPostsMatch && req.method === 'GET') {
     const userId = parseInt(userPostsMatch[1]);
     const userPosts = posts.filter(p => p.user.id === userId);
@@ -359,15 +359,60 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       success: true,
-      data: {
-        posts: userPosts
+      posts: userPosts,
+      pagination: {
+        total: userPosts.length,
+        page: 1,
+        perPage: 30
       }
     }));
     return;
   }
 
+  // Handle GET /api/users/:id/followers - Get user's followers
+  const followersMatch = req.url.match(/^\/api\/users\/(\d+)\/followers$/);
+  if (followersMatch && req.method === 'GET') {
+    const userId = parseInt(followersMatch[1]);
+    const user = mockUsers.find(u => u.id === userId);
+    
+    if (user) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        success: true,
+        count: user.followers_count || 0,
+        followers: []
+      }));
+    } else {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: 'Usuário não encontrado' }));
+    }
+    return;
+  }
+
+  // Handle GET /api/users/:id/following - Get user's following
+  const followingMatch = req.url.match(/^\/api\/users\/(\d+)\/following$/);
+  if (followingMatch && req.method === 'GET') {
+    const userId = parseInt(followingMatch[1]);
+    const user = mockUsers.find(u => u.id === userId);
+    
+    if (user) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        success: true,
+        count: user.following_count || 0,
+        following: []
+      }));
+    } else {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: 'Usuário não encontrado' }));
+    }
+    return;
+  }
+
   // Serve static files
-  let filePath = './public' + req.url;
+  // Remove query parameters from URL
+  const urlPath = req.url.split('?')[0];
+  let filePath = './public' + urlPath;
   if (filePath === './public/') {
     filePath = './public/index.html';
   }
