@@ -1717,6 +1717,12 @@
       const postId = post.id || post._id;
       const likedBy = post.liked_by || [];
       
+      // Verificar se o usuário atual curtiu este post
+      const currentUserId = window.currentUserId || 0;
+      const userLiked = likedBy.some(user => user.id === currentUserId);
+      const likeButtonClass = userLiked ? 'interaction-btn like-btn active' : 'interaction-btn like-btn';
+      const likeIcon = userLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+      
       let likesText = '';
       if (likes > 0) {
         likesText = `<div class="post-likes-text">
@@ -1758,8 +1764,8 @@
         <div class="post-content">${content.replace(/\n/g, '<br>')}</div>
         ${likesText}
         <div class="post-interactions">
-          <button class="interaction-btn like-btn" onclick="likePost('${postId}', this)">
-            <i class="fa-regular fa-heart"></i> Curtir
+          <button class="${likeButtonClass}" onclick="likePost('${postId}', this)">
+            <i class="${likeIcon}"></i> Curtir
           </button>
           <button class="interaction-btn comment-btn" onclick="commentPost('${postId}')">
             <i class="fa-regular fa-comment"></i> Comentar
