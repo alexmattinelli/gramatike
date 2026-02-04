@@ -24,8 +24,7 @@
     nav {
       background: var(--roxo);
       height: 70px;
-      position: fixed;
-      top: 0;
+      position: static;
       z-index: 100;
       width: 100%;
       display: flex;
@@ -41,24 +40,12 @@
       letter-spacing: 0.5px;
       text-decoration: none;
     }
-    .profile-circle {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #e9e2ef url('data:image/svg+xml;utf8,<svg fill="rgb(155,93,229)" height="36" viewBox="0 0 32 32" width="36" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="12" r="8"/><ellipse cx="16" cy="28" rx="13" ry="8"/></svg>') center/60% no-repeat;
-      box-shadow: 0 1.5px 7px #9b5de519;
-      border: 2px solid #fff;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-    .profile-circle:hover { transform: scale(1.05); }
     .main-wrapper {
       background: var(--lilas-light);
-      min-height: calc(100vh - 70px);
+      min-height: 100vh;
       border-top-left-radius: 30px;
       border-top-right-radius: 30px;
       padding-top: 30px;
-      margin-top: 70px;
       position: relative;
       z-index: 1;
     }
@@ -182,7 +169,6 @@
 <body>
   <nav>
     <a href="/feed" class="logo">Gramátike</a>
-    <div class="profile-circle" id="profileBtn"></div>
   </nav>
   <div class="main-wrapper">
     <div class="container">
@@ -243,27 +229,6 @@
       </div>
     `).join('');
   </script>
-  <script>
-    // profile-circle icon/avatar in header
-    (function() {
-      const profileBtn = document.getElementById('profileBtn');
-      const avatarUrl = (window.currentUser && (window.currentUser.avatar || window.currentUser.avatarUrl || window.currentUser.avatar_url)) || null;
-      function personSVG() {
-        return `
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" fill="#6b4db3" />
-            <path d="M4 20c0-3.313 2.687-6 6-6h4c3.313 0 6 2.687 6 6v1H4v-1z" fill="#9B5DE5" />
-          </svg>
-        `;
-      }
-      if (!profileBtn) return;
-      if (avatarUrl) {
-        profileBtn.innerHTML = `<img src="${avatarUrl}" alt="avatar" class="profile-img" />`;
-      } else {
-        profileBtn.innerHTML = personSVG();
-      }
-      profileBtn.addEventListener('click', function() { window.location.href = 'meu_perfil.html'; });
-    })();
-  </script>
 </body>
+</html>
 </html>
