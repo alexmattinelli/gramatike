@@ -50,6 +50,8 @@
       justify-content: space-between;
       padding: 0 28px;
       box-shadow: 0 1px 3px rgba(155, 93, 229, 0.1);
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
     }
     
     .logo {
@@ -67,7 +69,9 @@
       z-index: 1;
       background: var(--lilas-light);
       padding-top: 0;
-      margin-top: -50px;
+      margin-top: 0;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
     }
     
     /* LAYOUT DE 3 COLUNAS DENTRO DO CONTAINER */
@@ -674,43 +678,41 @@
     
     .post-interactions {
       display: flex;
-      gap: 8px;
-      padding-top: 16px;
+      gap: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #f0e4fd;
     }
     
     .interaction-btn {
-      flex: 1;
-      background: var(--roxo-claro);
-      border: 1px solid #e9e2ef;
-      padding: 12px 16px;
-      border-radius: 12px;
-      color: var(--texto-leve);
-      font-weight: 600;
+      background: transparent;
+      border: none;
+      padding: 8px 0;
+      color: var(--texto);
+      font-weight: 500;
       font-size: 14px;
       cursor: pointer;
       transition: var(--transition);
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
+      gap: 6px;
     }
     
     .interaction-btn i {
-      font-size: 16px;
+      font-size: 20px;
+      transition: var(--transition);
     }
     
     .interaction-btn:hover {
-      background: var(--roxo-super-claro);
       color: var(--roxo);
-      border-color: var(--roxo);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(155, 93, 229, 0.2);
+      transform: scale(1.05);
     }
     
-    .interaction-btn.active {
-      background: var(--roxo);
-      color: white;
-      border-color: var(--roxo);
+    .interaction-btn:hover i {
+      transform: scale(1.1);
+    }
+    
+    .like-btn.active {
+      color: #ed4956;
     }
     
     .like-btn.active i {
@@ -1254,11 +1256,6 @@
     <a href="/feed" class="logo">Gramátike</a>
   </nav>
   
-  <!-- CURVA DECORATIVA ENTRE HEADER E CONTEÚDO -->
-  <svg viewBox="0 0 1440 100" style="display: block; margin-top: -1px; position: relative; z-index: 2;">
-    <path fill="#f6f5fa" d="M0,50 Q360,0 720,50 T1440,50 L1440,100 L0,100 Z"></path>
-  </svg>
-  
   <!-- CONTEÚDO PRINCIPAL COM CURVATURA NO TOPO -->
   <div class="main-wrapper">
     <!-- LAYOUT DE 3 COLUNAS -->
@@ -1708,6 +1705,77 @@
       }
     }
 
+    // Helper function to create a single post element
+    function createPostElement(post) {
+      const postElement = document.createElement('div');
+      postElement.className = 'card post-card';
+      
+      const userName = post.user?.name || post.author_name || 'Usuárie';
+      const username = post.user?.username || post.author_username || post.username || 'usuario';
+      const userId = post.user?.id || post.author_id || post.user_id || 1;
+      const userInitial = userName.charAt(0).toUpperCase();
+      const content = post.content || post.text || '';
+      const createdAt = post.created_at || post.createdAt || new Date().toISOString();
+      const likes = post.likes || post.likes_count || 0;
+      const postId = post.id || post._id;
+      const likedBy = post.liked_by || [];
+      
+      let likesText = '';
+      if (likes > 0) {
+        likesText = `<div class="post-likes-text">
+          <strong>${likes}</strong> ${likes === 1 ? 'curtida' : 'curtidas'}
+        </div>`;
+      }
+      
+      const isCurrentUser = userId == (window.currentUserId || 0);
+      const profileUrl = isCurrentUser ? '/meu_perfil.html' : `/perfil.html?user=${userId}`;
+      
+      postElement.innerHTML = `
+        <div class="post-header">
+          <div class="post-avatar" onclick="window.location.href='${profileUrl}'" style="cursor: pointer;">${userInitial}</div>
+          <div class="post-user-info">
+            <div class="post-username">
+              ${userName}
+              ${post.is_verified ? '<span class="verified-badge">✓</span>' : ''}
+            </div>
+            <div class="post-time">@${username} • ${formatDate(createdAt)}</div>
+          </div>
+          <div class="post-menu">
+            <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
+              <i class="fa-solid fa-ellipsis"></i>
+            </button>
+            <div class="post-menu-dropdown" id="menu-${postId}">
+              ${userId == (window.currentUserId || 0) ? 
+                `<button class="post-menu-item delete" onclick="deletePost('${postId}')">
+                  <i class="fa-solid fa-trash"></i>
+                  Deletar
+                </button>` :
+                `<button class="post-menu-item" onclick="reportPost('${postId}')">
+                  <i class="fa-solid fa-flag"></i>
+                  Reportar
+                </button>`
+              }
+            </div>
+          </div>
+        </div>
+        <div class="post-content">${content.replace(/\n/g, '<br>')}</div>
+        ${likesText}
+        <div class="post-interactions">
+          <button class="interaction-btn like-btn" onclick="likePost('${postId}', this)">
+            <i class="fa-regular fa-heart"></i> Curtir
+          </button>
+          <button class="interaction-btn comment-btn" onclick="commentPost('${postId}')">
+            <i class="fa-regular fa-comment"></i> Comentar
+          </button>
+          <button class="interaction-btn share-btn" onclick="sharePost('${postId}')">
+            <i class="fa-solid fa-share"></i> Compartilhar
+          </button>
+        </div>
+      `;
+      
+      return postElement;
+    }
+
     // Renderizar posts
     function renderPosts(posts) {
       if (!posts || posts.length === 0) {
@@ -1720,92 +1788,7 @@
       postsContainer.innerHTML = '';
       
       posts.forEach(post => {
-        const postElement = document.createElement('div');
-        postElement.className = 'card post-card';
-        
-        // Ajuste conforme a estrutura do SEU banco de dados
-        const userName = post.user?.name || post.author_name || 'Usuárie';
-        const username = post.user?.username || post.author_username || post.username || 'usuario';
-        const userId = post.user?.id || post.author_id || post.user_id || 1;
-        const userInitial = userName.charAt(0).toUpperCase();
-        const content = post.content || post.text || '';
-        const createdAt = post.created_at || post.createdAt || new Date().toISOString();
-        const likes = post.likes || post.likes_count || 0;
-        const comments = post.comments || post.comments_count || 0;
-        const shares = post.shares || post.shares_count || 0;
-        const postId = post.id || post._id;
-        const likedBy = post.liked_by || [];
-        
-        // Generate Instagram-style likes text
-        let likesText = '';
-        if (likes === 0) {
-          likesText = '';
-        } else if (likes === 1 && likedBy.length > 0) {
-          const firstName = likedBy[0].name || likedBy[0].username;
-          likesText = `<div class="post-likes-text" onclick="showLikes('${postId}')">
-            Curtido por <strong>${firstName}</strong>
-          </div>`;
-        } else if (likes > 1 && likedBy.length > 0) {
-          const firstName = likedBy[0].name || likedBy[0].username;
-          const others = likes - 1;
-          const othersText = others === 1 ? 'outra pessoa' : `outras ${others} pessoas`;
-          likesText = `<div class="post-likes-text" onclick="showLikes('${postId}')">
-            Curtido por <strong>${firstName}</strong> e <strong>${othersText}</strong>
-          </div>`;
-        } else if (likes > 0) {
-          // Fallback if no liked_by data
-          likesText = `<div class="post-likes-text" onclick="showLikes('${postId}')">
-            <strong>${likes}</strong> ${likes === 1 ? 'curtida' : 'curtidas'}
-          </div>`;
-        }
-        
-        // Determine profile URL based on whether it's current user's post
-        const isCurrentUser = userId == (window.currentUserId || 0);
-        const profileUrl = isCurrentUser ? '/meu_perfil.html' : `/perfil.html?user=${userId}`;
-        
-        postElement.innerHTML = `
-          <div class="post-header">
-            <div class="post-avatar" onclick="window.location.href='${profileUrl}'" style="cursor: pointer;">${userInitial}</div>
-            <div class="post-user-info">
-              <div class="post-username">
-                ${userName}
-                ${post.is_verified ? '<span class="verified-badge">✓</span>' : ''}
-              </div>
-              <div class="post-time">@${username} • ${formatDate(createdAt)}</div>
-            </div>
-            <div class="post-menu">
-              <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
-                <i class="fa-solid fa-ellipsis"></i>
-              </button>
-              <div class="post-menu-dropdown" id="menu-${postId}">
-                ${userId == (window.currentUserId || 0) ? 
-                  `<button class="post-menu-item delete" onclick="deletePost('${postId}')">
-                    <i class="fa-solid fa-trash"></i>
-                    Deletar
-                  </button>` :
-                  `<button class="post-menu-item" onclick="reportPost('${postId}')">
-                    <i class="fa-solid fa-flag"></i>
-                    Reportar
-                  </button>`
-                }
-              </div>
-            </div>
-          </div>
-          <div class="post-content">${content.replace(/\n/g, '<br>')}</div>
-          ${likesText}
-          <div class="post-interactions">
-            <button class="interaction-btn like-btn" onclick="likePost('${postId}', this)">
-              <i class="fa-regular fa-heart"></i> Curtir
-            </button>
-            <button class="interaction-btn comment-btn" onclick="commentPost('${postId}')">
-              <i class="fa-regular fa-comment"></i> Comentar
-            </button>
-            <button class="interaction-btn share-btn" onclick="sharePost('${postId}')">
-              <i class="fa-solid fa-share"></i> Compartilhar
-            </button>
-          </div>
-        `;
-        
+        const postElement = createPostElement(post);
         postElement.style.animation = 'fadeIn 0.4s ease-out';
         postsContainer.appendChild(postElement);
       });
@@ -1850,58 +1833,55 @@
     // Criar novo post (ENVIA para o banco de dados)
     async function createPost(content) {
       try {
-        if (window.GramatikeAPI) {
-          // Usar API helper do servidor
-          const result = await window.GramatikeAPI.post(content);
-          // Recarrega os posts após criar
-          await fetchRealPosts();
-          postContent.value = '';
+        const response = await fetch('/api/posts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ content: content })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok || data.success) {
+          // Post criado com sucesso - adicionar ao topo da lista
+          const newPost = data.data?.post || data.post;
           
-          showToast('Post publicado com sucesso!', 'success');
+          if (newPost) {
+            // Hide "no posts" message if visible
+            noPosts.style.display = 'none';
+            
+            // Create and prepend the new post element
+            const postElement = createPostElement(newPost);
+            postElement.style.animation = 'fadeIn 0.4s ease-out';
+            postsContainer.prepend(postElement);
+          }
+          
+          postContent.value = '';
+          postContentModal.value = '';
+          closePostModal();
+          
+          showToast('✅ Post publicado com sucesso!', 'success');
           
           window.scrollTo({
             top: 0,
             behavior: 'smooth'
           });
+          
+          console.log('Post publicado com sucesso!');
         } else {
-          // Fallback para desenvolvimento
-          const response = await fetch('/api/posts', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ content: content })
-          });
-          
-          const data = await response.json();
-          
-          if (response.ok || data.success) {
-            // Post criado com sucesso
-            await fetchRealPosts();
-            postContent.value = '';
-            
-            showToast('Post publicado com sucesso!', 'success');
-            
-            window.scrollTo({
-              top: 0,
-              behavior: 'smooth'
-            });
-            
-            console.log('Post publicado com sucesso!');
-          } else {
-            // Check for session expiration
-            if (response.status === 401 || data.errorCode === 'SESSION_EXPIRED') {
-              showToast('Sessão expirada. Redirecionando para login...', 'error');
-              setTimeout(() => {
-                window.location.href = '/login.html';
-              }, 2000);
-              return;
-            }
-            
-            const errorMsg = data.error || 'Erro ao publicar post';
-            showToast(errorMsg, 'error');
-            console.error('Erro ao criar post:', errorMsg);
+          // Check for session expiration
+          if (response.status === 401 || data.errorCode === 'SESSION_EXPIRED') {
+            showToast('Sessão expirada. Redirecionando para login...', 'error');
+            setTimeout(() => {
+              window.location.href = '/login.html';
+            }, 2000);
+            return;
           }
+          
+          const errorMsg = data.error || 'Erro ao publicar post';
+          showToast(errorMsg, 'error');
+          console.error('Erro ao criar post:', errorMsg);
         }
       } catch (error) {
         console.error('Erro ao criar post:', error);
@@ -1924,7 +1904,8 @@
 
     async function likePost(postId, btnElement) {
       try {
-        // Toggle active state
+        // Optimistic update - toggle UI immediately
+        const wasActive = btnElement?.classList.contains('active');
         if (btnElement) {
           btnElement.classList.toggle('active');
           updateLikeButtonIcon(btnElement);
@@ -1941,12 +1922,32 @@
           const data = await response.json();
           console.log('Post curtido com sucesso!', data);
           
-          // Show toast notification
-          const isLiked = data.data?.liked !== false;
-          showToast(isLiked ? 'Post curtido!' : 'Curtida removida', 'success');
+          // Update like count in the specific post card
+          const postCard = btnElement?.closest('.post-card');
+          if (postCard && data.data) {
+            const likesCount = data.data.likes || 0;
+            const likesTextEl = postCard.querySelector('.post-likes-text');
+            
+            if (likesCount > 0) {
+              if (!likesTextEl) {
+                // Create likes text element if it doesn't exist
+                const contentEl = postCard.querySelector('.post-content');
+                const newLikesEl = document.createElement('div');
+                newLikesEl.className = 'post-likes-text';
+                newLikesEl.innerHTML = `<strong>${likesCount}</strong> ${likesCount === 1 ? 'curtida' : 'curtidas'}`;
+                contentEl.insertAdjacentElement('afterend', newLikesEl);
+              } else {
+                // Update existing likes text
+                likesTextEl.innerHTML = `<strong>${likesCount}</strong> ${likesCount === 1 ? 'curtida' : 'curtidas'}`;
+              }
+            } else if (likesTextEl) {
+              // Remove likes text if count is 0
+              likesTextEl.remove();
+            }
+          }
           
-          // Reload posts to update like count and list of users who liked
-          await fetchRealPosts();
+          const isLiked = data.data?.liked !== false;
+          showToast(isLiked ? '❤️ Curtido!' : 'Curtida removida', 'success');
         } else {
           const data = await response.json().catch(() => ({}));
           
