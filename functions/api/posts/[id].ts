@@ -378,14 +378,13 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
     
   } catch (error) {
     console.error('[posts/id] PATCH Error:', error);
-    // More detailed error logging
-    const errorMessage = error instanceof Error ? error.message : 'Erro ao curtir post';
+    // More detailed error logging (server-side only)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[posts/id] PATCH Error details:', errorMessage);
     
     return new Response(JSON.stringify({ 
       success: false, 
-      error: 'Erro ao curtir post',
-      details: errorMessage
+      error: 'Erro ao curtir post'
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
