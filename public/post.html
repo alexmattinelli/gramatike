@@ -37,11 +37,12 @@
       color: var(--texto);
     }
     
-    /* NAVEGAÇÃO ESTÁTICA (NÃO FIXA) */
+    /* NAVEGAÇÃO FIXA (STICKY) */
     nav {
       background: var(--roxo);
       height: 70px;
-      position: static;
+      position: sticky;
+      top: 0;
       z-index: 1000;
       width: 100%;
       display: flex;
@@ -59,14 +60,12 @@
       text-decoration: none;
     }
     
-    /* CONTAINER PRINCIPAL COM CURVATURA NO TOPO */
+    /* CONTAINER PRINCIPAL */
     .main-wrapper {
       min-height: 100vh;
       position: relative;
       z-index: 1;
       background: var(--lilas-light);
-      border-top-left-radius: 30px;
-      border-top-right-radius: 30px;
       padding-top: 30px;
     }
     
