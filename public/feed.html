@@ -1524,17 +1524,35 @@
 
     // Formatador de data
     function formatDate(dateStr) {
+      // Handle invalid or missing dates
+      if (!dateStr) {
+        console.warn('formatDate: dateStr is null or undefined');
+        return 'Data inválida';
+      }
+      
       const date = new Date(dateStr);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.warn('formatDate: Invalid date string:', dateStr);
+        return 'Data inválida';
+      }
+      
       const now = new Date();
       const diffMs = now - date;
       const diffMins = Math.floor(diffMs / (1000 * 60));
       const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      
+      // Debug logging (can be removed later)
+      console.log('formatDate:', { dateStr, diffMins, diffHours, diffDays });
       
       if (diffMins < 1) return 'Agora mesmo';
       if (diffMins < 60) return `Há ${diffMins} min`;
       if (diffHours < 24) return `Há ${diffHours} h`;
+      if (diffDays < 7) return `Há ${diffDays} dia${diffDays > 1 ? 's' : ''}`;
       
-      // After 24 hours, show the full date and time
+      // After 7 days, show the full date and time
       return date.toLocaleString('pt-BR', { 
         day: '2-digit', 
         month: '2-digit', 
@@ -2207,9 +2225,10 @@
     searchButton.addEventListener('click', function() {
       const query = searchInput.value.trim();
       if (query) {
-        alert(`Buscando por: "${query}"`);
-        // Implemente a busca na sua API aqui
-        searchInput.value = '';
+        searchPosts(query);
+      } else {
+        // If search is empty, reload all posts
+        fetchRealPosts();
       }
     });
     
@@ -2219,6 +2238,56 @@
         searchButton.click();
       }
     });
+    
+    // Search posts function
+    async function searchPosts(query) {
+      try {
+        showToast(`Buscando por: "${query}"`, 'success');
+        
+        // Fetch all posts and filter client-side
+        const response = await fetch('/api/posts');
+        if (response.ok) {
+          const data = await response.json();
+          let posts = [];
+          if (data.success && data.data && data.data.posts) {
+            posts = data.data.posts;
+          } else if (data.posts) {
+            posts = data.posts;
+          } else if (Array.isArray(data)) {
+            posts = data;
+          }
+          
+          // Filter posts by query (search in content and user names)
+          const queryLower = query.toLowerCase();
+          const filteredPosts = posts.filter(post => {
+            const content = (post.content || '').toLowerCase();
+            const userName = (post.user?.name || post.author_name || '').toLowerCase();
+            const username = (post.user?.username || post.author_username || post.username || '').toLowerCase();
+            
+            return content.includes(queryLower) || 
+                   userName.includes(queryLower) || 
+                   username.includes(queryLower);
+          });
+          
+          if (filteredPosts.length === 0) {
+            postsContainer.innerHTML = `
+              <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <div class="empty-text">Nenhum post encontrado para "${query}"</div>
+              </div>
+            `;
+          } else {
+            renderPosts(filteredPosts);
+            showToast(`${filteredPosts.length} post${filteredPosts.length > 1 ? 's' : ''} encontrado${filteredPosts.length > 1 ? 's' : ''}`, 'success');
+          }
+        } else {
+          showToast('Erro ao buscar posts', 'error');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar posts:', error);
+        showToast('Erro de conexão ao buscar posts', 'error');
+      }
+    }
 
     // ========== JOGO DA VELHA ==========
     let currentPlayer = 'X';
