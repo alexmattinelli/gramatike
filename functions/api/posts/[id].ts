@@ -286,6 +286,7 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
   try {
     const user = data.user as User | null;
     if (!user) {
+      console.error('[posts/id] PATCH - User not authenticated');
       return new Response(JSON.stringify({ 
         success: false, 
         error: 'Não autorizado' 
@@ -297,6 +298,7 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
     
     const postId = parseInt(params.id as string);
     if (isNaN(postId)) {
+      console.error('[posts/id] PATCH - Invalid post ID:', params.id);
       return new Response(JSON.stringify({ 
         success: false, 
         error: 'ID inválido' 
@@ -312,6 +314,7 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
     ).bind(postId).all();
     
     if (!postResults || postResults.length === 0) {
+      console.error('[posts/id] PATCH - Post not found:', postId);
       return new Response(JSON.stringify({ 
         success: false, 
         error: 'Post não encontrado' 
@@ -322,9 +325,24 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
     }
     
     // Verificar se usuário já curtiu
-    const { results: likeResults } = await env.DB.prepare(
-      'SELECT id FROM post_likes WHERE post_id = ? AND user_id = ?'
-    ).bind(postId, user.id).all();
+    let likeResults;
+    try {
+      const likeQuery = await env.DB.prepare(
+        'SELECT id FROM post_likes WHERE post_id = ? AND user_id = ?'
+      ).bind(postId, user.id).all();
+      likeResults = likeQuery.results;
+    } catch (error) {
+      console.error('[posts/id] PATCH - Error checking post_likes table:', error);
+      console.error('[posts/id] PATCH - This likely means the post_likes table does not exist in the database');
+      console.error('[posts/id] PATCH - Please run: npx wrangler d1 execute <your-db-name> --remote --file=./db/schema.sql');
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Erro de configuração do banco de dados. A tabela post_likes não existe. Contate o administrador.' 
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
     
     const alreadyLiked = likeResults && likeResults.length > 0;
     
@@ -364,6 +382,8 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
        LIMIT 3`
     ).bind(postId).all();
     
+    console.log('[posts/id] PATCH - Success:', { postId, userId: user.id, liked: !alreadyLiked });
+    
     return new Response(JSON.stringify({ 
       success: true, 
       message: alreadyLiked ? 'Curtida removida' : 'Post curtido',
@@ -380,7 +400,9 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
     console.error('[posts/id] PATCH Error:', error);
     // More detailed error logging (server-side only)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
     console.error('[posts/id] PATCH Error details:', errorMessage);
+    console.error('[posts/id] PATCH Error stack:', errorStack);
     
     return new Response(JSON.stringify({ 
       success: false, 

@@ -70,7 +70,11 @@ Ver [SETUP.md](./SETUP.md) para instruções detalhadas.
 2. Build command: `npm run build`
 3. Build output: `public`
 4. Adicionar D1 binding: `DB` → seu banco D1 (ex: `gramatike`)
-5. Resetar banco: `wrangler d1 execute <seu-banco-d1> --file=./schema.d1.sql --remote`
+5. **⚠️ IMPORTANTE - Executar schema no banco remoto:**
+   ```bash
+   npx wrangler d1 execute gramatike --remote --file=./db/schema.sql
+   ```
+   **Nota:** Isso cria todas as tabelas necessárias, incluindo `post_likes` que é necessária para a funcionalidade de curtidas. Sem esta etapa, você receberá erro 500 ao tentar curtir posts.
 
 ### Deploy Automático (Recomendado)
 

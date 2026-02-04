@@ -39,11 +39,13 @@ Ou manualmente:
 
 ```bash
 # Ambiente local (desenvolvimento)
-wrangler d1 execute gramatike --local --file=./schema.d1.sql
+wrangler d1 execute gramatike --local --file=./db/schema.sql
 
-# Ambiente remoto (produção)
-wrangler d1 execute gramatike --remote --file=./schema.d1.sql
+# Ambiente remoto (produção) ⚠️ IMPORTANTE
+wrangler d1 execute gramatike --remote --file=./db/schema.sql
 ```
+
+**⚠️ NOTA IMPORTANTE:** Certifique-se de executar o comando `--remote` para criar todas as tabelas necessárias no banco de produção, incluindo a tabela `post_likes` que é essencial para a funcionalidade de curtidas. Sem esta etapa, você receberá erro 500 ao tentar curtir posts.
 
 ### 1.4 Atualizar wrangler.toml
 

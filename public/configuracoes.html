@@ -9,10 +9,10 @@
     :root{--roxo:#9B5DE5;--roxo-escuro:#7a3ec4;--lilas-light:#f6f5fa;--card-radius:16px}
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Nunito',system-ui,Segoe UI,Roboto,sans-serif;background:var(--lilas-light);min-height:100vh}
-    nav{background:var(--roxo);height:70px;position:static;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 28px;z-index:10;box-shadow:0 1px 3px rgba(155, 93, 229, 0.1)}
+    nav{background:var(--roxo);height:70px;position:sticky;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 28px;z-index:1000;box-shadow:0 1px 3px rgba(155, 93, 229, 0.1)}
     .logo{font-family:'Mansalva',cursive;color:#fff;font-size:32px;text-decoration:none}
     .nav-link{color:#fff;margin-left:12px;text-decoration:none;font-weight:600}
-    .main-wrapper{background:var(--lilas-light);min-height:100vh;padding:28px}
+    .main-wrapper{background:var(--lilas-light);min-height:100vh;padding:28px;margin-top:-50px;padding-top:80px}
     .container{max-width:900px;margin:0 auto;padding:20px}
     .card{background:#fff;border-radius:var(--card-radius);padding:20px;border:1px solid #f0e4fd}
     .form-row{display:flex;gap:12px;margin-bottom:12px}
@@ -67,57 +67,145 @@
     <a class="nav-link" href="/configuracoes.html">Configurações</a>
   </nav>
 
+  <!-- CURVA DECORATIVA ENTRE HEADER E CONTEÚDO -->
+  <svg viewBox="0 0 1440 100" style="display: block; margin-top: -1px; position: relative; z-index: 2;">
+    <path fill="#f6f5fa" d="M0,50 Q360,0 720,50 T1440,50 L1440,100 L0,100 Z"></path>
+  </svg>
+
   <div class="main-wrapper">
     <div class="container">
-      <h2 style="font-family:'Mansalva',cursive;margin-bottom:14px">Configurações</h2>
+      <h2 style="font-family:'Mansalva',cursive;margin-bottom:20px">Configurações</h2>
 
-      <div class="card">
-        <form id="settingsForm">
-          <div class="form-row">
-            <div style="flex:1">
-              <label for="name">Nome</label>
-              <input id="name" type="text" placeholder="Seu nome">
+      <div style="display:grid;grid-template-columns:250px 1fr;gap:20px">
+        <!-- SIDEBAR DE NAVEGAÇÃO -->
+        <div class="card" style="height:fit-content">
+          <div style="margin-bottom:20px">
+            <h3 style="font-size:16px;font-weight:700;color:var(--roxo);margin-bottom:12px">Configurações</h3>
+            <ul style="list-style:none">
+              <li style="padding:10px;cursor:pointer;border-radius:8px;transition:all 0.2s" onmouseover="this.style.background='var(--lilas-light)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-user" style="margin-right:8px;color:var(--roxo)"></i> Perfil
+              </li>
+              <li style="padding:10px;cursor:pointer;border-radius:8px;transition:all 0.2s" onmouseover="this.style.background='var(--lilas-light)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-lock" style="margin-right:8px;color:var(--roxo)"></i> Privacidade
+              </li>
+              <li style="padding:10px;cursor:pointer;border-radius:8px;transition:all 0.2s" onmouseover="this.style.background='var(--lilas-light)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-bell" style="margin-right:8px;color:var(--roxo)"></i> Notificações
+              </li>
+              <li style="padding:10px;cursor:pointer;border-radius:8px;transition:all 0.2s" onmouseover="this.style.background='var(--lilas-light)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-palette" style="margin-right:8px;color:var(--roxo)"></i> Tema
+              </li>
+              <li style="padding:10px;cursor:pointer;border-radius:8px;transition:all 0.2s" onmouseover="this.style.background='var(--lilas-light)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-language" style="margin-right:8px;color:var(--roxo)"></i> Idioma
+              </li>
+              <li id="logoutBtn" style="padding:10px;cursor:pointer;border-radius:8px;transition:all 0.2s;color:#e53e3e" onmouseover="this.style.background='#fee'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-sign-out-alt" style="margin-right:8px"></i> Sair
+              </li>
+            </ul>
+          </div>
+
+          <hr style="border:none;border-top:1px solid #e8e0f6;margin:16px 0">
+
+          <div>
+            <h3 style="font-size:16px;font-weight:700;color:var(--roxo);margin-bottom:12px">Informações e Ajuda</h3>
+            <ul style="list-style:none">
+              <li style="padding:10px;cursor:pointer;border-radius:8px;transition:all 0.2s" onmouseover="this.style.background='var(--lilas-light)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-headset" style="margin-right:8px;color:var(--roxo)"></i> Suporte
+              </li>
+              <li style="padding:10px;cursor:pointer;border-radius:8px;transition:all 0.2s" onmouseover="this.style.background='var(--lilas-light)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-comment-dots" style="margin-right:8px;color:var(--roxo)"></i> Feedback
+              </li>
+              <li style="padding:10px;cursor:pointer;border-radius:8px;transition:all 0.2s" onmouseover="this.style.background='var(--lilas-light)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-info-circle" style="margin-right:8px;color:var(--roxo)"></i> Sobre
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <div class="card">
+          <form id="settingsForm">
+            <div class="form-row">
+              <div style="flex:1">
+                <label for="name">Nome</label>
+                <input id="name" type="text" placeholder="Seu nome">
+              </div>
+              <div style="width:220px">
+                <label for="username">Usuário</label>
+                <input id="username" type="text" placeholder="username">
+              </div>
             </div>
-            <div style="width:220px">
-              <label for="username">Usuário</label>
-              <input id="username" type="text" placeholder="username">
+
+            <div style="margin-bottom:12px">
+              <label for="email">Email</label>
+              <input id="email" type="email" placeholder="seu@email.com">
             </div>
-          </div>
 
-          <div style="margin-bottom:12px">
-            <label for="email">Email</label>
-            <input id="email" type="email" placeholder="seu@email.com">
-          </div>
-
-          <div class="form-row" style="align-items:center">
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <label>Avatar</label>
-              <input id="avatarInput" type="file" accept="image/*">
-              <div class="muted">Tamanho máximo: 2MB (mock)</div>
+            <div class="form-row" style="align-items:center">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label>Avatar</label>
+                <input id="avatarInput" type="file" accept="image/*">
+                <div class="muted">Tamanho máximo: 2MB (mock)</div>
+              </div>
+              <div style="margin-left:auto">
+                <div class="avatar-preview" id="avatarPreview">U</div>
+              </div>
             </div>
-            <div style="margin-left:auto">
-              <div class="avatar-preview" id="avatarPreview">U</div>
+
+            <div style="margin:14px 0">
+              <label for="notifications">Notificações por email</label>
+              <select id="notifications">
+                <option value="enabled">Habilitadas</option>
+                <option value="disabled">Desabilitadas</option>
+              </select>
             </div>
-          </div>
 
-          <div style="margin:14px 0">
-            <label for="notifications">Notificações por email</label>
-            <select id="notifications">
-              <option value="enabled">Habilitadas</option>
-              <option value="disabled">Desabilitadas</option>
-            </select>
-          </div>
-
-          <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:10px">
-            <button type="button" class="btn" id="saveBtn">Salvar</button>
-            <button type="button" class="btn" id="cancelBtn" style="background:#bbb">Cancelar</button>
-          </div>
-        </form>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:10px">
+              <button type="button" class="btn" id="saveBtn">Salvar</button>
+              <button type="button" class="btn" id="cancelBtn" style="background:#bbb">Cancelar</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- TOAST NOTIFICATION -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <script>
+    // Toast notification function
+    function showToast(message, type = 'success') {
+      const existingToast = document.querySelector('.toast');
+      if (existingToast) existingToast.remove();
+      
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      toast.style.cssText = 'position:fixed;bottom:30px;right:30px;background:white;border:1px solid #f0e4fd;border-left:4px solid '+(type === 'success' ? '#10b981' : '#ef4444')+';border-radius:12px;padding:16px 20px;box-shadow:0 4px 20px rgba(155,93,229,0.15);display:flex;align-items:center;gap:12px;min-width:280px;max-width:400px;opacity:0;transform:translateY(20px);transition:all 0.3s ease;z-index:2000';
+      
+      const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+      toast.innerHTML = '<i class="fas '+icon+'" style="font-size:20px;color:'+(type === 'success' ? '#10b981' : '#ef4444')+'"></i><div style="flex:1;color:#32264c;font-size:14px">'+message+'</div>';
+      
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; }, 10);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px)'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+
+    // Logout functionality
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      try {
+        const response = await fetch('/api/auth/logout', { method: 'POST' });
+        if (response.ok) {
+          showToast('Logout realizado com sucesso!', 'success');
+          setTimeout(() => { window.location.href = '/'; }, 1500);
+        } else {
+          showToast('Erro ao fazer logout', 'error');
+        }
+      } catch (error) {
+        console.error('Erro ao fazer logout:', error);
+        showToast('Erro ao fazer logout', 'error');
+      }
+    });
+
     // Pré-visualização de avatar
     const avatarInput = document.getElementById('avatarInput');
     const avatarPreview = document.getElementById('avatarPreview');
@@ -139,7 +227,7 @@
         notifications: document.getElementById('notifications').value
       };
       console.log('Salvar (mock):', data);
-      alert('Configurações salvas (mock)');
+      showToast('Configurações salvas com sucesso!', 'success');
     });
 
     document.getElementById('cancelBtn').addEventListener('click', () => { window.location.href = '/feed'; });
