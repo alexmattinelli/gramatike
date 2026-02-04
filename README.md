@@ -70,7 +70,30 @@ Ver [SETUP.md](./SETUP.md) para instruções detalhadas.
 2. Build command: `npm run build`
 3. Build output: `public`
 4. Adicionar D1 binding: `DB` → seu banco D1 (ex: `gramatike`)
-5. Resetar banco: `wrangler d1 execute <seu-banco-d1> --file=./schema.d1.sql --remote`
+5. **⚠️ IMPORTANTE - Executar schema no banco remoto:**
+   
+   **Opção A - Com API Token (Mais Rápido):**
+   ```bash
+   export CLOUDFLARE_API_TOKEN="seu-token-aqui"
+   bash scripts/setup-com-api-token.sh
+   ```
+   
+   **Opção B - Com Login Interativo:**
+   ```bash
+   npx wrangler login
+   npm run db:init
+   ```
+   
+   **Opção C - Script Guiado:**
+   ```bash
+   bash scripts/setup-inicial.sh
+   ```
+   
+   📚 **Guias Detalhados:**
+   - [GUIA_SETUP_DB.md](./GUIA_SETUP_DB.md) - Passo a passo completo
+   - [SETUP_RAPIDO_API_TOKEN.md](./SETUP_RAPIDO_API_TOKEN.md) - Setup com API token
+   
+   **Nota:** Isso cria todas as tabelas necessárias, incluindo `post_likes` que é necessária para a funcionalidade de curtidas. Sem esta etapa, você receberá erro 500 ao tentar curtir posts.
 
 ### Deploy Automático (Recomendado)
 

@@ -66,7 +66,8 @@
       position: relative;
       z-index: 1;
       background: var(--lilas-light);
-      padding-top: 30px;
+      padding-top: 0;
+      margin-top: -50px;
     }
     
     .container {
@@ -446,6 +447,11 @@
     <a href="/feed" class="logo">Gramátike</a>
   </nav>
   
+  <!-- CURVA DECORATIVA ENTRE HEADER E CONTEÚDO -->
+  <svg viewBox="0 0 1440 100" style="display: block; margin-top: -1px; position: relative; z-index: 2;">
+    <path fill="#f6f5fa" d="M0,50 Q360,0 720,50 T1440,50 L1440,100 L0,100 Z"></path>
+  </svg>
+  
   <div class="main-wrapper">
     <div class="container">
       <a href="/feed" class="back-button">
@@ -728,10 +734,16 @@
         });
         
         if (response.ok) {
+          const data = await response.json();
+          const isLiked = data.data?.liked !== false;
+          showToast(isLiked ? 'Post curtido!' : 'Curtida removida', 'success');
           await loadPost(currentPostId);
+        } else {
+          showToast('Erro ao curtir post', 'error');
         }
       } catch (error) {
         console.error('Erro ao curtir:', error);
+        showToast('Erro ao curtir post', 'error');
       }
     }
     
