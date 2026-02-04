@@ -50,8 +50,6 @@
       justify-content: space-between;
       padding: 0 28px;
       box-shadow: 0 1px 3px rgba(155, 93, 229, 0.1);
-      border-top-left-radius: 24px;
-      border-top-right-radius: 24px;
     }
     
     .logo {
@@ -69,7 +67,9 @@
       z-index: 1;
       background: var(--lilas-light);
       padding-top: 0;
-      margin-top: 0;
+      margin-top: -50px;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
     }
     
     /* LAYOUT DE 3 COLUNAS DENTRO DO CONTAINER */
@@ -1253,6 +1253,11 @@
   <nav>
     <a href="/feed" class="logo">Gramátike</a>
   </nav>
+  
+  <!-- CURVA DECORATIVA ENTRE HEADER E CONTEÚDO -->
+  <svg viewBox="0 0 1440 100" style="display: block; margin-top: -1px; position: relative; z-index: 2;">
+    <path fill="#f6f5fa" d="M0,50 Q360,0 720,50 T1440,50 L1440,100 L0,100 Z"></path>
+  </svg>
   
   <!-- CONTEÚDO PRINCIPAL COM CURVATURA NO TOPO -->
   <div class="main-wrapper">

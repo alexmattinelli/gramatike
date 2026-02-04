@@ -33,8 +33,6 @@
       justify-content: space-between;
       padding: 0 28px;
       box-shadow: 0 1px 3px rgba(155, 93, 229, 0.1);
-      border-top-left-radius: 24px;
-      border-top-right-radius: 24px;
     }
     .logo {
       font-family: 'Mansalva', cursive;
@@ -46,9 +44,12 @@
     .main-wrapper {
       background: var(--lilas-light);
       min-height: 100vh;
-      padding-top: 30px;
+      padding-top: 0;
       position: relative;
       z-index: 1;
+      margin-top: -50px;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
     }
     .container {
       max-width: 700px;
@@ -171,6 +172,12 @@
   <nav>
     <a href="/feed" class="logo">Gramátike</a>
   </nav>
+  
+  <!-- CURVA DECORATIVA ENTRE HEADER E CONTEÚDO -->
+  <svg viewBox="0 0 1440 100" style="display: block; margin-top: -1px; position: relative; z-index: 2;">
+    <path fill="#f6f5fa" d="M0,50 Q360,0 720,50 T1440,50 L1440,100 L0,100 Z"></path>
+  </svg>
+  
   <div class="main-wrapper">
     <div class="container">
       <div class="profile-card">
