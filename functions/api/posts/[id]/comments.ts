@@ -214,8 +214,7 @@ export const onRequestPost: PagesFunction<{ DB: any }> = async ({ params, reques
     console.error('[posts/id/comments] POST Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack : '';
-    console.error('[posts/id/comments] POST Error details:', errorMessage);
-    console.error('[posts/id/comments] POST Error stack:', errorStack);
+    console.error('[posts/id/comments] POST Error details:', { message: errorMessage, stack: errorStack });
     
     return new Response(JSON.stringify({ 
       success: false, 

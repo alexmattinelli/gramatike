@@ -743,7 +743,7 @@
       // Disable button to prevent double-clicks
       const originalText = likeBtn.innerHTML;
       likeBtn.disabled = true;
-      likeBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando...';
+      likeBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-label="Processando curtida"></i> Processando...';
       
       try {
         const response = await fetch(`/api/posts/${currentPostId}`, {
