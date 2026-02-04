@@ -284,17 +284,22 @@ export const onRequestPut: PagesFunction<{ DB: any }> = async ({ params, request
 // PATCH /api/posts/:id/like - Like/unlike a post
 export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, data }) => {
   try {
+    console.log('[posts/id] PATCH - Starting like/unlike request');
+    
     const user = data.user as User | null;
     if (!user) {
-      console.error('[posts/id] PATCH - User not authenticated');
+      console.error('[posts/id] PATCH - User not authenticated - session may have expired');
       return new Response(JSON.stringify({ 
         success: false, 
-        error: 'Não autorizado' 
+        error: 'Sessão expirada. Por favor, faça login novamente.',
+        errorCode: 'SESSION_EXPIRED'
       }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' }
       });
     }
+    
+    console.log('[posts/id] PATCH - User authenticated:', { userId: user.id, username: user.username });
     
     const postId = parseInt(params.id as string);
     if (isNaN(postId)) {
@@ -307,6 +312,8 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
         headers: { 'Content-Type': 'application/json' }
       });
     }
+    
+    console.log('[posts/id] PATCH - Processing like for post:', postId);
     
     // Verificar se post existe
     const { results: postResults } = await env.DB.prepare(
@@ -324,6 +331,8 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
       });
     }
     
+    console.log('[posts/id] PATCH - Post exists, checking if already liked');
+    
     // Verificar se usuário já curtiu
     let likeResults;
     try {
@@ -331,6 +340,7 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
         'SELECT id FROM post_likes WHERE post_id = ? AND user_id = ?'
       ).bind(postId, user.id).all();
       likeResults = likeQuery.results;
+      console.log('[posts/id] PATCH - Like check result:', { alreadyLiked: likeResults && likeResults.length > 0 });
     } catch (error) {
       console.error('[posts/id] PATCH - Error checking post_likes table:', error);
       console.error('[posts/id] PATCH - This likely means the post_likes table does not exist in the database');
@@ -347,6 +357,7 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
     const alreadyLiked = likeResults && likeResults.length > 0;
     
     if (alreadyLiked) {
+      console.log('[posts/id] PATCH - Removing like');
       // Unlike - remover curtida
       await env.DB.prepare(
         'DELETE FROM post_likes WHERE post_id = ? AND user_id = ?'
@@ -357,6 +368,7 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
         'UPDATE posts SET likes = CASE WHEN likes > 0 THEN likes - 1 ELSE 0 END WHERE id = ?'
       ).bind(postId).run();
     } else {
+      console.log('[posts/id] PATCH - Adding like');
       // Like - adicionar curtida
       await env.DB.prepare(
         'INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)'
@@ -382,7 +394,7 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
        LIMIT 3`
     ).bind(postId).all();
     
-    console.log('[posts/id] PATCH - Success:', { postId, userId: user.id, liked: !alreadyLiked });
+    console.log('[posts/id] PATCH - Success:', { postId, userId: user.id, liked: !alreadyLiked, newLikes: countResults[0]?.likes });
     
     return new Response(JSON.stringify({ 
       success: true, 
@@ -406,7 +418,7 @@ export const onRequestPatch: PagesFunction<{ DB: any }> = async ({ params, env, 
     
     return new Response(JSON.stringify({ 
       success: false, 
-      error: 'Erro ao curtir post'
+      error: 'Erro ao curtir post. Por favor, tente novamente.'
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
