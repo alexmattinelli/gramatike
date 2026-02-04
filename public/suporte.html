@@ -20,7 +20,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
-      background: var(--lilas-light);
+      background: var(--roxo);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
       color: var(--texto);
@@ -44,10 +44,21 @@
       text-decoration: none;
     }
     
+    .main-wrapper {
+      background: var(--lilas-light);
+      min-height: 100vh;
+      padding-top: 0;
+      position: relative;
+      z-index: 1;
+      margin-top: -50px;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+    }
+    
     .container {
       max-width: 800px;
-      margin: 40px auto;
-      padding: 0 20px;
+      margin: 0 auto;
+      padding: 40px 20px;
     }
     
     .card {
@@ -204,10 +215,11 @@
     <a href="/feed" class="logo">Gramátike</a>
   </nav>
   
-  <div class="container">
-    <div class="card">
-      <h1>Central de Suporte</h1>
-      <p>Como podemos te ajudar?</p>
+  <div class="main-wrapper">
+    <div class="container">
+      <div class="card">
+        <h1>Central de Suporte</h1>
+        <p>Como podemos te ajudar?</p>
       
       <form id="supportForm">
         <div class="form-group">
@@ -239,6 +251,7 @@
         <i class="fas fa-arrow-left"></i> Voltar ao Feed
       </a>
     </div>
+  </div>
   </div>
   
   <script>
