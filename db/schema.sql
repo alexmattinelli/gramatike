@@ -1,6 +1,7 @@
 -- Gramátike v3 - Minimalist MVP Schema
 -- SQLite (Cloudflare D1)
 
+DROP TABLE IF EXISTS user_follows;
 DROP TABLE IF EXISTS password_resets;
 DROP TABLE IF EXISTS posts;
 DROP TABLE IF EXISTS sessions;
@@ -76,6 +77,18 @@ CREATE TABLE post_comments (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Tabela de seguidores (follow/unfollow)
+CREATE TABLE user_follows (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    follower_id INTEGER NOT NULL,
+    following_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(follower_id, following_id),
+    FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE,
+    CHECK (follower_id != following_id)
+);
+
 -- Índices
 CREATE INDEX idx_posts_user_id ON posts(user_id);
 CREATE INDEX idx_posts_created_at ON posts(created_at DESC);
@@ -89,3 +102,6 @@ CREATE INDEX idx_post_likes_created_at ON post_likes(created_at DESC);
 CREATE INDEX idx_post_comments_post_id ON post_comments(post_id);
 CREATE INDEX idx_post_comments_user_id ON post_comments(user_id);
 CREATE INDEX idx_post_comments_created_at ON post_comments(created_at DESC);
+CREATE INDEX idx_user_follows_follower_id ON user_follows(follower_id);
+CREATE INDEX idx_user_follows_following_id ON user_follows(following_id);
+CREATE INDEX idx_user_follows_created_at ON user_follows(created_at DESC);
