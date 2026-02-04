@@ -40,6 +40,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         id,
         username,
         name,
+        bio,
+        genero,
+        pronome,
         email,
         avatar_initials,
         verified,
@@ -67,6 +70,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     const followingCount = await db.prepare(
       'SELECT COUNT(*) as count FROM user_follows WHERE follower_id = ?'
     ).bind(targetUserId).first();
+    
+    // Get posts count
+    const postsCount = await db.prepare(
+      'SELECT COUNT(*) as count FROM posts WHERE user_id = ?'
+    ).bind(targetUserId).first();
 
     // Check if current user is following this user
     let isFollowing = false;
@@ -91,6 +99,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       success: true,
       user: {
         ...user,
+        bio: user.bio || '',
+        genero: user.genero || 'Prefiro não informar',
+        pronome: user.pronome || 'Prefiro não informar',
+        posts_count: postsCount?.count || 0,
         followers_count: followersCount?.count || 0,
         following_count: followingCount?.count || 0,
         is_following: isFollowing,
