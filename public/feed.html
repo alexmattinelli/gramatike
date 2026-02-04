@@ -1597,9 +1597,22 @@
       }
     }
 
-    async function fetchRealPosts() {
+    async function fetchRealPosts(retryCount = 0) {
+      const maxRetries = 2;
+      
       try {
+        // Show loading state
+        if (retryCount === 0) {
+          postsContainer.innerHTML = `
+            <div class="empty-state">
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              <div class="empty-text">Carregando posts...</div>
+            </div>
+          `;
+        }
+        
         const response = await fetch('/api/posts');
+        
         if (response.ok) {
           const data = await response.json();
           // Handle different API response structures
@@ -1614,13 +1627,34 @@
             posts = data;
           }
           renderPosts(posts);
+        } else if (response.status === 401) {
+          // Session expired
+          console.error('Sessão expirada ao carregar posts');
+          showToast('Sessão expirada. Redirecionando para login...', 'error');
+          setTimeout(() => {
+            window.location.href = '/login.html';
+          }, 2000);
         } else {
           console.error('Erro na API de posts:', response.status);
-          showError('Erro ao carregar posts');
+          
+          // Retry if we haven't exceeded max retries
+          if (retryCount < maxRetries) {
+            console.log(`Tentando novamente... (${retryCount + 1}/${maxRetries})`);
+            setTimeout(() => fetchRealPosts(retryCount + 1), 1000);
+          } else {
+            showError('⚠️ Erro ao carregar posts. Por favor, recarregue a página.');
+          }
         }
       } catch (error) {
         console.error('Erro ao buscar posts:', error);
-        showError('Erro de conexão com o servidor');
+        
+        // Retry if we haven't exceeded max retries
+        if (retryCount < maxRetries) {
+          console.log(`Tentando novamente após erro de conexão... (${retryCount + 1}/${maxRetries})`);
+          setTimeout(() => fetchRealPosts(retryCount + 1), 1000);
+        } else {
+          showError('⚠️ Erro de conexão com o servidor. Verifique sua internet e recarregue a página.');
+        }
       }
     }
 
@@ -1837,6 +1871,15 @@
             
             console.log('Post publicado com sucesso!');
           } else {
+            // Check for session expiration
+            if (response.status === 401 || data.errorCode === 'SESSION_EXPIRED') {
+              showToast('Sessão expirada. Redirecionando para login...', 'error');
+              setTimeout(() => {
+                window.location.href = '/login.html';
+              }, 2000);
+              return;
+            }
+            
             const errorMsg = data.error || 'Erro ao publicar post';
             showToast(errorMsg, 'error');
             console.error('Erro ao criar post:', errorMsg);
@@ -1844,7 +1887,7 @@
         }
       } catch (error) {
         console.error('Erro ao criar post:', error);
-        showToast('Erro ao conectar com o servidor', 'error');
+        showToast('Erro ao conectar com o servidor. Verifique sua conexão.', 'error');
       }
     }
 
@@ -1887,8 +1930,19 @@
           // Reload posts to update like count and list of users who liked
           await fetchRealPosts();
         } else {
+          const data = await response.json().catch(() => ({}));
+          
+          // Check for session expiration
+          if (response.status === 401 || data.errorCode === 'SESSION_EXPIRED') {
+            showToast('Sessão expirada. Redirecionando para login...', 'error');
+            setTimeout(() => {
+              window.location.href = '/login.html';
+            }, 2000);
+            return;
+          }
+          
           console.error('Erro ao curtir post:', response.status);
-          showToast('Erro ao curtir post', 'error');
+          showToast(data.error || 'Erro ao curtir post', 'error');
           // Revert the button state if failed
           if (btnElement) {
             btnElement.classList.toggle('active');
@@ -1897,7 +1951,7 @@
         }
       } catch (error) {
         console.error('Erro ao curtir:', error);
-        showToast('Erro ao curtir post', 'error');
+        showToast('Erro ao curtir post. Verifique sua conexão e tente novamente.', 'error');
         // Revert the button state if failed
         if (btnElement) {
           btnElement.classList.toggle('active');
