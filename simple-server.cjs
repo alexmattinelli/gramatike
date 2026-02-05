@@ -147,8 +147,73 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Handle /api/users/me
+  if (req.url === '/api/users/me') {
+    const currentUser = {
+      id: 1,
+      username: 'mariasilva',
+      email: 'ma***@email.com',
+      name: 'Maria Silva',
+      bio: 'Estudante de Letras apaixonada por gramática!',
+      genero: 'Mulher (cis)',
+      pronome: 'ela/dela',
+      avatar_initials: 'MS',
+      verified: true,
+      online_status: true,
+      role: 'user',
+      created_at: '2024-01-15T10:00:00Z',
+      is_banned: false
+    };
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: true, data: { user: currentUser } }));
+    return;
+  }
+
+  // Handle /api/users/:id
+  const userMatch = req.url.match(/^\/api\/users\/(\d+)$/);
+  if (userMatch) {
+    const userId = parseInt(userMatch[1]);
+    const user = mockUsers.find(u => u.id === userId);
+    
+    if (user) {
+      const userProfile = {
+        ...user,
+        bio: `Bio de ${user.name}`,
+        genero: 'Prefiro não informar',
+        pronome: 'Prefiro não informar',
+        verified: userId === 1,
+        online_status: userId <= 3,
+        created_at: '2024-01-15T10:00:00Z',
+        posts_count: posts.filter(p => p.user.id === userId).length,
+        followers_count: 42,
+        following_count: 38,
+        is_following: false,
+        follows_you: false,
+        is_mutual: false
+      };
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true, user: userProfile }));
+    } else {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Usuário não encontrado' }));
+    }
+    return;
+  }
+
+  // Handle /api/users/:id/posts
+  const userPostsMatch = req.url.match(/^\/api\/users\/(\d+)\/posts$/);
+  if (userPostsMatch) {
+    const userId = parseInt(userPostsMatch[1]);
+    const userPosts = posts.filter(p => p.user.id === userId);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: true, data: { posts: userPosts, total: userPosts.length } }));
+    return;
+  }
+
   // Serve static files
-  let filePath = './public' + req.url;
+  // Strip query string from URL
+  const urlPath = req.url.split('?')[0];
+  let filePath = './public' + urlPath;
   if (filePath === './public/') {
     filePath = './public/index.html';
   }

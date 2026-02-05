@@ -46,7 +46,7 @@
       width: 100%;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
       padding: 0 28px;
       box-shadow: 0 1px 3px rgba(155, 93, 229, 0.1);
     }
@@ -579,12 +579,13 @@
         
         const data = await response.json();
         const post = data.data?.post || data.post;
+        const userLiked = data.data?.userLiked ?? false;
         
         if (!post) {
           throw new Error('Post não encontrado');
         }
         
-        renderPost(post);
+        renderPost(post, userLiked);
         loadComments(postId);
       } catch (error) {
         console.error('Erro ao carregar post:', error);
@@ -594,7 +595,7 @@
     }
     
     // Render post
-    function renderPost(post) {
+    function renderPost(post, userLiked = false) {
       const userName = post.user_name || post.name || 'Usuárie';
       const username = post.username || 'usuario';
       const userId = post.user_id || 1;
@@ -607,6 +608,11 @@
       
       const isCurrentUser = userId == (window.currentUserId || 0);
       const profileUrl = isCurrentUser ? '/meu_perfil.html' : `/perfil.html?user=${userId}`;
+      
+      // Set like button state based on userLiked
+      const likeButtonClass = userLiked ? 'interaction-btn like-btn active' : 'interaction-btn like-btn';
+      const likeIcon = userLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+      const likeText = userLiked ? 'Curtido' : 'Curtir';
       
       const postHTML = `
         <div class="post-card">
@@ -624,8 +630,8 @@
           ${likes > 0 ? `<div class="post-likes-text"><strong>${likes}</strong> ${likes === 1 ? 'curtida' : 'curtidas'}</div>` : ''}
           ${comments > 0 ? `<div class="post-likes-text"><strong>${comments}</strong> ${comments === 1 ? 'comentário' : 'comentários'}</div>` : ''}
           <div class="post-interactions">
-            <button class="interaction-btn like-btn" onclick="likePost()">
-              <i class="fa-regular fa-heart"></i> Curtir
+            <button class="${likeButtonClass}" onclick="likePost()">
+              <i class="${likeIcon}"></i> <span class="like-text">${likeText}</span>
             </button>
             <button class="interaction-btn comment-btn active">
               <i class="fa-solid fa-comment"></i> Comentar
