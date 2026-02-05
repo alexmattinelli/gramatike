@@ -15,7 +15,7 @@ interface User {
   role: string;
   created_at: string;
   password_hash?: string;
-  banned?: boolean;
+  is_banned?: boolean;
 }
 
 // GET /api/users/me - Get current user
@@ -46,7 +46,7 @@ export const onRequestGet: PagesFunction<{ DB: any }> = async ({ data, env }) =>
     const { results } = await env.DB.prepare(
       `SELECT 
         id, username, email, name, bio, genero, pronome, avatar_initials, 
-        verified, online_status, role, created_at, banned
+        verified, online_status, role, created_at, is_banned
       FROM users WHERE id = ?`
     ).bind(user.id).all();
     
@@ -66,7 +66,7 @@ export const onRequestGet: PagesFunction<{ DB: any }> = async ({ data, env }) =>
       online_status: Boolean(currentUser.online_status),
       role: currentUser.role || 'user',
       created_at: currentUser.created_at,
-      banned: Boolean(currentUser.banned),
+      is_banned: Boolean(currentUser.is_banned),
       stats: {
         // Poderia adicionar mais stats aqui (posts, likes, etc.)
       }

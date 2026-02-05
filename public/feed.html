@@ -37,12 +37,11 @@
       color: var(--texto);
     }
     
-    /* NAVEGAÇÃO FIXA (STICKY) */
+    /* NAVEGAÇÃO */
     nav {
       background: var(--roxo);
       height: 70px;
-      position: sticky;
-      top: 0;
+      position: static;
       z-index: 1000;
       width: 100%;
       display: flex;
@@ -176,6 +175,7 @@
       box-shadow: none;
       border: none;
       padding: 0;
+      margin-top: 20px;
       margin-bottom: 20px;
     }
     
@@ -1604,9 +1604,37 @@
         }
       } else {
         // Fallback: tentar buscar via API (modo desenvolvimento)
-        fetchRealPosts();
-        fetchRealFriends();
+        // First fetch current user, then posts
+        fetchCurrentUser();
       }
+    }
+    
+    // Fetch current user information
+    async function fetchCurrentUser() {
+      try {
+        const response = await fetch('/api/users/me');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data && data.data.user) {
+            window.currentUserId = data.data.user.id;
+            console.log('Current user ID set:', window.currentUserId);
+          }
+        } else if (response.status === 401) {
+          // Not logged in - redirect to login
+          console.error('User not authenticated');
+          showToast('Por favor, faça login para acessar o feed', 'error');
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1500);
+          return;
+        }
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+      }
+      
+      // After fetching user, load posts and friends
+      fetchRealPosts();
+      fetchRealFriends();
     }
 
     async function fetchRealPosts(retryCount = 0) {
@@ -1707,7 +1735,7 @@
       const postElement = document.createElement('div');
       postElement.className = 'card post-card';
       
-      const userName = post.user?.name || post.author_name || 'Usuárie';
+      const userName = post.user?.name || post.author_name || post.user_name || 'Usuárie';
       const username = post.user?.username || post.author_username || post.username || 'usuario';
       const userId = post.user?.id || post.author_id || post.user_id || 1;
       const userInitial = userName.charAt(0).toUpperCase();
@@ -1717,11 +1745,19 @@
       const postId = post.id || post._id;
       const likedBy = post.liked_by || [];
       
-      // Verificar se o usuário atual curtiu este post
+      // Check if the current user liked this post
+      // Use user_liked flag from API if available, otherwise fallback to checking liked_by array
       const currentUserId = window.currentUserId || 0;
-      const userLiked = likedBy.some(user => user.id === currentUserId);
+      let userLiked = false;
+      if (typeof post.user_liked !== 'undefined') {
+        userLiked = post.user_liked;
+      } else {
+        userLiked = likedBy.some(user => user.id === currentUserId);
+      }
+      
       const likeButtonClass = userLiked ? 'interaction-btn like-btn active' : 'interaction-btn like-btn';
       const likeIcon = userLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+      const likeButtonText = userLiked ? 'Curtido' : 'Curtir';
       
       let likesText = '';
       if (likes > 0) {
@@ -1765,7 +1801,7 @@
         ${likesText}
         <div class="post-interactions">
           <button class="${likeButtonClass}" onclick="likePost('${postId}', this)">
-            <i class="${likeIcon}"></i> Curtir
+            <i class="${likeIcon}"></i> <span class="like-text">${likeButtonText}</span>
           </button>
           <button class="interaction-btn comment-btn" onclick="commentPost('${postId}')">
             <i class="fa-regular fa-comment"></i> Comentar
@@ -1816,11 +1852,13 @@
       friends.slice(0, 5).forEach(friend => {
         // Ajuste conforme a estrutura do SEU banco de dados
         const friendName = friend.name || friend.username || 'Usuárie';
+        const friendId = friend.id || friend.user_id || 0;
         const initial = friendName.charAt(0).toUpperCase();
         const isOnline = friend.online || friend.status === 'online';
+        const profileUrl = `/perfil.html?user=${friendId}`;
         
         friendsHTML += `
-          <div class="friend-item">
+          <div class="friend-item" onclick="window.location.href='${profileUrl}'" style="cursor: pointer;">
             <div class="friend-avatar">${initial}</div>
             <div class="friend-info">
               <div class="friend-name">${friendName}</div>
@@ -1896,11 +1934,14 @@
     function updateLikeButtonIcon(btnElement) {
       if (!btnElement) return;
       const icon = btnElement.querySelector('i');
+      const textSpan = btnElement.querySelector('.like-text');
       if (icon) {
         if (btnElement.classList.contains('active')) {
           icon.className = 'fa-solid fa-heart';
+          if (textSpan) textSpan.textContent = 'Curtido';
         } else {
           icon.className = 'fa-regular fa-heart';
+          if (textSpan) textSpan.textContent = 'Curtir';
         }
       }
     }
