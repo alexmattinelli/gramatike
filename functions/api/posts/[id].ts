@@ -2,7 +2,6 @@
 import type { PagesFunction } from '@cloudflare/workers-types';
 import type { Env, User, Post } from '../../types';
 import { jsonResponse, errorResponse } from '../../lib/response';
-import type { PagesFunction } from '@cloudflare/workers-types';
 
 interface User {
   id: number;
@@ -25,7 +24,7 @@ interface Post {
 }
 
 // GET /api/posts/:id - Get single post
-export const onRequestGet: PagesFunction<{ DB: any }> = async ({ params, env }) => {
+export const onRequestGet: PagesFunction<{ DB: any }> = async ({ params, env, data }) => {
   try {
     const postId = parseInt(params.id as string);
     if (isNaN(postId)) {
@@ -64,9 +63,27 @@ export const onRequestGet: PagesFunction<{ DB: any }> = async ({ params, env }) 
     
     const post = results[0] as Post;
     
+    // Check if the current user has liked this post (if authenticated)
+    let userLiked = false;
+    const user = data.user as User | null;
+    if (user && user.id) {
+      try {
+        const { results: likeCheck } = await env.DB.prepare(
+          'SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?'
+        ).bind(postId, user.id).all();
+        userLiked = likeCheck && likeCheck.length > 0;
+      } catch (e) {
+        // User not authenticated or error checking likes, keep userLiked = false
+        console.error('[posts/id] GET - Error checking user like:', e);
+      }
+    }
+    
     return new Response(JSON.stringify({ 
       success: true, 
-      data: { post } 
+      data: { 
+        post,
+        userLiked
+      } 
     }), {
       headers: { 'Content-Type': 'application/json' }
     });
