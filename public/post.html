@@ -579,7 +579,7 @@
         
         const data = await response.json();
         const post = data.data?.post || data.post;
-        const userLiked = data.data?.userLiked || false;
+        const userLiked = data.data?.userLiked ?? false;
         
         if (!post) {
           throw new Error('Post não encontrado');

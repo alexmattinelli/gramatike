@@ -71,7 +71,7 @@ export const onRequestGet: PagesFunction<{ DB: any }> = async ({ params, env, da
         ).bind(postId, user.id).all();
         userLiked = likeCheck && likeCheck.length > 0;
       } catch (e) {
-        // User not authenticated or error checking likes, keep userLiked = false
+        // Error checking likes, keep userLiked = false
         console.error('[posts/id] GET - Error checking user like:', e);
       }
     }
