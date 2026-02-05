@@ -25,12 +25,16 @@ interface Post {
 }
 
 // GET /api/posts - List posts with pagination
-export const onRequestGet: PagesFunction<{ DB: any }> = async ({ request, env }) => {
+export const onRequestGet: PagesFunction<{ DB: any }> = async ({ request, env, data }) => {
   try {
     const url = new URL(request.url);
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 100); // Máximo 100
     const offset = parseInt(url.searchParams.get('offset') || '0');
     const userId = url.searchParams.get('user_id'); // Filtro opcional por usuário
+    
+    // Get current user from middleware
+    const currentUser = data.user as User | null;
+    const currentUserId = currentUser?.id;
     
     let query = `
       SELECT 
@@ -59,6 +63,7 @@ export const onRequestGet: PagesFunction<{ DB: any }> = async ({ request, env })
     const { results } = await env.DB.prepare(query).bind(...params).all();
     
     // Para cada post, buscar os primeiros 3 usuários que curtiram
+    // E verificar se o usuário atual curtiu
     const postsWithLikes = await Promise.all((results || []).map(async (post: any) => {
       const { results: likedByResults } = await env.DB.prepare(
         `SELECT users.id, users.username, users.name, users.avatar_initials
@@ -69,9 +74,19 @@ export const onRequestGet: PagesFunction<{ DB: any }> = async ({ request, env })
          LIMIT 3`
       ).bind(post.id).all();
       
+      // Check if current user liked this post
+      let userLiked = false;
+      if (currentUserId) {
+        const { results: userLikeResults } = await env.DB.prepare(
+          `SELECT id FROM post_likes WHERE post_id = ? AND user_id = ?`
+        ).bind(post.id, currentUserId).all();
+        userLiked = (userLikeResults && userLikeResults.length > 0);
+      }
+      
       return {
         ...post,
-        liked_by: likedByResults || []
+        liked_by: likedByResults || [],
+        user_liked: userLiked
       };
     }));
     

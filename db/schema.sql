@@ -23,6 +23,8 @@ CREATE TABLE users (
     role TEXT DEFAULT 'user',
     is_admin INTEGER DEFAULT 0,
     is_banned INTEGER DEFAULT 0,
+    last_active DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -33,6 +35,7 @@ CREATE TABLE posts (
     content TEXT NOT NULL,
     likes INTEGER DEFAULT 0,
     comments INTEGER DEFAULT 0,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
