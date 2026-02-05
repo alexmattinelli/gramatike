@@ -1757,6 +1757,7 @@
       
       const likeButtonClass = userLiked ? 'interaction-btn like-btn active' : 'interaction-btn like-btn';
       const likeIcon = userLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+      const likeButtonText = userLiked ? 'Curtido' : 'Curtir';
       
       let likesText = '';
       if (likes > 0) {
@@ -1800,7 +1801,7 @@
         ${likesText}
         <div class="post-interactions">
           <button class="${likeButtonClass}" onclick="likePost('${postId}', this)">
-            <i class="${likeIcon}"></i> Curtir
+            <i class="${likeIcon}"></i> <span class="like-text">${likeButtonText}</span>
           </button>
           <button class="interaction-btn comment-btn" onclick="commentPost('${postId}')">
             <i class="fa-regular fa-comment"></i> Comentar
@@ -1851,11 +1852,13 @@
       friends.slice(0, 5).forEach(friend => {
         // Ajuste conforme a estrutura do SEU banco de dados
         const friendName = friend.name || friend.username || 'Usuárie';
+        const friendId = friend.id || friend.user_id || 0;
         const initial = friendName.charAt(0).toUpperCase();
         const isOnline = friend.online || friend.status === 'online';
+        const profileUrl = `/perfil.html?user=${friendId}`;
         
         friendsHTML += `
-          <div class="friend-item">
+          <div class="friend-item" onclick="window.location.href='${profileUrl}'" style="cursor: pointer;">
             <div class="friend-avatar">${initial}</div>
             <div class="friend-info">
               <div class="friend-name">${friendName}</div>
@@ -1931,11 +1934,14 @@
     function updateLikeButtonIcon(btnElement) {
       if (!btnElement) return;
       const icon = btnElement.querySelector('i');
+      const textSpan = btnElement.querySelector('.like-text');
       if (icon) {
         if (btnElement.classList.contains('active')) {
           icon.className = 'fa-solid fa-heart';
+          if (textSpan) textSpan.textContent = 'Curtido';
         } else {
           icon.className = 'fa-regular fa-heart';
+          if (textSpan) textSpan.textContent = 'Curtir';
         }
       }
     }
