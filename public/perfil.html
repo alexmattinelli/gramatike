@@ -396,7 +396,7 @@
       try {
         // Get user ID from URL
         const urlParams = new URLSearchParams(window.location.search);
-        const userId = urlParams.get('id');
+        const userId = urlParams.get('user');
         
         if (!userId) {
           throw new Error('ID de usuário não especificado');
