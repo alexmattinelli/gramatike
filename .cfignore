@@ -14,6 +14,10 @@ dist/
 tmp/
 temp/
 
+# Development server files (Node.js only - not for Cloudflare Workers)
+dev-server.js
+simple-server.cjs
+
 # Python files (not used in this TypeScript project)
 *.py
 *.pyc

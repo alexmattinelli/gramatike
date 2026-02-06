@@ -19,3 +19,28 @@ build/
 **/python/
 **/py/
 **/*.py
+
+# Development server files (Node.js only - not for Cloudflare Workers)
+dev-server.js
+simple-server.cjs
+
+# Node modules and build artifacts
+node_modules/
+.wrangler/
+.mf/
+
+# Environment and config files
+.env
+.env.*
+.git/
+
+# IDE and temporary files
+.vscode/
+.idea/
+.DS_Store
+*.tmp
+tmp/
+temp/
+*.log
+*.backup
+*.bak
